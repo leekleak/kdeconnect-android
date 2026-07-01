@@ -64,29 +64,6 @@ fun PairingScreen(
     val lazyListState = rememberLazyListState()
     val pullRefreshState = rememberPullToRefreshState()
 
-    PairingScreenContent(
-        lazyListState = lazyListState,
-        pullRefreshState = pullRefreshState,
-        uiState = uiState,
-        onClick = onClick,
-        onWifiSettingsClick = onWifiSettingsClick,
-        onNotificationSettingsClick = onNotificationSettingsClick,
-        onDuplicateNamesClick = onDuplicateNamesClick,
-        onRefresh = onRefresh
-    )
-}
-
-@Composable
-private fun PairingScreenContent(
-    lazyListState: LazyListState,
-    pullRefreshState: PullToRefreshState,
-    uiState: PairingUiState,
-    onClick: (String) -> Unit,
-    onWifiSettingsClick: () -> Unit,
-    onNotificationSettingsClick: () -> Unit,
-    onDuplicateNamesClick: () -> Unit,
-    onRefresh: () -> Unit = {}
-) {
     PullToRefreshBox(
         isRefreshing = uiState.isRefreshing,
         onRefresh = onRefresh,
@@ -313,12 +290,7 @@ private fun PairingScreenCardContent(device: DeviceUiModel) {
 @Composable
 private fun PreviewCompose() {
     KdeTheme(context = LocalContext.current) {
-        val lazyListState = rememberLazyListState()
-        val pullRefreshState = rememberPullToRefreshState()
-
-        PairingScreenContent(
-            lazyListState = lazyListState,
-            pullRefreshState = pullRefreshState,
+        PairingScreen(
             uiState = PairingUiState(
                 isWifiAvailable = true,
                 hasNotificationsPermission = true,

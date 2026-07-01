@@ -21,14 +21,19 @@ junitExt = "1.3.0"
 kotlin = "2.4.0"
 kspPlugin = "2.3.9"
 kotlinxCoroutinesCore = "1.11.0"
+kotlinxSerializationJson = "1.11.0"
+koin = "4.2.2"
+koinPlugin = "1.0.1"
+nav3Core = "1.1.4"
+lifecycleViewmodelNav3 = "2.11.0"
 lifecycleExtensions = "2.2.0"
-lifecycleRuntimeKtx = "2.10.0"
+lifecycleRuntimeKtx = "2.11.0"
 logger = "1.0.3"
 androidMaterial = "1.14.0"
 composeMaterialIcons = "1.7.8"
 composeMaterial3 = "1.4.0"
 media = "1.8.0"
-minaCore = "2.2.8"
+minaCore = "2.2.9"
 mockk = "1.14.11"
 preferenceKtx = "1.2.1"
 reactiveStreams = "1.0.4"
@@ -39,7 +44,7 @@ slf4j = "2.0.18"
 slf4j-handroid = "2.0.13"
 sshdCore = "2.18.0"
 swiperefreshlayout = "1.2.0"
-uiToolingPreview = "1.11.2"
+uiToolingPreview = "1.11.4"
 univocityParsers = "2.9.1"
 
 [libraries]
@@ -77,6 +82,14 @@ kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", ve
 kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesCore" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "nav3Core" }
+androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "nav3Core" }
+androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "lifecycleViewmodelNav3" }
+androidx-compose-ui-viewbinding = { module = "androidx.compose.ui:ui-viewbinding", version.ref = "uiToolingPreview" }
+koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
+koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
+koin-compose-navigation3 = { module = "io.insert-koin:koin-compose-navigation3", version.ref = "koin" }
 logger = { module = "com.klinkerapps:logger", version.ref = "logger" }
 google-android-material = { module = "com.google.android.material:material", version.ref = "androidMaterial" }
 apache-mina-core = { module = "org.apache.mina:mina-core", version.ref = "minaCore" }
@@ -96,5 +109,7 @@ slf4j-handroid = { module = "com.gitlab.mvysny.slf4j:slf4j-handroid", version.re
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "kspPlugin" }
 dependencyLicenseReport = { id = "com.github.jk1.dependency-license-report", version.ref = "dependencyLicenseReport" }
+koin = { id = "io.insert-koin.compiler.plugin", version.ref = "koinPlugin" }

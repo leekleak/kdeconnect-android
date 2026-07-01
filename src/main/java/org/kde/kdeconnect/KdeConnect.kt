@@ -24,7 +24,10 @@ import org.kde.kdeconnect.helpers.TrustedDevices
 import org.kde.kdeconnect.PairingHandler.PairingCallback
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginFactory
+import org.kde.kdeconnect.di.appModule
 import org.kde.kdeconnect.ui.ThemeUtil
+import org.koin.android.ext.koin.androidContext
+import org.koin.core.context.startKoin
 import org.kde.kdeconnect_tp.BuildConfig
 import org.slf4j.impl.HandroidLoggerAdapter
 import java.security.cert.CertificateException
@@ -51,6 +54,10 @@ class KdeConnect : Application() {
         super.onCreate()
         _instance = this
         setupSL4JLogging()
+        startKoin {
+            androidContext(this@KdeConnect)
+            modules(appModule)
+        }
         Log.d("KdeConnect/Application", "onCreate")
         ThemeUtil.setUserPreferredTheme(this)
         DeviceHelper.initializeDeviceId(this)

@@ -6,23 +6,35 @@
 
 package org.kde.kdeconnect.ui.compose.screen.pairing
 
+import android.Manifest
 import android.app.Application
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.bouncycastle.oer.its.EndEntityType.app
+import org.kde.kdeconnect.BackgroundService
 import org.kde.kdeconnect.BackgroundService.Companion.ForceRefreshConnections
+import org.kde.kdeconnect.BackgroundService.Companion.instance
 import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.helpers.TrustedNetworkHelper.Companion.isTrustedNetwork
 import org.kde.kdeconnect.ui.compose.extensions.device.toUiModel
 import org.kde.kdeconnect.ui.compose.model.device.DeviceUiModel
 
 class PairingViewModel(application: Application) : AndroidViewModel(application) {
-
     private val _pairingUiState = MutableStateFlow(
         value = PairingUiState(
             isWifiAvailable = false,
@@ -97,5 +109,61 @@ class PairingViewModel(application: Application) : AndroidViewModel(application)
             delay(timeMillis = 1500)
             _pairingUiState.update { uiState -> uiState.copy(isRefreshing = false) }
         }
+    }
+
+    private var listRefreshCalledThisFrame = false
+    private var connectivityJob: Job? = null
+
+    // called when the screen becomes visible
+    fun onStart(context: Context) {
+        KdeConnect.getInstance().addDeviceListChangedCallback("PairingViewModel") {
+            updateDeviceList(context)
+        }
+        ForceRefreshConnections(context)
+        updateDeviceList(context)
+    }
+
+    // called when the screen goes away
+    fun onStop() {
+        KdeConnect.getInstance().removeDeviceListChangedCallback("PairingViewModel")
+        connectivityJob?.cancel()
+    }
+
+    private fun updateDeviceList(context: Context) {
+        if (listRefreshCalledThisFrame) return
+        listRefreshCalledThisFrame = true
+
+        val service = BackgroundService.instance
+        if (service == null) {
+            updateConnectivityInfoHeader(isConnectedToNonCellularNetwork = true, context)
+        } else {
+            connectivityJob?.cancel()
+            connectivityJob = viewModelScope.launch {
+                service.isConnectedToNonCellularNetwork.asFlow()
+                    .collect { updateConnectivityInfoHeader(it, context) }
+            }
+        }
+
+        try {
+            val allDevices = KdeConnect.getInstance().devices.values
+                .filter { it.isReachable || it.isPaired }
+            buildUiState(devices = allDevices)
+        } finally {
+            listRefreshCalledThisFrame = false
+        }
+    }
+
+    private fun updateConnectivityInfoHeader(isConnectedToNonCellularNetwork: Boolean, context: Context) {
+        val hasNotificationsPermission =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
+                        PackageManager.PERMISSION_GRANTED
+            } else true
+
+        updateConnectivity(
+            isWifiAvailable = isConnectedToNonCellularNetwork,
+            hasNotificationsPermission = hasNotificationsPermission,
+            isTrustedNetwork = isTrustedNetwork(context)
+        )
     }
 }
