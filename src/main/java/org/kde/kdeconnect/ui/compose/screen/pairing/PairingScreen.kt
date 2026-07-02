@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,7 +55,10 @@ import org.kde.kdeconnect.ui.compose.components.KdeCard
 import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
 import org.kde.kdeconnect.ui.compose.components.SectionHeader
 import org.kde.kdeconnect.ui.compose.model.device.DeviceUiModel
+import org.kde.kdeconnect.ui.navigation.Navigator
+import org.kde.kdeconnect.ui.navigation.SettingsKey
 import org.kde.kdeconnect_tp.R
+import org.koin.compose.koinInject
 
 @Composable
 fun PairingScreen(
@@ -68,16 +72,17 @@ fun PairingScreen(
     val lazyListState = rememberLazyListState()
     val pullRefreshState = rememberPullToRefreshState()
     val context = LocalContext.current
+    val navigator: Navigator = koinInject()
 
     HazeScaffold(
         title = stringResource(id = R.string.kde_connect),
         scrollState = null,
         actions = {
             IconButton(
-                onClick = { (context as? MainActivity)?.openDrawer() }
+                onClick = { navigator.goTo(SettingsKey) }
             ) {
                 Icon(
-                    imageVector = Icons.Default.Menu,
+                    imageVector = Icons.Default.Settings,
                     contentDescription = stringResource(id = R.string.open)
                 )
             }
