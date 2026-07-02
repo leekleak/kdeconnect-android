@@ -257,6 +257,7 @@ androidComponents {
 }
 
 dependencies {
+    implementation(libs.androidx.compose.foundation)
     // It has a bug that causes a crash when using PosixFilePermission and minSdk < 26.
     // It has been used in SSHD Core.
     // We have taken a workaround to fix it.
@@ -328,6 +329,10 @@ dependencies {
     implementation(libs.kotlin.stdlib.jdk8)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
+
+    // Blur
+    implementation(libs.haze)
+    implementation(libs.haze.materials)
 
     // Testing
     testImplementation(libs.junit)

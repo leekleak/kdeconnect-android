@@ -31,7 +31,7 @@ lifecycleRuntimeKtx = "2.11.0"
 logger = "1.0.3"
 androidMaterial = "1.14.0"
 composeMaterialIcons = "1.7.8"
-composeMaterial3 = "1.4.0"
+composeMaterial3 = "1.5.0-alpha23"
 media = "1.8.0"
 minaCore = "2.2.9"
 mockk = "1.14.11"
@@ -46,6 +46,8 @@ sshdCore = "2.18.0"
 swiperefreshlayout = "1.2.0"
 uiToolingPreview = "1.11.4"
 univocityParsers = "2.9.1"
+haze = "1.7.2"
+foundation = "1.11.3"
 
 [libraries]
 android-desugarJdkLibsNio = { module = "com.android.tools:desugar_jdk_libs_nio", version.ref = "androidDesugarJdkLibs" }
@@ -105,6 +107,9 @@ univocity-parsers = { module = "com.univocity:univocity-parsers", version.ref = 
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 slf4j-handroid = { module = "com.gitlab.mvysny.slf4j:slf4j-handroid", version.ref = "slf4j-handroid" }
+haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
+haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
