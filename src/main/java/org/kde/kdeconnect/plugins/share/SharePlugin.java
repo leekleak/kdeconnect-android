@@ -186,7 +186,7 @@ public class SharePlugin extends Plugin {
 
     @Override
     public @NotNull List<@NotNull PluginUiButton> getUiButtons() {
-        return List.of(new PluginUiButton(context.getString(R.string.send_files), R.drawable.share_plugin_action_24dp, parentActivity -> {
+        return List.of(new PluginUiButton(context.getString(R.string.send_files), R.drawable.share_plugin_action_24dp, ButtonCategory.SEND, parentActivity -> {
             Intent intent = new Intent(parentActivity, SendFileActivity.class);
             intent.putExtra("deviceId", getDevice().getDeviceId());
             parentActivity.startActivity(intent);

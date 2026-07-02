@@ -90,9 +90,11 @@ class ClipboardPlugin : Plugin() {
 
     override fun getUiButtons(): List<PluginUiButton> {
         return if (!canSyncAutomatically(context)) {
-            listOf(PluginUiButton(context.getString(R.string.send_clipboard), R.drawable.ic_baseline_content_paste_24) { _: Activity? ->
-                userInitiatedSendClipboard()
-            })
+            listOf(PluginUiButton(
+                context.getString(R.string.send_clipboard),
+                R.drawable.ic_baseline_content_paste_24,
+                ButtonCategory.SEND,
+            ){ _: Activity? -> userInitiatedSendClipboard() })
         } else {
             emptyList()
         }

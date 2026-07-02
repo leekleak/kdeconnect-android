@@ -36,8 +36,6 @@ class ContactsPlugin : Plugin() {
 
     override val permissionExplanation: Int = R.string.contacts_permission_explanation
 
-    override val isEnabledByDefault: Boolean = true
-
     // One day maybe we will also support WRITE_CONTACTS, but not yet
     override val requiredPermissions: Array<String> = arrayOf(Manifest.permission.READ_CONTACTS)
 

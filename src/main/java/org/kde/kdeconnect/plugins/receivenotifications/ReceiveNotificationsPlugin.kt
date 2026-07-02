@@ -32,8 +32,6 @@ class ReceiveNotificationsPlugin : Plugin() {
     override val description: String
         get() = context.resources.getString(R.string.pref_plugin_receive_notifications_desc)
 
-    override val isEnabledByDefault: Boolean = false
-
     override fun onCreate(): Boolean {
         // request all existing notifications
         val np = NetworkPacket(PACKET_TYPE_NOTIFICATION_REQUEST)

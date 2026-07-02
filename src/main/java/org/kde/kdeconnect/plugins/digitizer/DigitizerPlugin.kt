@@ -24,9 +24,6 @@ class DigitizerPlugin : Plugin() {
     override val description: String
         get() = context.resources.getString(R.string.pref_plugin_digitizer_desc)
 
-    override val isEnabledByDefault: Boolean
-        get() = DeviceHelper.isTablet
-
     override fun getUiButtons(): List<PluginUiButton> = listOf(
         PluginUiButton(
             context.getString(R.string.use_digitizer),

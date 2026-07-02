@@ -43,7 +43,17 @@ abstract class Plugin {
         }
     }
 
-    data class PluginUiButton(val name: String, @get:DrawableRes val iconRes: Int, val onClick: (parentActivity: Activity) -> Unit)
+    enum class ButtonCategory {
+        SEND,
+        CONTROL
+    }
+
+    data class PluginUiButton @JvmOverloads constructor(
+        val name: String,
+        @get:DrawableRes val iconRes: Int,
+        val category: ButtonCategory = ButtonCategory.CONTROL,
+        val onClick: (parentActivity: Activity) -> Unit,
+    )
     data class PluginUiMenuEntry(val name: String, val onClick: (parentActivity: Activity) -> Unit)
 
     /**
@@ -101,13 +111,6 @@ abstract class Plugin {
      * function can access this.context to provide translated text.
      */
     abstract val description: String
-
-    /**
-     * Return true if this plugin should be enabled on new devices.
-     * This function can access this.context and perform compatibility
-     * checks with the Android version, but cannot access this.device.
-     */
-    open val isEnabledByDefault: Boolean = true
 
     /**
      * Return true if this plugin needs a specific UI settings.
