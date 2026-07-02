@@ -56,3 +56,10 @@ private fun KdeCardPreview() {
         )
     }
 }
+
+@Composable
+fun Modifier.card(): Modifier {
+    return this
+        .clip(MaterialTheme.shapes.large)
+        .background(colorScheme.surfaceContainer)
+}
