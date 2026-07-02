@@ -12,7 +12,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
-import android.view.Menu
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -28,8 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
-import androidx.core.view.get
-import androidx.core.view.size
 import androidx.navigation3.ui.NavDisplay
 import androidx.preference.PreferenceManager
 import kotlinx.coroutines.CoroutineScope
@@ -112,7 +109,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
                 }
             }
         }
-        if(missingPermissions.isNotEmpty()){
+        if (missingPermissions.isNotEmpty()) {
             ActivityCompat.requestPermissions(this, missingPermissions.toTypedArray(), RESULT_NOTIFICATIONS_ENABLED)
         }
     }
@@ -223,14 +220,6 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
             CoroutineScope(Dispatchers.IO).launch {
                 KdeConnect.getInstance().devices.values.forEach(Device::reloadPluginsFromSettings)
             }
-        }
-    }
-
-    private fun uncheckAllMenuItems(menu: Menu) {
-        val size = menu.size
-        for (i in 0 until size) {
-            val item = menu[i]
-            item.subMenu?.let { uncheckAllMenuItems(it) } ?: item.setChecked(false)
         }
     }
 
