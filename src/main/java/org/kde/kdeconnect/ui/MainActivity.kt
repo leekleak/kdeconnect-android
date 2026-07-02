@@ -23,6 +23,14 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -237,6 +245,21 @@ class MainActivity : AppCompatActivity(), OnSharedPreferenceChangeListener, Andr
                 backStack = navigator.backStack,
                 entryProvider = entryProvider,
                 onBack = { navigator.goBack() },
+                transitionSpec = {
+                    if (navigator.backStack.size == 1) fadeIn(tween()) togetherWith fadeOut(tween())
+                    else {
+                        slideInHorizontally { it } togetherWith
+                                slideOutHorizontally { -it / 2 } + scaleOut(targetScale = 0.7f) + fadeOut()
+                    }
+                },
+                popTransitionSpec = {
+                    slideInHorizontally { -it / 2 } + scaleIn(initialScale = 0.7f) + fadeIn(tween()) togetherWith
+                            slideOutHorizontally { it }
+                },
+                predictivePopTransitionSpec = {
+                    slideInHorizontally { -it/2 } + scaleIn(initialScale = 0.7f) + fadeIn(tween()) togetherWith
+                            slideOutHorizontally { it }
+                }
             )
         }
 

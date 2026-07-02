@@ -8,6 +8,7 @@ package org.kde.kdeconnect.ui.compose.screen.licenses
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -41,7 +42,7 @@ import org.kde.kdeconnect_tp.R
 @Composable
 fun LicensesScreen(
     eventFlow: SharedFlow<LicensesEvent>,
-    actions: @Composable BoxScope.() -> Unit = {}
+    actions: @Composable RowScope.() -> Unit = {}
 ) {
     val resources = LocalResources.current
     var licenseChunks by remember { mutableStateOf<List<String>>(emptyList()) }

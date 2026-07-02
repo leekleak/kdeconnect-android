@@ -79,9 +79,7 @@ class ComposeSendActivity : AppCompatActivity() {
                 backButton = true,
                 actions = {
                     KdeTextButton(
-                        modifier = Modifier
-                            .padding(horizontal = 8.dp)
-                            .align(Alignment.CenterEnd),
+                        modifier = Modifier.padding(horizontal = 8.dp),
                         onClick = { clearComposeInput() },
                         text = stringResource(R.string.clear_compose),
                     )

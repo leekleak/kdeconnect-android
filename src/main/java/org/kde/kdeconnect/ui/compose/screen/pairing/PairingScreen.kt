@@ -74,7 +74,6 @@ fun PairingScreen(
         scrollState = null,
         actions = {
             IconButton(
-                modifier = Modifier.align(Alignment.CenterEnd),
                 onClick = { (context as? MainActivity)?.openDrawer() }
             ) {
                 Icon(

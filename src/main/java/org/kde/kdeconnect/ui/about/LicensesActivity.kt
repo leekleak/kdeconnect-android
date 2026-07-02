@@ -39,7 +39,7 @@ class LicensesActivity : AppCompatActivity() {
                 LicensesScreen(
                     eventFlow = scrollEvents,
                     actions = {
-                        Row(modifier = Modifier.align(Alignment.CenterEnd)) {
+                        Row {
                             IconButton(onClick = {
                                 scope.launch {
                                     scrollEvents.emit(LicensesEvent.ScrollToTop)

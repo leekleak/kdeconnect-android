@@ -11,11 +11,11 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -43,7 +43,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.chrisbanes.haze.HazeProgressive
@@ -80,7 +79,7 @@ fun HazeScaffold(
     hazeState: HazeState = rememberHazeState(),
     backButton: Boolean = false,
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
-    actions: @Composable BoxScope.() -> Unit = {},
+    actions: @Composable RowScope.() -> Unit = {},
     content: @Composable ColumnScope.(PaddingValues) -> Unit,
 ) {
     val paddingSide = 16.dp
@@ -114,7 +113,7 @@ fun PageTitle(
     backButton: Boolean = false,
     hazeState: HazeState? = null,
     text: String,
-    customElement: @Composable (BoxScope.() -> Unit)? = null,
+    customElement: @Composable (RowScope.() -> Unit)? = null,
 ){
     Box(
         modifier = Modifier
@@ -128,12 +127,14 @@ fun PageTitle(
                 } ?: Modifier
             )
     ) {
-        Box(Modifier
+        Row(Modifier
             .statusBarsPadding()
             .padding(horizontal = 16.dp)
             .padding(bottom = 6.dp)
-            .fillMaxWidth()) {
+            .fillMaxWidth()
+        ) {
             CategoryTitleText(text, backButton)
+            Spacer(Modifier.weight(1f))
             customElement?.let { it() }
         }
     }

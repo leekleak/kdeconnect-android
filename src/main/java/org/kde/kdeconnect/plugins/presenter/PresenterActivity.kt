@@ -171,7 +171,7 @@ class PresenterActivity : AppCompatActivity(), SensorEventListener, OnSharedPref
                 scrollState = null,
                 backButton = true,
                 actions = {
-                    Box(modifier = Modifier.align(Alignment.CenterEnd)) {
+                    Box(modifier = Modifier) {
                         IconButton(onClick = { dropdownShownState = true }) {
                             Icon(Icons.Default.MoreVert, stringResource(R.string.extra_options))
                         }
@@ -193,12 +193,11 @@ class PresenterActivity : AppCompatActivity(), SensorEventListener, OnSharedPref
                         }
                     }
                 }
-            ) {
+            ) {paddingValues ->
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 64.dp)
-                        .padding(16.dp),
+                        .padding(paddingValues),
                     verticalArrangement = Arrangement.spacedBy(20.dp),
                 ) {
                     if (volumeKeys) Text(

@@ -85,9 +85,7 @@ fun RunCommandScreen(
                             plugin.sendSetupPacket()
                             showDialog = true
                         },
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd)
-                            .size(40.dp)
+                        modifier = Modifier.size(40.dp)
                     ) {
                         Icon(
                             painterResource(R.drawable.ic_action_image_edit_24dp),
