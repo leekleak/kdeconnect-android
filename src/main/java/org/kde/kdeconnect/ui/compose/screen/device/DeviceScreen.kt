@@ -12,7 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.kde.kdeconnect.PairingHandler
 import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
@@ -72,9 +72,17 @@ fun DeviceScreen(
                             pluginsNeedPermissions = uiState.pluginsNeedPermissions,
                             pluginsNeedOptionalPermissions = uiState.pluginsNeedOptionalPermissions,
                             onButtonClick = { button -> button.onClick(context as android.app.Activity) },
-                            action = { plugin -> 
-                                // Omit optional permission dialog for now or handle via bridge
-                            }
+                            action = { plugin ->
+                                val dialog = if (uiState.pluginsNeedPermissions.contains(plugin)) {
+                                    plugin.permissionExplanationDialog
+                                } else {
+                                    plugin.optionalPermissionExplanationDialog
+                                }
+                                (context as? FragmentActivity)?.let {
+                                    dialog.show(it.supportFragmentManager, "permission_explanation")
+                                }
+                            },
+                            onUnpair = viewModel::unpair
                         )
                     } else {
                         DeviceErrorScreen(

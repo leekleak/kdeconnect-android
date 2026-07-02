@@ -17,8 +17,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -46,14 +46,16 @@ fun PluginsScreen(
     pluginsNeedPermissions: List<Plugin>,
     pluginsNeedOptionalPermissions: List<Plugin>,
     onButtonClick: (Plugin.PluginUiButton) -> Unit,
-    action: (plugin: Plugin) -> Unit
+    action: (plugin: Plugin) -> Unit,
+    onUnpair: () -> Unit
 ) {
     PluginsScreenContent(
         pluginsWithButtons = pluginsWithButtons,
         pluginsNeedPermissions = pluginsNeedPermissions,
         pluginsNeedOptionalPermissions = pluginsNeedOptionalPermissions,
         onButtonClick = onButtonClick,
-        action = action
+        action = action,
+        onUnpair = onUnpair
     )
 }
 
@@ -63,32 +65,35 @@ private fun PluginsScreenContent(
     pluginsNeedPermissions: List<Plugin>,
     pluginsNeedOptionalPermissions: List<Plugin>,
     onButtonClick: (Plugin.PluginUiButton) -> Unit,
-    action: (plugin: Plugin) -> Unit
+    action: (plugin: Plugin) -> Unit,
+    onUnpair: () -> Unit
 ) {
     Column {
         val numColumns = LocalResources.current.getInteger(R.integer.plugins_columns)
-
-            PluginButtons(
-                buttons = pluginsWithButtons,
-                numColumns = numColumns,
-                onButtonClick = onButtonClick
+        PluginButtons(
+            buttons = pluginsWithButtons,
+            numColumns = numColumns,
+            onButtonClick = onButtonClick
+        )
+        Spacer(modifier = Modifier.padding(vertical = 6.dp))
+        if (pluginsNeedPermissions.isNotEmpty()) {
+            PluginsWithoutPermissions(
+                title = stringResource(id = R.string.plugins_need_permission),
+                plugins = pluginsNeedPermissions,
+                action = action
             )
-            Spacer(modifier = Modifier.padding(vertical = 6.dp))
-            if (pluginsNeedPermissions.isNotEmpty()) {
-                PluginsWithoutPermissions(
-                    title = stringResource(id = R.string.plugins_need_permission),
-                    plugins = pluginsNeedPermissions,
-                    action = action
-                )
-                Spacer(modifier = Modifier.padding(vertical = 2.dp))
-            }
-            if (pluginsNeedOptionalPermissions.isNotEmpty()) {
-                PluginsWithoutPermissions(
-                    title = stringResource(id = R.string.plugins_need_optional_permission),
-                    plugins = pluginsNeedOptionalPermissions,
-                    action = action
-                )
-            }
+            Spacer(modifier = Modifier.padding(vertical = 2.dp))
+        }
+        if (pluginsNeedOptionalPermissions.isNotEmpty()) {
+            PluginsWithoutPermissions(
+                title = stringResource(id = R.string.plugins_need_optional_permission),
+                plugins = pluginsNeedOptionalPermissions,
+                action = action
+            )
+        }
+        TextButton(onClick = onUnpair) {
+            Text(stringResource(R.string.device_menu_unpair))
+        }
     }
 }
 
@@ -203,7 +208,8 @@ private fun PluginsScreenPreview() {
             pluginsNeedPermissions = emptyList(),
             pluginsNeedOptionalPermissions = emptyList(),
             onButtonClick = { /* Do nothing */ },
-            action = { /* Do nothing */ }
+            action = { /* Do nothing */ },
+            onUnpair = { /* Do nothing */ }
         )
     }
 }
