@@ -52,7 +52,7 @@ private const val VOLUME_DOWN = -1
 @Composable
 fun PresenterScreen(
     deviceId: String,
-    viewModel: PresenterViewModel = koinViewModel { parametersOf(deviceId) }
+    viewModel: PresenterViewModel = koinViewModel(key = "PresenterViewModel_$deviceId") { parametersOf(deviceId) }
 ) {
     val context = LocalContext.current
     val plugin = viewModel.plugin ?: return

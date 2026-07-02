@@ -7,7 +7,6 @@
 package org.kde.kdeconnect.ui.compose.screen.device
 
 import android.app.Application
-import androidx.annotation.StringRes
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,9 +18,8 @@ import org.kde.kdeconnect.BackgroundService
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.PairingHandler
+import org.kde.kdeconnect.helpers.DeviceHelper.getBatterySubtitle
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.battery.BatteryPlugin
-import org.kde.kdeconnect_tp.R
 import org.koin.core.annotation.InjectedParam
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -100,24 +98,10 @@ class DeviceViewModel(application: Application, @InjectedParam private val devic
                 pluginsWithButtons = pluginsWithButtons,
                 pluginsNeedPermissions = pluginsNeedPermissions,
                 pluginsNeedOptionalPermissions = pluginsNeedOptionalPermissions,
-                batterySubtitle = getBatterySubtitle(device),
+                batterySubtitle = getBatterySubtitle(getApplication<Application>().applicationContext, device),
                 menuEntries = menuEntries
             )
         }
-    }
-
-    private fun getBatterySubtitle(device: Device): String? {
-        val batteryPlugin = device.getPlugin(BatteryPlugin::class.java)
-        val info = batteryPlugin?.remoteBatteryInfo ?: return null
-
-        @StringRes
-        val resId = when {
-            info.isCharging -> R.string.battery_status_charging_format
-            BatteryPlugin.isLowBattery(info) -> R.string.battery_status_low_format
-            else -> R.string.battery_status_format
-        }
-
-        return getApplication<Application>().getString(resId, info.currentCharge)
     }
 
     fun requestPairing() {

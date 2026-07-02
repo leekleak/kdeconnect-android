@@ -11,14 +11,18 @@ import android.content.res.Resources
 import android.os.Build
 import android.preference.PreferenceManager
 import android.util.Log
+import androidx.annotation.StringRes
 import androidx.core.content.edit
 import com.univocity.parsers.common.TextParsingException
 import com.univocity.parsers.csv.CsvParser
 import com.univocity.parsers.csv.CsvParserSettings
+import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.plugins.PluginFactory
+import org.kde.kdeconnect.plugins.battery.BatteryPlugin
+import org.kde.kdeconnect_tp.R
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -161,4 +165,18 @@ object DeviceHelper {
     @JvmStatic
     fun filterInvalidCharactersFromDeviceName(input: String): String = input.replace(NAME_INVALID_CHARACTERS_REGEX, "")
 
+
+    fun getBatterySubtitle(context: Context, device: Device): String? {
+        val batteryPlugin = device.getPlugin(BatteryPlugin::class.java)
+        val info = batteryPlugin?.remoteBatteryInfo ?: return null
+
+        @StringRes
+        val resId = when {
+            info.isCharging -> R.string.battery_status_charging_format
+            BatteryPlugin.isLowBattery(info) -> R.string.battery_status_low_format
+            else -> R.string.battery_status_format
+        }
+
+        return context.getString(resId, info.currentCharge)
+    }
 }

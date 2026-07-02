@@ -24,7 +24,7 @@ import org.koin.core.parameter.parametersOf
 @Composable
 fun DeviceScreen(
     deviceId: String,
-    viewModel: DeviceViewModel = koinViewModel { parametersOf(deviceId) },
+    viewModel: DeviceViewModel = koinViewModel(key = "DeviceViewModel_$deviceId") { parametersOf(deviceId) },
     onNavigateToPluginsSettings: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()

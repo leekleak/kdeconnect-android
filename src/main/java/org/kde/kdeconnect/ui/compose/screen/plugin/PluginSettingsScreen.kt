@@ -38,7 +38,7 @@ val validSettings = listOf(
 @Composable
 fun PluginSettingsScreen(
     deviceId: String,
-    viewModel: PluginSettingsViewModel = koinViewModel { parametersOf(deviceId) },
+    viewModel: PluginSettingsViewModel = koinViewModel(key = "PluginSettingsViewModel_$deviceId") { parametersOf(deviceId) },
     onNavigateToPluginIndividualSettings: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()

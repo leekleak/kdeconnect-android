@@ -7,11 +7,15 @@
 package org.kde.kdeconnect.ui.compose.screen.pairing
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,19 +28,30 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.MaterialTheme.shapes
+import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.material3.toPath
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Matrix
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.copy
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -45,7 +60,8 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.kde.kdeconnect.ui.MainActivity
+import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.KdeBodyLargeText
@@ -54,6 +70,9 @@ import org.kde.kdeconnect.ui.compose.components.KdeBodySmallText
 import org.kde.kdeconnect.ui.compose.components.KdeCard
 import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
 import org.kde.kdeconnect.ui.compose.components.SectionHeader
+import org.kde.kdeconnect.ui.compose.components.googleSans
+import org.kde.kdeconnect.ui.compose.components.px
+import org.kde.kdeconnect.ui.compose.components.roundedShapes
 import org.kde.kdeconnect.ui.compose.model.device.DeviceUiModel
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.SettingsKey
@@ -71,7 +90,6 @@ fun PairingScreen(
 ) {
     val lazyListState = rememberLazyListState()
     val pullRefreshState = rememberPullToRefreshState()
-    val context = LocalContext.current
     val navigator: Navigator = koinInject()
 
     HazeScaffold(
@@ -133,7 +151,7 @@ fun PairingScreen(
                     itemsIndexed(
                         items = uiState.connected,
                         key = { _, connectedDevice -> connectedDevice.id }) { _, connectedDevice ->
-                        CardContent(
+                        DeviceCard (
                             device = connectedDevice,
                             onClick = onClick
                         )
@@ -151,7 +169,7 @@ fun PairingScreen(
                     itemsIndexed(
                         items = uiState.available,
                         key = { _, availableDevice -> availableDevice.id }) { _, availableDevice ->
-                        CardContent(
+                        DeviceCard (
                             device = availableDevice,
                             onClick = onClick
                         )
@@ -169,7 +187,7 @@ fun PairingScreen(
                     itemsIndexed(
                         items = uiState.remembered,
                         key = { _, rememberedDevice -> rememberedDevice.id }) { _, rememberedDevice ->
-                        CardContent(
+                        DeviceCard (
                             device = rememberedDevice,
                             onClick = onClick
                         )
@@ -235,7 +253,7 @@ fun PairingExplanationRow(
             Image(
                 painter = painterResource(id = icon),
                 contentDescription = null,
-                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                colorFilter = ColorFilter.tint(color = colorScheme.onSurfaceVariant)
             )
             Spacer(modifier = Modifier.width(8.dp))
         }
@@ -266,18 +284,95 @@ fun EmptyPlaceholder() {
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun CardContent(
+private fun DeviceCard(
     device: DeviceUiModel,
     onClick: (String) -> Unit
 ) {
-    KdeCard(
-        modifier = Modifier.fillMaxWidth(),
-        content = {
-            PairingScreenCardContent(device = device)
-        },
-        onClick = { onClick(device.id) }
-    )
+    val context = LocalContext.current
+    val width = 2.dp.px
+    val dashLength = 8.dp.px
+    val cornerRadius = 16.dp.px
+    val outlineColor = colorScheme.outline
+    val backgroundShape = roundedShapes.random().toPath()
+    val backgroundColor = colorScheme.primary
+    val backgroundSize = 96.dp
+    val backgroundSizePx = backgroundSize.px
+    val backgroundShapeTransformed = remember(backgroundSizePx) {
+        val matrix = Matrix().apply { scale(backgroundSizePx, backgroundSizePx) }
+        backgroundShape.copy().apply { transform(matrix) }
+    }
+    val stroke = remember {
+        Stroke(
+            width = width,
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(dashLength, dashLength), 0f)
+        )
+    }
+    val font = remember { googleSans(weight = 600f) }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .drawBehind {
+                drawRoundRect(
+                    color = outlineColor,
+                    style = stroke,
+                    cornerRadius = CornerRadius(cornerRadius),
+                )
+            }
+    ) {
+        Row(
+            modifier = Modifier.height(128.dp).padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(backgroundSize)
+                    .drawBehind {
+                        drawPath(backgroundShapeTransformed, backgroundColor)
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    modifier = Modifier.size(54.dp),
+                    painter = painterResource(device.icon),
+                    contentDescription = null,
+                    tint = colorScheme.onPrimary
+                )
+            }
+            Column {
+                val deviceReal = remember { KdeConnect.getInstance().getDevice(device.id) }
+                Text(
+                    fontSize = 42.sp,
+                    text = device.name,
+                    fontFamily = font
+                )
+                if (deviceReal != null) {
+                    val batteryString = DeviceHelper.getBatterySubtitle(context, deviceReal)
+                    if (batteryString != null) {
+                        Text(
+                            text = batteryString,
+                            fontFamily = font
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.weight(1f))
+            IconButton (
+                modifier = Modifier.fillMaxHeight()
+                    .background(colorScheme.primary, shape = shapes.large)
+                    .width(38.dp),
+                onClick = { onClick(device.id) }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.arrow_forward),
+                    contentDescription = stringResource(R.string.open),
+                    tint = colorScheme.onPrimary
+                )
+            }
+        }
+    }
 }
 
 @Composable
