@@ -6,7 +6,10 @@
 
 package org.kde.kdeconnect.ui.compose.screen.licenses
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -14,24 +17,31 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.withContext
 import org.kde.kdeconnect.ui.compose.KdeTheme
+import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
 import org.kde.kdeconnect_tp.R
-import androidx.compose.ui.platform.LocalResources
 
 @Composable
 fun LicensesScreen(
     eventFlow: SharedFlow<LicensesEvent>,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    actions: @Composable BoxScope.() -> Unit = {}
 ) {
     val resources = LocalResources.current
     var licenseChunks by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -63,40 +73,40 @@ fun LicensesScreen(
         }
     }
 
-    if (licenseChunks.isEmpty()) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(contentPadding),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator()
-        }
-        return
-    }
+    HazeScaffold(
+        title = stringResource(id = R.string.licenses),
+        scrollState = null,
+        backButton = true,
+        actions = actions
+    ) { paddingValues ->
+        if (licenseChunks.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 64.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = paddingValues
+            ) {
+                itemsIndexed(
+                    items = licenseChunks,
+                    key = { index, _ -> index }
+                ) { index, chunk ->
+                    Text(
+                        text = chunk.trim(),
+                        color = MaterialTheme.colorScheme.onBackground,
+                    )
 
-
-    LazyColumn(
-        state = listState,
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            start = 16.dp,
-            end = 16.dp,
-            top = contentPadding.calculateTopPadding() + 16.dp,
-            bottom = contentPadding.calculateBottomPadding() + 16.dp
-        )
-    ) {
-        itemsIndexed(
-            items = licenseChunks,
-            key = { index, _ -> index }
-        ) { index, chunk ->
-            Text(
-                text = chunk.trim(),
-                color = MaterialTheme.colorScheme.onBackground,
-            )
-
-            if (index < licenseChunks.size - 1) {
-                HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                    if (index < licenseChunks.size - 1) {
+                        HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                    }
+                }
             }
         }
     }

@@ -21,12 +21,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshState
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -41,8 +44,9 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.kde.kdeconnect.extensions.safeDrawingBottomPadding
+import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.compose.KdeTheme
+import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.KdeBodyLargeText
 import org.kde.kdeconnect.ui.compose.components.KdeBodyMediumText
 import org.kde.kdeconnect.ui.compose.components.KdeBodySmallText
@@ -63,84 +67,109 @@ fun PairingScreen(
 ) {
     val lazyListState = rememberLazyListState()
     val pullRefreshState = rememberPullToRefreshState()
+    val context = LocalContext.current
 
-    PullToRefreshBox(
-        isRefreshing = uiState.isRefreshing,
-        onRefresh = onRefresh,
-        state = pullRefreshState
-    ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 12.dp),
-            contentPadding = safeDrawingBottomPadding(),
-            state = lazyListState
-        ) {
-            // Explanations
-            item {
-                PairingExplanations(
-                    uiState = uiState,
-                    onWifiSettingsClick = onWifiSettingsClick,
-                    onNotificationSettingsClick = onNotificationSettingsClick,
-                    onDuplicateNamesClick = onDuplicateNamesClick
+    HazeScaffold(
+        title = stringResource(id = R.string.kde_connect),
+        scrollState = null,
+        actions = {
+            IconButton(
+                modifier = Modifier.align(Alignment.CenterEnd),
+                onClick = { (context as? MainActivity)?.openDrawer() }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Menu,
+                    contentDescription = stringResource(id = R.string.open)
                 )
             }
-
-            // Connected devices
-            item {
-                SectionHeader(title = stringResource(id = R.string.category_connected_devices))
+        }
+    ) {paddingValues ->
+        PullToRefreshBox(
+            isRefreshing = uiState.isRefreshing,
+            onRefresh = onRefresh,
+            state = pullRefreshState,
+            modifier = Modifier.fillMaxSize(),
+            indicator = {
+                PullToRefreshDefaults.Indicator(
+                    state = pullRefreshState,
+                    isRefreshing = uiState.isRefreshing,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = paddingValues.calculateTopPadding())
+                )
             }
-            if (uiState.connected.isEmpty()) {
+        ) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = paddingValues,
+                state = lazyListState
+            ) {
+                // Explanations
                 item {
-                    EmptyPlaceholder()
-                }
-            } else {
-                item {
-                    Spacer(modifier = Modifier.height(4.dp))
-                }
-                itemsIndexed(
-                    items = uiState.connected,
-                    key = { _, connectedDevice -> connectedDevice.id }) { _, connectedDevice ->
-                    CardContent(
-                        device = connectedDevice,
-                        onClick = onClick
+                    PairingExplanations(
+                        uiState = uiState,
+                        onWifiSettingsClick = onWifiSettingsClick,
+                        onNotificationSettingsClick = onNotificationSettingsClick,
+                        onDuplicateNamesClick = onDuplicateNamesClick
                     )
                 }
-            }
 
-            // Available devices
-            if (uiState.available.isNotEmpty()) {
+                // Connected devices
                 item {
-                    SectionHeader(title = stringResource(id = R.string.category_not_paired_devices))
+                    SectionHeader(title = stringResource(id = R.string.category_connected_devices))
                 }
-                item {
-                    Spacer(modifier = Modifier.height(4.dp))
+                if (uiState.connected.isEmpty()) {
+                    item {
+                        EmptyPlaceholder()
+                    }
+                } else {
+                    item {
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+                    itemsIndexed(
+                        items = uiState.connected,
+                        key = { _, connectedDevice -> connectedDevice.id }) { _, connectedDevice ->
+                        CardContent(
+                            device = connectedDevice,
+                            onClick = onClick
+                        )
+                    }
                 }
-                itemsIndexed(
-                    items = uiState.available,
-                    key = { _, availableDevice -> availableDevice.id }) { _, availableDevice ->
-                    CardContent(
-                        device = availableDevice,
-                        onClick = onClick
-                    )
-                }
-            }
 
-            // Remembered devices
-            if (uiState.remembered.isNotEmpty()) {
-                item {
-                    SectionHeader(title = stringResource(id = R.string.category_remembered_devices))
+                // Available devices
+                if (uiState.available.isNotEmpty()) {
+                    item {
+                        SectionHeader(title = stringResource(id = R.string.category_not_paired_devices))
+                    }
+                    item {
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+                    itemsIndexed(
+                        items = uiState.available,
+                        key = { _, availableDevice -> availableDevice.id }) { _, availableDevice ->
+                        CardContent(
+                            device = availableDevice,
+                            onClick = onClick
+                        )
+                    }
                 }
-                item {
-                    Spacer(modifier = Modifier.height(4.dp))
-                }
-                itemsIndexed(
-                    items = uiState.remembered,
-                    key = { _, rememberedDevice -> rememberedDevice.id }) { _, rememberedDevice ->
-                    CardContent(
-                        device = rememberedDevice,
-                        onClick = onClick
-                    )
+
+                // Remembered devices
+                if (uiState.remembered.isNotEmpty()) {
+                    item {
+                        SectionHeader(title = stringResource(id = R.string.category_remembered_devices))
+                    }
+                    item {
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+                    itemsIndexed(
+                        items = uiState.remembered,
+                        key = { _, rememberedDevice -> rememberedDevice.id }) { _, rememberedDevice ->
+                        CardContent(
+                            device = rememberedDevice,
+                            onClick = onClick
+                        )
+                    }
                 }
             }
         }

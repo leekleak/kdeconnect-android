@@ -2,25 +2,44 @@ package org.kde.kdeconnect.ui.compose.screen.device
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import org.kde.kdeconnect.PairingHandler
+import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
+import org.kde.kdeconnect.ui.compose.components.HazeScaffold
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Composable
 fun DeviceScreen(
     deviceId: String,
-    viewModel: DeviceViewModel = viewModel(factory = DeviceViewModelFactory(deviceId)),
+    viewModel: DeviceViewModel = koinViewModel { parametersOf(deviceId) },
     onNavigateToPluginsSettings: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = androidx.compose.ui.platform.LocalContext.current
+    val scrollState = rememberScrollState()
 
-    Surface {
-        Column(modifier = Modifier.fillMaxSize()) {
+    HazeScaffold(
+        title = uiState.deviceName,
+        scrollState = null,
+        backButton = true
+    ) {paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(paddingValues)
+        ) {
+            uiState.batterySubtitle?.let {
+                CategoryTitleTextSmall(text = it)
+            }
             when (uiState.pairStatus) {
                 PairingHandler.PairState.NotPaired,
                 PairingHandler.PairState.Requested,
@@ -56,13 +75,4 @@ fun DeviceScreen(
     }
 }
 
-// Simple Factory for ViewModel with arguments
-class DeviceViewModelFactory(private val deviceId: String) : androidx.lifecycle.ViewModelProvider.Factory {
-    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(DeviceViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return DeviceViewModel(android.app.Application(), deviceId) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
-}
+

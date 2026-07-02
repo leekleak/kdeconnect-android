@@ -8,6 +8,7 @@ package org.kde.kdeconnect.ui.compose.screen.share
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,6 +25,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,8 +38,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.kde.kdeconnect.extensions.safeDrawingBottomPadding
 import org.kde.kdeconnect.ui.compose.KdeTheme
+import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.KdeCard
 import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
 import org.kde.kdeconnect.ui.compose.components.SectionHeader
@@ -59,18 +62,26 @@ fun ShareScreen(
         stringResource(id = R.string.share_to)
     }
 
-    ShareScreenContent(
-        state = state,
-        isRefreshing = isRefreshing,
-        sectionTitle = sectionTitle,
-        devices = devices,
-        onDeviceClick = onDeviceClick,
-        onRefresh = onRefresh
-    )
+    HazeScaffold(
+        title = stringResource(id = R.string.share),
+        scrollState = null,
+        backButton = true
+    ) { paddingValues ->
+        ShareScreenContent(
+            paddingValues = paddingValues,
+            state = state,
+            isRefreshing = isRefreshing,
+            sectionTitle = sectionTitle,
+            devices = devices,
+            onDeviceClick = onDeviceClick,
+            onRefresh = onRefresh
+        )
+    }
 }
 
 @Composable
 private fun ShareScreenContent(
+    paddingValues: PaddingValues,
     state: LazyListState,
     isRefreshing: Boolean,
     sectionTitle: String,
@@ -78,19 +89,25 @@ private fun ShareScreenContent(
     onDeviceClick: (String) -> Unit,
     onRefresh: () -> Unit
 ) {
+    val pullRefreshState = rememberPullToRefreshState()
     PullToRefreshBox(
         isRefreshing = isRefreshing,
         onRefresh = onRefresh,
+        state = pullRefreshState,
+        modifier = Modifier.fillMaxSize(),
+        indicator = {
+            PullToRefreshDefaults.Indicator(
+                state = pullRefreshState,
+                isRefreshing = isRefreshing,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = paddingValues.calculateTopPadding())
+            )
+        }
     ) {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(
-                    top = 4.dp,
-                    start = 8.dp,
-                    end = 8.dp
-                ),
-            contentPadding = safeDrawingBottomPadding(),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = paddingValues,
             state = state
         ) {
             item {
@@ -160,6 +177,7 @@ private fun ShareScreenCardContent(device: DeviceUiModel) {
 private fun ShareScreenPreview() {
     KdeTheme(context = LocalContext.current) {
         ShareScreenContent(
+            paddingValues = PaddingValues(),
             state = rememberLazyListState(),
             isRefreshing = false,
             sectionTitle = stringResource(id = R.string.share_to),

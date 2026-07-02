@@ -23,6 +23,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -222,6 +223,10 @@ class MainActivity : AppCompatActivity(), OnSharedPreferenceChangeListener, Andr
         }
     }
 
+    fun openDrawer() {
+        mDrawerLayout?.openDrawer(mNavigationView)
+    }
+
     @OptIn(KoinExperimentalAPI::class)
     @Composable
     private fun MainActivityContent() {
@@ -246,6 +251,8 @@ class MainActivity : AppCompatActivity(), OnSharedPreferenceChangeListener, Andr
     }
     
     private fun updateActivityStateFromKey(key: KdeConnectKey?) {
+        binding.toolbarLayout.root.visibility = View.GONE
+        supportActionBar?.hide()
         when (key) {
             is PairingKey -> {
                 mCurrentDevice = null

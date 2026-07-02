@@ -6,9 +6,12 @@ import android.content.Intent
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidViewBinding
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -17,6 +20,7 @@ import org.kde.kdeconnect.ui.about.AboutKDEActivity
 import org.kde.kdeconnect.ui.about.EasterEggActivity
 import org.kde.kdeconnect.ui.about.LicensesActivity
 import org.kde.kdeconnect.ui.about.getApplicationAboutData
+import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.screen.about.AboutScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceViewModel
@@ -27,17 +31,18 @@ import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.PairingKey
 import org.kde.kdeconnect.ui.navigation.SettingsKey
+import org.kde.kdeconnect_tp.R
 import org.kde.kdeconnect_tp.databinding.FragmentSettingsBinding
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
-import org.koin.core.module.dsl.viewModelOf
-import org.koin.core.parameter.parametersOf
 import org.koin.dsl.module
 import org.koin.dsl.navigation3.navigation
+import org.koin.plugin.module.dsl.single
+import org.koin.plugin.module.dsl.viewModel
 
 val pairingModule = module {
-    viewModelOf(::PairingViewModel)
+    viewModel<PairingViewModel>()
     navigation<PairingKey> {
         val viewModel: PairingViewModel = koinViewModel()
         val state by viewModel.pairingUiState.collectAsStateWithLifecycle()
@@ -119,21 +124,25 @@ val aboutModule = module {
 
 val settingsModule = module {
     navigation<SettingsKey> {
-        AndroidViewBinding({ inflater, parent, attachToParent ->
-            FragmentSettingsBinding.inflate(inflater, parent, attachToParent)
-        }) {
-            // FragmentContainerView automatically hosts SettingsFragment
+        HazeScaffold(
+            title = stringResource(id = R.string.settings),
+            backButton = true
+        ) { paddingValues ->
+            AndroidViewBinding({ inflater, parent, attachToParent ->
+                FragmentSettingsBinding.inflate(inflater, parent, attachToParent)
+            }, modifier = Modifier.padding(paddingValues)) {
+                // FragmentContainerView automatically hosts SettingsFragment
+            }
         }
     }
 }
 
 val deviceModule = module {
-    viewModelOf(::DeviceViewModel)
+    viewModel<DeviceViewModel>()
     navigation<DeviceKey> { key ->
         val context = LocalContext.current
         DeviceScreen(
             deviceId = key.deviceId,
-            viewModel = koinViewModel { parametersOf(key.deviceId) },
             onNavigateToPluginsSettings = {
                 val intent = Intent(context, PluginSettingsActivity::class.java)
                 intent.putExtra("deviceId", key.deviceId)
@@ -146,5 +155,5 @@ val deviceModule = module {
 val appModule = module {
     includes(pairingModule, deviceModule, settingsModule, aboutModule)
 
-    single { Navigator(startDestination = PairingKey) }
+    single<Navigator>()
 }

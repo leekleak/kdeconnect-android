@@ -13,10 +13,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Send
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
@@ -28,7 +26,7 @@ import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.ui.compose.KdeTextButton
 import org.kde.kdeconnect.ui.compose.KdeTextField
 import org.kde.kdeconnect.ui.compose.KdeTheme
-import org.kde.kdeconnect.ui.compose.KdeTopAppBar
+import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect_tp.R
 import androidx.core.content.edit
 
@@ -75,24 +73,21 @@ class ComposeSendActivity : AppCompatActivity() {
     @Composable
     private fun ComposeSendScreen() {
         KdeTheme(this) {
-            Scaffold(
-                modifier = Modifier.safeDrawingPadding(),
-                topBar = {
-                    KdeTopAppBar(
-                        title = stringResource(R.string.compose_send_title),
-                        navIconOnClick = { onBackPressedDispatcher.onBackPressed() },
-                        navIconDescription = getString(androidx.appcompat.R.string.abc_action_bar_up_description),
-                        actions = {
-                            KdeTextButton(
-                                modifier = Modifier.padding(horizontal = 8.dp),
-                                onClick = { clearComposeInput() },
-                                text = stringResource(R.string.clear_compose),
-                            )
-                        }
+            HazeScaffold(
+                title = stringResource(R.string.compose_send_title),
+                scrollState = null,
+                backButton = true,
+                actions = {
+                    KdeTextButton(
+                        modifier = Modifier
+                            .padding(horizontal = 8.dp)
+                            .align(Alignment.CenterEnd),
+                        onClick = { clearComposeInput() },
+                        text = stringResource(R.string.clear_compose),
                     )
-                },
-            ) { scaffoldPadding ->
-                Box(modifier = Modifier.padding(scaffoldPadding).fillMaxSize()) {
+                }
+            ) {
+                Box(modifier = Modifier.fillMaxSize().padding(top = 64.dp)) {
                     KdeTextField(
                         modifier = Modifier
                             .padding(horizontal = 16.dp)

@@ -32,7 +32,8 @@ val licenseResDir = "$projectDir/build/dependency-license-res"
 
 kotlin {
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_11
+        jvmTarget.set(JvmTarget.JVM_11)
+        freeCompilerArgs.add("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
     }
 }
 
@@ -42,7 +43,7 @@ android {
     defaultConfig {
         applicationId = "org.kde.kdeconnect_tp"
         minSdk = 23
-        targetSdk = 35
+        targetSdk = 37
         versionCode = 13509
         versionName = "1.35.9"
         proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
@@ -294,6 +295,7 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
     implementation(libs.koin.compose.navigation3)
+    implementation(libs.koin.annotations)
 
     implementation(libs.androidx.gridlayout)
     implementation(libs.google.android.material)

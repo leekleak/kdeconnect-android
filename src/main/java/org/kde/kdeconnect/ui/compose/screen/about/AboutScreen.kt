@@ -27,6 +27,7 @@ import org.kde.kdeconnect.extensions.safeDrawingBottomPadding
 import org.kde.kdeconnect.ui.about.AboutData
 import org.kde.kdeconnect.ui.about.AboutPerson
 import org.kde.kdeconnect.ui.compose.KdeTheme
+import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
 import org.kde.kdeconnect_tp.R
 
@@ -41,39 +42,38 @@ fun AboutScreen(
     onAboutKdeClicked: () -> Unit,
     onWebsiteClicked: () -> Unit
 ) {
-    val bottomPadding = safeDrawingBottomPadding()
+    HazeScaffold(
+        title = stringResource(id = R.string.about),
+        scrollState = null,
+        backButton = true
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = paddingValues
+        ) {
+            item {
+                AppInfoCard(
+                    aboutData = aboutData,
+                    onEasterEggTriggered = onEasterEggTriggered
+                )
+            }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(
-            start = 16.dp,
-            end = 16.dp,
-            top = 16.dp,
-            bottom = bottomPadding.calculateBottomPadding() + 16.dp
-        )
-    ) {
-        item {
-            AppInfoCard(
-                aboutData = aboutData,
-                onEasterEggTriggered = onEasterEggTriggered
-            )
-        }
+            item {
+                ActionButtons(
+                    aboutData = aboutData,
+                    onReportBugClicked = onReportBugClicked,
+                    onDonateClicked = onDonateClicked,
+                    onSourceCodeClicked = onSourceCodeClicked,
+                    onLicensesClicked = onLicensesClicked,
+                    onAboutKdeClicked = onAboutKdeClicked,
+                    onWebsiteClicked = onWebsiteClicked
+                )
+            }
 
-        item {
-            ActionButtons(
-                aboutData = aboutData,
-                onReportBugClicked = onReportBugClicked,
-                onDonateClicked = onDonateClicked,
-                onSourceCodeClicked = onSourceCodeClicked,
-                onLicensesClicked = onLicensesClicked,
-                onAboutKdeClicked = onAboutKdeClicked,
-                onWebsiteClicked = onWebsiteClicked
-            )
-        }
-
-        item {
-            AuthorsCard(aboutData = aboutData)
+            item {
+                AuthorsCard(aboutData = aboutData)
+            }
         }
     }
 }

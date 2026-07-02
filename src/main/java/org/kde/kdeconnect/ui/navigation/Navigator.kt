@@ -1,12 +1,8 @@
 package org.kde.kdeconnect.ui.navigation
 
 import androidx.compose.runtime.mutableStateListOf
-import androidx.navigation3.runtime.NavKey
 
-/**
- * Handles navigation events (forward and back) by updating the navigation state.
- */
-class Navigator(startDestination: KdeConnectKey) {
+class Navigator(startDestination: KdeConnectKey = PairingKey) {
     val backStack = mutableStateListOf(startDestination)
 
     fun goTo(destination: KdeConnectKey) {

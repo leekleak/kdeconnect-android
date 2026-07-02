@@ -5,15 +5,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
@@ -22,7 +14,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.ripple
@@ -51,7 +42,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.ui.compose.KdeTheme
-import org.kde.kdeconnect.ui.compose.KdeTopAppBar
+import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
+import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect_tp.R
 
 @Composable
@@ -82,23 +74,30 @@ fun RunCommandScreen(
     }
 
     KdeTheme(context) {
-        Scaffold(
-            modifier = Modifier.safeDrawingPadding(),
-            topBar = { RunCommandAppBar(device.name, onBackPressedDispatcher) },
-            floatingActionButton = {
+        HazeScaffold(
+            title = stringResource(R.string.pref_plugin_runcommand),
+            scrollState = null,
+            backButton = true,
+            actions = {
                 if (plugin.canAddCommand()) {
-                    FloatingActionButton(onClick = {
-                        plugin.sendSetupPacket()
-                        showDialog = true
-                    }) {
+                    FloatingActionButton(
+                        onClick = {
+                            plugin.sendSetupPacket()
+                            showDialog = true
+                        },
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .size(40.dp)
+                    ) {
                         Icon(
                             painterResource(R.drawable.ic_action_image_edit_24dp),
-                            stringResource(R.string.add_command)
+                            stringResource(R.string.add_command),
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
-            },
-        ) {
+            }
+        ) { paddingValues ->
             if (showDialog) {
                 AlertDialog(
                     title = {
@@ -126,103 +125,93 @@ fun RunCommandScreen(
                 )
             }
 
-            if (!commandList.isEmpty()) {
-                LazyColumn(
-                    modifier = Modifier
-                        .padding(it)
-                        .fillMaxSize()
-                ) {
-                    items(commandList) { command ->
-                        var menuExpanded by remember { mutableStateOf(false) }
-                        var pressOffset by remember { mutableStateOf(IntOffset.Zero) }
-                        Box {
-                            Row(
-                                modifier = Modifier
-                                    .pointerInput(command.key) {
-                                        awaitEachGesture {
-                                            val down = awaitFirstDown(
-                                                requireUnconsumed = false,
-                                                pass = PointerEventPass.Initial,
-                                            )
-                                            pressOffset = IntOffset(
-                                                down.position.x.toInt(),
-                                                down.position.y.toInt(),
-                                            )
-                                        }
-                                    }
-                                    .combinedClickable(
-                                        indication = ripple(color = Color.White),
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        onClick = { plugin.runCommand(command.key) },
-                                        onLongClick = {
-                                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            menuExpanded = true
-                                        }
-                                    )
-                            ) {
-                                Column(
+            Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+                CategoryTitleTextSmall(text = device.name)
+
+                if (!commandList.isEmpty()) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(commandList) { command ->
+                            var menuExpanded by remember { mutableStateOf(false) }
+                            var pressOffset by remember { mutableStateOf(IntOffset.Zero) }
+                            Box {
+                                Row(
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 20.dp, vertical = 10.dp)
+                                        .pointerInput(command.key) {
+                                            awaitEachGesture {
+                                                val down = awaitFirstDown(
+                                                    requireUnconsumed = false,
+                                                    pass = PointerEventPass.Initial,
+                                                )
+                                                pressOffset = IntOffset(
+                                                    down.position.x.toInt(),
+                                                    down.position.y.toInt(),
+                                                )
+                                            }
+                                        }
+                                        .combinedClickable(
+                                            indication = ripple(color = Color.White),
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            onClick = { plugin.runCommand(command.key) },
+                                            onLongClick = {
+                                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                menuExpanded = true
+                                            }
+                                        )
                                 ) {
-                                    Text(
-                                        text = command.name,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        style = MaterialTheme.typography.titleLarge,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                    Text(
-                                        text = command.command,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = Color.Gray,
-                                    )
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 20.dp, vertical = 10.dp)
+                                    ) {
+                                        Text(
+                                            text = command.name,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            style = MaterialTheme.typography.titleLarge,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                        Text(
+                                            text = command.command,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = Color.Gray,
+                                        )
+                                    }
                                 }
-                            }
-                            Box(modifier = Modifier.offset { pressOffset }) {
-                                DropdownMenu(
-                                    expanded = menuExpanded,
-                                    onDismissRequest = { menuExpanded = false },
-                                ) {
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.copy_url_to_clipboard)) },
-                                        onClick = {
-                                            menuExpanded = false
-                                            onCopyUrlToClipboard(command)
-                                        },
-                                    )
+                                Box(modifier = Modifier.offset { pressOffset }) {
+                                    DropdownMenu(
+                                        expanded = menuExpanded,
+                                        onDismissRequest = { menuExpanded = false },
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.copy_url_to_clipboard)) },
+                                            onClick = {
+                                                menuExpanded = false
+                                                onCopyUrlToClipboard(command)
+                                            },
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            } else {
-                Column(
-                    modifier = Modifier
-                        .padding(it)
-                        .fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    var text = stringResource(R.string.addcommand_explanation)
-                    if (!(plugin.canAddCommand())) {
-                        text += "\n" + stringResource(R.string.addcommand_explanation2)
+                } else {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        var text = stringResource(R.string.addcommand_explanation)
+                        if (!(plugin.canAddCommand())) {
+                            text += "\n" + stringResource(R.string.addcommand_explanation2)
+                        }
+                        Text(text)
                     }
-                    Text(text)
                 }
             }
         }
     }
-}
-
-@Composable
-fun RunCommandAppBar(name: String, onBackPressedDispatcher: OnBackPressedDispatcher) {
-    KdeTopAppBar(
-        title = stringResource(R.string.pref_plugin_runcommand),
-        subTitle = name,
-        navIconOnClick = { onBackPressedDispatcher.onBackPressed() },
-        navIconDescription = stringResource(androidx.appcompat.R.string.abc_action_bar_up_description),
-    )
 }

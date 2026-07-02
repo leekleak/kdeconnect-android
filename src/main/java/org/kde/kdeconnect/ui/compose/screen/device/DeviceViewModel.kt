@@ -22,6 +22,7 @@ import org.kde.kdeconnect.PairingHandler
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.battery.BatteryPlugin
 import org.kde.kdeconnect_tp.R
+import org.koin.core.annotation.InjectedParam
 import kotlin.time.Duration.Companion.milliseconds
 
 data class DeviceUiState(
@@ -37,7 +38,7 @@ data class DeviceUiState(
     val isRefreshing: Boolean = false
 )
 
-class DeviceViewModel(application: Application, private val deviceId: String) : AndroidViewModel(application) {
+class DeviceViewModel(application: Application, @InjectedParam private val deviceId: String) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(DeviceUiState())
     val uiState: StateFlow<DeviceUiState> = _uiState.asStateFlow()

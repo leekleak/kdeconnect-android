@@ -10,16 +10,13 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.ui.compose.KdeTheme
@@ -38,67 +35,35 @@ class LicensesActivity : AppCompatActivity() {
 
         setContent {
             KdeTheme(this) {
-                Scaffold(
-                    topBar = {
-                        LicensesTopBar(
-                            onNavigateBack = { onBackPressedDispatcher.onBackPressed() },
-                            onScrollToTop = {
-                                lifecycleScope.launch {
-                                    scrollEvents.emit(
-                                        LicensesEvent.ScrollToTop
-                                    )
+                val scope = rememberCoroutineScope()
+                LicensesScreen(
+                    eventFlow = scrollEvents,
+                    actions = {
+                        Row(modifier = Modifier.align(Alignment.CenterEnd)) {
+                            IconButton(onClick = {
+                                scope.launch {
+                                    scrollEvents.emit(LicensesEvent.ScrollToTop)
                                 }
-                            },
-                            onScrollToBottom = {
-                                lifecycleScope.launch {
-                                    scrollEvents.emit(
-                                        LicensesEvent.ScrollToBottom
-                                    )
-                                }
+                            }) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_arrow_upward_black_24dp),
+                                    contentDescription = "Scroll to top"
+                                )
                             }
-                        )
+                            IconButton(onClick = {
+                                scope.launch {
+                                    scrollEvents.emit(LicensesEvent.ScrollToBottom)
+                                }
+                            }) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_arrow_downward_black_24dp),
+                                    contentDescription = "Scroll to bottom"
+                                )
+                            }
+                        }
                     }
-                ) { padding ->
-                    LicensesScreen(
-                        eventFlow = scrollEvents,
-                        contentPadding = padding
-                    )
-                }
+                )
             }
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun LicensesTopBar(
-    onNavigateBack: () -> Unit,
-    onScrollToTop: () -> Unit,
-    onScrollToBottom: () -> Unit
-) {
-    TopAppBar(
-        title = { Text(stringResource(R.string.licenses)) },
-        navigationIcon = {
-            IconButton(onClick = onNavigateBack) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_arrow_back_black_24dp),
-                    contentDescription = "Back"
-                )
-            }
-        },
-        actions = {
-            IconButton(onClick = onScrollToTop) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_arrow_upward_black_24dp),
-                    contentDescription = "Scroll to top"
-                )
-            }
-            IconButton(onClick = onScrollToBottom) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_arrow_downward_black_24dp),
-                    contentDescription = "Scroll to bottom"
-                )
-            }
-        }
-    )
 }

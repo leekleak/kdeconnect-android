@@ -6,6 +6,7 @@
 
 package org.kde.kdeconnect.ui.compose.components
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -16,10 +17,14 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -28,6 +33,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -40,7 +46,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.viewpager2.widget.ViewPager2
 import dev.chrisbanes.haze.HazeProgressive
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
@@ -55,15 +60,7 @@ import org.koin.compose.koinInject
 
 @Composable
 fun SectionHeader(title: String) {
-    KdeTitleMediumText(
-        text = title,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(
-            top = 16.dp,
-            start = 16.dp,
-            end = 16.dp
-        ),
-    )
+    CategoryTitleTextSmall(title)
 }
 
 @KdePortraitThemePreviews
@@ -75,36 +72,39 @@ private fun SectionHeaderPreview() {
 }
 
 @Composable
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 fun HazeScaffold(
     title: String,
-    paddingValues: PaddingValues?,
     modifier: Modifier = Modifier,
-    scrollState: ScrollState = rememberScrollState(),
+    scrollState: ScrollState? = rememberScrollState(),
     hazeState: HazeState = rememberHazeState(),
     backButton: Boolean = false,
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     actions: @Composable BoxScope.() -> Unit = {},
-    content: @Composable ColumnScope.() -> Unit,
+    content: @Composable ColumnScope.(PaddingValues) -> Unit,
 ) {
-    val paddingSide = paddingValues?.calculateLeftPadding(LayoutDirection.Ltr)
-    val paddingTop = paddingValues?.calculateTopPadding()
-    val paddingBottom = paddingValues?.calculateBottomPadding()
-
-    Box(modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .background(colorScheme.surface)
-                .fillMaxSize()
-                .hazeSource(hazeState)
-                .padding(horizontal = paddingSide ?: 0.dp)
-                .then(if (scrollState != null) Modifier.verticalScroll(scrollState) else Modifier),
-            verticalArrangement = verticalArrangement
-        ) {
-            paddingTop?.let { Spacer(Modifier.height((it - 8.dp).coerceAtLeast(0.dp))) }
-            content()
-            paddingBottom?.let { Spacer(Modifier.height((it - 8.dp).coerceAtLeast(0.dp))) }
+    val paddingSide = 16.dp
+    val paddingTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + TOP_BAR_HEIGHT + 6.dp
+    val paddingBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 8.dp
+    val paddingValues = if (scrollState != null) PaddingValues() else PaddingValues(paddingSide, paddingTop, paddingSide, paddingBottom)
+    Scaffold(
+        contentWindowInsets = WindowInsets()
+    ) {
+        Box(modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .background(colorScheme.surface)
+                    .fillMaxSize()
+                    .hazeSource(hazeState)
+                    .then(if (scrollState != null) Modifier.verticalScroll(scrollState) else Modifier),
+                verticalArrangement = verticalArrangement
+            ) {
+                if (scrollState != null) Spacer(Modifier.height((paddingTop).coerceAtLeast(0.dp)))
+                content(paddingValues)
+                if (scrollState != null) Spacer(Modifier.height((paddingBottom).coerceAtLeast(0.dp)))
+            }
+            PageTitle(backButton, hazeState, title, actions)
         }
-        PageTitle(backButton, hazeState, title, actions)
     }
 }
 
@@ -163,7 +163,7 @@ fun CategoryTitleText(text: String, backButton: Boolean = false) {
 }
 
 @Composable
-fun CategoryTitleSmallText(text: String) {
+fun CategoryTitleTextSmall(text: String) {
     Text(
         modifier = Modifier.padding(8.dp),
         text = text,

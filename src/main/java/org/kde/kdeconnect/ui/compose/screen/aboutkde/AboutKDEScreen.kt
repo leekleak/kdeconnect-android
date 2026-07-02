@@ -27,56 +27,57 @@ import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import org.kde.kdeconnect.extensions.safeDrawingBottomPadding
 import org.kde.kdeconnect.ui.compose.KdeTheme
+import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
 import org.kde.kdeconnect_tp.R
 
 @Composable
-fun AboutKDEScreen(
-    contentPadding: PaddingValues = PaddingValues(0.dp)
-) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            start = 16.dp,
-            end = 16.dp,
-            top = contentPadding.calculateTopPadding() + 16.dp,
-            bottom = contentPadding.calculateBottomPadding() + 16.dp
-        ),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        item {
-            Header()
-        }
+fun AboutKDEScreen() {
+    HazeScaffold(
+        title = stringResource(id = R.string.about_kde),
+        scrollState = null,
+        backButton = true
+    ) {paddingValues ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = paddingValues,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                Header()
+            }
 
-        item {
-            HtmlCard(stringResource(R.string.about_kde_about))
-        }
+            item {
+                HtmlCard(stringResource(R.string.about_kde_about))
+            }
 
-        item {
-            HtmlCard(stringResource(R.string.about_kde_report_bugs_or_wishes))
-        }
+            item {
+                HtmlCard(stringResource(R.string.about_kde_report_bugs_or_wishes))
+            }
 
-        item {
-            HtmlCard(stringResource(R.string.about_kde_join_kde))
-        }
+            item {
+                HtmlCard(stringResource(R.string.about_kde_join_kde))
+            }
 
-        item {
-            HtmlCard(stringResource(R.string.about_kde_support_kde))
-        }
+            item {
+                HtmlCard(stringResource(R.string.about_kde_support_kde))
+            }
 
-        item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.konqi),
-                    contentDescription = stringResource(id = R.string.konqi),
-                    modifier = Modifier.height(256.dp)
-                )
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.konqi),
+                        contentDescription = stringResource(id = R.string.konqi),
+                        modifier = Modifier.height(256.dp)
+                    )
+                }
             }
         }
     }

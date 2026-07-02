@@ -34,11 +34,15 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
+import org.kde.kdeconnect.ui.compose.components.PageTitle
 import org.kde.kdeconnect_tp.R
 import kotlin.math.PI
 import kotlin.math.atan2
@@ -62,6 +66,8 @@ fun EasterEggScreen() {
         animationSpec = tween(durationMillis = 300),
         label = "LogoRotation"
     )
+
+    val hazeState = rememberHazeState()
 
     val icons = remember {
         intArrayOf(
@@ -146,6 +152,7 @@ fun EasterEggScreen() {
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .hazeSource(hazeState)
             .background(backgroundColor)
             .pointerInput(Unit) {
                 detectTapGestures(
@@ -162,6 +169,11 @@ fun EasterEggScreen() {
             },
         contentAlignment = Alignment.Center
     ) {
+        PageTitle(
+            backButton = true,
+            hazeState = hazeState,
+            text = stringResource(id = R.string.kde_connect)
+        )
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
                 painter = painterResource(id = currentIcon),

@@ -65,9 +65,8 @@ private fun PluginsScreenContent(
     onButtonClick: (Plugin.PluginUiButton) -> Unit,
     action: (plugin: Plugin) -> Unit
 ) {
-    Surface {
-        Column(modifier = Modifier.padding(top = 16.dp)) {
-            val numColumns = LocalResources.current.getInteger(R.integer.plugins_columns)
+    Column {
+        val numColumns = LocalResources.current.getInteger(R.integer.plugins_columns)
 
             PluginButtons(
                 buttons = pluginsWithButtons,
@@ -90,7 +89,6 @@ private fun PluginsScreenContent(
                     action = action
                 )
             }
-        }
     }
 }
 
@@ -100,7 +98,7 @@ private fun PluginButtons(
     numColumns: Int,
     onButtonClick: (Plugin.PluginUiButton) -> Unit
 ) {
-    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+    Column {
         val buttonIter = buttons.iterator()
 
         while (buttonIter.hasNext()) {
@@ -169,7 +167,7 @@ private fun PluginsWithoutPermissions(
     Text(
         text = title,
         modifier = Modifier
-            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .padding(vertical = 6.dp)
             .semantics { heading() }
     )
     plugins.forEach { plugin ->
@@ -178,7 +176,7 @@ private fun PluginsWithoutPermissions(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { action(plugin) }
-                .padding(start = 28.dp, end = 16.dp, top = 12.dp, bottom = 12.dp)
+                .padding(start = 12.dp, top = 12.dp, bottom = 12.dp)
                 .semantics { role = Role.Button }
         )
     }

@@ -14,7 +14,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.webkit.URLUtil
 import android.widget.Toast
-import androidx.appcompat.app.ActionBar
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -134,12 +133,8 @@ class ShareActivity : BaseActivity<ActivityShareBinding>() {
         mSharedPrefs = PreferenceManager.getDefaultSharedPreferences(this)
 
         setSupportActionBar(binding.toolbarLayout.toolbar)
-        supportActionBar?.apply {
-            setDisplayHomeAsUpEnabled(true)
-            setDisplayShowHomeEnabled(true)
-            displayOptions =
-                ActionBar.DISPLAY_SHOW_HOME or ActionBar.DISPLAY_SHOW_TITLE or ActionBar.DISPLAY_SHOW_CUSTOM
-        }
+        supportActionBar?.hide()
+        binding.toolbarLayout.root.visibility = android.view.View.GONE
 
         binding.devicesListLayout.composeView.setContent {
             KdeTheme(this) {

@@ -21,29 +21,18 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInteropFilter
@@ -56,7 +45,7 @@ import androidx.preference.PreferenceManager
 import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.ui.compose.KdeButton
 import org.kde.kdeconnect.ui.compose.KdeTheme
-import org.kde.kdeconnect.ui.compose.KdeTopAppBar
+import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect_tp.R
 
 private const val VOLUME_UP = 1
@@ -174,16 +163,41 @@ class PresenterActivity : AppCompatActivity(), SensorEventListener, OnSharedPref
     private fun PresenterScreen() {
 
         val sensorManager = LocalContext.current.getSystemService(SENSOR_SERVICE) as? SensorManager
+        var dropdownShownState by remember { mutableStateOf(false) }
 
         KdeTheme(this) {
-            Scaffold(
-                modifier = Modifier.safeDrawingPadding(),
-                topBar = { PresenterAppBar() }
+            HazeScaffold(
+                title = stringResource(R.string.pref_plugin_presenter),
+                scrollState = null,
+                backButton = true,
+                actions = {
+                    Box(modifier = Modifier.align(Alignment.CenterEnd)) {
+                        IconButton(onClick = { dropdownShownState = true }) {
+                            Icon(Icons.Default.MoreVert, stringResource(R.string.extra_options))
+                        }
+                        DropdownMenu(expanded = dropdownShownState, onDismissRequest = { dropdownShownState = false }) {
+                            DropdownMenuItem(
+                                onClick = { 
+                                    dropdownShownState = false
+                                    plugin.sendFullscreen() 
+                                },
+                                text = { Text(stringResource(R.string.presenter_fullscreen)) },
+                            )
+                            DropdownMenuItem(
+                                onClick = { 
+                                    dropdownShownState = false
+                                    plugin.sendEsc() 
+                                },
+                                text = { Text(stringResource(R.string.presenter_exit)) },
+                            )
+                        }
+                    }
+                }
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(it)
+                        .padding(top = 64.dp)
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(20.dp),
                 ) {
@@ -247,33 +261,5 @@ class PresenterActivity : AppCompatActivity(), SensorEventListener, OnSharedPref
                 }
             }
         }
-    }
-
-    @Preview
-    @Composable
-    private fun PresenterAppBar() {
-
-        var dropdownShownState by remember { mutableStateOf(false) }
-
-        KdeTopAppBar(
-            title = stringResource(R.string.pref_plugin_presenter),
-            navIconOnClick = { onBackPressedDispatcher.onBackPressed() },
-            navIconDescription = getString(androidx.appcompat.R.string.abc_action_bar_up_description),
-            actions = {
-                IconButton(onClick = { dropdownShownState = true }) {
-                    Icon(Icons.Default.MoreVert, stringResource(R.string.extra_options))
-                }
-                DropdownMenu(expanded = dropdownShownState, onDismissRequest = { dropdownShownState = false }) {
-                    DropdownMenuItem(
-                        onClick = { plugin.sendFullscreen() },
-                        text = { Text(stringResource(R.string.presenter_fullscreen)) },
-                    )
-                    DropdownMenuItem(
-                        onClick = { plugin.sendEsc() },
-                        text = { Text(stringResource(R.string.presenter_exit)) },
-                    )
-                }
-            }
-        )
     }
 }
