@@ -28,6 +28,8 @@ import org.kde.kdeconnect.ui.compose.screen.presenter.PresenterViewModel
 import org.kde.kdeconnect.ui.compose.screen.plugin.PluginIndividualSettingsScreen
 import org.kde.kdeconnect.ui.compose.screen.plugin.PluginSettingsScreen
 import org.kde.kdeconnect.ui.compose.screen.plugin.PluginSettingsViewModel
+import org.kde.kdeconnect.ui.compose.screen.settings.SettingsScreen
+import org.kde.kdeconnect.ui.compose.screen.settings.SettingsViewModel
 import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.Navigator
@@ -112,17 +114,9 @@ val aboutModule = module {
 }
 
 val settingsModule = module {
+    viewModel<SettingsViewModel>()
     navigation<SettingsKey> {
-        HazeScaffold(
-            title = stringResource(id = R.string.settings),
-            backButton = true
-        ) { paddingValues ->
-            AndroidViewBinding({ inflater, parent, attachToParent ->
-                FragmentSettingsBinding.inflate(inflater, parent, attachToParent)
-            }, modifier = Modifier.padding(paddingValues)) {
-                // FragmentContainerView automatically hosts SettingsFragment
-            }
-        }
+        SettingsScreen()
     }
 }
 
