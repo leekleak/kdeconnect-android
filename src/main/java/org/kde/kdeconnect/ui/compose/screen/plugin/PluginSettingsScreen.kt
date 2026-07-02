@@ -27,6 +27,14 @@ import org.kde.kdeconnect_tp.R
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
+
+//Todo: Maybe don't hardcode strings
+val validSettings = listOf(
+    "NotificationsPlugin",
+    "ReceiveNotificationsPlugin",
+    "ContactsPlugin",
+    "ClipboardPlugin"
+)
 @Composable
 fun PluginSettingsScreen(
     deviceId: String,
@@ -39,19 +47,19 @@ fun PluginSettingsScreen(
         title = uiState.deviceName,
         backButton = true,
     ) {
-        uiState.plugins.forEach { plugin ->
+        uiState.plugins.filter { validSettings.contains(it.key) }.forEach { plugin ->
             if (plugin.hasSettings) {
                 SplitPluginPreference(
                     plugin = plugin,
-                    onPluginToggled = { viewModel.setPluginEnabled(plugin.key, it) },
+                    onPluginToggled = {  },
                     onSettingsClicked = { onNavigateToPluginIndividualSettings(plugin.key) }
                 )
             } else {
                 SwitchPreference(
                     title = plugin.name,
                     summary = plugin.description,
-                    value = plugin.isEnabled,
-                    onValueChanged = { viewModel.setPluginEnabled(plugin.key, it) }
+                    value = true,
+                    onValueChanged = { }
                 )
             }
         }
@@ -71,7 +79,7 @@ private fun SplitPluginPreference(
             summary = plugin.description,
             controls = {
                 Switch(
-                    checked = plugin.isEnabled,
+                    checked = true,
                     onCheckedChange = onPluginToggled
                 )
             }

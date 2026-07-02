@@ -28,7 +28,6 @@ data class PluginSettingsItem(
     val key: String,
     val name: String,
     val description: String,
-    val isEnabled: Boolean,
     val hasSettings: Boolean
 )
 
@@ -67,7 +66,6 @@ class PluginSettingsViewModel(
                 key = pluginKey,
                 name = info.displayName,
                 description = info.description,
-                isEnabled = device.isPluginEnabled(pluginKey),
                 hasSettings = info.hasSettings
             )
         }
@@ -78,10 +76,5 @@ class PluginSettingsViewModel(
                 plugins = pluginItems
             )
         }
-    }
-
-    fun setPluginEnabled(pluginKey: String, isEnabled: Boolean) {
-        device?.setPluginEnabled(pluginKey, isEnabled)
-        // refreshUI will be called by pluginsChangedListener
     }
 }

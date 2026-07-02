@@ -612,16 +612,6 @@ class Device : PacketReceiver {
         return true
     }
 
-    fun setPluginEnabled(pluginKey: String, value: Boolean) {
-        TrustedDevices.getDeviceSettings(context, deviceId).edit { putBoolean(pluginKey, value) }
-        reloadPluginsFromSettings()
-    }
-
-    fun isPluginEnabled(pluginKey: String): Boolean {
-        val enabledByDefault = PluginFactory.getPluginInfo(pluginKey).isEnabledByDefault
-        return TrustedDevices.getDeviceSettings(context, deviceId).getBoolean(pluginKey, enabledByDefault)
-    }
-
     fun notifyPluginsOfDeviceUnpaired(context: Context, deviceId: String) {
         for (pluginKey in supportedPlugins) {
             // This is a hacky way to temporarily create plugins just so that they can be notified of the
@@ -650,7 +640,7 @@ class Device : PacketReceiver {
             val pluginInfo = PluginFactory.getPluginInfo(pluginKey)
             val listenToUnpaired = pluginInfo.listenToUnpaired
 
-            val pluginEnabled = (isPaired || listenToUnpaired) && this.isReachable && isPluginEnabled(pluginKey)
+            val pluginEnabled = (isPaired || listenToUnpaired) && this.isReachable
 
             if (pluginEnabled && addPlugin(pluginKey)) {
                 pluginInfo.supportedPacketTypes.forEach { packetType ->
