@@ -14,10 +14,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -36,6 +32,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media.VolumeProviderCompat
@@ -104,7 +101,7 @@ fun PresenterScreen(
         actions = {
             Box(modifier = Modifier) {
                 IconButton(onClick = { dropdownShownState = true }) {
-                    Icon(Icons.Default.MoreVert, stringResource(R.string.extra_options))
+                    Icon(painter = painterResource(R.drawable.more_vert), stringResource(R.string.extra_options))
                 }
                 DropdownMenu(expanded = dropdownShownState, onDismissRequest = { dropdownShownState = false }) {
                     DropdownMenuItem(
@@ -138,7 +135,6 @@ fun PresenterScreen(
                     .padding(horizontal = 16.dp),
                 style = MaterialTheme.typography.bodyLarge,
             )
-            @Suppress("DEPRECATION") // we explicitly want the non-mirrored version of the icons
             Row(
                 modifier = Modifier
                     .fillMaxSize()
@@ -151,7 +147,7 @@ fun PresenterScreen(
                         .fillMaxSize()
                         .weight(1f),
                     contentDescription = stringResource(R.string.mpris_previous),
-                    icon = Icons.Default.ArrowBack,
+                    icon = painterResource(R.drawable.arrow_back),
                 )
                 KdeButton(
                     onClick = { plugin.sendNext() },
@@ -159,7 +155,7 @@ fun PresenterScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .weight(1f),
-                    icon = Icons.Default.ArrowForward,
+                    icon = painterResource(R.drawable.arrow_forward),
                 )
             }
             if (sensorManager != null) KdeButton(

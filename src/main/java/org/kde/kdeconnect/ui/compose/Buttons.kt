@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Build
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
@@ -21,10 +19,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow.Companion.Ellipsis
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.kde.kdeconnect_tp.R
 
 @Composable
 fun KdeTextButton(
@@ -33,7 +33,7 @@ fun KdeTextButton(
     text: String,
     enabled: Boolean = true,
     contentPadding: PaddingValues = PaddingValues(16.dp),
-    iconLeft: ImageVector? = null,
+    iconLeft: Painter? = null,
 ) {
     TextButton(
         onClick = onClick,
@@ -42,7 +42,7 @@ fun KdeTextButton(
         contentPadding = contentPadding,
         content = {
             iconLeft?.let {
-                Icon(imageVector = it, contentDescription = null)
+                Icon(painter = it, contentDescription = null)
                 Spacer(Modifier.width(16.dp))
             }
             Text(text = text)
@@ -57,7 +57,7 @@ fun KdeButton(
     colors: ButtonColors = ButtonDefaults.buttonColors(),
     text: String? = null,
     contentDescription: String? = null,
-    icon: ImageVector? = null,
+    icon: Painter? = null,
 ) {
     //TODO uncomment when button is widely used
 //    val interactionSource = remember { MutableInteractionSource() }
@@ -75,7 +75,7 @@ fun KdeButton(
         colors = colors,
 //        interactionSource = interactionSource,
         content = {
-            icon?.let { Icon(imageVector = it, contentDescription = contentDescription ?: text) }
+            icon?.let { Icon(painter = it, contentDescription = contentDescription ?: text) }
             text?.let { Text(it, maxLines = 1, overflow = Ellipsis) }
         }
     )
@@ -90,6 +90,6 @@ fun IconButtonPreview() {
         ButtonDefaults.buttonColors(Color.Gray, Color.DarkGray),
         "Button Text",
         null,
-        Icons.Default.Build,
+        painterResource(R.drawable.ic_baseline_bug_report_24),
     )
 }

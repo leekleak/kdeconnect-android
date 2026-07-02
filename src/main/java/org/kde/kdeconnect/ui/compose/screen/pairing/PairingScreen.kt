@@ -27,8 +27,6 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -100,7 +98,7 @@ fun PairingScreen(
                 onClick = { navigator.goTo(SettingsKey) }
             ) {
                 Icon(
-                    imageVector = Icons.Default.Settings,
+                    painter = painterResource(R.drawable.ic_settings_24dp),
                     contentDescription = stringResource(id = R.string.open)
                 )
             }

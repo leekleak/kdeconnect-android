@@ -13,12 +13,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.preference.PreferenceManager
@@ -100,7 +99,7 @@ class ComposeSendActivity : AppCompatActivity() {
                         modifier = Modifier.padding(all = 16.dp).align(Alignment.BottomEnd),
                         enabled = userInput.value.isNotEmpty(),
                         text = stringResource(R.string.send_compose),
-                        iconLeft = Icons.Default.Send,
+                        iconLeft = painterResource(R.drawable.ic_baseline_send_24),
                     )
                 }
             }
