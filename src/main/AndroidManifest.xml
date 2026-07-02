@@ -140,15 +140,6 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
                 android:resource="@xml/shortcuts" />
         </activity>
         <activity
-            android:name="org.kde.kdeconnect.ui.PluginSettingsActivity"
-            android:label="@string/device_menu_plugins"
-            android:exported="false"
-            android:parentActivityName="org.kde.kdeconnect.ui.MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="org.kde.kdeconnect.ui.MainActivity" />
-        </activity>
-        <activity
             android:name="org.kde.kdeconnect.ui.CustomDevicesActivity"
             android:label="@string/custom_devices_settings"
             android:exported="false"
@@ -392,10 +383,10 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
         <activity
             android:name="org.kde.kdeconnect.plugins.notifications.NotificationFilterActivity"
             android:label="@string/title_activity_notification_filter"
-            android:parentActivityName="org.kde.kdeconnect.ui.PluginSettingsActivity">
+            android:parentActivityName="org.kde.kdeconnect.ui.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="org.kde.kdeconnect.ui.PluginSettingsActivity" />
+                android:value="org.kde.kdeconnect.ui.MainActivity" />
         </activity>
 
         <activity

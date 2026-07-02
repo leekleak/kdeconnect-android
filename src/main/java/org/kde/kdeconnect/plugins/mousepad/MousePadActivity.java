@@ -29,7 +29,8 @@ import androidx.preference.PreferenceManager;
 
 import org.kde.kdeconnect.KdeConnect;
 import org.kde.kdeconnect.plugins.digitizer.DigitizerPlugin;
-import org.kde.kdeconnect.ui.PluginSettingsActivity;
+import org.kde.kdeconnect.ui.MainActivity;
+import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants;
 import org.kde.kdeconnect.base.BaseActivity;
 import org.kde.kdeconnect_tp.R;
 import org.kde.kdeconnect_tp.databinding.ActivityMousepadBinding;
@@ -250,9 +251,9 @@ public class MousePadActivity
             sendMiddleClick();
             return true;
         } else if (id == R.id.menu_open_mousepad_settings) {
-            Intent intent = new Intent(this, PluginSettingsActivity.class)
-                    .putExtra(PluginSettingsActivity.EXTRA_DEVICE_ID, deviceId)
-                    .putExtra(PluginSettingsActivity.EXTRA_PLUGIN_KEY, MousePadPlugin.class.getSimpleName());
+            Intent intent = new Intent(this, MainActivity.class)
+                    .putExtra(KdeConnectKeyConstants.EXTRA_DEVICE_ID, deviceId)
+                .putExtra(KdeConnectKeyConstants.EXTRA_PLUGIN_KEY, MousePadPlugin.class.getSimpleName());
             startActivity(intent);
             return true;
         } else if (id == R.id.menu_show_keyboard) {

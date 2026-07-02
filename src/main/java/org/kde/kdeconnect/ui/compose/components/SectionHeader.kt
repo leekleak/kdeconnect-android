@@ -95,6 +95,7 @@ fun HazeScaffold(
                     .background(colorScheme.surface)
                     .fillMaxSize()
                     .hazeSource(hazeState)
+                    .padding(horizontal = if (scrollState != null) paddingSide else 0.dp)
                     .then(if (scrollState != null) Modifier.verticalScroll(scrollState) else Modifier),
                 verticalArrangement = verticalArrangement
             ) {

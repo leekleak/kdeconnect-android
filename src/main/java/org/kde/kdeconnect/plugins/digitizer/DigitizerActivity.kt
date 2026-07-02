@@ -24,7 +24,8 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.preference.PreferenceManager
 import org.kde.kdeconnect.KdeConnect
-import org.kde.kdeconnect.ui.PluginSettingsActivity
+import org.kde.kdeconnect.ui.MainActivity
+import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import org.kde.kdeconnect.base.BaseActivity
 import org.kde.kdeconnect.extensions.viewBinding
 import org.kde.kdeconnect_tp.R
@@ -161,9 +162,9 @@ class DigitizerActivity : BaseActivity<ActivityDigitizerBinding>(), DrawingPadVi
             }
             R.id.menu_open_settings -> {
                 startActivity(
-                    Intent(this, PluginSettingsActivity::class.java)
-                        .putExtra(PluginSettingsActivity.EXTRA_DEVICE_ID, deviceId)
-                        .putExtra(PluginSettingsActivity.EXTRA_PLUGIN_KEY, DigitizerPlugin::class.java.getSimpleName())
+                    Intent(this, MainActivity::class.java)
+                        .putExtra(KdeConnectKeyConstants.EXTRA_DEVICE_ID, deviceId)
+                        .putExtra(KdeConnectKeyConstants.EXTRA_PLUGIN_KEY, DigitizerPlugin::class.java.simpleName)
                 )
                 true
             }

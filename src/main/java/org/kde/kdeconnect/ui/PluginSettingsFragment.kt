@@ -7,11 +7,13 @@ package org.kde.kdeconnect.ui
 
 import android.content.Context
 import android.os.Bundle
+import androidx.fragment.app.FragmentActivity
 import androidx.preference.PreferenceFragmentCompat
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.KdeConnect.Companion.getInstance
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginFactory
+import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import org.kde.kdeconnect_tp.R
 
 open class PluginSettingsFragment : PreferenceFragmentCompat() {
@@ -39,6 +41,7 @@ open class PluginSettingsFragment : PreferenceFragmentCompat() {
         val pluginKey = arguments.getString(ARG_PLUGIN_KEY)!!
         this.pluginKey = pluginKey
         this.layouts = arguments.getIntArray(ARG_LAYOUT)!!
+        
         val device = getInstance().getDevice(this.deviceId)
         if (device == null) {
             requireActivity().finish()
@@ -70,7 +73,8 @@ open class PluginSettingsFragment : PreferenceFragmentCompat() {
     }
 
     val deviceId: String?
-        get() = PluginSettingsActivity.settingsDeviceId
+        get() = arguments?.getString(KdeConnectKeyConstants.EXTRA_DEVICE_ID)
+            ?: requireActivity().intent?.getStringExtra(KdeConnectKeyConstants.EXTRA_DEVICE_ID)
 
     companion object {
         private const val ARG_PLUGIN_KEY = "plugin_key"

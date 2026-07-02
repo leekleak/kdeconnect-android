@@ -11,6 +11,8 @@ import android.os.Bundle;
 
 import androidx.annotation.Nullable;
 
+import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants;
+
 public class DeviceSettingsAlertDialogFragment extends AlertDialogFragment {
     private static final String KEY_PLUGIN_KEY = "PluginKey";
     private static final String KEY_DEVICE_ID = "DeviceId";
@@ -39,10 +41,10 @@ public class DeviceSettingsAlertDialogFragment extends AlertDialogFragment {
         setCallback(new Callback() {
             @Override
             public boolean onPositiveButtonClicked() {
-                Intent intent = new Intent(requireActivity(), PluginSettingsActivity.class);
+                Intent intent = new Intent(requireActivity(), MainActivity.class);
 
-                intent.putExtra(PluginSettingsActivity.EXTRA_DEVICE_ID, deviceId);
-                intent.putExtra(PluginSettingsActivity.EXTRA_PLUGIN_KEY, pluginKey);
+                intent.putExtra(KdeConnectKeyConstants.EXTRA_DEVICE_ID, deviceId);
+                intent.putExtra(KdeConnectKeyConstants.EXTRA_PLUGIN_KEY, pluginKey);
                 requireActivity().startActivity(intent);
                 return true;
             }

@@ -67,8 +67,11 @@ import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.KdeConnectKey
+import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.PairingKey
+import org.kde.kdeconnect.ui.navigation.PluginIndividualSettingsKey
+import org.kde.kdeconnect.ui.navigation.PluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.PresenterKey
 import org.kde.kdeconnect.ui.navigation.SettingsKey
 import org.kde.kdeconnect_tp.R
@@ -195,8 +198,8 @@ class MainActivity : AppCompatActivity(), OnSharedPreferenceChangeListener, Andr
                 savedDevice = null
                 savedMenuEntry = MENU_ENTRY_ADD_DEVICE
             }
-            intent.hasExtra(EXTRA_DEVICE_ID) -> {
-                savedDevice = intent.getStringExtra(EXTRA_DEVICE_ID)
+            intent.hasExtra(KdeConnectKeyConstants.EXTRA_DEVICE_ID) -> {
+                savedDevice = intent.getStringExtra(KdeConnectKeyConstants.EXTRA_DEVICE_ID)
                 savedMenuEntry = MENU_ENTRY_DEVICE_UNKNOWN
                 val pairStatus = intent.getStringExtra(PAIR_REQUEST_STATUS)
                 if (pairStatus != null) {
@@ -204,6 +207,14 @@ class MainActivity : AppCompatActivity(), OnSharedPreferenceChangeListener, Andr
                     if (savedDevice == null) {
                         savedMenuEntry = MENU_ENTRY_ADD_DEVICE
                     }
+                }
+                
+                // Handle deep link to plugin settings
+                if (intent.hasExtra(KdeConnectKeyConstants.EXTRA_PLUGIN_KEY)) {
+                    val pluginKey = intent.getStringExtra(KdeConnectKeyConstants.EXTRA_PLUGIN_KEY)!!
+                    intent.putExtra(KdeConnectKeyConstants.EXTRA_DEVICE_ID, savedDevice)
+                    mNavigator.goTo(PluginSettingsKey(savedDevice!!))
+                    mNavigator.goTo(PluginIndividualSettingsKey(savedDevice, pluginKey))
                 }
             }
             savedInstanceState != null -> {
@@ -501,7 +512,7 @@ class MainActivity : AppCompatActivity(), OnSharedPreferenceChangeListener, Andr
     }
 
     companion object {
-        const val EXTRA_DEVICE_ID = "deviceId"
+        const val EXTRA_DEVICE_ID = KdeConnectKeyConstants.EXTRA_DEVICE_ID
         const val PAIR_REQUEST_STATUS = "pair_req_status"
         const val PAIRING_ACCEPTED = "accepted"
         const val PAIRING_REJECTED = "rejected"

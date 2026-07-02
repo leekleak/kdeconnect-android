@@ -15,7 +15,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidViewBinding
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import org.kde.kdeconnect.ui.PluginSettingsActivity
 import org.kde.kdeconnect.ui.about.LicensesActivity
 import org.kde.kdeconnect.ui.about.getApplicationAboutData
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
@@ -26,10 +25,15 @@ import org.kde.kdeconnect.ui.compose.screen.pairing.PairingScreen
 import org.kde.kdeconnect.ui.compose.screen.pairing.PairingViewModel
 import org.kde.kdeconnect.ui.compose.screen.presenter.PresenterScreen
 import org.kde.kdeconnect.ui.compose.screen.presenter.PresenterViewModel
+import org.kde.kdeconnect.ui.compose.screen.plugin.PluginIndividualSettingsScreen
+import org.kde.kdeconnect.ui.compose.screen.plugin.PluginSettingsScreen
+import org.kde.kdeconnect.ui.compose.screen.plugin.PluginSettingsViewModel
 import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.PairingKey
+import org.kde.kdeconnect.ui.navigation.PluginIndividualSettingsKey
+import org.kde.kdeconnect.ui.navigation.PluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.PresenterKey
 import org.kde.kdeconnect.ui.navigation.SettingsKey
 import org.kde.kdeconnect_tp.R
@@ -125,14 +129,31 @@ val settingsModule = module {
 val deviceModule = module {
     viewModel<DeviceViewModel>()
     navigation<DeviceKey> { key ->
-        val context = LocalContext.current
+        val navigator = koinInject<Navigator>()
         DeviceScreen(
             deviceId = key.deviceId,
             onNavigateToPluginsSettings = {
-                val intent = Intent(context, PluginSettingsActivity::class.java)
-                intent.putExtra("deviceId", key.deviceId)
-                context.startActivity(intent)
+                navigator.goTo(PluginSettingsKey(key.deviceId))
             }
+        )
+    }
+}
+
+val pluginSettingsModule = module {
+    viewModel<PluginSettingsViewModel>()
+    navigation<PluginSettingsKey> { key ->
+        val navigator = koinInject<Navigator>()
+        PluginSettingsScreen(
+            deviceId = key.deviceId,
+            onNavigateToPluginIndividualSettings = { pluginKey ->
+                navigator.goTo(PluginIndividualSettingsKey(key.deviceId, pluginKey))
+            }
+        )
+    }
+    navigation<PluginIndividualSettingsKey> { key ->
+        PluginIndividualSettingsScreen(
+            deviceId = key.deviceId,
+            pluginKey = key.pluginKey
         )
     }
 }
@@ -145,7 +166,7 @@ val presenterModule = module {
 }
 
 val appModule = module {
-    includes(pairingModule, deviceModule, presenterModule, settingsModule, aboutModule)
+    includes(pairingModule, deviceModule, pluginSettingsModule, presenterModule, settingsModule, aboutModule)
 
     single<Navigator>()
 }
