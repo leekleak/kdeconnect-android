@@ -13,6 +13,7 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -60,6 +61,7 @@ import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.extensions.setOnApplyWindowInsetsListenerCompat
 import org.kde.kdeconnect.helpers.DeviceHelper
+import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
 import org.kde.kdeconnect.plugins.share.ShareSettingsFragment
 import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.navigation.AboutKey
@@ -67,6 +69,7 @@ import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.KdeConnectKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.PairingKey
+import org.kde.kdeconnect.ui.navigation.PresenterKey
 import org.kde.kdeconnect.ui.navigation.SettingsKey
 import org.kde.kdeconnect_tp.R
 import org.kde.kdeconnect_tp.databinding.ActivityMainBinding
@@ -108,6 +111,33 @@ class MainActivity : AppCompatActivity(), OnSharedPreferenceChangeListener, Andr
     }
 
     private val mNavigator: Navigator by inject()
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val currentKey = mNavigator.backStack.lastOrNull()
+        if (currentKey is PresenterKey) {
+            val offScreenControlsSupported = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA
+            if (!offScreenControlsSupported) {
+                val keyCode = event.keyCode
+                val action = event.action
+                val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+                val volumeKeysEnabled = prefs.getBoolean(getString(R.string.pref_presenter_enable_volume_keys), true)
+
+                if (volumeKeysEnabled) {
+                    if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN && action == KeyEvent.ACTION_UP) {
+                        KdeConnect.getInstance().getDevicePlugin(currentKey.deviceId, PresenterPlugin::class.java)?.sendPrevious()
+                        return true
+                    } else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP && action == KeyEvent.ACTION_UP) {
+                        KdeConnect.getInstance().getDevicePlugin(currentKey.deviceId, PresenterPlugin::class.java)?.sendNext()
+                        return true
+                    }
+                    if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+                        return true
+                    }
+                }
+            }
+        }
+        return super.dispatchKeyEvent(event)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -299,6 +329,12 @@ class MainActivity : AppCompatActivity(), OnSharedPreferenceChangeListener, Andr
                 mCurrentDevice = null
                 mCurrentMenuEntry = MENU_ENTRY_ABOUT
                 supportActionBar?.setTitle(R.string.about)
+                supportActionBar?.subtitle = null
+            }
+            is PresenterKey -> {
+                mCurrentDevice = key.deviceId
+                mCurrentMenuEntry = deviceIdToMenuEntryId(key.deviceId)
+                supportActionBar?.setTitle(R.string.pref_plugin_presenter)
                 supportActionBar?.subtitle = null
             }
             else -> {}

@@ -26,10 +26,13 @@ import org.kde.kdeconnect.ui.compose.screen.device.DeviceScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceViewModel
 import org.kde.kdeconnect.ui.compose.screen.pairing.PairingScreen
 import org.kde.kdeconnect.ui.compose.screen.pairing.PairingViewModel
+import org.kde.kdeconnect.ui.compose.screen.presenter.PresenterScreen
+import org.kde.kdeconnect.ui.compose.screen.presenter.PresenterViewModel
 import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.PairingKey
+import org.kde.kdeconnect.ui.navigation.PresenterKey
 import org.kde.kdeconnect.ui.navigation.SettingsKey
 import org.kde.kdeconnect_tp.R
 import org.kde.kdeconnect_tp.databinding.FragmentSettingsBinding
@@ -152,8 +155,15 @@ val deviceModule = module {
     }
 }
 
+val presenterModule = module {
+    viewModel<PresenterViewModel>()
+    navigation<PresenterKey> { key ->
+        PresenterScreen(deviceId = key.deviceId)
+    }
+}
+
 val appModule = module {
-    includes(pairingModule, deviceModule, settingsModule, aboutModule)
+    includes(pairingModule, deviceModule, presenterModule, settingsModule, aboutModule)
 
     single<Navigator>()
 }

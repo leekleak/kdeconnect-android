@@ -15,7 +15,10 @@ import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
 import org.kde.kdeconnect.ui.PluginSettingsFragment
 import org.kde.kdeconnect.ui.PluginSettingsFragment.Companion.newInstance
+import org.kde.kdeconnect.ui.navigation.Navigator
+import org.kde.kdeconnect.ui.navigation.PresenterKey
 import org.kde.kdeconnect_tp.R
+import org.koin.java.KoinJavaComponent.inject
 
 
 @LoadablePlugin
@@ -40,10 +43,9 @@ class PresenterPlugin : Plugin() {
         PluginUiButton(
             context.getString(R.string.pref_plugin_presenter),
             R.drawable.ic_presenter_24dp
-        ) { parentActivity ->
-            val intent = Intent(parentActivity, PresenterActivity::class.java)
-            intent.putExtra("deviceId", device.deviceId)
-            parentActivity.startActivity(intent)
+        ) {
+            val navigator: Navigator by inject(Navigator::class.java)
+            navigator.goTo(PresenterKey(device.deviceId))
         })
 
     override val supportedPacketTypes: Array<String> = emptyArray()
