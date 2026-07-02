@@ -420,24 +420,6 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
         </activity>
 
         <activity
-            android:name="org.kde.kdeconnect.ui.about.EasterEggActivity"
-            android:label="@string/easter_egg"
-            android:parentActivityName="org.kde.kdeconnect.ui.MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="org.kde.kdeconnect.ui.MainActivity" />
-        </activity>
-
-        <activity
-            android:name="org.kde.kdeconnect.ui.about.AboutKDEActivity"
-            android:label="@string/about_kde"
-            android:parentActivityName="org.kde.kdeconnect.ui.MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="org.kde.kdeconnect.ui.MainActivity" />
-        </activity>
-
-        <activity
             android:name="org.kde.kdeconnect.ui.about.LicensesActivity"
             android:label="@string/licenses"
             android:parentActivityName="org.kde.kdeconnect.ui.MainActivity">

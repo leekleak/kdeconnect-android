@@ -11,11 +11,31 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -23,7 +43,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import org.kde.kdeconnect.extensions.safeDrawingBottomPadding
 import org.kde.kdeconnect.ui.about.AboutData
 import org.kde.kdeconnect.ui.about.AboutPerson
 import org.kde.kdeconnect.ui.compose.KdeTheme
@@ -34,12 +53,10 @@ import org.kde.kdeconnect_tp.R
 @Composable
 fun AboutScreen(
     aboutData: AboutData,
-    onEasterEggTriggered: () -> Unit,
     onReportBugClicked: () -> Unit,
     onDonateClicked: () -> Unit,
     onSourceCodeClicked: () -> Unit,
     onLicensesClicked: () -> Unit,
-    onAboutKdeClicked: () -> Unit,
     onWebsiteClicked: () -> Unit
 ) {
     HazeScaffold(
@@ -55,7 +72,6 @@ fun AboutScreen(
             item {
                 AppInfoCard(
                     aboutData = aboutData,
-                    onEasterEggTriggered = onEasterEggTriggered
                 )
             }
 
@@ -66,7 +82,6 @@ fun AboutScreen(
                     onDonateClicked = onDonateClicked,
                     onSourceCodeClicked = onSourceCodeClicked,
                     onLicensesClicked = onLicensesClicked,
-                    onAboutKdeClicked = onAboutKdeClicked,
                     onWebsiteClicked = onWebsiteClicked
                 )
             }
@@ -81,32 +96,9 @@ fun AboutScreen(
 @Composable
 private fun AppInfoCard(
     aboutData: AboutData,
-    onEasterEggTriggered: () -> Unit
 ) {
-    var tapCount by remember { mutableIntStateOf(0) }
-    var firstTapMillis by remember { mutableStateOf<Long?>(null) }
-
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
-        onClick = {
-            val currentMillis = System.currentTimeMillis()
-            if (firstTapMillis == null) {
-                firstTapMillis = currentMillis
-            }
-
-            tapCount++
-
-            if (tapCount == 3) {
-                if (currentMillis - firstTapMillis!! <= 500) {
-                    onEasterEggTriggered()
-                }
-                tapCount = 0
-                firstTapMillis = null
-            } else if (currentMillis - firstTapMillis!! > 500) {
-                tapCount = 1
-                firstTapMillis = currentMillis
-            }
-        }
     ) {
         Row(
             modifier = Modifier
@@ -145,7 +137,6 @@ private fun ActionButtons(
     onDonateClicked: () -> Unit,
     onSourceCodeClicked: () -> Unit,
     onLicensesClicked: () -> Unit,
-    onAboutKdeClicked: () -> Unit,
     onWebsiteClicked: () -> Unit
 ) {
     val buttons = remember(aboutData) {
@@ -183,13 +174,6 @@ private fun ActionButtons(
                 textRes = R.string.licenses,
                 iconRes = R.drawable.ic_baseline_gavel_24,
                 onClick = onLicensesClicked
-            )
-        }
-        list.add {
-            ActionIconTextButton(
-                textRes = R.string.about_kde,
-                iconRes = R.drawable.ic_kde_24dp,
-                onClick = onAboutKdeClicked
             )
         }
 
@@ -331,12 +315,10 @@ private fun AboutScreenPreview() {
         Surface {
             AboutScreen(
                 aboutData = sampleAboutData,
-                onEasterEggTriggered = {},
                 onReportBugClicked = {},
                 onDonateClicked = {},
                 onSourceCodeClicked = {},
                 onLicensesClicked = {},
-                onAboutKdeClicked = {},
                 onWebsiteClicked = {}
             )
         }

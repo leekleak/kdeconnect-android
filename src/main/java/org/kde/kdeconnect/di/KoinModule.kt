@@ -16,8 +16,6 @@ import androidx.compose.ui.viewinterop.AndroidViewBinding
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.kde.kdeconnect.ui.PluginSettingsActivity
-import org.kde.kdeconnect.ui.about.AboutKDEActivity
-import org.kde.kdeconnect.ui.about.EasterEggActivity
 import org.kde.kdeconnect.ui.about.LicensesActivity
 import org.kde.kdeconnect.ui.about.getApplicationAboutData
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
@@ -77,14 +75,6 @@ val aboutModule = module {
         val aboutData = getApplicationAboutData(context)
         AboutScreen(
             aboutData = aboutData,
-            onEasterEggTriggered = {
-                context.startActivity(
-                    Intent(
-                        context,
-                        EasterEggActivity::class.java
-                    )
-                )
-            },
             onReportBugClicked = {
                 aboutData.bugURL?.let {
                     context.startActivity(Intent(Intent.ACTION_VIEW, it.toUri()))
@@ -105,14 +95,6 @@ val aboutModule = module {
                     Intent(
                         context,
                         LicensesActivity::class.java
-                    )
-                )
-            },
-            onAboutKdeClicked = {
-                context.startActivity(
-                    Intent(
-                        context,
-                        AboutKDEActivity::class.java
                     )
                 )
             },
