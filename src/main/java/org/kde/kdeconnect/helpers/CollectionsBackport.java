@@ -116,14 +116,13 @@ public final class CollectionsBackport {
             }
         }
 
-        @SuppressWarnings("rawtypes")
         private static final NavigableSet<?> EMPTY_NAVIGABLE_SET =
                 new EmptyNavigableSet<>();
 
         /**
          * The instance we are protecting.
          */
-        @SuppressWarnings("serial") // Conditionally serializable
+        // Conditionally serializable
         private final NavigableSet<E> ns;
 
         UnmodifiableNavigableSetBackport(NavigableSet<E> s) {
@@ -182,7 +181,7 @@ public final class CollectionsBackport {
     static class UnmodifiableSortedSetBackport<E>
             extends UnmodifiableSetBackport<E>
             implements SortedSet<E>, Serializable {
-        @SuppressWarnings("serial") // Conditionally serializable
+        // Conditionally serializable
         private final SortedSet<E> ss;
 
         UnmodifiableSortedSetBackport(SortedSet<E> s) {
@@ -233,7 +232,7 @@ public final class CollectionsBackport {
 
     static class UnmodifiableCollectionBackport<E> implements Collection<E>, Serializable {
 
-        @SuppressWarnings("serial") // Conditionally serializable
+        // Conditionally serializable
         final Collection<? extends E> c;
 
         UnmodifiableCollectionBackport(Collection<? extends E> c) {
@@ -463,7 +462,7 @@ public final class CollectionsBackport {
     static class UnmodifiableSortedMapBackport<K,V>
             extends UnmodifiableMapBackport<K,V>
             implements SortedMap<K,V>, Serializable {
-        @SuppressWarnings("serial") // Conditionally serializable
+        // Conditionally serializable
         private final SortedMap<K, ? extends V> sm;
 
         UnmodifiableSortedMapBackport(SortedMap<K, ? extends V> m) {super(m); sm = m; }
@@ -482,7 +481,7 @@ public final class CollectionsBackport {
         @java.io.Serial
         private static final long serialVersionUID = -1034234728574286014L;
 
-        @SuppressWarnings("serial") // Conditionally serializable
+        // Conditionally serializable
         private final Map<? extends K, ? extends V> m;
 
         UnmodifiableMapBackport(Map<? extends K, ? extends V> m) {
