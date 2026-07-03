@@ -612,6 +612,16 @@ class Device : PacketReceiver {
         return true
     }
 
+    fun setPluginEnabled(pluginKey: String, value: Boolean) {
+        TrustedDevices.getDeviceSettings(context, deviceId).edit { putBoolean(pluginKey, value) }
+        reloadPluginsFromSettings()
+    }
+
+    fun isPluginEnabled(pluginKey: String): Boolean {
+        val enabledByDefault = PluginFactory.getPluginInfo(pluginKey).isEnabledByDefault
+        return TrustedDevices.getDeviceSettings(context, deviceId).getBoolean(pluginKey, enabledByDefault)
+    }
+
     fun notifyPluginsOfDeviceUnpaired(context: Context, deviceId: String) {
         for (pluginKey in supportedPlugins) {
             // This is a hacky way to temporarily create plugins just so that they can be notified of the

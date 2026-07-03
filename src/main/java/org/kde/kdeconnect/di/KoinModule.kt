@@ -136,13 +136,7 @@ val deviceModule = module {
 val pluginSettingsModule = module {
     viewModel<PluginSettingsViewModel>()
     navigation<PluginSettingsKey> { key ->
-        val navigator = koinInject<Navigator>()
-        PluginSettingsScreen(
-            deviceId = key.deviceId,
-            onNavigateToPluginIndividualSettings = { pluginKey ->
-                navigator.goTo(PluginIndividualSettingsKey(key.deviceId, pluginKey))
-            }
-        )
+        PluginSettingsScreen(key.deviceId)
     }
     navigation<PluginIndividualSettingsKey> { key ->
         PluginIndividualSettingsScreen(

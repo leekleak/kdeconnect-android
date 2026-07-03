@@ -85,8 +85,8 @@ class DeviceViewModel(application: Application, @InjectedParam private val devic
         val device = device ?: return
         
         val pluginsWithButtons = device.loadedPlugins.values.flatMap { it.getUiButtons() }
-        val pluginsNeedPermissions = device.pluginsWithoutPermissions.values.toList()
-        val pluginsNeedOptionalPermissions = device.pluginsWithoutOptionalPermissions.values.toList()
+        val pluginsNeedPermissions = device.pluginsWithoutPermissions.values.filter { device.isPluginEnabled(it.pluginKey) }
+        val pluginsNeedOptionalPermissions = device.pluginsWithoutOptionalPermissions.values.filter { device.isPluginEnabled(it.pluginKey) }
         val menuEntries = device.loadedPlugins.values.flatMap { it.getUiMenuEntries() }
 
         _uiState.update { state ->

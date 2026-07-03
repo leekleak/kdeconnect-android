@@ -113,6 +113,13 @@ abstract class Plugin {
     abstract val description: String
 
     /**
+     * Return true if this plugin should be enabled on new devices.
+     * This function can access this.context and perform compatibility
+     * checks with the Android version, but cannot access this.device.
+     */
+    open val isEnabledByDefault: Boolean = true
+
+    /**
      * Return true if this plugin needs a specific UI settings.
      */
     open fun hasSettings(): Boolean = false

@@ -39,7 +39,6 @@ val validSettings = listOf(
 fun PluginSettingsScreen(
     deviceId: String,
     viewModel: PluginSettingsViewModel = koinViewModel(key = "PluginSettingsViewModel_$deviceId") { parametersOf(deviceId) },
-    onNavigateToPluginIndividualSettings: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -48,47 +47,12 @@ fun PluginSettingsScreen(
         backButton = true,
     ) {
         uiState.plugins.filter { validSettings.contains(it.key) }.forEach { plugin ->
-            if (plugin.hasSettings) {
-                SplitPluginPreference(
-                    plugin = plugin,
-                    onPluginToggled = {  },
-                    onSettingsClicked = { onNavigateToPluginIndividualSettings(plugin.key) }
-                )
-            } else {
-                SwitchPreference(
-                    title = plugin.name,
-                    summary = plugin.description,
-                    value = true,
-                    onValueChanged = { }
-                )
-            }
+            SwitchPreference(
+                title = plugin.name,
+                summary = plugin.description,
+                value = plugin.isEnabled,
+                onValueChanged = { viewModel.setPluginEnabled(plugin.key, it) }
+            )
         }
-    }
-}
-
-@Composable
-private fun SplitPluginPreference(
-    plugin: PluginSettingsItem,
-    onPluginToggled: (Boolean) -> Unit,
-    onSettingsClicked: () -> Unit
-) {
-    Row(Modifier.height(IntrinsicSize.Min)) {
-        Preference(
-            modifier = Modifier.weight(1f),
-            title = plugin.name,
-            summary = plugin.description,
-            controls = {
-                Switch(
-                    checked = true,
-                    onCheckedChange = onPluginToggled
-                )
-            }
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        IconPreference(
-            title = stringResource(R.string.settings),
-            painter = painterResource(R.drawable.ic_settings_24dp),
-            onClick = onSettingsClicked
-        )
     }
 }
