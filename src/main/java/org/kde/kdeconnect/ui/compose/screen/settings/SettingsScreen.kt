@@ -6,18 +6,9 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
@@ -30,7 +21,8 @@ import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.ui.CustomDevicesActivity
 import org.kde.kdeconnect.ui.PermissionsAlertDialogFragment
 import org.kde.kdeconnect.ui.TrustedNetworksActivity
-import org.kde.kdeconnect.ui.compose.components.DialogPreference
+import org.kde.kdeconnect.ui.compose.components.DialogItemSelectPreference
+import org.kde.kdeconnect.ui.compose.components.DialogTextPreference
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.NavigatePreference
 import org.kde.kdeconnect.ui.compose.components.Preference
@@ -54,8 +46,6 @@ fun SettingsScreen(
         onDispose {}
     }
 
-    var showRenameDialog by remember { mutableStateOf(false) }
-
     val devicesByIpLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) {
@@ -78,10 +68,16 @@ fun SettingsScreen(
         title = stringResource(R.string.settings),
         backButton = true,
     ) {
-        Preference(
+        DialogTextPreference(
             title = stringResource(R.string.settings_rename),
-            summary = uiState.deviceName,
-            onClick = { showRenameDialog = true }
+            value = uiState.deviceName,
+            filterInput = {
+                DeviceHelper.filterInvalidCharactersFromDeviceName(it)
+                    .take(DeviceHelper.MAX_DEVICE_NAME_LENGTH)
+            },
+            onValueChanged = {
+                viewModel.setDeviceName(it)
+            }
         )
 
         val themeEntries = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -92,7 +88,7 @@ fun SettingsScreen(
         val themeValues = stringArrayResource(R.array.theme_list_values)
         val themeOptions = themeValues.zip(themeEntries)
 
-        DialogPreference(
+        DialogItemSelectPreference(
             title = stringResource(R.string.theme_dialog_title),
             value = uiState.theme,
             values = themeOptions.toList(),
@@ -171,41 +167,6 @@ fun SettingsScreen(
         NavigatePreference(
             title = stringResource(R.string.about),
             onClick = { navigator.goTo(AboutKey) }
-        )
-    }
-
-    if (showRenameDialog) {
-        var newName by remember { mutableStateOf(uiState.deviceName) }
-        AlertDialog(
-            onDismissRequest = { showRenameDialog = false },
-            title = { Text(stringResource(R.string.device_rename_title)) },
-            text = {
-                OutlinedTextField(
-                    value = newName,
-                    onValueChange = {
-                        newName = DeviceHelper.filterInvalidCharactersFromDeviceName(it)
-                            .take(DeviceHelper.MAX_DEVICE_NAME_LENGTH)
-                    },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.setDeviceName(newName)
-                        showRenameDialog = false
-                    },
-                    enabled = newName.isNotBlank()
-                ) {
-                    Text(stringResource(R.string.device_rename_confirm))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showRenameDialog = false }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            }
         )
     }
 }

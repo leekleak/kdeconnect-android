@@ -12,6 +12,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -26,12 +27,14 @@ import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -249,7 +252,98 @@ fun SliderPreference(
 }
 
 @Composable
-fun <T> DialogPreference(
+fun DialogPreference(
+    modifier: Modifier = Modifier,
+    title: String,
+    summary: String? = null,
+    icon: Painter? = null,
+    enabled: Boolean = true,
+    content: @Composable (ColumnScope.(MutableState<Boolean>) -> Unit) = {}
+) {
+    val expanded = remember { mutableStateOf(false) }
+    val haptic = LocalHapticFeedback.current
+
+    Preference(
+        modifier = modifier,
+        title = title,
+        summary = summary,
+        icon = icon,
+        enabled = enabled,
+        onClick = {
+            expanded.value = true
+            haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+        },
+    )
+    if (expanded.value) {
+        Dialog(onDismissRequest = { expanded.value = false }) {
+            Column(modifier = Modifier
+                .card()
+                .background(colorScheme.surface)
+                .padding(16.dp)
+            ) {
+                content(expanded)
+            }
+        }
+    }
+}
+
+@Composable
+fun DialogTextPreference(
+    modifier: Modifier = Modifier,
+    title: String,
+    summary: String? = null,
+    icon: Painter? = null,
+    value: String,
+    enabled: Boolean = true,
+    filterInput: (String) -> String,
+    onValueChanged: (String) -> Unit
+) {
+    var newValue by remember { mutableStateOf(value) }
+    val font = remember { googleSans(weight = 600f) }
+    DialogPreference(
+        modifier = modifier,
+        title = title,
+        summary = summary ?: value,
+        icon = icon,
+        enabled = enabled
+    ) { expanded ->
+        Text(
+            text = title,
+            style = MaterialTheme.typography.headlineSmallEmphasized,
+            fontFamily = font
+        )
+        OutlinedTextField(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+            value = newValue,
+            onValueChange = {
+                newValue = filterInput(it)
+            },
+            singleLine = true,
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.End
+        ) {
+            TextButton(
+                onClick = {
+                    onValueChanged(newValue)
+                    expanded.value = false
+                },
+                enabled = newValue.isNotBlank()
+            ) {
+                Text(stringResource(R.string.save))
+            }
+            TextButton(onClick = { expanded.value = false }) {
+                Text(stringResource(R.string.cancel))
+            }
+        }
+    }
+}
+
+@Composable
+fun <T> DialogItemSelectPreference(
     modifier: Modifier = Modifier,
     title: String,
     summary: String? = null,
@@ -259,76 +353,61 @@ fun <T> DialogPreference(
     enabled: Boolean = true,
     onValueChanged: (T) -> Unit
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    val haptic = LocalHapticFeedback.current
     val font = remember { googleSans(weight = 600f) }
-
     val currentValueLabel = values.find { it.first == value }?.second ?: value.toString()
-
-    Preference(
+    val haptic = LocalHapticFeedback.current
+    DialogPreference(
         modifier = modifier,
         title = title,
         summary = summary ?: currentValueLabel,
         icon = icon,
-        enabled = enabled,
-        onClick = {
-            expanded = true
-            haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-        },
-    )
-    if (expanded) {
-        Dialog(onDismissRequest = { expanded = false }) {
-            Column(modifier = Modifier
-                .card()
-                .background(colorScheme.surface)
-                .padding(16.dp)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.headlineSmallEmphasized,
-                    fontFamily = font
-                )
-                Column(
-                    modifier = Modifier
-                        .padding(vertical = 12.dp)
-                        .fillMaxWidth()
-                        .weight(1f, fill = false)
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    values.forEach { (itemValue, label) ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(MaterialTheme.shapes.medium)
-                                .clickable {
-                                    onValueChanged(itemValue)
-                                    expanded = false
-                                    haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-                                }
-                                .background(if (itemValue == value) colorScheme.primary else colorScheme.surfaceContainer)
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = label,
-                                style = MaterialTheme.typography.bodyLargeEmphasized,
-                                color = if (itemValue == value) colorScheme.onPrimary else colorScheme.onSurface,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
+        enabled = enabled
+    ) { expanded ->
+        Text(
+             text = title,
+             style = MaterialTheme.typography.headlineSmallEmphasized,
+             fontFamily = font
+        )
+        Column(
+             modifier = Modifier
+                 .padding(vertical = 12.dp)
+                 .fillMaxWidth()
+                 .weight(1f, fill = false)
+                 .verticalScroll(rememberScrollState()),
+             verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            values.forEach { (itemValue, label) ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.End
+                        .clip(MaterialTheme.shapes.medium)
+                        .clickable {
+                            onValueChanged(itemValue)
+                            expanded.value = false
+                            haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                        }
+                        .background(if (itemValue == value) colorScheme.primary else colorScheme.surfaceContainer)
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TextButton(onClick = { expanded = false }) {
-                        Text(stringResource(R.string.cancel))
-                    }
+                     Text(
+                         text = label,
+                         style = MaterialTheme.typography.bodyLargeEmphasized,
+                         color = if (itemValue == value) colorScheme.onPrimary else colorScheme.onSurface,
+                         fontWeight = FontWeight.Bold
+                     )
                 }
-            }
+             }
+         }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.End
+        ) {
+             TextButton(onClick = { expanded.value = false }) {
+                 Text(stringResource(R.string.cancel))
+             }
         }
     }
 }
