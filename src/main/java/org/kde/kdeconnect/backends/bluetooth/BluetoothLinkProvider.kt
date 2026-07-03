@@ -30,9 +30,9 @@ import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.helpers.ThreadHelper.execute
 import org.kde.kdeconnect.NetworkPacket
-import org.kde.kdeconnect.ui.SettingsFragment
 import org.kde.kdeconnect.extensions.getParcelableArrayCompat
 import org.kde.kdeconnect.extensions.getParcelableCompat
+import org.kde.kdeconnect.ui.compose.screen.settings.SettingsViewModel.Companion.KEY_BLUETOOTH_ENABLED
 import java.io.IOException
 import java.io.InputStreamReader
 import java.io.Reader
@@ -74,7 +74,7 @@ class BluetoothLinkProvider(private val context: Context) : BaseLinkProvider() {
 
     override fun onStart() {
         val preferences = PreferenceManager.getDefaultSharedPreferences(context)
-        if (!preferences.getBoolean(SettingsFragment.KEY_BLUETOOTH_ENABLED, false)) {
+        if (!preferences.getBoolean(KEY_BLUETOOTH_ENABLED, false)) {
             return
         }
         if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled) {
@@ -143,7 +143,7 @@ class BluetoothLinkProvider(private val context: Context) : BaseLinkProvider() {
                 Log.e("KDEConnect", "Security Exception for CONNECT", e)
 
                 PreferenceManager.getDefaultSharedPreferences(context).edit {
-                    putBoolean(SettingsFragment.KEY_BLUETOOTH_ENABLED, false)
+                    putBoolean(KEY_BLUETOOTH_ENABLED, false)
                 }
 
                 return

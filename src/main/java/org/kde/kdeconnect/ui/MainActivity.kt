@@ -40,6 +40,7 @@ import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
 import org.kde.kdeconnect.plugins.share.ShareSettingsFragment
 import org.kde.kdeconnect.ui.compose.KdeTheme
+import org.kde.kdeconnect.ui.compose.screen.settings.SettingsViewModel.Companion.KEY_BLUETOOTH_ENABLED
 import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import org.kde.kdeconnect.ui.navigation.Navigator
@@ -212,7 +213,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
             if (isPermissionGranted(permissions, grantResults, Manifest.permission.BLUETOOTH_CONNECT) &&
                 isPermissionGranted(permissions, grantResults, Manifest.permission.BLUETOOTH_SCAN)) {
                 PreferenceManager.getDefaultSharedPreferences(this).edit {
-                    putBoolean(SettingsFragment.KEY_BLUETOOTH_ENABLED, true)
+                    putBoolean(KEY_BLUETOOTH_ENABLED, true)
                 }
                 mNavigator.goTo(SettingsKey)
             }
