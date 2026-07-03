@@ -14,47 +14,48 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.shapes
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.toPath
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.copy
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -62,10 +63,8 @@ import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
-import org.kde.kdeconnect.ui.compose.components.KdeBodyLargeText
 import org.kde.kdeconnect.ui.compose.components.KdeBodyMediumText
 import org.kde.kdeconnect.ui.compose.components.KdeBodySmallText
-import org.kde.kdeconnect.ui.compose.components.KdeCard
 import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
 import org.kde.kdeconnect.ui.compose.components.SectionHeader
 import org.kde.kdeconnect.ui.compose.components.googleSans
@@ -77,6 +76,7 @@ import org.kde.kdeconnect.ui.navigation.SettingsKey
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.koinInject
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PairingScreen(
     uiState: PairingUiState,
@@ -89,9 +89,11 @@ fun PairingScreen(
     val lazyListState = rememberLazyListState()
     val pullRefreshState = rememberPullToRefreshState()
     val navigator: Navigator = koinInject()
+    var showPairedSheet by remember { mutableStateOf(false) }
+    val pairedDevices by remember { derivedStateOf { uiState.available.size + uiState.remembered.size } }
 
     HazeScaffold(
-        title = stringResource(id = R.string.kde_connect),
+        title = stringResource(R.string.kde_connect_short),
         scrollState = null,
         actions = {
             IconButton(
@@ -104,6 +106,51 @@ fun PairingScreen(
             }
         }
     ) {paddingValues ->
+        if (showPairedSheet) {
+            ModalBottomSheet(onDismissRequest = {showPairedSheet = false}) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = paddingValues,
+                    state = lazyListState
+                ) {
+                    // Available devices
+                    if (uiState.available.isNotEmpty()) {
+                        item {
+                            SectionHeader(title = stringResource(id = R.string.category_not_paired_devices))
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(4.dp))
+                        }
+                        itemsIndexed(
+                            items = uiState.available,
+                            key = { _, availableDevice -> availableDevice.id }) { _, availableDevice ->
+                            DeviceCard (
+                                device = availableDevice,
+                                onClick = onClick
+                            )
+                        }
+                    }
+
+                    // Remembered devices
+                    if (uiState.remembered.isNotEmpty()) {
+                        item {
+                            SectionHeader(title = stringResource(id = R.string.category_remembered_devices))
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(4.dp))
+                        }
+                        itemsIndexed(
+                            items = uiState.remembered,
+                            key = { _, rememberedDevice -> rememberedDevice.id }) { _, rememberedDevice ->
+                            DeviceCard (
+                                device = rememberedDevice,
+                                onClick = onClick
+                            )
+                        }
+                    }
+                }
+            }
+        }
         PullToRefreshBox(
             isRefreshing = uiState.isRefreshing,
             onRefresh = onRefresh,
@@ -136,7 +183,7 @@ fun PairingScreen(
 
                 // Connected devices
                 item {
-                    SectionHeader(title = stringResource(id = R.string.category_connected_devices))
+                    SectionHeader(stringResource(R.string.category_connected_devices))
                 }
                 if (uiState.connected.isEmpty()) {
                     item {
@@ -155,41 +202,16 @@ fun PairingScreen(
                         )
                     }
                 }
-
-                // Available devices
-                if (uiState.available.isNotEmpty()) {
-                    item {
-                        SectionHeader(title = stringResource(id = R.string.category_not_paired_devices))
-                    }
-                    item {
-                        Spacer(modifier = Modifier.height(4.dp))
-                    }
-                    itemsIndexed(
-                        items = uiState.available,
-                        key = { _, availableDevice -> availableDevice.id }) { _, availableDevice ->
-                        DeviceCard (
-                            device = availableDevice,
-                            onClick = onClick
-                        )
-                    }
-                }
-
-                // Remembered devices
-                if (uiState.remembered.isNotEmpty()) {
-                    item {
-                        SectionHeader(title = stringResource(id = R.string.category_remembered_devices))
-                    }
-                    item {
-                        Spacer(modifier = Modifier.height(4.dp))
-                    }
-                    itemsIndexed(
-                        items = uiState.remembered,
-                        key = { _, rememberedDevice -> rememberedDevice.id }) { _, rememberedDevice ->
-                        DeviceCard (
-                            device = rememberedDevice,
-                            onClick = onClick
-                        )
-                    }
+            }
+            if (pairedDevices != 0) {
+                Button(
+                    modifier = Modifier
+                        .navigationBarsPadding()
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp),
+                    onClick = { showPairedSheet = true }
+                ) {
+                    Text(text = "$pairedDevices Paired devices")
                 }
             }
         }
@@ -320,7 +342,9 @@ private fun DeviceCard(
             }
     ) {
         Row(
-            modifier = Modifier.height(128.dp).padding(16.dp),
+            modifier = Modifier
+                .height(128.dp)
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -358,7 +382,8 @@ private fun DeviceCard(
             }
             Spacer(Modifier.weight(1f))
             IconButton (
-                modifier = Modifier.fillMaxHeight()
+                modifier = Modifier
+                    .fillMaxHeight()
                     .background(colorScheme.primary, shape = shapes.large)
                     .width(38.dp),
                 onClick = { onClick(device.id) }
@@ -367,45 +392,6 @@ private fun DeviceCard(
                     painter = painterResource(R.drawable.arrow_forward),
                     contentDescription = stringResource(R.string.open),
                     tint = colorScheme.onPrimary
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun PairingScreenCardContent(device: DeviceUiModel) {
-    Row(
-        modifier = Modifier
-            .wrapContentSize()
-            .defaultMinSize(minHeight = 48.dp)
-            .padding(all = 32.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        if (device.icon > 0) {
-            Image(
-                imageVector = ImageVector.vectorResource(id = device.icon),
-                contentDescription = null,
-                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onSurfaceVariant),
-                modifier = Modifier
-                    .padding(start = 12.dp)
-                    .size(32.dp)
-                    .wrapContentHeight()
-            )
-        }
-        Column(
-            modifier = Modifier.padding(start = 8.dp)
-        ) {
-            KdeBodyLargeText(
-                text = device.name,
-                fontSize = 18.sp,
-            )
-            if (device.summaryRes > 0) {
-                KdeBodySmallText(
-                    text = stringResource(id = device.summaryRes),
-                    color = Color(0xFFCC2222),
-                    fontSize = 14.sp,
-                    maxLines = 1,
                 )
             }
         }
