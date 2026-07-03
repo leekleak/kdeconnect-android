@@ -96,9 +96,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
         DeviceHelper.initializeDeviceId(this)
 
         setContent {
-            setContent {
-                MainActivityContent()
-            }
+            MainActivityContent()
         }
 
         val missingPermissions = mutableListOf<String>()

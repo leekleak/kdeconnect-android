@@ -11,31 +11,31 @@ import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
 import android.view.Menu
-import android.view.MenuItem
 import android.webkit.URLUtil
 import android.widget.Toast
+import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.preference.PreferenceManager
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.BackgroundService
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.KdeConnect
-import org.kde.kdeconnect.base.BaseActivity
 import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.compose.extensions.device.toUiModel
 import org.kde.kdeconnect.ui.compose.model.device.DeviceUiModel
 import org.kde.kdeconnect.ui.compose.screen.share.ShareScreen
 import org.kde.kdeconnect_tp.R
-import org.kde.kdeconnect_tp.databinding.ActivityShareBinding
+import kotlin.time.Duration.Companion.milliseconds
+import androidx.core.content.edit
 
-class ShareActivity : BaseActivity<ActivityShareBinding>() {
+class ShareActivity : AppCompatActivity() {
 
     private lateinit var mSharedPrefs: SharedPreferences
-
-    override val binding: ActivityShareBinding by lazy { ActivityShareBinding.inflate(layoutInflater) }
-
-    override val isScrollable: Boolean = true
 
     private var isRefreshing by mutableStateOf(value = false)
     private var uiDevices by mutableStateOf<List<DeviceUiModel>>(value = emptyList())
@@ -47,23 +47,12 @@ class ShareActivity : BaseActivity<ActivityShareBinding>() {
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return if (item.itemId == R.id.menu_refresh) {
-            refreshDevicesAction()
-            true
-        } else {
-            super.onOptionsItemSelected(item)
-        }
-    }
-
-    private fun refreshDevicesAction() {
+    private suspend fun refreshDevicesAction() {
         isRefreshing = true
 
         BackgroundService.ForceRefreshConnections(context = this)
-
-        binding.devicesListLayout.composeView.postDelayed({
-            isRefreshing = false
-        }, 1500)
+        delay(1500.milliseconds)
+        isRefreshing = false
     }
 
     private fun updateDeviceList() {
@@ -123,7 +112,7 @@ class ShareActivity : BaseActivity<ActivityShareBinding>() {
             newUrlSet.addAll(oldUrlSet)
         }
 
-        mSharedPrefs.edit().putStringSet(key, newUrlSet).apply()
+        mSharedPrefs.edit { putStringSet(key, newUrlSet) }
         Toast.makeText(this, getString(R.string.unreachable_share_toast), Toast.LENGTH_LONG).show()
     }
 
@@ -132,12 +121,9 @@ class ShareActivity : BaseActivity<ActivityShareBinding>() {
 
         mSharedPrefs = PreferenceManager.getDefaultSharedPreferences(this)
 
-        setSupportActionBar(binding.toolbarLayout.toolbar)
-        supportActionBar?.hide()
-        binding.toolbarLayout.root.visibility = android.view.View.GONE
-
-        binding.devicesListLayout.composeView.setContent {
+        setContent {
             KdeTheme(this) {
+                val scope = rememberCoroutineScope()
                 ShareScreen(
                     devices = uiDevices,
                     intentHasUrl = intentHasUrl,
@@ -151,7 +137,11 @@ class ShareActivity : BaseActivity<ActivityShareBinding>() {
                             intent = intent
                         )
                     },
-                    onRefresh = { refreshDevicesAction() }
+                    onRefresh = {
+                        scope.launch {
+                            refreshDevicesAction()
+                        }
+                    }
                 )
             }
         }

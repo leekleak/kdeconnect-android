@@ -14,7 +14,6 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     android:paddingVertical="@dimen/activity_vertical_margin">
 
     <ImageView
-        android:id="@+id/album_art"
         android:layout_width="@dimen/mpris_now_playing_album_width"
         android:layout_height="@dimen/mpris_now_playing_album_height"
         android:layout_margin="25dp"
@@ -23,7 +22,6 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
         android:scaleType="fitCenter" />
 
     <include
-        android:id="@+id/mpris_control"
         layout="@layout/mpris_control"
         android:layout_width="@dimen/mpris_now_playing_controls_width"
         android:layout_height="@dimen/mpris_now_playing_controls_height"

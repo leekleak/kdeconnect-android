@@ -13,7 +13,6 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     tools:keep="@xml/mprisplugin_preferences">
 
     <ListPreference
-        android:id="@+id/mpris_time_preference"
         android:defaultValue="@string/mpris_time_default"
         android:entries="@array/mpris_time_entries"
         android:entryValues="@array/mpris_time_entries_values"
@@ -22,14 +21,12 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
         android:title="@string/mpris_time_settings_title" />
 
     <SwitchPreference
-        android:id="@+id/mpris_notification_preference"
         android:defaultValue="true"
         android:key="@string/mpris_notification_key"
         android:summary="@string/mpris_notification_settings_summary"
         android:title="@string/mpris_notification_settings_title" />
 
     <SwitchPreference
-        android:id="@+id/mpris_keepwatching_preference"
         android:defaultValue="true"
         android:key="@string/mpris_keepwatching_key"
         android:summary="@string/mpris_keepwatching_settings_summary"

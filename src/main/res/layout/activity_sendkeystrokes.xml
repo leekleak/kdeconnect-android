@@ -14,10 +14,9 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="org.kde.kdeconnect.plugins.mousepad.SendKeystrokesToHostActivity">
 
-    <include layout="@layout/toolbar" android:id="@+id/toolbar_layout" />
+    <include layout="@layout/toolbar" />
 
     <LinearLayout
-        android:id="@+id/sendkeystrokes_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:keepScreenOn="true"
@@ -49,7 +48,6 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
         </com.google.android.material.textfield.TextInputLayout>
 
         <ListView
-            android:id="@+id/devices_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:addStatesFromChildren="true"

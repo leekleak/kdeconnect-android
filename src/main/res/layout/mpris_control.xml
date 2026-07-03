@@ -8,7 +8,6 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/mpris_control_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_gravity="center"
@@ -16,7 +15,6 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     android:orientation="vertical">
 
     <TextView
-        android:id="@+id/no_players"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
@@ -24,13 +22,11 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <Spinner
-        android:id="@+id/player_spinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center" />
 
     <TextView
-        android:id="@+id/now_playing_textview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
@@ -64,7 +60,6 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
             app:layout_constraintWidth_percent="0.20" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/play_button"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_gravity="center"
@@ -100,7 +95,6 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
         android:orientation="horizontal">
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/prev_button"
             android:layout_width="match_parent"
             android:layout_height="fill_parent"
             android:layout_weight="0.25"
@@ -109,7 +103,6 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
             style="@style/KdeConnectButton.IconButton.Secondary" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/rew_button"
             android:layout_width="match_parent"
             android:layout_height="fill_parent"
             android:layout_weight="0.25"
@@ -118,7 +111,6 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
             style="@style/KdeConnectButton.IconButton.Secondary" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/stop_button"
             android:layout_width="match_parent"
             android:layout_height="fill_parent"
             android:layout_weight="0.25"
@@ -128,7 +120,6 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
 
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/ff_button"
             android:layout_width="match_parent"
             android:layout_height="fill_parent"
             android:layout_weight="0.25"
@@ -137,7 +128,6 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
             style="@style/KdeConnectButton.IconButton.Secondary" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/next_button"
             android:layout_width="match_parent"
             android:layout_height="fill_parent"
             android:layout_weight="0.25"
@@ -147,13 +137,11 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/progress_slider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/progress_textview"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -171,7 +159,6 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
             android:layout_weight="1" />
 
         <TextView
-            android:id="@+id/time_textview"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -183,7 +170,6 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/volume_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
@@ -191,7 +177,6 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
         android:orientation="horizontal">
 
         <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/imageView"
             android:layout_width="30dip"
             android:layout_height="30dip"
             android:layout_marginEnd="10dip"
@@ -202,7 +187,6 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
 
 
         <SeekBar
-            android:id="@+id/volume_seek"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"

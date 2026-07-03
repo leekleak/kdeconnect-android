@@ -32,8 +32,7 @@
   <string name="pref_plugin_sharereceiver_desc">Failide ja URL-ide jagamine seadmete vahel</string>
   <string name="device_list_empty">Seadmed puuduvad</string>
   <string name="ok">OK</string>
-  <string name="sad_ok">OK :(</string>
-  <string name="cancel">Loobu</string>
+    <string name="cancel">Loobu</string>
   <string name="open_settings">Ava seadistused</string>
   <string name="no_permissions">Märguannete nägemiseks tuleb anda vastavad õigused</string>
   <string name="no_permission_mprisreceiver">Meediamängija juhtimiseks tuleb lubada juurdepääs märguannetele</string>
@@ -70,15 +69,12 @@
   <string name="category_remembered_devices">Meeldejäetud seadmed</string>
   <string name="device_menu_plugins">Plugina seadistused</string>
   <string name="device_menu_unpair">Eemalda paardumine</string>
-  <string name="pair_new_device">Paarita uus seade</string>
-  <string name="unknown_device">Tundmatu seade</string>
-  <string name="error_not_reachable">Seade pole saadaval</string>
+    <string name="error_not_reachable">Seade pole saadaval</string>
   <string name="error_already_paired">Seade on juba paaritatud</string>
   <string name="error_timed_out">Ajaületus</string>
   <string name="error_canceled_by_user">Kasutaja katkestas</string>
   <string name="error_canceled_by_other_peer">Teine pool katkestas</string>
-  <string name="encryption_info_title">Krüptimise teave</string>
-  <string name="pair_requested">Paardumise soov</string>
+    <string name="pair_requested">Paardumise soov</string>
   <plurals name="incoming_file_title">
     <item quantity="one">Saadi %1$d fail seadmest %2$s</item>
     <item quantity="other">Saadi %1$d faili seadmest %2$s</item>
@@ -114,8 +110,7 @@
   <string name="tap_to_open">Koputa avamiseks</string>
   <string name="received_file_text">Koputa \"%1s\" avamiseks</string>
   <string name="cannot_create_file">Faili %s loomine nurjus</string>
-  <string name="tap_to_answer">Koputa vastamiseks</string>
-  <string name="right_click">Saada paremklõps</string>
+    <string name="right_click">Saada paremklõps</string>
   <string name="middle_click">Saada keskklõps</string>
   <string name="show_keyboard">Näita klaviatuuri</string>
   <string name="device_not_paired">Seadmed pole paaritatud</string>
@@ -143,8 +138,7 @@
   <string name="mpris_notification_settings_summary">Meediamängija juhtimise võimaldamine ilma KDE Connecti avamata</string>
   <string name="protocol_version_newer">See seade kasutab uuemat protokolli versiooni</string>
   <string name="plugin_settings_with_name">%s seadistused</string>
-  <string name="invalid_device_name">Vigane seadme nimi</string>
-  <string name="shareplugin_text_saved">Saadi tekst, salvestati lõikepuhvrisse</string>
+    <string name="shareplugin_text_saved">Saadi tekst, salvestati lõikepuhvrisse</string>
   <string name="custom_devices_settings">Kohandatud seadmete loend</string>
   <string name="custom_device_list">Lisa seadmeid IP järgi</string>
   <string name="custom_device_deleted">Kohandatud seade kustutati</string>
@@ -184,25 +178,20 @@
   </string-array>
   <string name="pairing_title">KDE Connecti seadmed</string>
   <string name="pairing_description">Siin näeb teisi seadmeid samas võrgus, kus töötab KDE Connect</string>
-  <string name="device_rename_title">Seadme nime muutmine</string>
-  <string name="device_rename_confirm">Nime muutmine</string>
-  <string name="refresh">Värskenda</string>
+    <string name="refresh">Värskenda</string>
   <string name="unreachable_description">See paardunud seade pole saadaval. Kontrolli, kas see on ikka ühendatud sinuga samasse võrku.</string>
   <string name="no_wifi">Sul puudub ühendus Wi-Fi võrguga, mistõttu sa ei näe ühtegi seadet. Klõpsa siia Wi-Fi sisselülitamiseks.</string>
   <string name="on_non_trusted_message">See ei ole usaldusväärne võrk: automaatne tuvastamine on keelatud.</string>
   <string name="no_file_browser">Ühtegi failisirvijat pole paigaldatud</string>
   <string name="pref_plugin_telepathy">SMS-ide saatmine</string>
   <string name="pref_plugin_telepathy_desc">Tekstisõnumite saatmine oma töölaualt</string>
-  <string name="pref_plugin_telepathy_mms">MMS-ide saatmine</string>
-  <string name="pref_plugin_telepathy_mms_desc">KDE Connecti kaudu MMS-ide saatmiseks tuleb see määrata SMS-ide vaikerakenduseks.</string>
-  <string name="findmyphone_title">Leia mu telefon</string>
+    <string name="findmyphone_title">Leia mu telefon</string>
   <string name="findmyphone_title_tablet">Leia mu tahvel</string>
   <string name="findmyphone_title_tv">Leia mu teler</string>
   <string name="findmyphone_description">Seadmele helistamine, et see üles leida</string>
   <string name="findmyphone_found">Leitud</string>
   <string name="open">Ava</string>
-  <string name="close">Sulge</string>
-  <string name="plugins_need_permission">Mõned pluginad vajavad töötamiseks õigusi (koputa rohkema teabe saamiseks);</string>
+    <string name="plugins_need_permission">Mõned pluginad vajavad töötamiseks õigusi (koputa rohkema teabe saamiseks);</string>
   <string name="permission_explanation">See plugin vajab töötamiseks õigusi</string>
   <string name="optional_permission_explanation">Kõigi funktsioonide lubamiseks tuleb sul anda lisaõigusi</string>
   <string name="plugins_need_optional_permission">Mõne plugina osa omadusi on keelatud õiguste puudumise tõttu (koputa rohkema teabe saamiseks):</string>
@@ -213,12 +202,9 @@
   <string name="select_ringtone">Vali helin</string>
   <string name="telephony_pref_blocked_title">Blokitud numbrid</string>
   <string name="telephony_pref_blocked_dialog_desc">Neilt numbritelt tulevaid kõnesid ja SMS-e ei näidata. Palun pane iga number kirja eraldi reale</string>
-  <string name="mpris_coverart_description">Aktiivse meedia kaanepilt</string>
-  <string name="settings_icon_description">Seadistuste ikoon</string>
-  <string name="presenter_fullscreen">Täisekraan</string>
+    <string name="presenter_fullscreen">Täisekraan</string>
   <string name="presenter_exit">Välju esitlusest</string>
-  <string name="presenter_lock_tip">Seade on võimalik lukku panna ning liikuda eelmisele/järgmisele slaidile helitugevuse klahvidega</string>
-  <string name="add_command">Lisa käsk</string>
+    <string name="add_command">Lisa käsk</string>
   <string name="addcommand_explanation">Ühtegi käsku pole registreeritud</string>
   <string name="addcommand_explanation2">Uusi käske saab lisada Süsteemi seadistustes KDE Connecti all</string>
   <string name="add_command_description">Käske saab lisada töölaual</string>
@@ -243,10 +229,7 @@
   <string name="all">Kõik</string>
   <string name="devices">Seadmed</string>
   <string name="settings_rename">Seadme nimi</string>
-  <string name="settings_dark_mode">Tume teema</string>
-  <string name="settings_more_settings_title">Rohkem seadistusi</string>
-  <string name="settings_more_settings_text">Seadmekaupa seadistusi leiab seadme \"Pluginate seadistuste \" all.</string>
-  <string name="setting_persistent_notification">Püsimärguannete näitamine</string>
+    <string name="setting_persistent_notification">Püsimärguannete näitamine</string>
   <string name="setting_persistent_notification_oreo">Püsimärguanded</string>
   <string name="setting_persistent_notification_description">Koputa märguannete seadistuste lubamiseks/keelamiseks</string>
   <string name="extra_options">Erivalikud</string>
@@ -264,8 +247,7 @@
   <string name="empty_trusted_networks_list_text">Sa ei ole veel lisanud ühtegi usaldusväärset võrku</string>
   <string name="allow_all_networks_text">Luba kõik</string>
   <string name="location_permission_needed_title">Õigusenõue</string>
-  <string name="clipboard_android_x_incompat">Android 10 eemaldas lõikepuhvri kasutamise võimaluse kõigilt rakendustelt. See plugin enam ei tööta.</string>
-  <string name="mpris_open_url">Jätka esitamist siin</string>
+    <string name="mpris_open_url">Jätka esitamist siin</string>
   <string name="cant_open_url">URL-i avamine esitamise jätkamiseks nurjus</string>
   <string name="bigscreen_home">Kodu</string>
   <string name="bigscreen_up">Ülal</string>
@@ -274,12 +256,9 @@
   <string name="bigscreen_right">Paremal</string>
   <string name="bigscreen_down">All</string>
   <string name="bigscreen_mic">Mikrofon</string>
-  <string name="pref_plugin_bigscreen_desc">Oma seadme kasutamine Plasma suurekraani puldina</string>
-  <string name="bigscreen_optional_permission_explanation">Oma telefoni mikrofonisisendi jagamiseks tuleb anda juurdepääs telefoni helisisendile</string>
+    <string name="bigscreen_optional_permission_explanation">Oma telefoni mikrofonisisendi jagamiseks tuleb anda juurdepääs telefoni helisisendile</string>
   <string name="bigscreen_speech_extra_prompt">Kõne</string>
-  <string name="message_reply_label">VASTA</string>
-  <string name="mark_as_read_label">MÄRGI LOETUKS</string>
-  <string-array name="convert_to_mms_after_entries">
+    <string-array name="convert_to_mms_after_entries">
     <item>After one message</item>
     <item>After two messages</item>
     <item>After three messages</item>

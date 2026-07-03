@@ -6,13 +6,11 @@
     android:layout_height="match_parent"
     tools:keep="@xml/presenterplugin_preferences">
     <SwitchPreference
-        android:id="@+id/pref_presenter_enable_volume_keys"
         android:defaultValue="true"
         android:key="@string/pref_presenter_enable_volume_keys"
         android:summary="@string/pref_presenter_enable_volume_keys_summary"
         android:title="@string/pref_presenter_enable_volume_keys_title" />
     <SeekBarPreference
-        android:id="@+id/presenter_sensitivity_pointer"
         android:defaultValue="50"
         android:key="@string/pref_presenter_sensitivity"
         android:title="@string/pref_presenter_sensitivity_title"
