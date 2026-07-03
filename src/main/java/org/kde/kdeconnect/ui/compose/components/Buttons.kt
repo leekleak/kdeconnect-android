@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
  */
 
-package org.kde.kdeconnect.ui.compose
+package org.kde.kdeconnect.ui.compose.components
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer

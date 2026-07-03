@@ -36,7 +36,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media.VolumeProviderCompat
-import org.kde.kdeconnect.ui.compose.KdeButton
+import org.kde.kdeconnect.ui.compose.components.KdeButton
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.viewmodel.koinViewModel

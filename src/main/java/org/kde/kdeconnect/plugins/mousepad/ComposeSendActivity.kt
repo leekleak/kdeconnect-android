@@ -22,8 +22,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.preference.PreferenceManager
 import org.kde.kdeconnect.KdeConnect
-import org.kde.kdeconnect.ui.compose.KdeTextButton
-import org.kde.kdeconnect.ui.compose.KdeTextField
+import org.kde.kdeconnect.ui.compose.components.KdeTextButton
+import org.kde.kdeconnect.ui.compose.components.KdeTextField
 import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect_tp.R
