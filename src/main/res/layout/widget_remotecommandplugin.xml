@@ -23,6 +23,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
         android:layout_height="wrap_content">
 
         <ImageView
+            android:id="@+id/widget_title_icon"
             android:padding="8dip"
             android:paddingEnd="6dip"
             android:layout_width="wrap_content"

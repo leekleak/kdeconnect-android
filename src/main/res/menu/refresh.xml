@@ -10,6 +10,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     xmlns:kdeconnect="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/menu_refresh"
         android:icon="@drawable/ic_action_refresh_24dp"
         android:orderInCategory="200"
         android:title="@string/refresh"

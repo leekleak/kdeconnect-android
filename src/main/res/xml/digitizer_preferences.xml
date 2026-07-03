@@ -13,12 +13,14 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     tools:keep="@xml/digitizer_preferences">
 
     <SwitchPreference
+        android:id="@+id/digitizer_preference_key_hide_draw_button"
         android:defaultValue="false"
         android:key="@string/digitizer_preference_key_hide_draw_button"
         android:title="@string/digitizer_preference_title_hide_draw_button"
         android:summary="@string/digitizer_preference_summary_hide_draw_button"/>
 
     <ListPreference
+        android:id="@+id/digitizer_preference_key_draw_button_side"
         android:defaultValue="@string/digitizer_preference_value_default_draw_button_side"
         android:entries="@array/digitizer_preference_entries_draw_button_side"
         android:entryValues="@array/digitizer_preference_values_draw_button_side"

@@ -13,7 +13,9 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     android:layout_height="match_parent"
     tools:context="org.kde.kdeconnect.plugins.digitizer.DigitizerActivity">
 
-    <include layout="@layout/toolbar" />
+    <include
+        android:id="@+id/toolbar_layout"
+        layout="@layout/toolbar" />
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -21,11 +23,13 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <org.kde.kdeconnect.plugins.digitizer.DrawingPadView
+            android:id="@+id/drawing_pad"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:keepScreenOn="true" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/button_draw"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"

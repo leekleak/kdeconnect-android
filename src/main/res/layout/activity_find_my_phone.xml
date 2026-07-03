@@ -14,7 +14,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="org.kde.kdeconnect.plugins.findmyphone.FindMyPhoneActivity">
 
-    <include layout="@layout/toolbar" />
+    <include layout="@layout/toolbar" android:id="@+id/toolbar_layout" />
 
     <RelativeLayout
         android:layout_width="match_parent"

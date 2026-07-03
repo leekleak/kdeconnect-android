@@ -14,7 +14,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="org.kde.kdeconnect.plugins.mousepad.BigscreenActivity">
 
-    <include layout="@layout/toolbar" />
+    <include layout="@layout/toolbar" android:id="@+id/toolbar_layout" />
 
     <androidx.gridlayout.widget.GridLayout
         xmlns:grid="http://schemas.android.com/apk/res-auto"
@@ -24,6 +24,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/home_button"
             grid:layout_column="0"
             grid:layout_row="0"
             grid:layout_columnWeight="1"
@@ -34,6 +35,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
             style="@style/KdeConnectButton.IconButton" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/up_button"
             grid:layout_column="1"
             grid:layout_row="0"
             grid:layout_columnWeight="1"
@@ -44,6 +46,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
             style="@style/KdeConnectButton.IconButton" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/mic_button"
             grid:layout_column="2"
             grid:layout_columnWeight="1"
             grid:layout_row="0"
@@ -54,6 +57,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
             style="@style/KdeConnectButton.IconButton" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/left_button"
             grid:layout_column="0"
             grid:layout_row="1"
             grid:layout_columnWeight="1"
@@ -64,6 +68,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
             style="@style/KdeConnectButton.IconButton" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/select_button"
             grid:layout_column="1"
             grid:layout_row="1"
             grid:layout_columnWeight="1"
@@ -74,6 +79,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
             style="@style/KdeConnectButton.IconButton" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/right_button"
             grid:layout_column="2"
             grid:layout_row="1"
             grid:layout_columnWeight="1"
@@ -84,6 +90,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
             style="@style/KdeConnectButton.IconButton" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/down_button"
             grid:layout_column="1"
             grid:layout_row="2"
             grid:layout_columnWeight="1"
@@ -95,6 +102,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
 
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/back_button"
             grid:layout_column="0"
             grid:layout_row="2"
             grid:layout_columnWeight="1"

@@ -20,7 +20,8 @@
   <string name="pref_plugin_clipboard_sent">클립보드 보냄</string>
   <string name="pref_plugin_mousepad">원격 입력</string>
   <string name="pref_plugin_mousepad_desc_nontv">내 휴대폰이나 태블릿을 터치패드와 키보드로 사용하기</string>
-    <string name="pref_plugin_presenter">프레젠테이션 리모콘</string>
+  <string name="pref_plugin_mousepad_desc_tv">내 휴대폰이나 태블릿을 TV 리모콘으로 사용하기</string>
+  <string name="pref_plugin_presenter">프레젠테이션 리모콘</string>
   <string name="pref_plugin_presenter_desc">내 장치로 프레젠테이션 슬라이드 전환하기</string>
   <string name="pref_plugin_remotekeyboard">원격 키 입력 받기</string>
   <string name="pref_plugin_remotekeyboard_desc">원격 장치의 키 입력 이벤트 받기</string>
@@ -42,7 +43,8 @@
   <string name="pref_plugin_inputdevicesreceiver_desc">원격 장치와 마우스와 키보드 공유</string>
   <string name="device_list_empty">장치 없음</string>
   <string name="ok">확인</string>
-    <string name="cancel">취소</string>
+  <string name="sad_ok">확인 :(</string>
+  <string name="cancel">취소</string>
   <string name="open_settings">설정 열기</string>
   <string name="no_permissions">알림 접근 권한이 필요합니다</string>
   <string name="no_permission_mprisreceiver">미디어 재생기를 제어하려면 알림 접근 권한이 필요합니다</string>
@@ -107,7 +109,8 @@
   <string name="mouse_receiver_plugin_description">원격 마우스 움직임 받기</string>
   <string name="mouse_receiver_plugin_name">마우스 수신기</string>
   <string name="mouse_receiver_no_permissions">원격으로 터치 입력을 받으려면 장치 제어를 위해서 접근성 권한을 허용해야 합니다</string>
-    <string name="battery_status_format">배터리: %d%%</string>
+  <string name="view_status_title">상태</string>
+  <string name="battery_status_format">배터리: %d%%</string>
   <string name="battery_status_low_format">배터리: %d%% 배터리 부족</string>
   <string name="battery_status_charging_format">배터리: %d%% 충전 중</string>
   <string name="category_connected_devices">연결된 장치</string>
@@ -115,15 +118,22 @@
   <string name="category_remembered_devices">기억하는 장치</string>
   <string name="device_menu_plugins">플러그인 설정</string>
   <string name="device_menu_unpair">페어링 해제</string>
-    <string name="unknown_sender">알 수 없는 발신자</string>
+  <string name="pair_new_device">새 장치 페어링</string>
+  <string name="cancel_pairing">페어링 취소</string>
+  <string name="unknown_device">알 수 없는 장치</string>
+  <string name="unknown_sender">알 수 없는 발신자</string>
   <string name="error_not_reachable">장치에 접근할 수 없음</string>
   <string name="error_already_paired">장치가 이미 페어링됨</string>
   <string name="error_timed_out">시간 초과됨</string>
   <string name="error_clocks_not_match">장치 시계가 맞지 않음</string>
   <string name="error_canceled_by_user">사용자가 취소함</string>
   <string name="error_canceled_by_other_peer">다른 쪽에서 취소함</string>
-    <string name="pair_requested">페어링 요청됨</string>
-    <string name="pairing_request_from">\'%1s\'에서 페어링 요청</string>
+  <string name="encryption_info_title">암호화 정보</string>
+  <string name="my_device_fingerprint">내 장치 인증서의 SHA256 지문:</string>
+  <string name="remote_device_fingerprint">원격 장치 인증서의 SHA256 지문:</string>
+  <string name="pair_requested">페어링 요청됨</string>
+  <string name="pair_succeeded">페어링 성공</string>
+  <string name="pairing_request_from">\'%1s\'에서 페어링 요청</string>
   <plurals name="incoming_file_title">
     <item quantity="other">%2$s에서 보낸 파일 %1$d개 받음</item>
   </plurals>
@@ -151,7 +161,8 @@
   <string name="tap_to_open">열려면 누르십시오</string>
   <string name="received_file_text">\'%1s\'을(를) 열려면 누르십시오</string>
   <string name="cannot_create_file">파일 %s을(를) 만들 수 없음</string>
-    <string name="left_click">왼쪽 단추 클릭 신호 보내기</string>
+  <string name="tap_to_answer">눌러서 응답하기</string>
+  <string name="left_click">왼쪽 단추 클릭 신호 보내기</string>
   <string name="right_click">오른쪽 단추 클릭 신호 보내기</string>
   <string name="middle_click">가운데 단추 클릭 신호 보내기</string>
   <string name="show_keyboard">키보드 표시</string>
@@ -188,9 +199,11 @@
   <string name="unreachable_device_dynamic_shortcut">%s(✕)</string>
   <string name="unreachable_device_url_share_text">접근할 수 없는 장치와 공유한 URL은 장치에 다시 접근할 수 있게 될 때 전달됩니다.\n\n</string>
   <string name="unreachable_share_toast">다음에 장치를 연결할 때 URL을 공유합니다.</string>
-    <string name="protocol_version_newer">이 장치의 프로토콜 버전이 더 새롭습니다</string>
+  <string name="protocol_version">프로토콜 버전:</string>
+  <string name="protocol_version_newer">이 장치의 프로토콜 버전이 더 새롭습니다</string>
   <string name="plugin_settings_with_name">%s 설정</string>
-    <string name="shareplugin_text_saved">텍스트 수신, 클립보드에 복사됨</string>
+  <string name="invalid_device_name">잘못된 장치 이름</string>
+  <string name="shareplugin_text_saved">텍스트 수신, 클립보드에 복사됨</string>
   <string name="custom_devices_settings">사용자 정의 장치 목록</string>
   <string name="custom_devices_settings_summary">장치 %d개를 수동으로 추가함</string>
   <string name="custom_device_list">IP로 장치 추가</string>
@@ -232,7 +245,9 @@
   <string name="digitizer_preference_title_hide_draw_button">그리기 단추 숨기기</string>
   <string name="digitizer_preference_summary_hide_draw_button">그리기 단추를 완전히 숨겨서 손가락으로 그릴 수 없게 됩니다. 장치에서 스타일러스 입력을 지원할 때에만 활성화하십시오.</string>
   <string name="digitizer_preference_title_draw_button_side">\"손가락으로 그리기\" 단추를 표시할 방향</string>
-    <string-array name="digitizer_preference_entries_draw_button_side">
+  <string name="digitizer_preference_title_enable_exit_fullscreen_gesture">전체 화면 끝내기 제스처 활성화</string>
+  <string name="digitizer_preference_summary_enable_exit_fullscreen_gesture">이 옵션을 사용하면 손가락으로 그리기 패드를 탭하고 누르고 있으면 전체 화면 모드를 종료합니다.</string>
+  <string-array name="digitizer_preference_entries_draw_button_side">
     <item>왼쪽 위</item>
     <item>오른쪽 위</item>
     <item>왼쪽 아래</item>
@@ -242,22 +257,28 @@
   <string name="block_notification_images">알림 이미지 숨기기</string>
   <string name="pairing_title">KDE Connect 장치</string>
   <string name="pairing_description">같은 네트워크에서 KDE Connect를 실행하는 다른 장치가 여기에 표시됩니다.</string>
-    <string name="refresh">새로 고침</string>
+  <string name="device_rename_title">장치 이름 바꾸기</string>
+  <string name="device_rename_confirm">이름 바꾸기</string>
+  <string name="refresh">새로 고침</string>
   <string name="unreachable_description">이 페어링된 장치에 접근할 수 없습니다. 같은 네트워크에 있는지 확인하십시오.</string>
   <string name="no_wifi">Wi-Fi 네트워크에 연결된 것 같지 않습니다. 다른 장치를 볼 수 없습니다. 여기를 클릭하면 Wi-Fi를 활성화합니다.</string>
   <string name="on_non_trusted_message">신뢰할 수 없는 네트워크: 자동 발견을 비활성화했습니다.</string>
   <string name="no_file_browser">설치된 파일 탐색기가 없습니다.</string>
   <string name="pref_plugin_telepathy">SMS 보내기</string>
   <string name="pref_plugin_telepathy_desc">데스크톱에서 문자 메시지 보내기</string>
-    <string name="findmyphone_title">내 휴대폰 찾기</string>
+  <string name="pref_plugin_telepathy_mms">MMS 보내기</string>
+  <string name="pref_plugin_telepathy_mms_desc">KDE Connect에서 MMS를 보내려면 기본 SMS 앱으로 설정해야 합니다.</string>
+  <string name="findmyphone_title">내 휴대폰 찾기</string>
   <string name="findmyphone_title_tablet">내 태블릿 찾기</string>
   <string name="findmyphone_title_tv">내 TV 찾기</string>
   <string name="findmyphone_description">이 장치에서 소리를 울려서 찾는 데 도움을 줍니다</string>
   <string name="findmyphone_found">찾았음</string>
   <string name="open">열기</string>
-    <string name="plugins_need_permission">권한이 필요한 플러그인(정보를 보려면 누르기):</string>
+  <string name="close">닫기</string>
+  <string name="plugins_need_permission">권한이 필요한 플러그인(정보를 보려면 누르기):</string>
   <string name="permission_explanation">이 플러그인을 사용하려면 권한이 필요합니다</string>
-    <string name="optional_permission_explanation">모든 기능을 사용하려면 추가 권한이 필요합니다</string>
+  <string name="all_permissions_granted">모든 권한 허가됨 🎉</string>
+  <string name="optional_permission_explanation">모든 기능을 사용하려면 추가 권한이 필요합니다</string>
   <string name="plugins_need_optional_permission">일부 플러그인은 권한이 없어서 비활성화되었습니다(정보를 보려면 누르기):</string>
   <string name="share_optional_permission_explanation">공유된 파일을 받으려면 저장소 접근을 허가해야 합니다</string>
   <string name="share_notifications_explanation">파일을 보내거나 받을 때 진행 상황을 보려면 알림을 허용해야 합니다</string>
@@ -269,9 +290,12 @@
   <string name="select_ringtone">벨소리 선택</string>
   <string name="telephony_pref_blocked_title">차단된 번호</string>
   <string name="telephony_pref_blocked_dialog_desc">다음 번호에서 걸려 온 통화나 보낸 문자를 표시하지 않습니다. 한 줄당 하나의 번호를 지정하십시오</string>
-    <string name="presenter_fullscreen">전체 화면</string>
+  <string name="mpris_coverart_description">현재 미디어 커버 아트</string>
+  <string name="settings_icon_description">설정 아이콘</string>
+  <string name="presenter_fullscreen">전체 화면</string>
   <string name="presenter_exit">프레젠테이션 끝내기</string>
-    <string name="add_command">명령 추가</string>
+  <string name="presenter_lock_tip">장치 잠금 상태에서는 음량 키를 이전/다음 슬라이드 단추로 사용할 수 있습니다</string>
+  <string name="add_command">명령 추가</string>
   <string name="addcommand_explanation">등록된 명령이 없습니다</string>
   <string name="addcommand_explanation2">시스템 설정의 KDE Connect에서 새로운 명령을 추가할 수 있습니다</string>
   <string name="add_command_description">데스크톱에서 명령을 추가할 수 있습니다</string>
@@ -305,9 +329,12 @@
   <string name="all">모두</string>
   <string name="devices">장치</string>
   <string name="settings_rename">장치 이름</string>
-    <string name="settings_export_logs">KDE Connect 로그 내보내기</string>
+  <string name="settings_dark_mode">어두운 테마</string>
+  <string name="settings_export_logs">KDE Connect 로그 내보내기</string>
   <string name="settings_export_logs_text">문제 해결을 위해서 실행 정보를 포함하는 파일을 생성합니다.</string>
-    <string name="setting_persistent_notification">항상 표시되는 알림 표시</string>
+  <string name="settings_more_settings_title">더 많은 설정</string>
+  <string name="settings_more_settings_text">장치별 설정은 각각 장치의 \'플러그인 설정\'에서 확인할 수 있습니다.</string>
+  <string name="setting_persistent_notification">항상 표시되는 알림 표시</string>
   <string name="setting_persistent_notification_oreo">항상 표시되는 알림</string>
   <string name="setting_persistent_notification_description">알림 설정에서 활성화/비활성화하려면 누르십시오</string>
   <string name="extra_options">추가 설정</string>
@@ -328,7 +355,8 @@
   <string name="location_permission_needed_title">권한이 필요함</string>
   <string name="bluetooth_permission_needed_desc">KDE Connect에서 블루투스를 사용하여 페어링된 장치를 사용하려면 근처 장치에 연결할 수 있는 권한이 필요합니다.</string>
   <string name="location_permission_needed_desc">KDE Connect에서 현재 연결된 Wi-Fi 네트워크 정보를 얻으려면 앱이 백그라운드에서 실행 중일 때에도 백그라운드 권한이 필요합니다. KDE Connect에서는 사용자의 위치를 찾지 않지만, 내 주변에 있는 Wi-Fi 네트워크의 이름으로도 위치를 찾을 수 있기 때문입니다.</string>
-    <string name="mpris_open_url">여기에서 계속 재생</string>
+  <string name="clipboard_android_x_incompat">안드로이드 10부터는 앱에서 클립보드에 접근할 수 없습니다. 이 플러그인이 비활성화되었습니다.</string>
+  <string name="mpris_open_url">여기에서 계속 재생</string>
   <string name="cant_open_url">계속 재생할 URL을 열 수 없음</string>
   <string name="bigscreen_home">홈</string>
   <string name="bigscreen_up">위</string>
@@ -339,9 +367,14 @@
   <string name="bigscreen_back">뒤로</string>
   <string name="bigscreen_mic">마이크</string>
   <string name="pref_plugin_bigscreen">TV 리모콘</string>
-    <string name="bigscreen_optional_permission_explanation">휴대폰 마이크 입력을 공유하려면 오디오 입력 접근 권한이 필요합니다</string>
+  <string name="pref_plugin_bigscreen_desc">내 장치를 Plasma 큰 화면의 리모콘으로 사용</string>
+  <string name="bigscreen_optional_permission_explanation">휴대폰 마이크 입력을 공유하려면 오디오 입력 접근 권한이 필요합니다</string>
   <string name="bigscreen_speech_extra_prompt">말하기</string>
-    <string name="set_group_message_as_mms_title">그룹 MMS 보내기</string>
+  <string name="message_reply_label">답장</string>
+  <string name="mark_as_read_label">읽은 상태로 표시</string>
+  <string name="user_display_name">나</string>
+  <string name="set_default_sms_app_title">MMS 보내기</string>
+  <string name="set_group_message_as_mms_title">그룹 MMS 보내기</string>
   <string name="set_long_text_as_mms_title">긴 텍스트를 MMS로 보내기</string>
   <string name="convert_to_mms_after_title">MMS로 변환</string>
   <string-array name="convert_to_mms_after_entries">
@@ -369,15 +402,29 @@
   <string name="website">웹사이트</string>
   <string name="about">정보</string>
   <string name="authors">작성자</string>
-    <string name="version">버전 %s</string>
-    <string name="click_here_to_type">입력하려면 누르십시오</string>
+  <string name="thanks_to">고마운 분</string>
+  <string name="easter_egg">이스터 에그</string>
+  <string name="email_contributor">이메일 보내기\n%s</string>
+  <string name="visit_contributors_homepage">기여자의 홈페이지 방문하기\n%s</string>
+  <string name="version">버전 %s</string>
+  <string name="about_kde">KDE 정보</string>
+  <string name="kde_be_free">KDE - 자유롭게!</string>
+  <string name="kde">KDE</string>
+  <string name="konqi">Konqi</string>
+  <string name="rise_up">위로 올리기</string>
+  <string name="rise_down">아래로 내리기</string>
+  <string name="click_here_to_type">입력하려면 누르십시오</string>
   <string name="clear_compose">지우기</string>
   <string name="send_compose">보내기</string>
   <string name="compose_send_title">텍스트 보내기</string>
   <string name="open_compose_send">텍스트 작성</string>
   <string name="double_tap_to_drag">두 번 탭하면 드래그</string>
   <string name="hold_to_drag">누르고 있으면 드래그</string>
-    <string name="maintainer_and_developer">관리자 및 개발자</string>
+  <string name="about_kde_about">&lt;h1&gt;정보&lt;h1&gt; &lt;p&gt;KDE는 &lt;a href=https://www.gnu.org/philosophy/free-sw.html&gt;자유 소프트웨어&lt;/a&gt;를 개발하려고 모인 소프트웨어 개발자, 예술가, 집필가, 번역가 및 기타 인원의 모임입니다. KDE 커뮤니티에서는 Plasma 데스크톱 환경, 다양한 앱 및 지원 라이브러리를 개발합니다.&lt;p&gt; &lt;p&gt;KDE는 협동 조합입니다. 어떠한 단일 집단도 방향이나 제품을 결정하지 않습니다. 우리는 전 세계에서 가장 뛰어난 자유 소프트웨어 개발이라는 공통 목표를 향해 함께 힘을 모으고 있습니다. KDE에는 이 글을 읽는 여러분과 같은 누구나 &lt;a href=https://community.kde.org/Get_Involved&gt;참여하고 기여&lt;/a&gt;할 수 있습니다.&lt;p&gt; &lt;a href=https://www.kde.org/&gt;https://www.kde.org/&lt;/a&gt; 페이지를 방문하셔서 KDE 커뮤니티와 소프트웨어에 대해 알아 보십시오.</string>
+  <string name="about_kde_report_bugs_or_wishes">"&lt;h1&gt;버그나 요구 사항 보고&lt;/h1&gt; &lt;p&gt;소프트웨어는 항상 개선되며, KDE 팀도 그럴 준비가 되어 있습니다. 따라서 사용자 여러분은 무언가가 예상한 대로 작동하지 않거나 더 잘 작동하기를 바라면 개발자에게 알려 주십시오.&lt;/p&gt; &lt;p&gt;KDE는 버그 추적 시스템을 가지고 있습니다. &lt;a href=https://bugs.kde.org/&gt;https://bugs.kde.org/&lt;/a&gt;를 방문하시거나 \"도움말\" 메뉴의 \"버그 보고...\" 대화 상자를 이용하셔서 버그를 보고해 주십시오.&lt;/p&gt; 개선 사항 제안을  하고 싶으시다면 버그 보고 시스템을 통해서 알려 주십시오. 이 경우 심각성  항목에서 \"Wishlist\"를 선택하셔야 합니다."</string>
+  <string name="about_kde_join_kde">&lt;h1&gt;KDE에 참여하기&lt;/h1&gt; &lt;p&gt;소프트웨어 개발자만이 KDE에 참가할 수 있는 것은 아닙니다. 프로그램 인터페이스를 번역하는 각 언어 번역팀을 도울 수도 있습니다. 또한 그래픽, 테마, 소리, 더 나은 문서 등을 기여할 수도 있습니다. 직접 결정하십시오!&lt;/p&gt; &lt;p&gt;&lt;a href=https://community.kde.org/Get_Involved&gt;https://community.kde.org/Get_Involved&lt;/a&gt; 페이지를 방문하셔서 참여할 수 있는 프로젝트를 찾아 보십시오.&lt;/p&gt; 만약 더 많은 정보나 문서가 필요하다면, &lt;a href=https://techbase.kde.org/&gt;https://techbase.kde.org/&lt;/a&gt; 사이트를 방문하셔서 원하는 정보를 찾으십시오.</string>
+  <string name="about_kde_support_kde">"&lt;h1&gt;KDE 지원&lt;/h1&gt; &lt;p&gt;KDE는 무료로 사용 가능하지만, 만드는 것은 무료가 아닙니다.&lt;/p&gt; &lt;p&gt;따라서 KDE 커뮤니티는 독일에 비영리 재단 KDE e.V.를 설립했습니다. KDE e.V.는 KDE 커뮤니티를 법적, 재정적인 면에서 후원합니다. &lt;a href=https://ev.kde.org/&gt;https://ev.kde.org/&lt;/a&gt; 사이트를 방문하셔서 KDE e.V.에 관한 정보를 확인하십시오.&lt;/p&gt; &lt;p&gt;KDE는 재정적인 보조가 필요합니다. 대부분의 지원금은 구성원에게 대가를 지급하거나 KDE에 기여하는 데 드는 돈을 대는 데 사용됩니다. &lt;a href=https://www.kde.org/community/donations/&gt;https://www.kde.org/community/donations/&lt;/a&gt;에 있는 방법을 사용하여 재정적인 지원을 해 주십시오.&lt;/p&gt;여러분의 협조에  미리 감사드립니다."</string>
+  <string name="maintainer_and_developer">관리자 및 개발자</string>
   <string name="developer">개발자</string>
   <string name="apple_support">macOS 지원. iOS 지원 작업 중</string>
   <string name="bug_fixes_and_general_improvements">버그 수정과 개선</string>
@@ -391,7 +438,9 @@
   <string name="everyone_else">그 외 오랫동안 KDE Connect에 기여한 사람들</string>
   <string name="send_clipboard">클립보드 보내기</string>
   <string name="tap_to_execute">실행하려면 누르십시오</string>
-    <string name="enable_bluetooth">블루투스 활성화(베타)</string>
+  <string name="plugin_stats">플러그인 통계</string>
+  <string name="enable_udp_broadcast">UDP 서비스 발견 활성화</string>
+  <string name="enable_bluetooth">블루투스 활성화(베타)</string>
   <string name="receive_notifications_permission_explanation">다른 장치에서 알림을 받으려면 알림을 허용해야 합니다</string>
   <string name="findmyphone_notifications_explanation">앱이 백그라운드에서 실행 중일 때 장치를 울리게 하려면 알림 권한이 필요합니다</string>
   <string name="findmyphone_camera_explanation">휴대폰을 찾을 때 플래시를 반짝이려면 카메라 권한이 필요합니다</string>

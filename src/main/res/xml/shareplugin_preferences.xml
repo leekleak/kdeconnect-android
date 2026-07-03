@@ -13,6 +13,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     tools:keep="@xml/shareplugin_preferences">
 
     <SwitchPreference
+        android:id="@+id/share_destination_customize"
         android:defaultValue="false"
         android:key="share_destination_custom"
         android:summaryOff="@string/share_destination_customize_summary_disabled"
@@ -20,10 +21,12 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
         android:title="@string/share_destination_customize" />
 
     <Preference
+        android:id="@+id/share_destination_folder_preference"
         android:key="share_destination_folder_preference"
         android:title="@string/share_destination_folder_preference" />
 
     <SwitchPreference
+        android:id="@+id/share_notification_preference"
         android:defaultValue="true"
         android:key="share_notification_preference"
         android:summary="@string/share_notification_preference_summary"

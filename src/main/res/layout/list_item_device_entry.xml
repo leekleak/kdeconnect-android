@@ -27,6 +27,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
         android:orientation="horizontal">
 
             <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/list_item_entry_icon"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_gravity="center_vertical"

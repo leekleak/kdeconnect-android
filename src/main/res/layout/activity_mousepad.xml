@@ -14,9 +14,10 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="org.kde.kdeconnect.plugins.mousepad.MousePadActivity">
 
-    <include layout="@layout/toolbar" />
+    <include layout="@layout/toolbar" android:id="@+id/toolbar_layout" />
 
     <RelativeLayout
+        android:id="@+id/mousepad_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:keepScreenOn="true"
@@ -50,7 +51,8 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
                 android:layout_alignParentBottom="true">
 
             <com.google.android.material.button.MaterialButton
-                android:layout_width="wrap_content"
+                    android:id="@+id/mouse_click_left"
+                    android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:contentDescription="@string/left_click"
                     android:layout_weight="3"
@@ -58,14 +60,16 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
                     style="@style/KdeConnectButton.IconButton" />
 
             <com.google.android.material.button.MaterialButton
-                android:layout_width="wrap_content"
+                    android:id="@+id/mouse_click_middle"
+                    android:layout_width="wrap_content"
                     android:contentDescription="@string/middle_click"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     style="@style/KdeConnectButton.IconButton.Secondary" />
 
             <com.google.android.material.button.MaterialButton
-                android:layout_width="wrap_content"
+                    android:id="@+id/mouse_click_right"
+                    android:layout_width="wrap_content"
                     android:contentDescription="@string/right_click"
                     android:layout_height="match_parent"
                     android:layout_weight="3"

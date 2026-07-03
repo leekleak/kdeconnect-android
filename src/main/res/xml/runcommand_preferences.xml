@@ -19,6 +19,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
         >
 
         <SwitchPreference
+            android:id="@+id/runcommand_name_as_title_preference"
             android:defaultValue="true"
             android:key="@string/set_runcommand_name_as_title"
             android:summary="Name -> title"

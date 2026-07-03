@@ -14,7 +14,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="org.kde.kdeconnect.plugins.notifications.NotificationFilterActivity">
 
-    <include layout="@layout/toolbar" />
+    <include layout="@layout/toolbar" android:id="@+id/toolbar_layout" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -34,6 +34,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
             android:text="@string/show_notification_if_screen_off" />
 
         <TextView
+            android:id="@+id/tFilter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingBottom="16dp"

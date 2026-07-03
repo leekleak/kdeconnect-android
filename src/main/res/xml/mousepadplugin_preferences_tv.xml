@@ -16,16 +16,19 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     <PreferenceCategory app:title="@string/pref_plugin_bigscreen">
 
         <SwitchPreference
+            android:id="@+id/bigscreen_show_back"
             android:defaultValue="true"
             android:key="@string/pref_bigscreen_show_back"
             android:title="@string/bigscreen_show_back_title" />
 
         <SwitchPreference
+            android:id="@+id/bigscreen_show_home"
             android:defaultValue="false"
             android:key="@string/pref_bigscreen_show_home"
             android:title="@string/bigscreen_show_home_title" />
 
         <SwitchPreference
+            android:id="@+id/bigscreen_hide_mouse_input"
             android:defaultValue="false"
             android:key="@string/pref_bigscreen_hide_mouse_input"
             android:title="@string/bigscreen_hide_mouse_input" />
