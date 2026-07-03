@@ -19,6 +19,8 @@ data object SettingsKey : KdeConnectKey
 
 @Serializable
 data object AboutKey : KdeConnectKey
+@Serializable
+data object LicensesKey : KdeConnectKey
 
 @Serializable
 data class DeviceKey(val deviceId: String, val fromDeviceList: Boolean = false) : KdeConnectKey

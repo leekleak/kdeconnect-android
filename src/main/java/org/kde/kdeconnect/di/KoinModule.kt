@@ -6,16 +6,25 @@ import android.content.Intent
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import org.kde.kdeconnect.ui.about.LicensesActivity
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.ui.about.getApplicationAboutData
 import org.kde.kdeconnect.ui.compose.screen.about.AboutScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceViewModel
+import org.kde.kdeconnect.ui.compose.screen.licenses.LicensesEvent
+import org.kde.kdeconnect.ui.compose.screen.licenses.LicensesScreen
 import org.kde.kdeconnect.ui.compose.screen.pairing.PairingScreen
 import org.kde.kdeconnect.ui.compose.screen.pairing.PairingViewModel
 import org.kde.kdeconnect.ui.compose.screen.plugin.PluginIndividualSettingsScreen
@@ -27,12 +36,14 @@ import org.kde.kdeconnect.ui.compose.screen.settings.SettingsScreen
 import org.kde.kdeconnect.ui.compose.screen.settings.SettingsViewModel
 import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.DeviceKey
+import org.kde.kdeconnect.ui.navigation.LicensesKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.PairingKey
 import org.kde.kdeconnect.ui.navigation.PluginIndividualSettingsKey
 import org.kde.kdeconnect.ui.navigation.PluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.PresenterKey
 import org.kde.kdeconnect.ui.navigation.SettingsKey
+import org.kde.kdeconnect_tp.R
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
@@ -72,6 +83,8 @@ val aboutModule = module {
     navigation<AboutKey> {
         val context = LocalContext.current
         val aboutData = getApplicationAboutData(context)
+        val navigator = koinInject<Navigator>()
+
         AboutScreen(
             aboutData = aboutData,
             onReportBugClicked = {
@@ -90,16 +103,42 @@ val aboutModule = module {
                 }
             },
             onLicensesClicked = {
-                context.startActivity(
-                    Intent(
-                        context,
-                        LicensesActivity::class.java
-                    )
-                )
+                navigator.goTo(LicensesKey)
             },
             onWebsiteClicked = {
                 aboutData.websiteURL?.let {
                     context.startActivity(Intent(Intent.ACTION_VIEW, it.toUri()))
+                }
+            }
+        )
+    }
+    navigation<LicensesKey> {
+        val scrollEvents = MutableSharedFlow<LicensesEvent>()
+        val scope = rememberCoroutineScope()
+        LicensesScreen(
+            eventFlow = scrollEvents,
+            actions = {
+                Row {
+                    IconButton(onClick = {
+                        scope.launch {
+                            scrollEvents.emit(LicensesEvent.ScrollToTop)
+                        }
+                    }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_arrow_upward_black_24dp),
+                            contentDescription = stringResource(R.string.scroll_to_top)
+                        )
+                    }
+                    IconButton(onClick = {
+                        scope.launch {
+                            scrollEvents.emit(LicensesEvent.ScrollToBottom)
+                        }
+                    }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_arrow_downward_black_24dp),
+                            contentDescription = stringResource(R.string.scroll_to_bottom)
+                        )
+                    }
                 }
             }
         )
