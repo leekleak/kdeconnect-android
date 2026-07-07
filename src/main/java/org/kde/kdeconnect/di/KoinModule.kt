@@ -24,12 +24,18 @@ import org.kde.kdeconnect.plugins.digitizer.DigitizerSettingsScreen
 import org.kde.kdeconnect.plugins.digitizer.DigitizerSettingsViewModel
 import org.kde.kdeconnect.plugins.findmyphone.FindMyPhoneSettingsScreen
 import org.kde.kdeconnect.plugins.findmyphone.FindMyPhoneSettingsViewModel
+import org.kde.kdeconnect.plugins.mousepad.MousePadSettingsScreen
+import org.kde.kdeconnect.plugins.mousepad.MousePadSettingsViewModel
 import org.kde.kdeconnect.plugins.mpris.MprisSettingsScreen
 import org.kde.kdeconnect.plugins.mpris.MprisSettingsViewModel
 import org.kde.kdeconnect.plugins.notifications.NotificationFilterScreen
 import org.kde.kdeconnect.plugins.notifications.NotificationFilterViewModel
 import org.kde.kdeconnect.plugins.presenter.PresenterSettingsScreen
 import org.kde.kdeconnect.plugins.presenter.PresenterSettingsViewModel
+import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardSettingsScreen
+import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardSettingsViewModel
+import org.kde.kdeconnect.plugins.runcommand.RunCommandSettingsScreen
+import org.kde.kdeconnect.plugins.runcommand.RunCommandSettingsViewModel
 import org.kde.kdeconnect.ui.compose.screen.about.AboutScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceViewModel
@@ -179,8 +185,11 @@ val pluginSettingsModule = module {
     viewModel<PluginSettingsViewModel>()
     viewModel<DigitizerSettingsViewModel>()
     viewModel<FindMyPhoneSettingsViewModel>()
+    viewModel<MousePadSettingsViewModel>()
     viewModel<MprisSettingsViewModel>()
     viewModel<PresenterSettingsViewModel>()
+    viewModel<RemoteKeyboardSettingsViewModel>()
+    viewModel<RunCommandSettingsViewModel>()
     viewModel<NotificationFilterViewModel>()
     navigation<PluginSettingsKey> { key ->
         PluginSettingsScreen(key.deviceId)
@@ -189,8 +198,11 @@ val pluginSettingsModule = module {
         when (key.pluginKey) {
             "DigitizerPlugin" -> DigitizerSettingsScreen()
             "FindMyPhonePlugin" -> FindMyPhoneSettingsScreen()
+            "MousePadPlugin" -> MousePadSettingsScreen()
             "MprisPlugin" -> MprisSettingsScreen()
             "PresenterPlugin" -> PresenterSettingsScreen()
+            "RemoteKeyboardPlugin" -> RemoteKeyboardSettingsScreen()
+            "RunCommandPlugin" -> RunCommandSettingsScreen()
             "NotificationsPlugin" -> NotificationFilterScreen()
             else -> PluginIndividualSettingsScreen(
                 pluginKey = key.pluginKey

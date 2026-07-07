@@ -29,7 +29,7 @@ data class DeviceKey(val deviceId: String, val fromDeviceList: Boolean = false) 
 data class PluginSettingsKey(val deviceId: String) : KdeConnectKey
 
 @Serializable
-data class PluginIndividualSettingsKey(val pluginKey: String) : KdeConnectKey
+data class PluginIndividualSettingsKey(val pluginKey: String, val deviceId: String? = null) : KdeConnectKey
 
 @Serializable
 data class PresenterKey(val deviceId: String) : KdeConnectKey

@@ -70,6 +70,25 @@ private fun SectionHeaderPreview() {
     }
 }
 
+/**
+ * Haze scaffold provides a top bar with a title and a back button.
+ *
+ * The default configuration automatically aligns items in a scrollable column meaning that for most
+ * use cases it should be enough. In that case just provide the items, and they'll be arranged automatically.
+ *
+ * In case the content contains a LazyColumn though, it will crash due to the fact that the scrollable
+ * internal column measures infinite height. In that case make sure to override scrollState to null.
+ *
+ * @param title The title of the page.
+ * @param modifier The modifier to be applied to the scaffold.
+ * @param scrollState The scroll state of the scaffold. IMPORTANT: Should be null if content contains LazyColumn
+ * @param hazeState The haze state of the scaffold.
+ * @param backButton Whether to show the back button.
+ * @param verticalArrangement The vertical arrangement of the content.
+ * @param actions The actions to be displayed in the top bar.
+ * @param content The content of the scaffold.
+ */
+
 @Composable
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 fun HazeScaffold(

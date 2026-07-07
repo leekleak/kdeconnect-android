@@ -9,7 +9,6 @@ package org.kde.kdeconnect.plugins.runcommand;
 
 import static org.kde.kdeconnect.plugins.runcommand.RunCommandWidgetProviderKt.forceRefreshWidgets;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
@@ -27,7 +26,6 @@ import org.json.JSONObject;
 import org.kde.kdeconnect.NetworkPacket;
 import org.kde.kdeconnect.plugins.Plugin;
 import org.kde.kdeconnect.plugins.PluginFactory;
-import org.kde.kdeconnect.ui.PluginSettingsFragment;
 import org.kde.kdeconnect_tp.R;
 
 import java.util.ArrayList;
@@ -85,12 +83,6 @@ public class RunCommandPlugin extends Plugin {
     @Override
     public boolean hasSettings() {
         return true;
-    }
-
-    @Nullable
-    @Override
-    public PluginSettingsFragment getSettingsFragment(Activity activity) {
-        return PluginSettingsFragment.newInstance(getPluginKey(), R.xml.runcommand_preferences);
     }
 
     @Override

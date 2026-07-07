@@ -6,7 +6,6 @@
 package org.kde.kdeconnect.plugins.mousepad
 
 import android.Manifest
-import android.app.Activity
 import android.content.Intent
 import android.view.KeyEvent
 import androidx.preference.PreferenceManager
@@ -14,8 +13,6 @@ import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
-import org.kde.kdeconnect.ui.PluginSettingsFragment
-import org.kde.kdeconnect.ui.PluginSettingsFragment.Companion.newInstance
 import org.kde.kdeconnect_tp.R
 
 @LoadablePlugin
@@ -66,14 +63,6 @@ class MousePadPlugin : Plugin() {
         get() = context.getString(R.string.pref_plugin_mousepad_desc_nontv)
 
     override fun hasSettings(): Boolean = true
-
-    override fun getSettingsFragment(activity: Activity): PluginSettingsFragment? {
-        return if (device.deviceType == DeviceType.TV) {
-            newInstance(pluginKey, R.xml.mousepadplugin_preferences, R.xml.mousepadplugin_preferences_tv)
-        } else {
-            newInstance(pluginKey, R.xml.mousepadplugin_preferences)
-        }
-    }
 
     fun sendMouseDelta(dx: Float, dy: Float) {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
