@@ -6,15 +6,17 @@
 */
 package org.kde.kdeconnect.plugins.sftp
 
-import android.app.Activity
 import android.content.ContentResolver
+import android.content.Context
 import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.net.Uri
 import android.os.Environment
 import android.os.storage.StorageManager
 import android.provider.Settings
+import android.util.Log
 import androidx.core.net.toUri
+import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import org.kde.kdeconnect.NetworkPacket
@@ -41,7 +43,7 @@ class SftpPlugin : Plugin(), OnSharedPreferenceChangeListener {
         return if (SimpleSftpServer.SUPPORTS_NATIVEFS) {
             Environment.isExternalStorageManager()
         } else {
-            SftpSettingsFragment.getStorageInfoList(context, this).isNotEmpty()
+            getStorageInfoList(context, this).isNotEmpty()
         }
     }
 
@@ -103,7 +105,7 @@ class SftpPlugin : Plugin(), OnSharedPreferenceChangeListener {
                 paths.add(sv.directory!!.path)
             }
         } else {
-            val storageInfoList = SftpSettingsFragment.getStorageInfoList(context, this)
+            val storageInfoList = getStorageInfoList(context, this)
             storageInfoList.sortBy { it.uri }
             if (storageInfoList.isEmpty()) {
                 device.sendPacket(NetworkPacket(PACKET_TYPE_SFTP).apply {
@@ -206,10 +208,6 @@ class SftpPlugin : Plugin(), OnSharedPreferenceChangeListener {
 
     override fun hasSettings(): Boolean = !SimpleSftpServer.SUPPORTS_NATIVEFS
 
-    override fun getSettingsFragment(activity: Activity): PluginSettingsFragment {
-        return SftpSettingsFragment.newInstance(pluginKey, R.xml.sftpplugin_preferences)
-    }
-
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String?) {
         if (key != context.getString(PREFERENCE_KEY_STORAGE_INFO_LIST)) return
         if (!server.isStarted) return
@@ -247,6 +245,27 @@ class SftpPlugin : Plugin(), OnSharedPreferenceChangeListener {
                 return StorageInfo(displayName, uri)
             }
         }
+    }
+
+    fun getStorageInfoList(context: Context, plugin: Plugin): MutableList<StorageInfo> {
+        val storageInfoList = mutableListOf<StorageInfo>()
+
+        val deviceSettings = plugin.preferences ?: return storageInfoList
+
+        val jsonString = deviceSettings
+            .getString(context.getString(PREFERENCE_KEY_STORAGE_INFO_LIST), "[]")
+
+        try {
+            val jsonArray = JSONArray(jsonString)
+
+            for (i in 0 until jsonArray.length()) {
+                storageInfoList.add(StorageInfo.fromJSON(jsonArray.getJSONObject(i)))
+            }
+        } catch (e: JSONException) {
+            Log.e("SFTPSettings", "Couldn't load storage info", e)
+        }
+
+        return storageInfoList
     }
 
     companion object {

@@ -36,6 +36,8 @@ import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardSettingsScreen
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardSettingsViewModel
 import org.kde.kdeconnect.plugins.runcommand.RunCommandSettingsScreen
 import org.kde.kdeconnect.plugins.runcommand.RunCommandSettingsViewModel
+import org.kde.kdeconnect.plugins.sftp.SftpSettingsScreen
+import org.kde.kdeconnect.plugins.sftp.SftpSettingsViewModel
 import org.kde.kdeconnect.plugins.share.ShareSettingsScreen
 import org.kde.kdeconnect.plugins.share.ShareSettingsViewModel
 import org.kde.kdeconnect.plugins.sms.SmsSettingsScreen
@@ -193,6 +195,7 @@ val pluginSettingsModule = module {
     viewModel<FindMyPhoneSettingsViewModel>()
     viewModel<MousePadSettingsViewModel>()
     viewModel<MprisSettingsViewModel>()
+    viewModel<SftpSettingsViewModel>()
     viewModel<SmsSettingsViewModel>()
     viewModel<TelephonySettingsViewModel>()
     viewModel<ShareSettingsViewModel>()
@@ -209,6 +212,7 @@ val pluginSettingsModule = module {
             "FindMyPhonePlugin" -> FindMyPhoneSettingsScreen()
             "MousePadPlugin" -> MousePadSettingsScreen()
             "MprisPlugin" -> MprisSettingsScreen()
+            "SftpPlugin" -> SftpSettingsScreen()
             "SMSPlugin" -> SmsSettingsScreen()
             "TelephonyPlugin" -> TelephonySettingsScreen()
             "SharePlugin" -> ShareSettingsScreen()
