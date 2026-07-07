@@ -278,11 +278,6 @@ public class SharePlugin extends Plugin {
         }
     }
 
-    @Override
-    public PluginSettingsFragment getSettingsFragment(Activity activity) {
-        return ShareSettingsFragment.newInstance(getPluginKey(), R.xml.shareplugin_preferences);
-    }
-
     void sendUriList(final ArrayList<Uri> uriList) {
         CompositeUploadFileJob job;
 

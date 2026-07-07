@@ -8,17 +8,19 @@ package org.kde.kdeconnect.plugins.share;
 
 import android.app.DownloadManager;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.util.Log;
 
 import androidx.annotation.GuardedBy;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.documentfile.provider.DocumentFile;
+import androidx.preference.PreferenceManager;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.kde.kdeconnect.Device;
 import org.kde.kdeconnect.helpers.FilesHelper;
@@ -263,11 +265,11 @@ public class CompositeReceiveFileJob extends BackgroundJob<Device, Void> {
         final DocumentFile destinationFolderDocument;
 
         // If the file should be opened immediately store it in the standard location to avoid the FileProvider trouble (See ReceiveNotification::setURI)
-        if (open || !ShareSettingsFragment.isCustomDestinationEnabled(getDevice().getContext())) {
-            final String defaultPath = ShareSettingsFragment.getDefaultDestinationDirectory().getAbsolutePath();
+        if (open || !PreferenceManager.getDefaultSharedPreferences(getDevice().getContext()).getBoolean("share_destination_custom", false)) {
+            final String defaultPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
             destinationFolderDocument = DocumentFile.fromFile(new File(defaultPath));
         } else {
-            destinationFolderDocument = ShareSettingsFragment.getDestinationDirectory(getDevice().getContext());
+            destinationFolderDocument = getDestinationDirectory(getDevice().getContext());
         }
 
         String filenameToUse = FilesHelper.findValidNonExistingFileName(destinationFolderDocument, filename);
@@ -279,6 +281,28 @@ public class CompositeReceiveFileJob extends BackgroundJob<Device, Void> {
         }
 
         return fileDocument;
+    }
+
+    private DocumentFile getDestinationDirectory(Context context) {
+        if (PreferenceManager.getDefaultSharedPreferences(context).getBoolean("share_destination_custom", false)) {
+            String path = PreferenceManager.getDefaultSharedPreferences(context).getString("share_destination_folder_uri", null);
+            if (path != null) {
+                DocumentFile treeDocumentFile = DocumentFile.fromTreeUri(context, Uri.parse(path));
+                if (treeDocumentFile != null && treeDocumentFile.canWrite()) { //Checks for FLAG_DIR_SUPPORTS_CREATE on directories
+                    return treeDocumentFile;
+                } else {
+                    //Maybe permission was revoked
+                    Log.w("SharePlugin", "Share destination is not writable, falling back to default path.");
+                }
+            }
+        }
+        File defaultDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        try {
+            defaultDir.mkdirs();
+        } catch (Exception e) {
+            Log.e("KDEConnect", "Exception", e);
+        }
+        return DocumentFile.fromFile(defaultDir);
     }
 
     private long receiveFile(InputStream input, OutputStream output) throws IOException {
@@ -326,7 +350,7 @@ public class CompositeReceiveFileJob extends BackgroundJob<Device, Void> {
     }
 
     private void publishFile(DocumentFile fileDocument, long size) {
-        if (!ShareSettingsFragment.isCustomDestinationEnabled(getDevice().getContext())) {
+        if (!PreferenceManager.getDefaultSharedPreferences(getDevice().getContext()).getBoolean("share_destination_custom", false)) {
             Log.i("SharePlugin", "Adding to downloads");
             DownloadManager manager = ContextCompat.getSystemService(getDevice().getContext(),
                     DownloadManager.class);

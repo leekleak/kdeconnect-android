@@ -38,7 +38,7 @@ import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
-import org.kde.kdeconnect.plugins.share.ShareSettingsFragment
+import org.kde.kdeconnect.plugins.share.ShareSettingsViewModel
 import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.compose.screen.settings.SettingsViewModel.Companion.KEY_BLUETOOTH_ENABLED
 import org.kde.kdeconnect.ui.navigation.DeviceKey
@@ -188,7 +188,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
             }
             STORAGE_LOCATION_CONFIGURED if resultCode == RESULT_OK && data != null -> {
                 val uri = data.data
-                ShareSettingsFragment.saveStorageLocationPreference(this, uri)
+                ShareSettingsViewModel.saveStorageLocationPreference(this, uri!!)
             }
             else -> super.onActivityResult(requestCode, resultCode, data)
         }

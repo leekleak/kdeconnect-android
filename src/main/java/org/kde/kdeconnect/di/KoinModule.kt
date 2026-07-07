@@ -36,6 +36,10 @@ import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardSettingsScreen
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardSettingsViewModel
 import org.kde.kdeconnect.plugins.runcommand.RunCommandSettingsScreen
 import org.kde.kdeconnect.plugins.runcommand.RunCommandSettingsViewModel
+import org.kde.kdeconnect.plugins.share.ShareSettingsScreen
+import org.kde.kdeconnect.plugins.share.ShareSettingsViewModel
+import org.kde.kdeconnect.plugins.sms.SmsSettingsScreen
+import org.kde.kdeconnect.plugins.sms.SmsSettingsViewModel
 import org.kde.kdeconnect.ui.compose.screen.about.AboutScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceViewModel
@@ -187,6 +191,8 @@ val pluginSettingsModule = module {
     viewModel<FindMyPhoneSettingsViewModel>()
     viewModel<MousePadSettingsViewModel>()
     viewModel<MprisSettingsViewModel>()
+    viewModel<SmsSettingsViewModel>()
+    viewModel<ShareSettingsViewModel>()
     viewModel<PresenterSettingsViewModel>()
     viewModel<RemoteKeyboardSettingsViewModel>()
     viewModel<RunCommandSettingsViewModel>()
@@ -200,6 +206,8 @@ val pluginSettingsModule = module {
             "FindMyPhonePlugin" -> FindMyPhoneSettingsScreen()
             "MousePadPlugin" -> MousePadSettingsScreen()
             "MprisPlugin" -> MprisSettingsScreen()
+            "SMSPlugin" -> SmsSettingsScreen()
+            "SharePlugin" -> ShareSettingsScreen()
             "PresenterPlugin" -> PresenterSettingsScreen()
             "RemoteKeyboardPlugin" -> RemoteKeyboardSettingsScreen()
             "RunCommandPlugin" -> RunCommandSettingsScreen()
