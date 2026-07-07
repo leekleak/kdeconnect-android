@@ -20,6 +20,7 @@ import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.ui.CustomDevicesActivity
 import org.kde.kdeconnect.ui.ThemeUtil
+import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect_tp.BuildConfig
 import java.io.InputStreamReader
 import androidx.core.content.edit
@@ -50,6 +51,19 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         updatePersistentNotification()
         updateBluetoothEnabled()
         updateCustomDevicesCount()
+        updatePlugins()
+    }
+
+    private fun updatePlugins() {
+        val allPlugins = PluginFactory.availablePlugins.toList()
+        val sortedPlugins = PluginFactory.sortPluginList(allPlugins)
+        val pluginsWithSettings = sortedPlugins.filter {
+            PluginFactory.getPluginInfo(it).hasSettings
+        }.map { pluginKey ->
+            val info = PluginFactory.getPluginInfo(pluginKey)
+            PluginSettingsItem(pluginKey, info.displayName)
+        }
+        _uiState.update { it.copy(pluginsWithSettings = pluginsWithSettings) }
     }
 
     private fun updateDeviceName() {
@@ -122,4 +136,10 @@ data class SettingsUiState(
     val persistentNotificationEnabled: Boolean = false,
     val bluetoothEnabled: Boolean = false,
     val customDevicesCount: Int = 0,
+    val pluginsWithSettings: List<PluginSettingsItem> = emptyList()
+)
+
+data class PluginSettingsItem(
+    val key: String,
+    val name: String
 )

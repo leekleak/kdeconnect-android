@@ -168,24 +168,10 @@ fun SettingsScreen(
 
         SectionHeader(title = stringResource(R.string.plugins))
 
-        val plugins = listOf(
-            Pair(stringResource(R.string.pref_plugin_digitizer), "DigitizerPlugin"),
-            Pair(stringResource(R.string.findmyphone_title), "FindMyPhonePlugin"),
-            Pair(stringResource(R.string.pref_plugin_mousepad), "MousePadPlugin"),
-            Pair(stringResource(R.string.pref_plugin_mpris), "MprisPlugin"),
-            Pair(stringResource(R.string.pref_plugin_presenter), "PresenterPlugin"),
-            Pair(stringResource(R.string.pref_plugin_remotekeyboard), "RemoteKeyboardPlugin"),
-            Pair(stringResource(R.string.pref_plugin_runcommand), "RunCommandPlugin"),
-            Pair(stringResource(R.string.pref_plugin_sharereceiver), "SharePlugin"),
-            Pair(stringResource(R.string.pref_plugin_telepathy), "SMSPlugin"),
-            Pair(stringResource(R.string.pref_plugin_telephony), "TelephonyPlugin"),
-            Pair(stringResource(R.string.pref_plugin_notifications), "NotificationsPlugin")
-        ).sortedBy { it.first }
-
-        plugins.forEach { (title, key) ->
+        uiState.pluginsWithSettings.forEach { plugin ->
             NavigatePreference(
-                title = title,
-                onClick = { navigator.goTo(PluginIndividualSettingsKey(key)) }
+                title = plugin.name,
+                onClick = { navigator.goTo(PluginIndividualSettingsKey(plugin.key)) }
             )
         }
 
