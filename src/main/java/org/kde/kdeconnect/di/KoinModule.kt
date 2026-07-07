@@ -22,6 +22,8 @@ import kotlinx.coroutines.launch
 import org.kde.kdeconnect.ui.about.getApplicationAboutData
 import org.kde.kdeconnect.plugins.digitizer.DigitizerSettingsScreen
 import org.kde.kdeconnect.plugins.digitizer.DigitizerSettingsViewModel
+import org.kde.kdeconnect.plugins.findmyphone.FindMyPhoneSettingsScreen
+import org.kde.kdeconnect.plugins.findmyphone.FindMyPhoneSettingsViewModel
 import org.kde.kdeconnect.ui.compose.screen.about.AboutScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceViewModel
@@ -170,12 +172,14 @@ val deviceModule = module {
 val pluginSettingsModule = module {
     viewModel<PluginSettingsViewModel>()
     viewModel<DigitizerSettingsViewModel>()
+    viewModel<FindMyPhoneSettingsViewModel>()
     navigation<PluginSettingsKey> { key ->
         PluginSettingsScreen(key.deviceId)
     }
     navigation<PluginIndividualSettingsKey> { key ->
         when (key.pluginKey) {
             "DigitizerPlugin" -> DigitizerSettingsScreen()
+            "FindMyPhonePlugin" -> FindMyPhoneSettingsScreen()
             else -> PluginIndividualSettingsScreen(
                 pluginKey = key.pluginKey
             )

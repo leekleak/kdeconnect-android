@@ -7,7 +7,6 @@
 package org.kde.kdeconnect.plugins.findmyphone;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
@@ -33,7 +32,6 @@ import org.kde.kdeconnect.helpers.NotificationHelper;
 import org.kde.kdeconnect.NetworkPacket;
 import org.kde.kdeconnect.plugins.Plugin;
 import org.kde.kdeconnect.plugins.PluginFactory;
-import org.kde.kdeconnect.ui.PluginSettingsFragment;
 import org.kde.kdeconnect_tp.R;
 
 import java.io.IOException;
@@ -228,11 +226,6 @@ public class FindMyPhonePlugin extends Plugin {
     @Override
     public boolean hasSettings() {
         return true;
-    }
-
-    @Override
-    public PluginSettingsFragment getSettingsFragment(Activity activity) {
-        return FindMyPhoneSettingsFragment.newInstance(getPluginKey(), R.xml.findmyphoneplugin_preferences);
     }
 
     @NonNull
