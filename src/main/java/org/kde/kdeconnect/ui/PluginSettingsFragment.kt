@@ -20,8 +20,6 @@ open class PluginSettingsFragment : PreferenceFragmentCompat() {
     private lateinit var pluginKey: String
     private lateinit var layouts: IntArray
 
-    protected lateinit var device: Device
-
     @JvmField
     protected var plugin: Plugin? = null
 
@@ -41,24 +39,22 @@ open class PluginSettingsFragment : PreferenceFragmentCompat() {
         val pluginKey = arguments.getString(ARG_PLUGIN_KEY)!!
         this.pluginKey = pluginKey
         this.layouts = arguments.getIntArray(ARG_LAYOUT)!!
-        
-        val device = getInstance().getDevice(this.deviceId)
-        if (device == null) {
-            requireActivity().finish()
-            return
+
+        val info = PluginFactory.getPluginInfo(pluginKey)
+        try {
+            this.plugin = info.instantiableClass.getDeclaredConstructor().newInstance()
+            this.plugin?.setContext(requireContext(), null)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-        this.device = device
-        this.plugin = device.getPluginIncludingWithoutPermissions(pluginKey)
+
         super.onCreate(savedInstanceState)
     }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-        val plugin = plugin
-        if (plugin != null && plugin.supportsDeviceSpecificSettings()) {
-            val prefsManager = preferenceManager
-            prefsManager.setSharedPreferencesName(plugin.sharedPreferencesName)
-            prefsManager.setSharedPreferencesMode(Context.MODE_PRIVATE)
-        }
+        val prefsManager = preferenceManager
+        prefsManager.setSharedPreferencesName(pluginKey + "_preferences")
+        prefsManager.setSharedPreferencesMode(Context.MODE_PRIVATE)
 
         for (layout in layouts) {
             addPreferencesFromResource(layout)
@@ -71,10 +67,6 @@ open class PluginSettingsFragment : PreferenceFragmentCompat() {
         val info = PluginFactory.getPluginInfo(pluginKey)
         requireActivity().title = getString(R.string.plugin_settings_with_name, info.displayName)
     }
-
-    val deviceId: String?
-        get() = arguments?.getString(KdeConnectKeyConstants.EXTRA_DEVICE_ID)
-            ?: requireActivity().intent?.getStringExtra(KdeConnectKeyConstants.EXTRA_DEVICE_ID)
 
     companion object {
         private const val ARG_PLUGIN_KEY = "plugin_key"

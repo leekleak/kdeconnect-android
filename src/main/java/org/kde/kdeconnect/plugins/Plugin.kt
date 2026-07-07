@@ -38,9 +38,9 @@ abstract class Plugin {
 
         if (device != null) {
             this.device = device
-            this.preferences =
-                this.context.getSharedPreferences(this.sharedPreferencesName, Context.MODE_PRIVATE)
         }
+        this.preferences =
+            this.context.getSharedPreferences(this.sharedPreferencesName, Context.MODE_PRIVATE)
     }
 
     enum class ButtonCategory {
@@ -67,15 +67,7 @@ abstract class Plugin {
     open fun getUiMenuEntries(): List<PluginUiMenuEntry> = listOf()
 
     val sharedPreferencesName: String
-        get() {
-            if (isDeviceInitialized.not()) {
-                throw RuntimeException("You have to call setContext() before you can call getSharedPreferencesName()")
-            }
-            if (this.supportsDeviceSpecificSettings()) {
-                return device.deviceId + "_" + this.pluginKey + "_preferences"
-            }
-            return pluginKey + "_preferences"
-        }
+        get() = pluginKey + "_preferences"
 
     /**
      * To receive the network packet from the unpaired device, override
@@ -123,15 +115,6 @@ abstract class Plugin {
      * Return true if this plugin needs a specific UI settings.
      */
     open fun hasSettings(): Boolean = false
-
-    /**
-     * Called to find out if a plugin supports device-specific settings.
-     * If you return `true` your PluginSettingsFragment will use the device
-     * specific SharedPreferences to store the settings.
-     *
-     * @return true if this plugin supports device-specific settings
-     */
-    open fun supportsDeviceSpecificSettings(): Boolean = false
 
     /**
      * If hasSettings returns true, this will be called when the user

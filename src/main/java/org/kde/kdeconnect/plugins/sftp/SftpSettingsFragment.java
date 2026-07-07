@@ -328,9 +328,7 @@ public class SftpSettingsFragment
 
         addStoragePreferences(preferenceCategory);
 
-        Device device = KdeConnect.getInstance().getDevice(getDeviceId());
-
-        device.launchBackgroundReloadPluginsFromSettings();
+        KdeConnect.getInstance().getDevices().values().forEach(Device::launchBackgroundReloadPluginsFromSettings);
     }
 
     @Override

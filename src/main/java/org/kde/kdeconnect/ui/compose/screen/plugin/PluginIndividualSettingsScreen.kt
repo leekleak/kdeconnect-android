@@ -19,13 +19,12 @@ import org.kde.kdeconnect_tp.databinding.ActivityPluginSettingsBinding
 
 @Composable
 fun PluginIndividualSettingsScreen(
-    deviceId: String,
     pluginKey: String
 ) {
     val context = LocalContext.current
     val pluginInfo = PluginFactory.getPluginInfo(pluginKey)
 
-    DisposableEffect(deviceId, pluginKey) {
+    DisposableEffect(pluginKey) {
         onDispose {
             val fragmentManager = (context as? FragmentActivity)?.supportFragmentManager
             fragmentManager?.findFragmentByTag("plugin_settings_$pluginKey")?.let {
@@ -50,15 +49,15 @@ fun PluginIndividualSettingsScreen(
             val fragmentManager = activity.supportFragmentManager
             val containerId = R.id.fragmentPlaceHolder
 
-            val device = KdeConnect.getInstance().getDevice(deviceId)
-            val plugin = device?.getPluginIncludingWithoutPermissions(pluginKey)
+            val plugin = try {
+                val info = PluginFactory.getPluginInfo(pluginKey)
+                info.instantiableClass.getDeclaredConstructor().newInstance().apply { setContext(context, null) }
+            } catch (_: Exception) {
+                null
+            }
             val fragment = plugin?.getSettingsFragment(activity as Activity)
 
             if (fragment != null) {
-                val args = fragment.arguments ?: Bundle()
-                args.putString(KdeConnectKeyConstants.EXTRA_DEVICE_ID, deviceId)
-                fragment.arguments = args
-
                 fragmentManager.beginTransaction()
                     .replace(containerId, fragment, "plugin_settings_$pluginKey")
                     .commitNow()

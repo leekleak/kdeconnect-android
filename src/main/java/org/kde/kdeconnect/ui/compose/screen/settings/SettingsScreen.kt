@@ -26,9 +26,11 @@ import org.kde.kdeconnect.ui.compose.components.DialogTextPreference
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.NavigatePreference
 import org.kde.kdeconnect.ui.compose.components.Preference
+import org.kde.kdeconnect.ui.compose.components.SectionHeader
 import org.kde.kdeconnect.ui.compose.components.SwitchPreference
 import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.Navigator
+import org.kde.kdeconnect.ui.navigation.PluginIndividualSettingsKey
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -163,6 +165,29 @@ fun SettingsScreen(
                 exportLogsLauncher.launch(CreateFileParams("text/plain", "kdeconnect-log.txt"))
             }
         )
+
+        SectionHeader(title = stringResource(R.string.plugins))
+
+        val plugins = listOf(
+            Pair(stringResource(R.string.pref_plugin_digitizer), "DigitizerPlugin"),
+            Pair(stringResource(R.string.findmyphone_title), "FindMyPhonePlugin"),
+            Pair(stringResource(R.string.pref_plugin_mousepad), "MousePadPlugin"),
+            Pair(stringResource(R.string.pref_plugin_mpris), "MprisPlugin"),
+            Pair(stringResource(R.string.pref_plugin_presenter), "PresenterPlugin"),
+            Pair(stringResource(R.string.pref_plugin_remotekeyboard), "RemoteKeyboardPlugin"),
+            Pair(stringResource(R.string.pref_plugin_runcommand), "RunCommandPlugin"),
+            Pair(stringResource(R.string.pref_plugin_sharereceiver), "SharePlugin"),
+            Pair(stringResource(R.string.pref_plugin_telepathy), "SMSPlugin"),
+            Pair(stringResource(R.string.pref_plugin_telephony), "TelephonyPlugin"),
+            Pair(stringResource(R.string.pref_plugin_notifications), "NotificationsPlugin")
+        ).sortedBy { it.first }
+
+        plugins.forEach { (title, key) ->
+            NavigatePreference(
+                title = title,
+                onClick = { navigator.goTo(PluginIndividualSettingsKey(key)) }
+            )
+        }
 
         NavigatePreference(
             title = stringResource(R.string.about),

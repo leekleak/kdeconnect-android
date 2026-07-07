@@ -172,7 +172,6 @@ val pluginSettingsModule = module {
     }
     navigation<PluginIndividualSettingsKey> { key ->
         PluginIndividualSettingsScreen(
-            deviceId = key.deviceId,
             pluginKey = key.pluginKey
         )
     }

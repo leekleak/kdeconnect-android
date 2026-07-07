@@ -58,12 +58,13 @@ class SftpPlugin : Plugin(), OnSharedPreferenceChangeListener {
                 .setRequestCode(MainActivity.RESULT_NEEDS_RELOAD)
                 .create()
         } else {
+            val deviceId = if (isDeviceInitialized) device.deviceId else null
             DeviceSettingsAlertDialogFragment.Builder()
                 .setTitle(displayName)
                 .setMessage(R.string.sftp_saf_permission_explanation)
                 .setPositiveButton(R.string.ok)
                 .setNegativeButton(R.string.cancel)
-                .setDeviceId(device.deviceId)
+                .setDeviceId(deviceId)
                 .setPluginKey(pluginKey)
                 .create()
         }
@@ -204,8 +205,6 @@ class SftpPlugin : Plugin(), OnSharedPreferenceChangeListener {
     override val outgoingPacketTypes: Array<String> = arrayOf(PACKET_TYPE_SFTP)
 
     override fun hasSettings(): Boolean = !SimpleSftpServer.SUPPORTS_NATIVEFS
-
-    override fun supportsDeviceSpecificSettings(): Boolean = true
 
     override fun getSettingsFragment(activity: Activity): PluginSettingsFragment {
         return SftpSettingsFragment.newInstance(pluginKey, R.xml.sftpplugin_preferences)
