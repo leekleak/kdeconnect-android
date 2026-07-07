@@ -1,13 +1,13 @@
 package org.kde.kdeconnect.plugins.findmyphone
 
 import android.app.Application
+import android.content.Context
 import android.content.SharedPreferences
 import android.media.RingtoneManager
 import android.provider.Settings
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
-import androidx.preference.PreferenceManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,7 +24,7 @@ class FindMyPhoneSettingsViewModel(
     application: Application
 ) : AndroidViewModel(application) {
 
-    private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(application)
+    private val prefs: SharedPreferences = application.getSharedPreferences(FindMyPhonePlugin.PREFERENCES_NAME, Context.MODE_PRIVATE)
 
     private val _uiState = MutableStateFlow(FindMyPhoneSettingsUiState())
     val uiState: StateFlow<FindMyPhoneSettingsUiState> = _uiState.asStateFlow()

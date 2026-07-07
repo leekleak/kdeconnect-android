@@ -80,6 +80,8 @@ class DigitizerPlugin : Plugin() {
         )
 
     companion object {
+        const val PREFERENCES_NAME: String = "DigitizerPlugin_preferences"
+
         private const val PACKET_TYPE_DIGITIZER_SESSION = "kdeconnect.digitizer.session"
         private const val PACKET_TYPE_DIGITIZER = "kdeconnect.digitizer"
 

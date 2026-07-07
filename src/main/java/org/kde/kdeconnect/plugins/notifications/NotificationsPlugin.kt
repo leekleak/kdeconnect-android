@@ -5,7 +5,6 @@
  */
 package org.kde.kdeconnect.plugins.notifications
 
-import android.app.Activity
 import android.app.KeyguardManager
 import android.app.Notification
 import android.app.PendingIntent
@@ -68,13 +67,6 @@ class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener 
         get() = context.getString(R.string.pref_plugin_notifications_desc)
 
     override fun hasSettings(): Boolean = true
-
-    override fun getSettingsFragment(activity: Activity): PluginSettingsFragment? {
-        val intent = Intent(activity, NotificationFilterActivity::class.java)
-        intent.putExtra(PREFERENCE_KEY, this.sharedPreferencesName)
-        activity.startActivity(intent)
-        return null
-    }
 
     override fun checkRequiredPermissions(): Boolean {
         return NotificationReceiver.hasReadNotificationsPermission(context)
@@ -564,6 +556,7 @@ class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener 
         private const val PACKET_TYPE_NOTIFICATION_REPLY = "kdeconnect.notification.reply"
         private const val PACKET_TYPE_NOTIFICATION_ACTION = "kdeconnect.notification.action"
         const val PREFERENCE_KEY = "prefKey"
+        const val PREFERENCES_NAME = "NotificationsPlugin_preferences"
         const val PREF_NOTIFICATION_SCREEN_OFF = "pref_notification_screen_off"
         private const val NOTIFICATION_SYNC_DELAY_MS = 50L
 

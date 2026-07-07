@@ -65,7 +65,7 @@ class DigitizerActivity : BaseActivity<ActivityDigitizerBinding>(), DrawingPadVi
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.setDisplayShowHomeEnabled(true)
 
-        prefs = getSharedPreferences("digitizer_preferences", MODE_PRIVATE)
+        prefs = getSharedPreferences(DigitizerPlugin.PREFERENCES_NAME, MODE_PRIVATE)
 
         binding.drawingPad.eventListener = this
 

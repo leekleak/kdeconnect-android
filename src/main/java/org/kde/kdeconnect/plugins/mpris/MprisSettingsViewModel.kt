@@ -1,10 +1,10 @@
 package org.kde.kdeconnect.plugins.mpris
 
 import android.app.Application
+import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
-import androidx.preference.PreferenceManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,7 +21,7 @@ class MprisSettingsViewModel(
     application: Application
 ) : AndroidViewModel(application) {
 
-    private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(application)
+    private val prefs: SharedPreferences = application.getSharedPreferences(MprisPlugin.PREFERENCES_NAME, Context.MODE_PRIVATE)
 
     private val _uiState = MutableStateFlow(MprisSettingsUiState())
     val uiState: StateFlow<MprisSettingsUiState> = _uiState.asStateFlow()

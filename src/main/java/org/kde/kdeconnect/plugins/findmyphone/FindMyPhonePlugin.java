@@ -39,6 +39,7 @@ import java.io.IOException;
 @PluginFactory.LoadablePlugin
 public class FindMyPhonePlugin extends Plugin {
     public final static String PACKET_TYPE_FINDMYPHONE_REQUEST = "kdeconnect.findmyphone.request";
+    public final static String PREFERENCES_NAME = "FindMyPhonePlugin_preferences";
 
     private NotificationManager notificationManager;
     private int notificationId;

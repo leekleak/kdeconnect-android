@@ -498,6 +498,7 @@ class MprisPlugin : Plugin() {
     override val optionalPermissionExplanation: Int = R.string.mpris_notifications_explanation
 
     companion object {
+        const val PREFERENCES_NAME: String = "MprisPlugin_preferences"
         const val DEVICE_ID_KEY: String = "deviceId"
         private const val PACKET_TYPE_MPRIS = "kdeconnect.mpris"
         private const val PACKET_TYPE_MPRIS_REQUEST = "kdeconnect.mpris.request"

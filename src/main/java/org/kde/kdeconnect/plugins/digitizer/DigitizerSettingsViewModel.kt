@@ -21,7 +21,7 @@ class DigitizerSettingsViewModel(
 ) : AndroidViewModel(application) {
 
     private val prefs: SharedPreferences = application.getSharedPreferences(
-        "digitizer_preferences",
+        DigitizerPlugin.PREFERENCES_NAME,
         Context.MODE_PRIVATE
     )
 

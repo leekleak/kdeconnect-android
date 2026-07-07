@@ -16,7 +16,7 @@ import android.util.Log;
 
 import java.util.HashSet;
 
-class AppDatabase {
+public class AppDatabase {
 
     static final private HashSet<String> disabledByDefault = new HashSet<>();
     static {
