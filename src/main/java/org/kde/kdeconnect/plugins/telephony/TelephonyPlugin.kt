@@ -6,7 +6,6 @@
 package org.kde.kdeconnect.plugins.telephony
 
 import android.Manifest
-import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -197,8 +196,6 @@ class TelephonyPlugin : Plugin() {
     override val optionalPermissions: Array<String> = arrayOf(Manifest.permission.READ_CONTACTS)
 
     override fun hasSettings(): Boolean = true
-
-    override fun getSettingsFragment(activity: Activity): PluginSettingsFragment = newInstance(pluginKey, R.xml.telephonyplugin_preferences)
 
     companion object {
         /**

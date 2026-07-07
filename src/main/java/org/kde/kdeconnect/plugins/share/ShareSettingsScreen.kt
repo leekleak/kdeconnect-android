@@ -1,6 +1,5 @@
 package org.kde.kdeconnect.plugins.share
 
-import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column

@@ -295,7 +295,8 @@ fun DialogTextPreference(
     icon: Painter? = null,
     value: String,
     enabled: Boolean = true,
-    filterInput: (String) -> String,
+    singleLine: Boolean = true,
+    filterInput: (String) -> String = { it },
     onValueChanged: (String) -> Unit
 ) {
     var newValue by remember { mutableStateOf(value) }
@@ -318,7 +319,7 @@ fun DialogTextPreference(
             onValueChange = {
                 newValue = filterInput(it)
             },
-            singleLine = true,
+            singleLine = singleLine,
         )
         Row(
             modifier = Modifier
