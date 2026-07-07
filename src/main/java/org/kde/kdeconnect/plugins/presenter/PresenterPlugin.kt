@@ -5,16 +5,12 @@
 */
 package org.kde.kdeconnect.plugins.presenter
 
-import android.app.Activity
-import android.content.Intent
 import android.view.KeyEvent
 import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.mousepad.KeyListenerView
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
-import org.kde.kdeconnect.ui.PluginSettingsFragment
-import org.kde.kdeconnect.ui.PluginSettingsFragment.Companion.newInstance
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.PresenterKey
 import org.kde.kdeconnect_tp.R
@@ -34,10 +30,6 @@ class PresenterPlugin : Plugin() {
         get() = context.getString(R.string.pref_plugin_presenter_desc)
 
     override fun hasSettings(): Boolean = true
-
-    override fun getSettingsFragment(activity: Activity): PluginSettingsFragment {
-        return newInstance(pluginKey, R.xml.presenterplugin_preferences)
-    }
 
     override fun getUiButtons(): List<PluginUiButton> = listOf(
         PluginUiButton(
