@@ -124,7 +124,7 @@ abstract class Plugin {
      * @return The PluginSettingsFragment used to display this plugin's settings
      */
     open fun getSettingsFragment(activity: Activity): PluginSettingsFragment? {
-        throw RuntimeException("Plugin doesn't reimplement getSettingsFragment: $pluginKey")
+        throw RuntimeException("Plugin $pluginKey doesn't reimplement getSettingsFragment. If it's a Compose-based plugin, make sure to add it to the when block in KoinModule.kt")
     }
 
     @get:CallSuper

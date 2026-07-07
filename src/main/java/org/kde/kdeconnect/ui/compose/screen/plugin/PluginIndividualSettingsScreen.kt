@@ -1,19 +1,15 @@
 package org.kde.kdeconnect.ui.compose.screen.plugin
 
 import android.app.Activity
-import android.os.Bundle
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidViewBinding
 import androidx.fragment.app.FragmentActivity
-import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
-import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import org.kde.kdeconnect_tp.R
 import org.kde.kdeconnect_tp.databinding.ActivityPluginSettingsBinding
 
@@ -34,7 +30,7 @@ fun PluginIndividualSettingsScreen(
     }
 
     HazeScaffold(
-        title = stringResource(id = R.string.plugin_settings_with_name, pluginInfo.displayName),
+        title = pluginInfo.displayName,
         backButton = true,
         scrollState = null
     ) { paddingValues ->
@@ -55,7 +51,12 @@ fun PluginIndividualSettingsScreen(
             } catch (_: Exception) {
                 null
             }
-            val fragment = plugin?.getSettingsFragment(activity as Activity)
+            val fragment = try {
+                plugin?.getSettingsFragment(activity as Activity)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
 
             if (fragment != null) {
                 fragmentManager.beginTransaction()

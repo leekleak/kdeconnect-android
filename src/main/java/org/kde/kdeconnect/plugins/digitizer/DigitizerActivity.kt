@@ -22,7 +22,6 @@ import androidx.core.content.edit
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.preference.PreferenceManager
 import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
@@ -66,7 +65,7 @@ class DigitizerActivity : BaseActivity<ActivityDigitizerBinding>(), DrawingPadVi
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.setDisplayShowHomeEnabled(true)
 
-        prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        prefs = getSharedPreferences("digitizer_preferences", MODE_PRIVATE)
 
         binding.drawingPad.eventListener = this
 

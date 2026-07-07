@@ -20,6 +20,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.ui.about.getApplicationAboutData
+import org.kde.kdeconnect.plugins.digitizer.DigitizerSettingsScreen
+import org.kde.kdeconnect.plugins.digitizer.DigitizerSettingsViewModel
 import org.kde.kdeconnect.ui.compose.screen.about.AboutScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceViewModel
@@ -167,13 +169,17 @@ val deviceModule = module {
 
 val pluginSettingsModule = module {
     viewModel<PluginSettingsViewModel>()
+    viewModel<DigitizerSettingsViewModel>()
     navigation<PluginSettingsKey> { key ->
         PluginSettingsScreen(key.deviceId)
     }
     navigation<PluginIndividualSettingsKey> { key ->
-        PluginIndividualSettingsScreen(
-            pluginKey = key.pluginKey
-        )
+        when (key.pluginKey) {
+            "DigitizerPlugin" -> DigitizerSettingsScreen()
+            else -> PluginIndividualSettingsScreen(
+                pluginKey = key.pluginKey
+            )
+        }
     }
 }
 

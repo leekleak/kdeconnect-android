@@ -6,14 +6,11 @@
 
 package org.kde.kdeconnect.plugins.digitizer
 
-import android.app.Activity
 import android.content.Intent
 import android.util.Log
-import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginFactory
-import org.kde.kdeconnect.ui.PluginSettingsFragment
 import org.kde.kdeconnect_tp.R
 
 @PluginFactory.LoadablePlugin
@@ -72,8 +69,6 @@ class DigitizerPlugin : Plugin() {
     }
 
     override fun hasSettings(): Boolean = true
-    override fun getSettingsFragment(activity: Activity): PluginSettingsFragment =
-        PluginSettingsFragment.newInstance(pluginKey, R.xml.digitizer_preferences)
 
     override val supportedPacketTypes: Array<String>
         get() = arrayOf()
