@@ -24,6 +24,8 @@ import org.kde.kdeconnect.plugins.digitizer.DigitizerSettingsScreen
 import org.kde.kdeconnect.plugins.digitizer.DigitizerSettingsViewModel
 import org.kde.kdeconnect.plugins.findmyphone.FindMyPhoneSettingsScreen
 import org.kde.kdeconnect.plugins.findmyphone.FindMyPhoneSettingsViewModel
+import org.kde.kdeconnect.plugins.mpris.MprisSettingsScreen
+import org.kde.kdeconnect.plugins.mpris.MprisSettingsViewModel
 import org.kde.kdeconnect.ui.compose.screen.about.AboutScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceViewModel
@@ -173,6 +175,7 @@ val pluginSettingsModule = module {
     viewModel<PluginSettingsViewModel>()
     viewModel<DigitizerSettingsViewModel>()
     viewModel<FindMyPhoneSettingsViewModel>()
+    viewModel<MprisSettingsViewModel>()
     navigation<PluginSettingsKey> { key ->
         PluginSettingsScreen(key.deviceId)
     }
@@ -180,6 +183,7 @@ val pluginSettingsModule = module {
         when (key.pluginKey) {
             "DigitizerPlugin" -> DigitizerSettingsScreen()
             "FindMyPhonePlugin" -> FindMyPhoneSettingsScreen()
+            "MprisPlugin" -> MprisSettingsScreen()
             else -> PluginIndividualSettingsScreen(
                 pluginKey = key.pluginKey
             )

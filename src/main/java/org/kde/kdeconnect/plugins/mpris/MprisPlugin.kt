@@ -6,7 +6,6 @@
 package org.kde.kdeconnect.plugins.mpris
 
 import android.Manifest
-import android.app.Activity
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
@@ -30,7 +29,6 @@ import org.kde.kdeconnect.plugins.mpris.AlbumArtCache.payloadToDiskCache
 import org.kde.kdeconnect.plugins.mpris.AlbumArtCache.registerPlugin
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
-import org.kde.kdeconnect.ui.PluginSettingsFragment
 import org.kde.kdeconnect_tp.R
 import java.net.MalformedURLException
 import java.util.concurrent.ConcurrentHashMap
@@ -206,10 +204,6 @@ class MprisPlugin : Plugin() {
     )
 
     override fun hasSettings(): Boolean = true
-
-    override fun getSettingsFragment(activity: Activity): PluginSettingsFragment {
-        return PluginSettingsFragment.newInstance(pluginKey, R.xml.mprisplugin_preferences)
-    }
 
     override fun onCreate(): Boolean {
         MprisMediaSession.instance.onCreate(context.applicationContext, this, device.deviceId)
