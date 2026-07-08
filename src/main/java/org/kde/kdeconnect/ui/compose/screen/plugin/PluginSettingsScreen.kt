@@ -6,12 +6,8 @@
 
 package org.kde.kdeconnect.ui.compose.screen.plugin
 
-import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -19,9 +15,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
-import org.kde.kdeconnect.ui.compose.components.IconPreference
-import org.kde.kdeconnect.ui.compose.components.Preference
+import org.kde.kdeconnect.ui.compose.components.NotificationTogglePreference
 import org.kde.kdeconnect.ui.compose.components.SwitchPreference
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.viewmodel.koinViewModel
@@ -42,14 +38,50 @@ fun PluginSettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    val notificationSend = uiState.plugins.find { it.key == "NotificationsPlugin" }
+    val notificationReceive = uiState.plugins.find { it.key == "ReceiveNotificationsPlugin" }
+    val contacts = uiState.plugins.find { it.key == "ContactsPlugin" }
+    val clipboard = uiState.plugins.find { it.key == "ClipboardPlugin" }
     HazeScaffold(
         title = uiState.deviceName,
         backButton = true,
     ) {
-        uiState.plugins.filter { validSettings.contains(it.key) }.forEach { plugin ->
+        CategoryTitleTextSmall(stringResource(R.string.notifications))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            notificationSend?.let { plugin ->
+                NotificationTogglePreference(
+                    modifier = Modifier.weight(1f),
+                    title = stringResource(R.string.send),
+                    icon = painterResource(R.drawable.arrow_upward),
+                    value = plugin.isEnabled,
+                    onValueChanged = { viewModel.setPluginEnabled(plugin.key, it) }
+                )
+            }
+            notificationReceive?.let { plugin ->
+                NotificationTogglePreference(
+                    modifier = Modifier.weight(1f),
+                    title = stringResource(R.string.receive),
+                    icon = painterResource(R.drawable.arrow_downward),
+                    value = plugin.isEnabled,
+                    onValueChanged = { viewModel.setPluginEnabled(plugin.key, it) }
+                )
+            }
+        }
+        CategoryTitleTextSmall(stringResource(R.string.synchronization))
+        clipboard?.let { plugin ->
             SwitchPreference(
                 title = plugin.name,
                 summary = plugin.description,
+                icon = painterResource(R.drawable.assignment),
+                value = plugin.isEnabled,
+                onValueChanged = { viewModel.setPluginEnabled(plugin.key, it) }
+            )
+        }
+        contacts?.let { plugin ->
+            SwitchPreference(
+                title = plugin.name,
+                summary = plugin.description,
+                icon = painterResource(R.drawable.contacts),
                 value = plugin.isEnabled,
                 onValueChanged = { viewModel.setPluginEnabled(plugin.key, it) }
             )

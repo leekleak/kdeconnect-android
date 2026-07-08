@@ -1,12 +1,18 @@
 package org.kde.kdeconnect.ui.compose.components
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +22,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -52,6 +59,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -314,7 +322,9 @@ fun DialogTextPreference(
             fontFamily = font
         )
         OutlinedTextField(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp),
             value = newValue,
             onValueChange = {
                 newValue = filterInput(it)
@@ -586,4 +596,71 @@ fun InfoCard(
             }
         }
     }
+}
+
+@Composable
+fun NotificationTogglePreference(
+    modifier: Modifier = Modifier,
+    title: String,
+    icon: Painter,
+    value: Boolean,
+    onValueChanged: (Boolean) -> Unit
+) {
+    val haptic = LocalHapticFeedback.current
+    val backgroundColor by animateColorAsState(if (value) colorScheme.primaryContainer else Color.Transparent)
+
+    fun onClick(state: Boolean) {
+        val feedback = if (state) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff
+        haptic.performHapticFeedback(feedback)
+        onValueChanged(state)
+    }
+    Box(
+        modifier = modifier
+            .height(108.dp)
+            .clip(MaterialTheme.shapes.large)
+            .background(backgroundColor)
+            .border(1.5.dp, colorScheme.primary, MaterialTheme.shapes.large)
+            .clickable(onClick = { onClick(!value) }),
+    ) {
+        AnimatedVisibility(
+            modifier = Modifier
+                .padding(8.dp)
+                .align(Alignment.TopEnd),
+            visible = value,
+            enter = fadeIn(tween()) + scaleIn(),
+            exit = fadeOut(tween()) + scaleOut()
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.check_circle),
+                contentDescription = stringResource(R.string.enabled)
+            )
+        }
+
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                modifier = Modifier.size(24.dp),
+                painter = icon,
+                contentDescription = null,
+            )
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+fun NotificationTogglePreferencePreview() {
+    NotificationTogglePreference(
+        modifier = Modifier.width(150.dp),
+        title = "Send",
+        icon = painterResource(R.drawable.ic_arrow_upward_black_24dp),
+        value = true
+    ) { }
 }

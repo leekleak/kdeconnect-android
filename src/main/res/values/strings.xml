@@ -29,7 +29,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     <string name="pref_plugin_sftp">Filesystem access</string>
     <string name="pref_plugin_sftp_desc">Allows to browse this device\'s filesystem remotely</string>
     <string name="pref_plugin_clipboard">Clipboard sync</string>
-    <string name="pref_plugin_clipboard_desc">Share the clipboard content</string>
+    <string name="pref_plugin_clipboard_desc">Share copied text</string>
     <string name="pref_plugin_clipboard_sent">Clipboard Sent</string>
     <string name="pref_plugin_mousepad">Remote input</string>
     <string name="pref_plugin_mousepad_desc_nontv">Use your phone or tablet as a touchpad and keyboard</string>
@@ -42,8 +42,8 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     <string name="pref_plugin_mpris_desc">Provides a remote control for your media player</string>
     <string name="pref_plugin_runcommand">Run Command</string>
     <string name="pref_plugin_runcommand_desc">Trigger remote commands from your phone or tablet</string>
-    <string name="pref_plugin_contacts">Contacts Synchronizer</string>
-    <string name="pref_plugin_contacts_desc">Allow synchronizing the device\'s contacts book</string>
+    <string name="pref_plugin_contacts">Contacts Sync</string>
+    <string name="pref_plugin_contacts_desc">Share all of device\'s contacts</string>
     <string name="pref_plugin_ping">Ping</string>
     <string name="pref_plugin_ping_desc">Send and receive pings</string>
     <string name="pref_plugin_notifications">Notification sync</string>
@@ -661,5 +661,10 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
   <string name="scroll_to_top">Scroll to top</string>
   <string name="scroll_to_bottom">Scroll to bottom</string>
     <string name="save">Save</string>
+    <string name="synchronization">Synchronization</string>
+  <string name="notifications">Notifications</string>
+    <string name="enabled">Enabled</string>
+    <string name="send">Send</string>
+  <string name="receive">Receive</string>
 
 </resources>
