@@ -41,7 +41,7 @@ class MousePadPlugin : Plugin() {
         return if (device.deviceType == DeviceType.TV) {
             val tvInput = PluginUiButton(
                 context.getString(R.string.open_mousepad_tv),
-                R.drawable.tv_remote_24px
+                R.drawable.tv_remote
             ) { parentActivity ->
                 val intent = Intent(parentActivity, BigscreenActivity::class.java)
                 intent.putExtra("deviceId", device.deviceId)
