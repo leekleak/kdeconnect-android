@@ -1,4 +1,4 @@
-package org.kde.kdeconnect.plugins.telephony
+package org.kde.kdeconnect.ui.compose.screen.settings.advanced.telephony
 
 import android.app.Application
 import android.content.SharedPreferences
@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 data class TelephonySettingsUiState(
-    val blockedNumbers: String = ""
+    val blockedNumbers: Set<String> = emptySet()
 )
 
 class TelephonySettingsViewModel(
@@ -39,12 +39,19 @@ class TelephonySettingsViewModel(
     private fun loadSettings() {
         _uiState.update { state ->
             state.copy(
-                blockedNumbers = prefs.getString(KEY_PREF_BLOCKED_NUMBERS, "") ?: ""
+                blockedNumbers = prefs.getString(KEY_PREF_BLOCKED_NUMBERS, "")
+                    ?.split(',')?.filter { it != "" }?.toSet() ?: emptySet()
             )
         }
     }
 
-    fun setBlockedNumbers(numbers: String) {
+    fun blockNumber(number: String) {
+        val numbers = uiState.value.blockedNumbers.plus(number).joinToString(",")
+        prefs.edit { putString(KEY_PREF_BLOCKED_NUMBERS, numbers) }
+    }
+
+    fun unblockNumber(number: String) {
+        val numbers = uiState.value.blockedNumbers.minus(number).joinToString(",")
         prefs.edit { putString(KEY_PREF_BLOCKED_NUMBERS, numbers) }
     }
 

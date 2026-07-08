@@ -177,7 +177,11 @@ fun SettingsScreen(
 
         SectionHeader(title = stringResource(R.string.plugins))
 
-
+        NavigatePreference(
+            title = stringResource(R.string.calls_messages),
+            icon = painterResource(R.drawable.perm_phone_msg),
+            onClick = { navigator.goTo(TelephonyPluginSettingsKey) }
+        )
         NavigatePreference(
             title = "Drawing tablet",
             onClick = { navigator.goTo(DigitizerPluginSettingsKey) }
@@ -201,10 +205,6 @@ fun SettingsScreen(
         NavigatePreference(
             title = "SMS Settings",
             onClick = { navigator.goTo(SMSPluginSettingsKey) }
-        )
-        NavigatePreference(
-            title = "Contact settings",
-            onClick = { navigator.goTo(TelephonyPluginSettingsKey) }
         )
         NavigatePreference(
             title = "Share settings",

@@ -38,8 +38,8 @@ import org.kde.kdeconnect.plugins.share.ShareSettingsScreen
 import org.kde.kdeconnect.plugins.share.ShareSettingsViewModel
 import org.kde.kdeconnect.plugins.sms.SmsSettingsScreen
 import org.kde.kdeconnect.plugins.sms.SmsSettingsViewModel
-import org.kde.kdeconnect.plugins.telephony.TelephonySettingsScreen
-import org.kde.kdeconnect.plugins.telephony.TelephonySettingsViewModel
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.telephony.TelephonySettingsScreen
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.telephony.TelephonySettingsViewModel
 import org.kde.kdeconnect.ui.about.getApplicationAboutData
 import org.kde.kdeconnect.ui.compose.screen.about.AboutScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceScreen

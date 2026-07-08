@@ -669,5 +669,8 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
   <string name="app">App</string>
   <string name="advanced">Advanced</string>
   <string name="other">Other</string>
+    <string name="calls_messages"><![CDATA[Calls & Messages]]></string>
+  <string name="add">Add</string>
+  <string name="unblock_number">Unblock number</string>
 
 </resources>
