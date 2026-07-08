@@ -334,6 +334,9 @@ dependencies {
     implementation(libs.haze)
     implementation(libs.haze.materials)
 
+    // Coil
+    implementation(libs.coil.compose)
+
     // Testing
     testImplementation(libs.junit)
     testImplementation(libs.mockk)

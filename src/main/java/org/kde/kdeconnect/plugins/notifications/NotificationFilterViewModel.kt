@@ -7,7 +7,6 @@ import android.content.SharedPreferences
 import android.content.pm.ApplicationInfo
 import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
-import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Process
 import android.os.UserManager
@@ -15,6 +14,7 @@ import android.util.Log
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import coil3.ImageLoader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,11 +23,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.kde.kdeconnect_tp.R
+import org.koin.compose.koinInject
+import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.KoinViewModel
+import org.koin.java.KoinJavaComponent.inject
 
 data class AppInfo(
     val packageName: String,
     val name: String,
-    val icon: Drawable,
     val isEnabled: Boolean,
     val blockContents: Boolean,
     val blockImages: Boolean
@@ -38,13 +41,14 @@ data class NotificationFilterUiState(
     val searchQuery: String = "",
     val allEnabled: Boolean = true,
     val isLoading: Boolean = true,
-    val apps: List<AppInfo> = emptyList()
+    val enabledApps: List<AppInfo> = emptyList(),
+    val disabledApps: List<AppInfo> = emptyList()
 )
 
+@KoinViewModel
 class NotificationFilterViewModel(
-    application: Application
+    application: Application,
 ) : AndroidViewModel(application) {
-
     private val appDatabase = AppDatabase.getInstance(application)
     private val prefs: SharedPreferences = application.getSharedPreferences(NotificationsPlugin.PREFERENCES_NAME, Context.MODE_PRIVATE)
 
@@ -112,7 +116,6 @@ class NotificationFilterViewModel(
         return AppInfo(
             packageName = info.packageName,
             name = info.loadLabel(pm).toString(),
-            icon = info.loadIcon(pm),
             isEnabled = appDatabase.isEnabled(info.packageName),
             blockContents = appDatabase.getPrivacy(info.packageName, AppDatabase.PrivacyOptions.BLOCK_CONTENTS),
             blockImages = appDatabase.getPrivacy(info.packageName, AppDatabase.PrivacyOptions.BLOCK_IMAGES)
@@ -143,12 +146,19 @@ class NotificationFilterViewModel(
 
     private fun filterApps() {
         val query = _uiState.value.searchQuery.lowercase().trim()
-        val filtered = if (query.isEmpty()) {
-            allApps
-        } else {
-            allApps.filter { it.name.lowercase().contains(query) }
+        val enabled = allApps.filter { it.isEnabled }
+        val disabled = allApps.filter { !it.isEnabled }.let { list ->
+            if (query.isEmpty()) {
+                list
+            } else {
+                list.filter { it.name.lowercase().contains(query) }
+            }
         }
-        _uiState.update { it.copy(apps = filtered, isLoading = false) }
+        _uiState.update { it.copy(
+            enabledApps = enabled,
+            disabledApps = disabled,
+            isLoading = false
+        ) }
     }
 
     fun setAllEnabled(enabled: Boolean) {

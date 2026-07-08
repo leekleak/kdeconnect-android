@@ -29,6 +29,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.navigation3.ui.NavDisplay
 import androidx.preference.PreferenceManager
+import coil3.ImageLoader
+import coil3.compose.setSingletonImageLoaderFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -96,6 +98,9 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
         DeviceHelper.initializeDeviceId(this)
 
         setContent {
+            val imageLoader: ImageLoader = koinInject()
+            setSingletonImageLoaderFactory { imageLoader }
+
             MainActivityContent()
         }
 

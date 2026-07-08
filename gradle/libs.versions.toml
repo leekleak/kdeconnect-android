@@ -11,6 +11,7 @@ commonsIo = "2.22.0"
 commonsLang3 = "3.20.0"
 constraintlayoutCompose = "1.1.1"
 coreKtx = "1.19.0"
+coilCompose = "3.5.0"
 dependencyLicenseReport = "3.1.4"
 disklrucache = "2.0.2"
 documentfile = "1.1.0"
@@ -30,7 +31,6 @@ lifecycleExtensions = "2.2.0"
 lifecycleRuntimeKtx = "2.11.0"
 logger = "1.0.3"
 androidMaterial = "1.14.0"
-composeMaterialIcons = "1.7.8"
 composeMaterial3 = "1.5.0-alpha23"
 media = "1.8.0"
 minaCore = "2.2.9"
@@ -75,6 +75,7 @@ classindexksp = { module = "com.github.albertvaka:classindexksp", version.ref = 
 commons-collections4 = { module = "org.apache.commons:commons-collections4", version.ref = "commonsCollections4" }
 commons-io = { module = "commons-io:commons-io", version.ref = "commonsIo" }
 commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "commonsLang3" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
 disklrucache = { module = "com.jakewharton:disklrucache", version.ref = "disklrucache" }
 jsonassert = { module = "org.skyscreamer:jsonassert", version.ref = "jsonassert" }
 junit = { module = "junit:junit", version.ref = "junit" }

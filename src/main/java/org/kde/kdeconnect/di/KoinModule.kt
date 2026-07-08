@@ -2,6 +2,7 @@
 
 package org.kde.kdeconnect.di
 
+import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Icon
@@ -14,8 +15,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.ImageLoader
+import coil3.request.crossfade
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
+import org.kde.kdeconnect.helpers.AppIconFetcher
 import org.kde.kdeconnect.plugins.digitizer.DigitizerSettingsScreen
 import org.kde.kdeconnect.plugins.digitizer.DigitizerSettingsViewModel
 import org.kde.kdeconnect.plugins.mousepad.MousePadSettingsScreen
@@ -34,8 +38,6 @@ import org.kde.kdeconnect.plugins.sftp.SftpSettingsScreen
 import org.kde.kdeconnect.plugins.sftp.SftpSettingsViewModel
 import org.kde.kdeconnect.plugins.share.ShareSettingsScreen
 import org.kde.kdeconnect.plugins.share.ShareSettingsViewModel
-import org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages.TelephonySettingsScreen
-import org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages.TelephonySettingsViewModel
 import org.kde.kdeconnect.ui.about.getApplicationAboutData
 import org.kde.kdeconnect.ui.compose.screen.about.AboutScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceScreen
@@ -50,6 +52,8 @@ import org.kde.kdeconnect.ui.compose.screen.presenter.PresenterScreen
 import org.kde.kdeconnect.ui.compose.screen.presenter.PresenterViewModel
 import org.kde.kdeconnect.ui.compose.screen.settings.SettingsScreen
 import org.kde.kdeconnect.ui.compose.screen.settings.SettingsViewModel
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages.TelephonySettingsScreen
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages.TelephonySettingsViewModel
 import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.DigitizerPluginSettingsKey
@@ -69,13 +73,15 @@ import org.kde.kdeconnect.ui.navigation.SftpPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.SharePluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.TelephonyPluginSettingsKey
 import org.kde.kdeconnect_tp.R
+import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
-import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.dsl.module
 import org.koin.dsl.navigation3.navigation
+import org.koin.plugin.module.dsl.create
 import org.koin.plugin.module.dsl.single
 import org.koin.plugin.module.dsl.viewModel
+
 
 val pairingModule = module {
     viewModel<PairingViewModel>()
@@ -217,8 +223,15 @@ val presenterModule = module {
     }
 }
 
+fun buildImageLoader(context: Context): ImageLoader =
+    ImageLoader.Builder(context)
+        .components { add(AppIconFetcher.Factory(context)) }
+        .crossfade(true)
+        .build()
+
 val appModule = module {
     includes(pairingModule, deviceModule, pluginSettingsModule, presenterModule, settingsModule, aboutModule)
 
     single<Navigator>()
+    single<ImageLoader> { create(::buildImageLoader) }
 }
