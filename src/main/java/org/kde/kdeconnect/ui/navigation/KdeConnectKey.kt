@@ -47,8 +47,6 @@ data object MprisPluginSettingsKey : KdeConnectKey
 @Serializable
 data object SftpPluginSettingsKey : KdeConnectKey
 @Serializable
-data object SMSPluginSettingsKey : KdeConnectKey
-@Serializable
 data object TelephonyPluginSettingsKey : KdeConnectKey
 @Serializable
 data object SharePluginSettingsKey : KdeConnectKey

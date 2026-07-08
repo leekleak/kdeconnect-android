@@ -44,6 +44,10 @@ import org.kde.kdeconnect.helpers.SMSHelper
 import org.kde.kdeconnect.helpers.TelephonyHelper
 import org.kde.kdeconnect.helpers.TelephonyHelper.LocalPhoneNumber
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages.TelephonySettingsViewModel.Companion.KEY_PREF_CONVERT_TO_MMS
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages.TelephonySettingsViewModel.Companion.KEY_PREF_CONVERT_TO_MMS_DEFAULT
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages.TelephonySettingsViewModel.Companion.KEY_PREF_MMS_GROUP
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages.TelephonySettingsViewModel.Companion.KEY_PREF_MMS_LONG_TEXT
 import org.kde.kdeconnect_tp.R
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -89,9 +93,9 @@ object SmsMmsUtils {
     }
 
     private fun getTransactionSettings(context: Context, subID: Int, prefs: SharedPreferences): Settings {
-        val longTextAsMms = prefs.getBoolean(context.getString(R.string.set_long_text_as_mms), false)
-        val groupMessageAsMms = prefs.getBoolean(context.getString(R.string.set_group_message_as_mms), true)
-        val sendLongAsMmsAfter = prefs.getString(context.getString(R.string.convert_to_mms_after), context.getString(R.string.convert_to_mms_after_default))!!.toInt()
+        val longTextAsMms = prefs.getBoolean(KEY_PREF_MMS_LONG_TEXT, false)
+        val groupMessageAsMms = prefs.getBoolean(KEY_PREF_MMS_GROUP, true)
+        val sendLongAsMmsAfter = prefs.getString(KEY_PREF_CONVERT_TO_MMS, KEY_PREF_CONVERT_TO_MMS_DEFAULT)!!.toInt()
 
         val settings = Settings()
 

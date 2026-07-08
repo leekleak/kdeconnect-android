@@ -36,10 +36,8 @@ import org.kde.kdeconnect.plugins.sftp.SftpSettingsScreen
 import org.kde.kdeconnect.plugins.sftp.SftpSettingsViewModel
 import org.kde.kdeconnect.plugins.share.ShareSettingsScreen
 import org.kde.kdeconnect.plugins.share.ShareSettingsViewModel
-import org.kde.kdeconnect.plugins.sms.SmsSettingsScreen
-import org.kde.kdeconnect.plugins.sms.SmsSettingsViewModel
-import org.kde.kdeconnect.ui.compose.screen.settings.advanced.telephony.TelephonySettingsScreen
-import org.kde.kdeconnect.ui.compose.screen.settings.advanced.telephony.TelephonySettingsViewModel
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages.TelephonySettingsScreen
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages.TelephonySettingsViewModel
 import org.kde.kdeconnect.ui.about.getApplicationAboutData
 import org.kde.kdeconnect.ui.compose.screen.about.AboutScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceScreen
@@ -69,7 +67,6 @@ import org.kde.kdeconnect.ui.navigation.PresenterKey
 import org.kde.kdeconnect.ui.navigation.PresenterPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.RemoteKeyboardPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.RunCommandPluginSettingsKey
-import org.kde.kdeconnect.ui.navigation.SMSPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.SettingsKey
 import org.kde.kdeconnect.ui.navigation.SftpPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.SharePluginSettingsKey
@@ -196,7 +193,6 @@ val pluginSettingsModule = module {
     viewModel<MousePadSettingsViewModel>()
     viewModel<MprisSettingsViewModel>()
     viewModel<SftpSettingsViewModel>()
-    viewModel<SmsSettingsViewModel>()
     viewModel<TelephonySettingsViewModel>()
     viewModel<ShareSettingsViewModel>()
     viewModel<PresenterSettingsViewModel>()
@@ -211,7 +207,6 @@ val pluginSettingsModule = module {
     navigation<MousePadPluginSettingsKey> { MousePadSettingsScreen() }
     navigation<MprisPluginSettingsKey> { MprisSettingsScreen() }
     navigation<SftpPluginSettingsKey> { SftpSettingsScreen() }
-    navigation<SMSPluginSettingsKey> { SmsSettingsScreen() }
     navigation<TelephonyPluginSettingsKey> { TelephonySettingsScreen() }
     navigation<SharePluginSettingsKey> { ShareSettingsScreen() }
     navigation<PresenterPluginSettingsKey> { PresenterSettingsScreen() }

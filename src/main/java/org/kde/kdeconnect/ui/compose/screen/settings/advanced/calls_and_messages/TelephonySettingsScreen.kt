@@ -1,4 +1,4 @@
-package org.kde.kdeconnect.ui.compose.screen.settings.advanced.telephony
+package org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
@@ -21,12 +21,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
+import org.kde.kdeconnect.ui.compose.components.DialogItemSelectPreference
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
+import org.kde.kdeconnect.ui.compose.components.SwitchPreference
 import org.kde.kdeconnect.ui.compose.components.card
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.viewmodel.koinViewModel
@@ -43,7 +46,42 @@ fun TelephonySettingsScreen(
     ) {
         CategoryTitleTextSmall(stringResource(R.string.telephony_pref_blocked_title))
         BlockedNumberComponent(viewModel, uiState)
+
+        CategoryTitleTextSmall(stringResource(R.string.mms))
+        MMSComponent(viewModel, uiState)
     }
+}
+
+@Composable
+private fun MMSComponent(
+    viewModel: TelephonySettingsViewModel,
+    uiState: TelephonySettingsUiState,
+) {
+    val convertToMmsAfterEntries = stringArrayResource(R.array.convert_to_mms_after_entries)
+    val convertToMmsAfterValues = stringArrayResource(R.array.convert_to_mms_after_values)
+    val convertToMmsAfterOptions = convertToMmsAfterValues.zip(convertToMmsAfterEntries)
+
+    SwitchPreference(
+        title = stringResource(R.string.set_group_message_as_mms_title),
+        icon = painterResource(R.drawable.groups),
+        value = uiState.groupMessageAsMms,
+        onValueChanged = viewModel::setGroupMessageAsMms
+    )
+
+    SwitchPreference(
+        title = stringResource(R.string.set_long_text_as_mms_title),
+        icon = painterResource(R.drawable.receipt_long),
+        value = uiState.longTextAsMms,
+        onValueChanged = viewModel::setLongTextAsMms
+    )
+
+    DialogItemSelectPreference(
+        title = stringResource(R.string.convert_to_mms_after_title),
+        icon = painterResource(R.drawable.convert_to_text),
+        value = uiState.convertToMmsAfter,
+        values = convertToMmsAfterOptions,
+        onValueChanged = viewModel::setConvertToMmsAfter
+    )
 }
 
 @Composable

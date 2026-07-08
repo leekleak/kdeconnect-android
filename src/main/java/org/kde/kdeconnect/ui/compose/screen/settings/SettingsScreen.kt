@@ -41,7 +41,6 @@ import org.kde.kdeconnect.ui.navigation.NotificationPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.PresenterPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.RemoteKeyboardPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.RunCommandPluginSettingsKey
-import org.kde.kdeconnect.ui.navigation.SMSPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.SftpPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.SharePluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.TelephonyPluginSettingsKey
@@ -201,10 +200,6 @@ fun SettingsScreen(
         NavigatePreference(
             title = "Filesystem settings",
             onClick = { navigator.goTo(SftpPluginSettingsKey) }
-        )
-        NavigatePreference(
-            title = "SMS Settings",
-            onClick = { navigator.goTo(SMSPluginSettingsKey) }
         )
         NavigatePreference(
             title = "Share settings",
