@@ -68,8 +68,6 @@ class DigitizerPlugin : Plugin() {
         device.sendPacket(np)
     }
 
-    override fun hasSettings(): Boolean = true
-
     override val supportedPacketTypes: Array<String>
         get() = arrayOf()
 

@@ -48,7 +48,6 @@ import org.kde.kdeconnect.ui.compose.screen.licenses.LicensesEvent
 import org.kde.kdeconnect.ui.compose.screen.licenses.LicensesScreen
 import org.kde.kdeconnect.ui.compose.screen.pairing.PairingScreen
 import org.kde.kdeconnect.ui.compose.screen.pairing.PairingViewModel
-import org.kde.kdeconnect.ui.compose.screen.plugin.PluginIndividualSettingsScreen
 import org.kde.kdeconnect.ui.compose.screen.plugin.PluginSettingsScreen
 import org.kde.kdeconnect.ui.compose.screen.plugin.PluginSettingsViewModel
 import org.kde.kdeconnect.ui.compose.screen.presenter.PresenterScreen

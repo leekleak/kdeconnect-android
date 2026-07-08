@@ -62,8 +62,6 @@ class MousePadPlugin : Plugin() {
     override val description: String
         get() = context.getString(R.string.pref_plugin_mousepad_desc_nontv)
 
-    override fun hasSettings(): Boolean = true
-
     fun sendMouseDelta(dx: Float, dy: Float) {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
         np["dx"] = dx.toDouble()

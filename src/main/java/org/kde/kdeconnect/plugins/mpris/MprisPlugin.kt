@@ -203,8 +203,6 @@ class MprisPlugin : Plugin() {
         }
     )
 
-    override fun hasSettings(): Boolean = true
-
     override fun onCreate(): Boolean {
         MprisMediaSession.instance.onCreate(context.applicationContext, this, device.deviceId)
 

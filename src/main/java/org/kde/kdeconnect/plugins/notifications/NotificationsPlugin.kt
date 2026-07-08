@@ -37,7 +37,6 @@ import org.kde.kdeconnect.helpers.AppsHelper.appNameLookup
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
 import org.kde.kdeconnect.ui.MainActivity
-import org.kde.kdeconnect.ui.PluginSettingsFragment
 import org.kde.kdeconnect.ui.StartActivityAlertDialogFragment
 import org.kde.kdeconnect_tp.R
 import java.io.ByteArrayOutputStream
@@ -65,8 +64,6 @@ class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener 
 
     override val description: String
         get() = context.getString(R.string.pref_plugin_notifications_desc)
-
-    override fun hasSettings(): Boolean = true
 
     override fun checkRequiredPermissions(): Boolean {
         return NotificationReceiver.hasReadNotificationsPermission(context)

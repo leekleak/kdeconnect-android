@@ -26,7 +26,6 @@ import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
 import org.kde.kdeconnect.ui.AlertDialogFragment
 import org.kde.kdeconnect.ui.DeviceSettingsAlertDialogFragment
 import org.kde.kdeconnect.ui.MainActivity
-import org.kde.kdeconnect.ui.PluginSettingsFragment
 import org.kde.kdeconnect.ui.StartActivityAlertDialogFragment
 import org.kde.kdeconnect_tp.BuildConfig
 import org.kde.kdeconnect_tp.R
@@ -205,8 +204,6 @@ class SftpPlugin : Plugin(), OnSharedPreferenceChangeListener {
     override val supportedPacketTypes: Array<String> = arrayOf(PACKET_TYPE_SFTP_REQUEST)
 
     override val outgoingPacketTypes: Array<String> = arrayOf(PACKET_TYPE_SFTP)
-
-    override fun hasSettings(): Boolean = !SimpleSftpServer.SUPPORTS_NATIVEFS
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String?) {
         if (key != context.getString(PREFERENCE_KEY_STORAGE_INFO_LIST)) return

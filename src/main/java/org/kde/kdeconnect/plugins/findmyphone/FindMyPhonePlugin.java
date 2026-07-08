@@ -224,11 +224,6 @@ public class FindMyPhonePlugin extends Plugin {
         return ArrayUtils.EMPTY_STRING_ARRAY;
     }
 
-    @Override
-    public boolean hasSettings() {
-        return true;
-    }
-
     @NonNull
     @Override
     protected String[] getRequiredPermissions() {

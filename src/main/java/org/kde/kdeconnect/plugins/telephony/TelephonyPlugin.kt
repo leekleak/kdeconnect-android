@@ -21,8 +21,6 @@ import org.kde.kdeconnect.helpers.ContactsHelper
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
-import org.kde.kdeconnect.ui.PluginSettingsFragment
-import org.kde.kdeconnect.ui.PluginSettingsFragment.Companion.newInstance
 import org.kde.kdeconnect_tp.R
 import java.util.Timer
 import java.util.TimerTask
@@ -194,8 +192,6 @@ class TelephonyPlugin : Plugin() {
     override val requiredPermissions: Array<String> = arrayOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG)
 
     override val optionalPermissions: Array<String> = arrayOf(Manifest.permission.READ_CONTACTS)
-
-    override fun hasSettings(): Boolean = true
 
     companion object {
         /**

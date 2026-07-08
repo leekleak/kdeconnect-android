@@ -195,11 +195,6 @@ public class SharePlugin extends Plugin {
     }
 
     @Override
-    public boolean hasSettings() {
-        return true;
-    }
-
-    @Override
     @WorkerThread
     public boolean onPacketReceived(@NonNull NetworkPacket np) {
         try {

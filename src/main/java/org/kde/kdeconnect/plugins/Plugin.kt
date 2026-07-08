@@ -20,7 +20,6 @@ import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.ui.AlertDialogFragment
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.PermissionsAlertDialogFragment
-import org.kde.kdeconnect.ui.PluginSettingsFragment
 import org.kde.kdeconnect_tp.R
 
 abstract class Plugin {
@@ -110,22 +109,6 @@ abstract class Plugin {
      * checks with the Android version, but cannot access this.device.
      */
     open val isEnabledByDefault: Boolean = true
-
-    /**
-     * Return true if this plugin needs a specific UI settings.
-     */
-    open fun hasSettings(): Boolean = false
-
-    /**
-     * If hasSettings returns true, this will be called when the user
-     * wants to access this plugin's preferences. The default implementation
-     * will return a PluginSettingsFragment with content from "yourplugin"_preferences.xml
-     *
-     * @return The PluginSettingsFragment used to display this plugin's settings
-     */
-    open fun getSettingsFragment(activity: Activity): PluginSettingsFragment? {
-        throw RuntimeException("Plugin $pluginKey doesn't reimplement getSettingsFragment. If it's a Compose-based plugin, make sure to add it to the when block in KoinModule.kt")
-    }
 
     @get:CallSuper
     open val isCompatible: Boolean

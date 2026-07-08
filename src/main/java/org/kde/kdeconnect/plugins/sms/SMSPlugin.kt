@@ -355,8 +355,6 @@ class SMSPlugin : Plugin() {
         return false
     }
 
-    override fun hasSettings(): Boolean = true
-
     override val supportedPacketTypes: Array<String> = arrayOf(
             PACKET_TYPE_SMS_REQUEST,
             PACKET_TYPE_SMS_REQUEST_CONVERSATIONS,

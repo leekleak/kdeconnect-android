@@ -29,7 +29,6 @@ data class PluginSettingsItem(
     val name: String,
     val description: String,
     val isEnabled: Boolean,
-    val hasSettings: Boolean
 )
 
 class PluginSettingsViewModel(
@@ -68,7 +67,6 @@ class PluginSettingsViewModel(
                 name = info.displayName,
                 description = info.description,
                 isEnabled = device.isPluginEnabled(pluginKey),
-                hasSettings = info.hasSettings
             )
         }
 

@@ -29,8 +29,6 @@ class PresenterPlugin : Plugin() {
     override val description: String
         get() = context.getString(R.string.pref_plugin_presenter_desc)
 
-    override fun hasSettings(): Boolean = true
-
     override fun getUiButtons(): List<PluginUiButton> = listOf(
         PluginUiButton(
             context.getString(R.string.pref_plugin_presenter),
