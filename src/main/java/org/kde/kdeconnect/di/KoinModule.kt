@@ -3,7 +3,6 @@
 package org.kde.kdeconnect.di
 
 import android.content.Intent
-import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Row
@@ -19,7 +18,6 @@ import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import org.kde.kdeconnect.ui.about.getApplicationAboutData
 import org.kde.kdeconnect.plugins.digitizer.DigitizerSettingsScreen
 import org.kde.kdeconnect.plugins.digitizer.DigitizerSettingsViewModel
 import org.kde.kdeconnect.plugins.findmyphone.FindMyPhoneSettingsScreen
@@ -44,6 +42,7 @@ import org.kde.kdeconnect.plugins.sms.SmsSettingsScreen
 import org.kde.kdeconnect.plugins.sms.SmsSettingsViewModel
 import org.kde.kdeconnect.plugins.telephony.TelephonySettingsScreen
 import org.kde.kdeconnect.plugins.telephony.TelephonySettingsViewModel
+import org.kde.kdeconnect.ui.about.getApplicationAboutData
 import org.kde.kdeconnect.ui.compose.screen.about.AboutScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceViewModel
@@ -84,10 +83,6 @@ val pairingModule = module {
         val navigator = koinInject<Navigator>()
         val context = LocalContext.current
 
-        val notificationPermissionLauncher = rememberLauncherForActivityResult(
-            ActivityResultContracts.RequestPermission()
-        ) { /* result handled via KdeConnect's own permission callback if needed */ }
-
         DisposableEffect(Unit) {
             viewModel.onStart(context)
             onDispose { viewModel.onStop() }
@@ -95,9 +90,6 @@ val pairingModule = module {
         PairingScreen(
             uiState = state,
             onClick = { deviceId -> navigator.goTo(DeviceKey(deviceId, true)) },
-            onWifiSettingsClick = { context.startActivity(Intent(Settings.ACTION_WIFI_SETTINGS)) },
-            onNotificationSettingsClick = { /* Handle permission */ },
-            onDuplicateNamesClick = { /* ... */ },
             onRefresh = { viewModel.onRefresh() }
         )
     }

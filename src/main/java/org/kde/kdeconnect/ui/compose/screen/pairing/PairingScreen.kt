@@ -12,6 +12,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -39,7 +40,6 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.toPath
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -81,16 +81,18 @@ import org.koin.compose.koinInject
 fun PairingScreen(
     uiState: PairingUiState,
     onClick: (String) -> Unit,
-    onWifiSettingsClick: () -> Unit = {},
-    onNotificationSettingsClick: () -> Unit = {},
-    onDuplicateNamesClick: () -> Unit = {},
     onRefresh: () -> Unit = {}
 ) {
     val lazyListState = rememberLazyListState()
     val pullRefreshState = rememberPullToRefreshState()
     val navigator: Navigator = koinInject()
     var showPairedSheet by remember { mutableStateOf(false) }
-    val pairedDevices by remember { derivedStateOf { uiState.available.size + uiState.remembered.size } }
+    val pairedDevices = uiState.remembered.size
+
+    fun onClickInternal(string: String) {
+        onClick(string)
+        showPairedSheet = false
+    }
 
     HazeScaffold(
         title = stringResource(R.string.kde_connect_short),
@@ -110,43 +112,22 @@ fun PairingScreen(
             ModalBottomSheet(onDismissRequest = {showPairedSheet = false}) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = paddingValues,
-                    state = lazyListState
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    state = lazyListState,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // Available devices
-                    if (uiState.available.isNotEmpty()) {
-                        item {
-                            SectionHeader(title = stringResource(id = R.string.category_not_paired_devices))
-                        }
-                        item {
-                            Spacer(modifier = Modifier.height(4.dp))
-                        }
-                        itemsIndexed(
-                            items = uiState.available,
-                            key = { _, availableDevice -> availableDevice.id }) { _, availableDevice ->
-                            DeviceCard (
-                                device = availableDevice,
-                                onClick = onClick
-                            )
-                        }
-                    }
-
                     // Remembered devices
-                    if (uiState.remembered.isNotEmpty()) {
-                        item {
-                            SectionHeader(title = stringResource(id = R.string.category_remembered_devices))
-                        }
-                        item {
-                            Spacer(modifier = Modifier.height(4.dp))
-                        }
-                        itemsIndexed(
-                            items = uiState.remembered,
-                            key = { _, rememberedDevice -> rememberedDevice.id }) { _, rememberedDevice ->
-                            DeviceCard (
-                                device = rememberedDevice,
-                                onClick = onClick
-                            )
-                        }
+                    item {
+                        SectionHeader(stringResource(R.string.category_remembered_devices))
+                    }
+                    itemsIndexed(
+                        items = uiState.remembered,
+                        key = { _, rememberedDevice -> rememberedDevice.id }) { _, rememberedDevice ->
+                        DeviceCard (
+                            device = rememberedDevice,
+                            onClick = { onClickInternal(it) }
+                        )
+                        Spacer(Modifier.height(8.dp))
                     }
                 }
             }
@@ -173,12 +154,7 @@ fun PairingScreen(
             ) {
                 // Explanations
                 item {
-                    PairingExplanations(
-                        uiState = uiState,
-                        onWifiSettingsClick = onWifiSettingsClick,
-                        onNotificationSettingsClick = onNotificationSettingsClick,
-                        onDuplicateNamesClick = onDuplicateNamesClick
-                    )
+                    PairingExplanations(uiState = uiState)
                 }
 
                 // Connected devices
@@ -198,7 +174,25 @@ fun PairingScreen(
                         key = { _, connectedDevice -> connectedDevice.id }) { _, connectedDevice ->
                         DeviceCard (
                             device = connectedDevice,
-                            onClick = onClick
+                            onClick = { onClickInternal(it) }
+                        )
+                    }
+                }
+
+                // Available devices
+                if (uiState.available.isNotEmpty()) {
+                    item {
+                        SectionHeader(title = stringResource(id = R.string.category_not_paired_devices))
+                    }
+                    item {
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+                    itemsIndexed(
+                        items = uiState.available,
+                        key = { _, availableDevice -> availableDevice.id }) { _, availableDevice ->
+                        DeviceCard (
+                            device = availableDevice,
+                            onClick = { onClickInternal(it) }
                         )
                     }
                 }
@@ -219,15 +213,10 @@ fun PairingScreen(
 }
 
 @Composable
-private fun PairingExplanations(
-    uiState: PairingUiState,
-    onWifiSettingsClick: () -> Unit,
-    onNotificationSettingsClick: () -> Unit,
-    onDuplicateNamesClick: () -> Unit
-) {
+private fun PairingExplanations(uiState: PairingUiState) {
     Column {
         if (uiState.hasDuplicateNames) {
-            DuplicateNamesWarning(onClick = onDuplicateNamesClick)
+            DuplicateNamesWarning()
         }
 
         val someDevicesReachable = uiState.available.isNotEmpty() || uiState.connected.isNotEmpty()
@@ -237,7 +226,6 @@ private fun PairingExplanations(
                 PairingExplanationRow(
                     text = stringResource(R.string.no_notifications),
                     icon = R.drawable.ic_warning,
-                    onClick = onNotificationSettingsClick
                 )
             } else if (uiState.isTrustedNetwork) {
                 PairingExplanationRow(text = stringResource(R.string.pairing_description))
@@ -251,7 +239,6 @@ private fun PairingExplanations(
             PairingExplanationRow(
                 text = stringResource(R.string.no_wifi),
                 icon = R.drawable.ic_wifi,
-                onClick = onWifiSettingsClick
             )
         }
     }
@@ -260,12 +247,10 @@ private fun PairingExplanations(
 @Composable
 fun PairingExplanationRow(
     text: String, icon: Int? = null,
-    onClick: (() -> Unit)? = null
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -279,19 +264,15 @@ fun PairingExplanationRow(
         }
         KdeBodyMediumText(
             text = text,
-            onClick = { onClick?.invoke() }
         )
     }
 }
 
 @Composable
-fun DuplicateNamesWarning(
-    onClick: () -> Unit
-) {
+fun DuplicateNamesWarning() {
     PairingExplanationRow(
         text = stringResource(id = R.string.pairing_duplicate_names),
         icon = R.drawable.ic_warning,
-        onClick = onClick
     )
 }
 
@@ -430,9 +411,6 @@ private fun PreviewCompose() {
                 isRefreshing = false
             ),
             onClick = { /* Do nothing */ },
-            onWifiSettingsClick = { /* Do nothing */ },
-            onNotificationSettingsClick = { /* Do nothing */ },
-            onDuplicateNamesClick = { /* Do nothing */ },
             onRefresh = { /* Do nothing */ }
         )
     }
