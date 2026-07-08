@@ -3,8 +3,6 @@
 package org.kde.kdeconnect.di
 
 import android.content.Intent
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -59,13 +57,24 @@ import org.kde.kdeconnect.ui.compose.screen.settings.SettingsScreen
 import org.kde.kdeconnect.ui.compose.screen.settings.SettingsViewModel
 import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.DeviceKey
+import org.kde.kdeconnect.ui.navigation.DigitizerPluginSettingsKey
+import org.kde.kdeconnect.ui.navigation.FindMyPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.LicensesKey
+import org.kde.kdeconnect.ui.navigation.MousePadPluginSettingsKey
+import org.kde.kdeconnect.ui.navigation.MprisPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.Navigator
+import org.kde.kdeconnect.ui.navigation.NotificationPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.PairingKey
-import org.kde.kdeconnect.ui.navigation.PluginIndividualSettingsKey
 import org.kde.kdeconnect.ui.navigation.PluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.PresenterKey
+import org.kde.kdeconnect.ui.navigation.PresenterPluginSettingsKey
+import org.kde.kdeconnect.ui.navigation.RemoteKeyboardPluginSettingsKey
+import org.kde.kdeconnect.ui.navigation.RunCommandPluginSettingsKey
+import org.kde.kdeconnect.ui.navigation.SMSPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.SettingsKey
+import org.kde.kdeconnect.ui.navigation.SftpPluginSettingsKey
+import org.kde.kdeconnect.ui.navigation.SharePluginSettingsKey
+import org.kde.kdeconnect.ui.navigation.TelephonyPluginSettingsKey
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -198,25 +207,18 @@ val pluginSettingsModule = module {
     navigation<PluginSettingsKey> { key ->
         PluginSettingsScreen(key.deviceId)
     }
-    navigation<PluginIndividualSettingsKey> { key ->
-        when (key.pluginKey) {
-            "DigitizerPlugin" -> DigitizerSettingsScreen()
-            "FindMyPhonePlugin" -> FindMyPhoneSettingsScreen()
-            "MousePadPlugin" -> MousePadSettingsScreen()
-            "MprisPlugin" -> MprisSettingsScreen()
-            "SftpPlugin" -> SftpSettingsScreen()
-            "SMSPlugin" -> SmsSettingsScreen()
-            "TelephonyPlugin" -> TelephonySettingsScreen()
-            "SharePlugin" -> ShareSettingsScreen()
-            "PresenterPlugin" -> PresenterSettingsScreen()
-            "RemoteKeyboardPlugin" -> RemoteKeyboardSettingsScreen()
-            "RunCommandPlugin" -> RunCommandSettingsScreen()
-            "NotificationsPlugin" -> NotificationFilterScreen()
-            else -> PluginIndividualSettingsScreen(
-                pluginKey = key.pluginKey
-            )
-        }
-    }
+    navigation<DigitizerPluginSettingsKey> { DigitizerSettingsScreen() }
+    navigation<FindMyPluginSettingsKey> { FindMyPhoneSettingsScreen() }
+    navigation<MousePadPluginSettingsKey> { MousePadSettingsScreen() }
+    navigation<MprisPluginSettingsKey> { MprisSettingsScreen() }
+    navigation<SftpPluginSettingsKey> { SftpSettingsScreen() }
+    navigation<SMSPluginSettingsKey> { SmsSettingsScreen() }
+    navigation<TelephonyPluginSettingsKey> { TelephonySettingsScreen() }
+    navigation<SharePluginSettingsKey> { ShareSettingsScreen() }
+    navigation<PresenterPluginSettingsKey> { PresenterSettingsScreen() }
+    navigation<RemoteKeyboardPluginSettingsKey> { RemoteKeyboardSettingsScreen() }
+    navigation<RunCommandPluginSettingsKey> { RunCommandSettingsScreen() }
+    navigation<NotificationPluginSettingsKey> { NotificationFilterScreen() }
 }
 
 val presenterModule = module {

@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
@@ -18,9 +19,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.kde.kdeconnect.helpers.CreateFileParams
 import org.kde.kdeconnect.helpers.CreateFileResultContract
 import org.kde.kdeconnect.helpers.DeviceHelper
+import org.kde.kdeconnect.plugins.sftp.SftpSettingsScreen
 import org.kde.kdeconnect.ui.CustomDevicesActivity
 import org.kde.kdeconnect.ui.PermissionsAlertDialogFragment
 import org.kde.kdeconnect.ui.TrustedNetworksActivity
+import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.compose.components.DialogItemSelectPreference
 import org.kde.kdeconnect.ui.compose.components.DialogTextPreference
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
@@ -29,8 +32,19 @@ import org.kde.kdeconnect.ui.compose.components.Preference
 import org.kde.kdeconnect.ui.compose.components.SectionHeader
 import org.kde.kdeconnect.ui.compose.components.SwitchPreference
 import org.kde.kdeconnect.ui.navigation.AboutKey
+import org.kde.kdeconnect.ui.navigation.DigitizerPluginSettingsKey
+import org.kde.kdeconnect.ui.navigation.FindMyPluginSettingsKey
+import org.kde.kdeconnect.ui.navigation.MousePadPluginSettingsKey
+import org.kde.kdeconnect.ui.navigation.MprisPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.Navigator
-import org.kde.kdeconnect.ui.navigation.PluginIndividualSettingsKey
+import org.kde.kdeconnect.ui.navigation.NotificationPluginSettingsKey
+import org.kde.kdeconnect.ui.navigation.PresenterPluginSettingsKey
+import org.kde.kdeconnect.ui.navigation.RemoteKeyboardPluginSettingsKey
+import org.kde.kdeconnect.ui.navigation.RunCommandPluginSettingsKey
+import org.kde.kdeconnect.ui.navigation.SMSPluginSettingsKey
+import org.kde.kdeconnect.ui.navigation.SftpPluginSettingsKey
+import org.kde.kdeconnect.ui.navigation.SharePluginSettingsKey
+import org.kde.kdeconnect.ui.navigation.TelephonyPluginSettingsKey
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -70,6 +84,7 @@ fun SettingsScreen(
         title = stringResource(R.string.settings),
         backButton = true,
     ) {
+        CategoryTitleTextSmall(stringResource(R.string.app))
         DialogTextPreference(
             title = stringResource(R.string.settings_rename),
             value = uiState.deviceName,
@@ -117,6 +132,8 @@ fun SettingsScreen(
             )
         }
 
+        CategoryTitleTextSmall(stringResource(R.string.advanced))
+
         NavigatePreference(
             title = stringResource(R.string.trusted_networks),
             summary = stringResource(R.string.trusted_networks_desc),
@@ -158,25 +175,72 @@ fun SettingsScreen(
             }
         )
 
+        SectionHeader(title = stringResource(R.string.plugins))
+
+
+        NavigatePreference(
+            title = "Drawing tablet",
+            onClick = { navigator.goTo(DigitizerPluginSettingsKey) }
+        )
+        NavigatePreference(
+            title = "Find My",
+            onClick = { navigator.goTo(FindMyPluginSettingsKey) }
+        )
+        NavigatePreference(
+            title = "Mouse pad settings",
+            onClick = { navigator.goTo(MousePadPluginSettingsKey) }
+        )
+        NavigatePreference(
+            title = "Multimedia Controls",
+            onClick = { navigator.goTo(MprisPluginSettingsKey) }
+        )
+        NavigatePreference(
+            title = "Filesystem settings",
+            onClick = { navigator.goTo(SftpPluginSettingsKey) }
+        )
+        NavigatePreference(
+            title = "SMS Settings",
+            onClick = { navigator.goTo(SMSPluginSettingsKey) }
+        )
+        NavigatePreference(
+            title = "Contact settings",
+            onClick = { navigator.goTo(TelephonyPluginSettingsKey) }
+        )
+        NavigatePreference(
+            title = "Share settings",
+            onClick = { navigator.goTo(SharePluginSettingsKey) }
+        )
+        NavigatePreference(
+            title = "Presenter settings",
+            onClick = { navigator.goTo(PresenterPluginSettingsKey) }
+        )
+        NavigatePreference(
+            title = "Remote keyboard settings",
+            onClick = { navigator.goTo(RemoteKeyboardPluginSettingsKey) }
+        )
+        NavigatePreference(
+            title = "Run command settings",
+            onClick = { navigator.goTo(RunCommandPluginSettingsKey) }
+        )
+        NavigatePreference(
+            title = "Notification Sync",
+            onClick = { navigator.goTo(NotificationPluginSettingsKey) }
+        )
+
+        CategoryTitleTextSmall(stringResource(R.string.other))
+
         Preference(
             title = stringResource(R.string.settings_export_logs),
             summary = stringResource(R.string.settings_export_logs_text),
+            icon = painterResource(R.drawable.export_notes),
             onClick = {
                 exportLogsLauncher.launch(CreateFileParams("text/plain", "kdeconnect-log.txt"))
             }
         )
 
-        SectionHeader(title = stringResource(R.string.plugins))
-
-        uiState.pluginsWithSettings.forEach { plugin ->
-            NavigatePreference(
-                title = plugin.name,
-                onClick = { navigator.goTo(PluginIndividualSettingsKey(plugin.key)) }
-            )
-        }
-
         NavigatePreference(
             title = stringResource(R.string.about),
+            icon = painterResource(R.drawable.info),
             onClick = { navigator.goTo(AboutKey) }
         )
     }

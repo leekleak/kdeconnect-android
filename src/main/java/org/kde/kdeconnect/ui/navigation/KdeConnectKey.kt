@@ -29,7 +29,34 @@ data class DeviceKey(val deviceId: String, val fromDeviceList: Boolean = false) 
 data class PluginSettingsKey(val deviceId: String) : KdeConnectKey
 
 @Serializable
-data class PluginIndividualSettingsKey(val pluginKey: String, val deviceId: String? = null) : KdeConnectKey
+data class PresenterKey(val deviceId: String) : KdeConnectKey
+
+
+/**
+ * Plugin setting keys
+ */
 
 @Serializable
-data class PresenterKey(val deviceId: String) : KdeConnectKey
+data object DigitizerPluginSettingsKey : KdeConnectKey
+@Serializable
+data object FindMyPluginSettingsKey : KdeConnectKey
+@Serializable
+data object MousePadPluginSettingsKey : KdeConnectKey
+@Serializable
+data object MprisPluginSettingsKey : KdeConnectKey
+@Serializable
+data object SftpPluginSettingsKey : KdeConnectKey
+@Serializable
+data object SMSPluginSettingsKey : KdeConnectKey
+@Serializable
+data object TelephonyPluginSettingsKey : KdeConnectKey
+@Serializable
+data object SharePluginSettingsKey : KdeConnectKey
+@Serializable
+data object PresenterPluginSettingsKey : KdeConnectKey
+@Serializable
+data object RemoteKeyboardPluginSettingsKey : KdeConnectKey
+@Serializable
+data object RunCommandPluginSettingsKey : KdeConnectKey
+@Serializable
+data object NotificationPluginSettingsKey : KdeConnectKey
