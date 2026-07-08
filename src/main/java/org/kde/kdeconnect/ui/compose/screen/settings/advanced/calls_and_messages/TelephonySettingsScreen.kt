@@ -1,5 +1,13 @@
 package org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages
 
+import android.Manifest
+import android.app.Activity
+import android.content.Intent
+import android.media.RingtoneManager
+import android.net.Uri
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -25,14 +33,18 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.core.content.IntentCompat
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.compose.components.DialogItemSelectPreference
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
+import org.kde.kdeconnect.ui.compose.components.Preference
 import org.kde.kdeconnect.ui.compose.components.SwitchPreference
 import org.kde.kdeconnect.ui.compose.components.card
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.viewmodel.koinViewModel
+
 
 @Composable
 fun TelephonySettingsScreen(
@@ -49,7 +61,78 @@ fun TelephonySettingsScreen(
 
         CategoryTitleTextSmall(stringResource(R.string.mms))
         MMSComponent(viewModel, uiState)
+
+        CategoryTitleTextSmall(stringResource(R.string.find_my))
+        FindMyComponent(viewModel, uiState)
     }
+}
+
+@Composable
+private fun FindMyComponent(
+    viewModel: TelephonySettingsViewModel,
+    uiState: TelephonySettingsUiState
+) {
+    val ringtonePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val data = result.data
+            if (data != null) {
+                val uri = IntentCompat.getParcelableExtra(
+                    data,
+                    RingtoneManager.EXTRA_RINGTONE_PICKED_URI,
+                    Uri::class.java
+                )
+                uri?.let { viewModel.setRingtone(it.toString()) }
+            }
+        }
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            viewModel.setFlashlightEnabled(true)
+        }
+    }
+    Preference(
+        title = stringResource(R.string.select_ringtone),
+        icon = painterResource(R.drawable.notification_sound),
+        summary = uiState.ringtoneTitle,
+        onClick = {
+            val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
+                putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION)
+                putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
+                putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
+                putExtra(
+                    RingtoneManager.EXTRA_RINGTONE_DEFAULT_URI,
+                    Settings.System.DEFAULT_NOTIFICATION_URI
+                )
+
+                val existingUri = if (uiState.ringtoneUri.isNotEmpty()) {
+                    uiState.ringtoneUri.toUri()
+                } else {
+                    Settings.System.DEFAULT_RINGTONE_URI
+                }
+                putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, existingUri)
+            }
+            ringtonePickerLauncher.launch(intent)
+        }
+    )
+
+    SwitchPreference(
+        title = stringResource(R.string.findmyphone_preference_title_flashlight),
+        summary = stringResource(R.string.findmyphone_camera_explanation),
+        icon = painterResource(R.drawable.highlight),
+        value = uiState.flashlightEnabled,
+        onValueChanged = { enabled ->
+            if (enabled) {
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            } else {
+                viewModel.setFlashlightEnabled(false)
+            }
+        }
+    )
 }
 
 @Composable
@@ -89,7 +172,7 @@ private fun BlockedNumberComponent(
     viewModel: TelephonySettingsViewModel,
     uiState: TelephonySettingsUiState
 ) {
-    val textFieldState = rememberTextFieldState("+37063960629")
+    val textFieldState = rememberTextFieldState("Enter number")
     Row(
         modifier = Modifier
             .fillMaxWidth()

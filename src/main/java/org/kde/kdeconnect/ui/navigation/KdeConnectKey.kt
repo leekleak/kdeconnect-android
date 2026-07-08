@@ -39,8 +39,6 @@ data class PresenterKey(val deviceId: String) : KdeConnectKey
 @Serializable
 data object DigitizerPluginSettingsKey : KdeConnectKey
 @Serializable
-data object FindMyPluginSettingsKey : KdeConnectKey
-@Serializable
 data object MousePadPluginSettingsKey : KdeConnectKey
 @Serializable
 data object MprisPluginSettingsKey : KdeConnectKey

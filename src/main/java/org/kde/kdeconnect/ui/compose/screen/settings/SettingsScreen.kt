@@ -33,7 +33,6 @@ import org.kde.kdeconnect.ui.compose.components.SectionHeader
 import org.kde.kdeconnect.ui.compose.components.SwitchPreference
 import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.DigitizerPluginSettingsKey
-import org.kde.kdeconnect.ui.navigation.FindMyPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.MousePadPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.MprisPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.Navigator
@@ -184,10 +183,6 @@ fun SettingsScreen(
         NavigatePreference(
             title = "Drawing tablet",
             onClick = { navigator.goTo(DigitizerPluginSettingsKey) }
-        )
-        NavigatePreference(
-            title = "Find My",
-            onClick = { navigator.goTo(FindMyPluginSettingsKey) }
         )
         NavigatePreference(
             title = "Mouse pad settings",

@@ -6,6 +6,9 @@
 
 package org.kde.kdeconnect.plugins.findmyphone;
 
+import static org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages.TelephonySettingsViewModel.KEY_PREF_FLASHLIGHT;
+import static org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages.TelephonySettingsViewModel.KEY_PREF_RINGTONE;
+
 import android.Manifest;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -77,7 +80,7 @@ public class FindMyPhonePlugin extends Plugin {
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         Uri ringtone;
-        String ringtoneString = prefs.getString(context.getString(R.string.findmyphone_preference_key_ringtone), "");
+        String ringtoneString = prefs.getString(KEY_PREF_RINGTONE, "");
         if (ringtoneString.isEmpty()) {
             ringtone = Settings.System.DEFAULT_RINGTONE_URI;
         } else {
@@ -241,6 +244,6 @@ public class FindMyPhonePlugin extends Plugin {
 
     private boolean isFlashlightEnabledInSettings() {
        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-       return prefs.getBoolean(context.getString(R.string.findmyphone_preference_key_flashlight), false);
+       return prefs.getBoolean(KEY_PREF_FLASHLIGHT, false);
     }
 }

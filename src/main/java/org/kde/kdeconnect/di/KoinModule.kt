@@ -18,8 +18,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.plugins.digitizer.DigitizerSettingsScreen
 import org.kde.kdeconnect.plugins.digitizer.DigitizerSettingsViewModel
-import org.kde.kdeconnect.plugins.findmyphone.FindMyPhoneSettingsScreen
-import org.kde.kdeconnect.plugins.findmyphone.FindMyPhoneSettingsViewModel
 import org.kde.kdeconnect.plugins.mousepad.MousePadSettingsScreen
 import org.kde.kdeconnect.plugins.mousepad.MousePadSettingsViewModel
 import org.kde.kdeconnect.plugins.mpris.MprisSettingsScreen
@@ -55,7 +53,6 @@ import org.kde.kdeconnect.ui.compose.screen.settings.SettingsViewModel
 import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.DigitizerPluginSettingsKey
-import org.kde.kdeconnect.ui.navigation.FindMyPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.LicensesKey
 import org.kde.kdeconnect.ui.navigation.MousePadPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.MprisPluginSettingsKey
@@ -189,7 +186,6 @@ val deviceModule = module {
 val pluginSettingsModule = module {
     viewModel<PluginSettingsViewModel>()
     viewModel<DigitizerSettingsViewModel>()
-    viewModel<FindMyPhoneSettingsViewModel>()
     viewModel<MousePadSettingsViewModel>()
     viewModel<MprisSettingsViewModel>()
     viewModel<SftpSettingsViewModel>()
@@ -203,7 +199,6 @@ val pluginSettingsModule = module {
         PluginSettingsScreen(key.deviceId)
     }
     navigation<DigitizerPluginSettingsKey> { DigitizerSettingsScreen() }
-    navigation<FindMyPluginSettingsKey> { FindMyPhoneSettingsScreen() }
     navigation<MousePadPluginSettingsKey> { MousePadSettingsScreen() }
     navigation<MprisPluginSettingsKey> { MprisSettingsScreen() }
     navigation<SftpPluginSettingsKey> { SftpSettingsScreen() }
