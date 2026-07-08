@@ -36,12 +36,13 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.rememberAsyncImagePainter
 import org.kde.kdeconnect.helpers.AppIcon
-import org.kde.kdeconnect.plugins.notifications.AppInfo
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.notifications.AppInfo
 import org.kde.kdeconnect_tp.R
 
 @Composable
@@ -78,7 +79,11 @@ fun AppSelector(
 ) {
     val haptic = LocalHapticFeedback.current
 
-    LazyRow(modifier, contentPadding = PaddingValues(horizontal = 8.dp)) {
+    LazyRow(
+        modifier = modifier,
+        contentPadding = PaddingValues(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         item ("holder") {  }
         items(apps, { it.packageName }) { app ->
             TooltipBox(
@@ -127,11 +132,10 @@ fun AppSelector(
         if (apps.isEmpty()) {
             item {
                 Text(
-                    modifier = Modifier.padding(start = 8.dp),
-                    text = stringResource(R.string.no_players_connected), // fallback string
-                    fontFamily = googleSans(),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.fillParentMaxWidth(),
+                    text = stringResource(R.string.empty),
+                    fontFamily = googleSans(weight = 600f),
+                    textAlign = TextAlign.Center,
                     color = colorScheme.onSurfaceVariant
                 )
             }

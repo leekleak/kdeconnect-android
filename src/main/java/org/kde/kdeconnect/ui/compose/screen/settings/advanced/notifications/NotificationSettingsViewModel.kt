@@ -1,4 +1,4 @@
-package org.kde.kdeconnect.plugins.notifications
+package org.kde.kdeconnect.ui.compose.screen.settings.advanced.notifications
 
 import android.Manifest
 import android.app.Application
@@ -14,7 +14,6 @@ import android.util.Log
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import coil3.ImageLoader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,11 +21,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.kde.kdeconnect_tp.R
-import org.koin.compose.koinInject
-import org.koin.core.annotation.InjectedParam
+import org.kde.kdeconnect.plugins.notifications.AppDatabase
+import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin
 import org.koin.core.annotation.KoinViewModel
-import org.koin.java.KoinJavaComponent.inject
 
 data class AppInfo(
     val packageName: String,
@@ -36,24 +33,23 @@ data class AppInfo(
     val blockImages: Boolean
 )
 
-data class NotificationFilterUiState(
+data class NotificationSettingsUiState(
     val screenOffNotification: Boolean = false,
     val searchQuery: String = "",
     val allEnabled: Boolean = true,
-    val isLoading: Boolean = true,
     val enabledApps: List<AppInfo> = emptyList(),
     val disabledApps: List<AppInfo> = emptyList()
 )
 
 @KoinViewModel
-class NotificationFilterViewModel(
+class NotificationSettingsViewModel(
     application: Application,
 ) : AndroidViewModel(application) {
     private val appDatabase = AppDatabase.getInstance(application)
     private val prefs: SharedPreferences = application.getSharedPreferences(NotificationsPlugin.PREFERENCES_NAME, Context.MODE_PRIVATE)
 
-    private val _uiState = MutableStateFlow(NotificationFilterUiState())
-    val uiState: StateFlow<NotificationFilterUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(NotificationSettingsUiState())
+    val uiState: StateFlow<NotificationSettingsUiState> = _uiState.asStateFlow()
 
     private var allApps: List<AppInfo> = emptyList()
 
@@ -71,7 +67,6 @@ class NotificationFilterViewModel(
 
     private fun loadApps() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
             allApps = withContext(Dispatchers.IO) {
                 val packageManager = getApplication<Application>().packageManager
                 val installedApps = packageManager.getInstalledApplications(0)
@@ -129,7 +124,7 @@ class NotificationFilterViewModel(
         return try {
             val packageInfo = pm.getPackageInfo(info.packageName, PackageManager.GET_PERMISSIONS)
             packageInfo.requestedPermissions?.contains(Manifest.permission.POST_NOTIFICATIONS) ?: false
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             true
         }
     }
@@ -146,18 +141,18 @@ class NotificationFilterViewModel(
 
     private fun filterApps() {
         val query = _uiState.value.searchQuery.lowercase().trim()
-        val enabled = allApps.filter { it.isEnabled }
-        val disabled = allApps.filter { !it.isEnabled }.let { list ->
-            if (query.isEmpty()) {
-                list
-            } else {
-                list.filter { it.name.lowercase().contains(query) }
-            }
+
+        fun search(list: List<AppInfo>): List<AppInfo> = if (query.isEmpty()) {
+            list
+        } else {
+            list.filter { it.name.lowercase().contains(query) }
         }
+
+        val enabled = search(allApps.filter { it.isEnabled })
+        val disabled = search(allApps.filter { !it.isEnabled })
         _uiState.update { it.copy(
             enabledApps = enabled,
             disabledApps = disabled,
-            isLoading = false
         ) }
     }
 

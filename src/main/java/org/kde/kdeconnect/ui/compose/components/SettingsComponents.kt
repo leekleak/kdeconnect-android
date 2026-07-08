@@ -80,7 +80,6 @@ fun Preference(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
             .card()
             .clickable(enabled = enabled, onClick = onClick)
             .padding(

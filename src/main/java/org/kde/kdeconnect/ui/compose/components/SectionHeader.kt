@@ -98,7 +98,7 @@ fun HazeScaffold(
     scrollState: ScrollState? = rememberScrollState(),
     hazeState: HazeState = rememberHazeState(),
     backButton: Boolean = false,
-    verticalArrangement: Arrangement.Vertical = Arrangement.Top,
+    verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(8.dp, Alignment.Top),
     actions: @Composable RowScope.() -> Unit = {},
     content: @Composable ColumnScope.(PaddingValues) -> Unit,
 ) {
@@ -188,7 +188,7 @@ fun CategoryTitleText(text: String, backButton: Boolean = false) {
 @Composable
 fun CategoryTitleTextSmall(text: String) {
     Text(
-        modifier = Modifier.padding(8.dp),
+        modifier = Modifier.padding(horizontal = 8.dp),
         text = text,
         style = MaterialTheme.typography.titleMedium,
         color = colorScheme.tertiary

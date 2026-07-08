@@ -26,8 +26,8 @@ import org.kde.kdeconnect.plugins.mousepad.MousePadSettingsScreen
 import org.kde.kdeconnect.plugins.mousepad.MousePadSettingsViewModel
 import org.kde.kdeconnect.plugins.mpris.MprisSettingsScreen
 import org.kde.kdeconnect.plugins.mpris.MprisSettingsViewModel
-import org.kde.kdeconnect.plugins.notifications.NotificationFilterScreen
-import org.kde.kdeconnect.plugins.notifications.NotificationFilterViewModel
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.notifications.NotificationSettings
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.notifications.NotificationSettingsViewModel
 import org.kde.kdeconnect.plugins.presenter.PresenterSettingsScreen
 import org.kde.kdeconnect.plugins.presenter.PresenterSettingsViewModel
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardSettingsScreen
@@ -61,7 +61,7 @@ import org.kde.kdeconnect.ui.navigation.LicensesKey
 import org.kde.kdeconnect.ui.navigation.MousePadPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.MprisPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.Navigator
-import org.kde.kdeconnect.ui.navigation.NotificationPluginSettingsKey
+import org.kde.kdeconnect.ui.navigation.NotificationSettingsKey
 import org.kde.kdeconnect.ui.navigation.PairingKey
 import org.kde.kdeconnect.ui.navigation.PluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.PresenterKey
@@ -200,7 +200,7 @@ val pluginSettingsModule = module {
     viewModel<PresenterSettingsViewModel>()
     viewModel<RemoteKeyboardSettingsViewModel>()
     viewModel<RunCommandSettingsViewModel>()
-    viewModel<NotificationFilterViewModel>()
+    viewModel<NotificationSettingsViewModel>()
     navigation<PluginSettingsKey> { key ->
         PluginSettingsScreen(key.deviceId)
     }
@@ -213,7 +213,7 @@ val pluginSettingsModule = module {
     navigation<PresenterPluginSettingsKey> { PresenterSettingsScreen() }
     navigation<RemoteKeyboardPluginSettingsKey> { RemoteKeyboardSettingsScreen() }
     navigation<RunCommandPluginSettingsKey> { RunCommandSettingsScreen() }
-    navigation<NotificationPluginSettingsKey> { NotificationFilterScreen() }
+    navigation<NotificationSettingsKey> { NotificationSettings() }
 }
 
 val presenterModule = module {

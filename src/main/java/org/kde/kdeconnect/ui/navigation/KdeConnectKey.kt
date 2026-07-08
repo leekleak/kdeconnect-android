@@ -55,4 +55,4 @@ data object RemoteKeyboardPluginSettingsKey : KdeConnectKey
 @Serializable
 data object RunCommandPluginSettingsKey : KdeConnectKey
 @Serializable
-data object NotificationPluginSettingsKey : KdeConnectKey
+data object NotificationSettingsKey : KdeConnectKey

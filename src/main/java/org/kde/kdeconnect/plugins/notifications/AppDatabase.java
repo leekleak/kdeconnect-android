@@ -87,7 +87,7 @@ public class AppDatabase {
 
     }
 
-    void setEnabled(String packageName, boolean isEnabled) {
+    public void setEnabled(String packageName, boolean isEnabled) {
         String[] columns = new String[]{KEY_IS_ENABLED};
         SQLiteDatabase ourDatabase = ourHelper.getWritableDatabase();
         try (Cursor res = ourDatabase.query(TABLE_ENABLED, columns, KEY_PACKAGE_NAME + " =? ", new String[]{packageName}, null, null, null)) {
@@ -103,17 +103,17 @@ public class AppDatabase {
         }
     }
 
-    boolean getAllEnabled() {
+    public boolean getAllEnabled() {
         return prefs.getBoolean(SETTINGS_KEY_ALL_ENABLED, true);
     }
 
-    void setAllEnabled(boolean enabled) {
+    public void setAllEnabled(boolean enabled) {
         prefs.edit().putBoolean(SETTINGS_KEY_ALL_ENABLED, enabled).apply();
         SQLiteDatabase ourDatabase = ourHelper.getWritableDatabase();
         ourDatabase.execSQL("UPDATE " + TABLE_ENABLED + " SET " + KEY_IS_ENABLED + "=" + (enabled? "1" : "0"));
     }
 
-    boolean isEnabled(String packageName) {
+    public boolean isEnabled(String packageName) {
         String[] columns = new String[]{KEY_IS_ENABLED};
         SQLiteDatabase ourDatabase = ourHelper.getReadableDatabase();
         try (Cursor res = ourDatabase.query(TABLE_ENABLED, columns, KEY_PACKAGE_NAME + " =? ", new String[]{packageName}, null, null, null)) {

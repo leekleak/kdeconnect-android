@@ -19,7 +19,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.kde.kdeconnect.helpers.CreateFileParams
 import org.kde.kdeconnect.helpers.CreateFileResultContract
 import org.kde.kdeconnect.helpers.DeviceHelper
-import org.kde.kdeconnect.plugins.sftp.SftpSettingsScreen
 import org.kde.kdeconnect.ui.CustomDevicesActivity
 import org.kde.kdeconnect.ui.PermissionsAlertDialogFragment
 import org.kde.kdeconnect.ui.TrustedNetworksActivity
@@ -36,7 +35,7 @@ import org.kde.kdeconnect.ui.navigation.DigitizerPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.MousePadPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.MprisPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.Navigator
-import org.kde.kdeconnect.ui.navigation.NotificationPluginSettingsKey
+import org.kde.kdeconnect.ui.navigation.NotificationSettingsKey
 import org.kde.kdeconnect.ui.navigation.PresenterPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.RemoteKeyboardPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.RunCommandPluginSettingsKey
@@ -181,6 +180,12 @@ fun SettingsScreen(
             onClick = { navigator.goTo(TelephonyPluginSettingsKey) }
         )
         NavigatePreference(
+            title = stringResource(R.string.notifications),
+            icon = painterResource(R.drawable.notifications),
+            onClick = { navigator.goTo(NotificationSettingsKey) }
+        )
+
+        NavigatePreference(
             title = "Drawing tablet",
             onClick = { navigator.goTo(DigitizerPluginSettingsKey) }
         )
@@ -211,10 +216,6 @@ fun SettingsScreen(
         NavigatePreference(
             title = "Run command settings",
             onClick = { navigator.goTo(RunCommandPluginSettingsKey) }
-        )
-        NavigatePreference(
-            title = "Notification Sync",
-            onClick = { navigator.goTo(NotificationPluginSettingsKey) }
         )
 
         CategoryTitleTextSmall(stringResource(R.string.other))
