@@ -34,7 +34,7 @@ android {
     defaultConfig {
         applicationId = "org.kde.kdeconnect_tp"
         minSdk = 26
-        targetSdk = 37
+        targetSdk = 36
         versionCode = 13509
         versionName = "1.35.9"
         proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
@@ -211,8 +211,7 @@ dependencies {
     testImplementation(libs.androidx.junit)
 
     // For device controls
-    implementation(libs.reactive.streams)
-    implementation(libs.rxjava)
+    implementation(libs.kotlinx.coroutines.jdk9)
 }
 
 licenseReport {

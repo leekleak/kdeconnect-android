@@ -20,8 +20,10 @@ import android.service.controls.templates.StatelessTemplate
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.preference.PreferenceManager
-import io.reactivex.Flowable
-import io.reactivex.processors.ReplayProcessor
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.jdk9.asPublisher
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -29,7 +31,6 @@ import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect_tp.R
-import org.reactivestreams.FlowAdapters
 import java.util.concurrent.Flow
 import java.util.function.Consumer
 
@@ -37,49 +38,45 @@ private class CommandEntryWithDevice(o: JSONObject, val device: Device) : Comman
 
 @RequiresApi(Build.VERSION_CODES.R)
 class RunCommandControlsProviderService : ControlsProviderService() {
-    private lateinit var updatePublisher: ReplayProcessor<Control>
+    private val updateFlow = MutableSharedFlow<Control>(replay = 10, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     private lateinit var sharedPreferences: SharedPreferences
 
     override fun createPublisherForAllAvailable(): Flow.Publisher<Control> {
-        return FlowAdapters.toFlowPublisher(Flowable.fromIterable(getAllCommandsList().map { commandEntry ->
-            Control.StatelessBuilder(commandEntry.device.deviceId + ":" + commandEntry.key, getIntent(commandEntry.device))
-                .setTitle(commandEntry.name)
-                .setSubtitle(commandEntry.command)
-                .setStructure(commandEntry.device.name)
-                .setCustomIcon(Icon.createWithResource(this, R.drawable.run_command_plugin_icon_24dp))
-                .build()
-        }))
+        return flow {
+            getAllCommandsList().forEach { commandEntry ->
+                emit(Control.StatelessBuilder(commandEntry.device.deviceId + ":" + commandEntry.key, getIntent(commandEntry.device))
+                    .setTitle(commandEntry.name)
+                    .setSubtitle(commandEntry.command)
+                    .setStructure(commandEntry.device.name)
+                    .setCustomIcon(Icon.createWithResource(this@RunCommandControlsProviderService, R.drawable.run_command_plugin_icon_24dp))
+                    .build())
+            }
+        }.asPublisher()
     }
 
     override fun createPublisherFor(controlIds: MutableList<String>): Flow.Publisher<Control> {
-        updatePublisher = ReplayProcessor.create()
-
         for (controlId in controlIds) {
             val commandEntry = getCommandByControlId(controlId)
             if (commandEntry != null && commandEntry.device.isReachable) {
-                updatePublisher.onNext(createStatefulBuilder(commandEntry, controlId)
+                updateFlow.tryEmit(createStatefulBuilder(commandEntry, controlId)
                         .setStatus(Control.STATUS_OK)
                         .setStatusText(getString(R.string.tap_to_execute))
                         .build())
             } else if (commandEntry != null && commandEntry.device.isPaired && !commandEntry.device.isReachable) {
-                updatePublisher.onNext(createStatefulBuilder(commandEntry, controlId)
+                updateFlow.tryEmit(createStatefulBuilder(commandEntry, controlId)
                         .setStatus(Control.STATUS_DISABLED)
                         .build())
             } else {
-                updatePublisher.onNext(Control.StatefulBuilder(controlId, getIntent(commandEntry?.device))
+                updateFlow.tryEmit(Control.StatefulBuilder(controlId, getIntent(commandEntry?.device))
                         .setStatus(Control.STATUS_NOT_FOUND)
                         .build())
             }
         }
 
-        return FlowAdapters.toFlowPublisher(updatePublisher)
+        return updateFlow.asPublisher()
     }
 
     override fun performControlAction(controlId: String, action: ControlAction, consumer: Consumer<Int>) {
-        if (!this::updatePublisher.isInitialized) {
-            updatePublisher = ReplayProcessor.create()
-        }
-
         if (action is CommandAction) {
             val commandEntry = getCommandByControlId(controlId)
             if (commandEntry != null) {
@@ -92,7 +89,7 @@ class RunCommandControlsProviderService : ControlsProviderService() {
                     consumer.accept(ControlAction.RESPONSE_FAIL)
                 }
 
-                updatePublisher.onNext(createStatefulBuilder(commandEntry, controlId)
+                updateFlow.tryEmit(createStatefulBuilder(commandEntry, controlId)
                         .setStatus(Control.STATUS_OK)
                         .setStatusText(getString(R.string.tap_to_execute))
                         .build())

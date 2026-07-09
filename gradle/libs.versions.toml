@@ -35,10 +35,8 @@ composeMaterial3 = "1.5.0-alpha23"
 media = "1.8.0"
 mockk = "1.14.11"
 preferenceKtx = "1.2.1"
-reactiveStreams = "1.0.4"
 recyclerview = "1.4.0"
 robolectric = "4.16.1"
-rxjava = "2.2.21"
 slf4j = "2.0.18"
 slf4j-handroid = "2.0.13"
 sshdCore = "2.18.0"
@@ -83,6 +81,7 @@ kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", ve
 kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesCore" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
+kotlinx-coroutines-jdk9 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk9", version.ref = "kotlinxCoroutinesCore" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "nav3Core" }
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "nav3Core" }
@@ -98,9 +97,7 @@ apache-sshd-core = { module = "org.apache.sshd:sshd-core", version.ref = "sshdCo
 apache-sshd-sftp = { module = "org.apache.sshd:sshd-sftp", version.ref = "sshdCore" }
 apache-sshd-scp = { module = "org.apache.sshd:sshd-scp", version.ref = "sshdCore" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
-reactive-streams = { module = "org.reactivestreams:reactive-streams", version.ref = "reactiveStreams" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
-rxjava = { module = "io.reactivex.rxjava2:rxjava", version.ref = "rxjava" }
 univocity-parsers = { module = "com.univocity:univocity-parsers", version.ref = "univocityParsers" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
