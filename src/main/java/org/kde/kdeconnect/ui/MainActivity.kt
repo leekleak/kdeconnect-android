@@ -50,6 +50,7 @@ import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.PairingKey
 import org.kde.kdeconnect.ui.navigation.PresenterKey
 import org.kde.kdeconnect.ui.navigation.RunCommandKey
+import org.kde.kdeconnect.ui.navigation.DigitizerKey
 import org.kde.kdeconnect.ui.navigation.SettingsKey
 import org.kde.kdeconnect_tp.R
 import org.koin.android.ext.android.inject
@@ -130,10 +131,10 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
             val deviceId = intent.getStringExtra(EXTRA_DEVICE_ID)
             val pluginKey = intent.getStringExtra(KdeConnectKeyConstants.EXTRA_PLUGIN_KEY)
             if (deviceId != null) {
-                if (pluginKey == "RunCommandPlugin") {
-                    navigator.goTo(RunCommandKey(deviceId))
-                } else {
-                    navigator.goTo(DeviceKey(deviceId))
+                when (pluginKey) {
+                    "RunCommandPlugin" -> navigator.goTo(RunCommandKey(deviceId))
+                    "DigitizerPlugin" -> navigator.goTo(DigitizerKey(deviceId))
+                    else -> navigator.goTo(DeviceKey(deviceId))
                 }
             }
         }

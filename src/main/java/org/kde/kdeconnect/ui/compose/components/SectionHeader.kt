@@ -7,6 +7,13 @@
 package org.kde.kdeconnect.ui.compose.components
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideIn
+import androidx.compose.animation.slideOut
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -44,6 +51,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.chrisbanes.haze.HazeProgressive
@@ -98,6 +106,7 @@ fun HazeScaffold(
     scrollState: ScrollState? = rememberScrollState(),
     hazeState: HazeState = rememberHazeState(),
     backButton: Boolean = false,
+    showTitle: Boolean = true,
     verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(8.dp, Alignment.Top),
     actions: @Composable RowScope.() -> Unit = {},
     content: @Composable ColumnScope.(PaddingValues) -> Unit,
@@ -123,7 +132,13 @@ fun HazeScaffold(
                 content(paddingValues)
                 if (scrollState != null) Spacer(Modifier.height((paddingBottom).coerceAtLeast(0.dp)))
             }
-            PageTitle(backButton, hazeState, title, actions)
+            AnimatedVisibility(
+                visible = showTitle,
+                enter = slideIn { IntOffset(x = 0, y = -it.height) },
+                exit = slideOut { IntOffset(x = 0, y = -it.height) },
+            ) {
+                PageTitle(backButton, hazeState, title, actions)
+            }
         }
     }
 }

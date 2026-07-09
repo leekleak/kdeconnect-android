@@ -6,12 +6,15 @@
 
 package org.kde.kdeconnect.plugins.digitizer
 
-import android.content.Intent
 import android.util.Log
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginFactory
+import org.kde.kdeconnect.ui.MainActivity
+import org.kde.kdeconnect.ui.navigation.DigitizerKey
+import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
+import org.koin.core.component.get
 
 @PluginFactory.LoadablePlugin
 class DigitizerPlugin : Plugin() {
@@ -26,9 +29,8 @@ class DigitizerPlugin : Plugin() {
             context.getString(R.string.use_digitizer),
             R.drawable.ic_draw_24dp
         ) { parentActivity ->
-            val intent = Intent(parentActivity, DigitizerActivity::class.java)
-            intent.putExtra("deviceId", device.deviceId)
-            parentActivity.startActivity(intent)
+            val navigator: Navigator = (parentActivity as MainActivity).scope.get(Navigator::class, null, null)
+            navigator.goTo(DigitizerKey(device.deviceId))
         })
 
     override fun onPacketReceived(np: NetworkPacket): Boolean {
