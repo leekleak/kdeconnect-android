@@ -19,6 +19,7 @@ data class ConnectionsSettingsUiState(
     val currentSSID: String? = null,
     val hasLocationPermission: Boolean = false,
     val customDevices: List<DeviceHost> = emptyList(),
+    val updateTrigger: Int = 0,
 )
 
 class ConnectionsSettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -33,6 +34,7 @@ class ConnectionsSettingsViewModel(application: Application) : AndroidViewModel(
     init {
         PreferenceManager.getDefaultSharedPreferences(application)
             .registerOnSharedPreferenceChangeListener(preferenceChangeListener)
+        loadCustomDevices(application)
         updateUiState()
     }
 
@@ -43,7 +45,8 @@ class ConnectionsSettingsViewModel(application: Application) : AndroidViewModel(
                 allNetworksAllowed = helper.allNetworksAllowed,
                 currentSSID = helper.currentSSID,
                 hasLocationPermission = helper.hasPermissions,
-                customDevices = ArrayList(it.customDevices)
+                customDevices = ArrayList(it.customDevices),
+                updateTrigger = it.updateTrigger + 1,
             )
         }
     }

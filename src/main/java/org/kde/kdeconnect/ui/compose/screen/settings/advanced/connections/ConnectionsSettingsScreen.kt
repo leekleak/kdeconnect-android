@@ -21,9 +21,7 @@ import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -180,10 +178,10 @@ private fun CustomDeviceItem(
     device: DeviceHost,
     onDelete: () -> Unit
 ) {
-    val pingResult by remember { derivedStateOf { device.ping } }
+    val pingResult = device.ping
     val summary = when {
         pingResult == null -> stringResource(R.string.ping_in_progress)
-        pingResult!!.latency != null -> stringResource(R.string.ping_result, pingResult!!.latency!!)
+        pingResult.latency != null -> stringResource(R.string.ping_result, pingResult.latency)
         else -> stringResource(R.string.ping_failed)
     }
 
