@@ -141,6 +141,7 @@ fun SettingsScreen(
 
         SwitchPreference(
             title = stringResource(R.string.enable_bluetooth),
+            icon = painterResource(R.drawable.bluetooth),
             value = uiState.bluetoothEnabled,
             onValueChanged = { newValue ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && newValue) {
