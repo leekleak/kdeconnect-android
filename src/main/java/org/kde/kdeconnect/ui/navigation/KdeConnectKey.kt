@@ -29,6 +29,9 @@ data object LicensesKey : KdeConnectKey
 data class DeviceKey(val deviceId: String, val fromDeviceList: Boolean = false) : KdeConnectKey
 
 @Serializable
+data class RunCommandKey(val deviceId: String) : KdeConnectKey
+
+@Serializable
 data class PluginSettingsKey(val deviceId: String) : KdeConnectKey
 
 @Serializable

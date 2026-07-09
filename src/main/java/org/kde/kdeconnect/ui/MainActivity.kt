@@ -24,6 +24,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
@@ -48,6 +49,7 @@ import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.PairingKey
 import org.kde.kdeconnect.ui.navigation.PresenterKey
+import org.kde.kdeconnect.ui.navigation.RunCommandKey
 import org.kde.kdeconnect.ui.navigation.SettingsKey
 import org.kde.kdeconnect_tp.R
 import org.koin.android.ext.android.inject
@@ -123,6 +125,19 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
     private fun MainActivityContent() {
         val entryProvider = koinEntryProvider<Any>()
         val navigator: Navigator = koinInject()
+
+        LaunchedEffect(intent) {
+            val deviceId = intent.getStringExtra(EXTRA_DEVICE_ID)
+            val pluginKey = intent.getStringExtra(KdeConnectKeyConstants.EXTRA_PLUGIN_KEY)
+            if (deviceId != null) {
+                if (pluginKey == "RunCommandPlugin") {
+                    navigator.goTo(RunCommandKey(deviceId))
+                } else {
+                    navigator.goTo(DeviceKey(deviceId))
+                }
+            }
+        }
+
         KdeTheme(this) {
             NavDisplay(
                 backStack = navigator.backStack,

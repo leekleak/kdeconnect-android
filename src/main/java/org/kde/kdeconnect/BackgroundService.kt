@@ -36,10 +36,10 @@ import org.kde.kdeconnect.backends.lan.LanLinkProvider
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.plugins.clipboard.ClipboardFloatingActivity
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin
-import org.kde.kdeconnect.plugins.runcommand.RunCommandActivity
 import org.kde.kdeconnect.plugins.runcommand.RunCommandPlugin
 import org.kde.kdeconnect.plugins.share.SendFileActivity
 import org.kde.kdeconnect.ui.MainActivity
+import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import org.kde.kdeconnect_tp.R
 
 /**
@@ -208,8 +208,9 @@ class BackgroundService : Service() {
                     // Checking if there are registered commands and adding the button.
                     val plugin = device.getPlugin("RunCommandPlugin") as RunCommandPlugin?
                     if (plugin != null && plugin.commandList.isNotEmpty()) {
-                        val runCommand = Intent(this, RunCommandActivity::class.java)
-                        runCommand.putExtra("deviceId", connectedDeviceIds[0])
+                        val runCommand = Intent(this, MainActivity::class.java)
+                        runCommand.putExtra(MainActivity.EXTRA_DEVICE_ID, connectedDeviceIds[0])
+                        runCommand.putExtra(KdeConnectKeyConstants.EXTRA_PLUGIN_KEY, "RunCommandPlugin")
                         val runPendingCommand = PendingIntent.getActivity(this, 2, runCommand, UPDATE_IMMUTABLE_FLAGS)
                         notification.addAction(0, getString(R.string.pref_plugin_runcommand), runPendingCommand)
                     }

@@ -1,26 +1,25 @@
 package org.kde.kdeconnect.plugins.runcommand
 
-import androidx.activity.OnBackPressedDispatcher
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -32,38 +31,32 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
+import org.kde.kdeconnect.ui.compose.components.Preference
+import org.kde.kdeconnect.ui.compose.components.px
 import org.kde.kdeconnect_tp.R
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Composable
 fun RunCommandScreen(
-    plugin: RunCommandPlugin,
-    device: Device,
-    commandList: SnapshotStateList<CommandEntry>,
-    onBackPressedDispatcher: OnBackPressedDispatcher,
-    onCopyUrlToClipboard: (CommandEntry) -> Unit,
-    onUpdate: () -> Unit
+    deviceId: String,
+    viewModel: RunCommandViewModel = koinViewModel(key = "RunCommandViewModel_$deviceId") { parametersOf(deviceId) }
 ) {
-    val haptics = LocalHapticFeedback.current
-    val context = LocalContext.current
+    val plugin = viewModel.plugin ?: return
+    val commandList = viewModel.commandList
     var showDialog by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val outputList = remember { plugin.output }
@@ -71,7 +64,7 @@ fun RunCommandScreen(
     DisposableEffect(plugin) {
         val callback = RunCommandPlugin.CommandsChangedCallback {
             scope.launch(Dispatchers.Main.immediate) {
-                onUpdate()
+                viewModel.updateList()
             }
         }
         plugin.addCommandsUpdatedCallback(callback)
@@ -81,145 +74,81 @@ fun RunCommandScreen(
         }
     }
 
-    KdeTheme(context) {
-        HazeScaffold(
-            title = stringResource(R.string.pref_plugin_runcommand),
-            scrollState = null,
-            backButton = true,
-            actions = {
-                if (plugin.canAddCommand()) {
-                    FloatingActionButton(
-                        onClick = {
-                            plugin.sendSetupPacket()
-                            showDialog = true
-                        },
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Icon(
-                            painterResource(R.drawable.ic_action_image_edit_24dp),
-                            stringResource(R.string.add_command),
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
+    HazeScaffold(
+        title = stringResource(R.string.pref_plugin_runcommand),
+        backButton = true,
+        actions = {
+            if (plugin.canAddCommand()) {
+                FloatingActionButton(
+                    onClick = {
+                        plugin.sendSetupPacket()
+                        showDialog = true
+                    },
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        painterResource(R.drawable.ic_action_image_edit_24dp),
+                        stringResource(R.string.add_command),
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
             }
-        ) { paddingValues ->
-            if (showDialog) {
-                AlertDialog(
-                    title = {
-                        Text(
-                            stringResource(R.string.add_command),
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                    },
-                    text = {
-                        Text(stringResource(R.string.add_command_description))
-                    },
-                    onDismissRequest = {
+        }
+    ) {
+        if (showDialog) {
+            AlertDialog(
+                title = {
+                    Text(
+                        stringResource(R.string.add_command),
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                },
+                text = {
+                    Text(stringResource(R.string.add_command_description))
+                },
+                onDismissRequest = {
+                    showDialog = false
+                    viewModel.updateList()
+                },
+                confirmButton = {
+                    TextButton(onClick = {
                         showDialog = false
-                        onUpdate()
-                    },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            showDialog = false
-                            onUpdate()
-                        }) {
-                            Text(stringResource(R.string.ok))
-                        }
-                    },
-                    dismissButton = {},
+                        viewModel.updateList()
+                    }) {
+                        Text(stringResource(R.string.ok))
+                    }
+                },
+                dismissButton = {},
+            )
+        }
+
+        CategoryTitleTextSmall(stringResource(R.string.terminal))
+        OutputCard(outputList, plugin)
+
+        CategoryTitleTextSmall(stringResource(R.string.commands))
+        if (!commandList.isEmpty()) {
+            commandList.forEach { command ->
+                val clipboardManager = androidx.compose.ui.platform.LocalClipboard.current
+                Preference(
+                    title = command.name,
+                    summary = command.command,
+                    onClick = { plugin.runCommand(command.key) },
+                    onLongClick = {
+                        viewModel.copyCommandToClipboard(command, clipboardManager)
+                    }
                 )
             }
-
-            Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-                CategoryTitleTextSmall(text = device.name)
-
-                if (!commandList.isEmpty()) {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        item {
-                            OutputCard(outputList, plugin)
-                        }
-                        items(commandList) { command ->
-                            var menuExpanded by remember { mutableStateOf(false) }
-                            var pressOffset by remember { mutableStateOf(IntOffset.Zero) }
-                            Box {
-                                Row(
-                                    modifier = Modifier
-                                        .pointerInput(command.key) {
-                                            awaitEachGesture {
-                                                val down = awaitFirstDown(
-                                                    requireUnconsumed = false,
-                                                    pass = PointerEventPass.Initial,
-                                                )
-                                                pressOffset = IntOffset(
-                                                    down.position.x.toInt(),
-                                                    down.position.y.toInt(),
-                                                )
-                                            }
-                                        }
-                                        .combinedClickable(
-                                            indication = ripple(color = Color.White),
-                                            interactionSource = remember { MutableInteractionSource() },
-                                            onClick = { plugin.runCommand(command.key) },
-                                            onLongClick = {
-                                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                menuExpanded = true
-                                            }
-                                        )
-                                ) {
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 20.dp, vertical = 10.dp)
-                                    ) {
-                                        Text(
-                                            text = command.name,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            style = MaterialTheme.typography.titleLarge,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                        Text(
-                                            text = command.command,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = Color.Gray,
-                                        )
-                                    }
-                                }
-                                Box(modifier = Modifier.offset { pressOffset }) {
-                                    DropdownMenu(
-                                        expanded = menuExpanded,
-                                        onDismissRequest = { menuExpanded = false },
-                                    ) {
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.copy_url_to_clipboard)) },
-                                            onClick = {
-                                                menuExpanded = false
-                                                onCopyUrlToClipboard(command)
-                                            },
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        var text = stringResource(R.string.addcommand_explanation)
-                        if (!(plugin.canAddCommand())) {
-                            text += "\n" + stringResource(R.string.addcommand_explanation2)
-                        }
-                        Text(text)
-                    }
+        } else {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                var text = stringResource(R.string.addcommand_explanation)
+                if (!(plugin.canAddCommand())) {
+                    text += "\n" + stringResource(R.string.addcommand_explanation2)
                 }
+                Text(text)
             }
         }
     }
@@ -234,11 +163,27 @@ private fun OutputCard(
     val coroutineScope = rememberCoroutineScope()
     val showStopButton by remember { plugin.commandRunning }
 
-    Card(
+    val width = 2.dp.px
+    val dashLength = 8.dp.px
+    val cornerRadius = 16.dp.px
+    val outlineColor = colorScheme.outline
+    val stroke = remember {
+        Stroke(
+            width = width,
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(dashLength, dashLength), 0f)
+        )
+    }
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(300.dp)
-            .padding(horizontal = 20.dp, vertical = 10.dp)
+            .drawBehind {
+                drawRoundRect(
+                    color = outlineColor,
+                    style = stroke,
+                    cornerRadius = CornerRadius(cornerRadius),
+                )
+            }
     ) {
         if (outputList.isNotEmpty()) {
             Box {
@@ -260,7 +205,9 @@ private fun OutputCard(
                 }
                 if (showStopButton) {
                     Column(
-                        modifier = Modifier.padding(5.dp).fillMaxSize(),
+                        modifier = Modifier
+                            .padding(5.dp)
+                            .fillMaxSize(),
                         horizontalAlignment = Alignment.End,
                         verticalArrangement = Arrangement.Bottom
                     ) {

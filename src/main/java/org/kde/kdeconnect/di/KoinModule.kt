@@ -32,8 +32,10 @@ import org.kde.kdeconnect.plugins.presenter.PresenterSettingsScreen
 import org.kde.kdeconnect.plugins.presenter.PresenterSettingsViewModel
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardSettingsScreen
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardSettingsViewModel
+import org.kde.kdeconnect.plugins.runcommand.RunCommandScreen
 import org.kde.kdeconnect.plugins.runcommand.RunCommandSettingsScreen
 import org.kde.kdeconnect.plugins.runcommand.RunCommandSettingsViewModel
+import org.kde.kdeconnect.plugins.runcommand.RunCommandViewModel
 import org.kde.kdeconnect.ui.compose.screen.settings.advanced.filesystem.SftpSettingsScreen
 import org.kde.kdeconnect.ui.compose.screen.settings.advanced.filesystem.SftpSettingsViewModel
 import org.kde.kdeconnect.plugins.share.ShareSettingsScreen
@@ -66,6 +68,7 @@ import org.kde.kdeconnect.ui.navigation.PluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.PresenterKey
 import org.kde.kdeconnect.ui.navigation.PresenterPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.RemoteKeyboardPluginSettingsKey
+import org.kde.kdeconnect.ui.navigation.RunCommandKey
 import org.kde.kdeconnect.ui.navigation.RunCommandPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.SettingsKey
 import org.kde.kdeconnect.ui.navigation.SftpPluginSettingsKey
@@ -225,6 +228,13 @@ val presenterModule = module {
     }
 }
 
+val runCommandModule = module {
+    viewModel<RunCommandViewModel>()
+    navigation<RunCommandKey> { key ->
+        RunCommandScreen(deviceId = key.deviceId)
+    }
+}
+
 fun buildImageLoader(context: Context): ImageLoader =
     ImageLoader.Builder(context)
         .components { add(AppIconFetcher.Factory(context)) }
@@ -232,7 +242,7 @@ fun buildImageLoader(context: Context): ImageLoader =
         .build()
 
 val appModule = module {
-    includes(pairingModule, deviceModule, pluginSettingsModule, presenterModule, settingsModule, aboutModule)
+    includes(pairingModule, deviceModule, pluginSettingsModule, presenterModule, runCommandModule, settingsModule, aboutModule)
 
     single<Navigator>()
     single<ImageLoader> { create(::buildImageLoader) }

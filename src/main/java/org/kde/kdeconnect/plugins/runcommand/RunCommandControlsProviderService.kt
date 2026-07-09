@@ -189,12 +189,14 @@ class RunCommandControlsProviderService : ControlsProviderService() {
     }
 
     private fun getIntent(device: Device?): PendingIntent {
-        val target = if (device?.isReachable == true) RunCommandActivity::class else MainActivity::class
-
         val intent = Intent(Intent.ACTION_MAIN)
-                .setClass(this, target.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                .putExtra(MainActivity.EXTRA_DEVICE_ID, device?.deviceId)
+            .setClass(this, MainActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            .putExtra(MainActivity.EXTRA_DEVICE_ID, device?.deviceId)
+
+        if (device?.isReachable == true) {
+            intent.putExtra(org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants.EXTRA_PLUGIN_KEY, "RunCommandPlugin")
+        }
 
         return PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }

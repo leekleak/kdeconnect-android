@@ -27,6 +27,8 @@ import org.json.JSONObject;
 import org.kde.kdeconnect.NetworkPacket;
 import org.kde.kdeconnect.plugins.Plugin;
 import org.kde.kdeconnect.plugins.PluginFactory;
+import org.kde.kdeconnect.ui.navigation.Navigator;
+import org.kde.kdeconnect.ui.navigation.RunCommandKey;
 import org.kde.kdeconnect_tp.R;
 
 import java.util.ArrayList;
@@ -118,9 +120,8 @@ public class RunCommandPlugin extends Plugin {
     @Override
     public @NotNull List<@NotNull PluginUiButton> getUiButtons() {
         return List.of(new PluginUiButton(context.getString(R.string.pref_plugin_runcommand), R.drawable.run_command_plugin_icon_24dp, parentActivity -> {
-            Intent intent = new Intent(parentActivity, RunCommandActivity.class);
-            intent.putExtra("deviceId", getDevice().getDeviceId());
-            parentActivity.startActivity(intent);
+            Navigator navigator = ((org.kde.kdeconnect.ui.MainActivity) parentActivity).getScope().get(kotlin.jvm.JvmClassMappingKt.getKotlinClass(Navigator.class), null, null);
+            navigator.goTo(new RunCommandKey(getDevice().getDeviceId()));
             return Unit.INSTANCE;
         }));
     }
