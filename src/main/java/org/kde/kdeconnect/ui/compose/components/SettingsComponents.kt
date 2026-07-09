@@ -35,6 +35,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.input.InputTransformation
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.maxLength
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
@@ -594,6 +604,51 @@ fun InfoCard(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun SettingsSearchBar(
+    modifier: Modifier = Modifier,
+    state: TextFieldState = rememberTextFieldState(),
+    placeholder: String = "",
+    actionButton: @Composable (() -> Unit)
+) {
+    var isFocused by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .card()
+            .padding(4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        BasicTextField(
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 12.dp)
+                .onFocusChanged { isFocused = it.isFocused },
+            textStyle = TextStyle(
+                color = colorScheme.onSurface,
+                fontSize = MaterialTheme.typography.bodyLarge.fontSize
+            ),
+            state = state,
+            lineLimits = TextFieldLineLimits.SingleLine,
+            cursorBrush = SolidColor(colorScheme.onSurface),
+            decorator = { innerTextField ->
+                Box {
+                    if (state.text.isEmpty() && !isFocused) {
+                        Text(
+                            text = placeholder,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = colorScheme.onSurfaceVariant
+                        )
+                    }
+                    innerTextField()
+                }
+            }
+        )
+        actionButton()
     }
 }
 

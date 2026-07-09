@@ -1,6 +1,7 @@
 package org.kde.kdeconnect.ui.compose.screen.settings.advanced.connections
 
 import android.app.Application
+import android.content.Context
 import android.content.SharedPreferences
 import androidx.lifecycle.AndroidViewModel
 import androidx.preference.PreferenceManager
@@ -8,13 +9,16 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import org.kde.kdeconnect.DeviceHost
+import org.kde.kdeconnect.helpers.CustomDevicesHelper
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 
 data class ConnectionsSettingsUiState(
     val trustedNetworks: List<String> = emptyList(),
     val allNetworksAllowed: Boolean = true,
     val currentSSID: String? = null,
-    val hasLocationPermission: Boolean = false
+    val hasLocationPermission: Boolean = false,
+    val customDevices: List<DeviceHost> = emptyList(),
 )
 
 class ConnectionsSettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -38,14 +42,39 @@ class ConnectionsSettingsViewModel(application: Application) : AndroidViewModel(
                 trustedNetworks = helper.trustedNetworks,
                 allNetworksAllowed = helper.allNetworksAllowed,
                 currentSSID = helper.currentSSID,
-                hasLocationPermission = helper.hasPermissions
+                hasLocationPermission = helper.hasPermissions,
+                customDevices = ArrayList(it.customDevices)
             )
         }
     }
 
+    private fun loadCustomDevices(context: Context) {
+        val devices = CustomDevicesHelper.getCustomDeviceList(context)
+        _uiState.update { it.copy(customDevices = devices) }
+        devices.forEach { it.checkReachable { updateUiState() } }
+    }
+
+    fun addCustomDevice(host: String, context: Context) {
+        val deviceHost = DeviceHost.toDeviceHostOrNull(host) ?: return
+        val currentDevices = _uiState.value.customDevices.toMutableList()
+        if (currentDevices.none { it.toString() == deviceHost.toString() }) {
+            currentDevices.add(deviceHost)
+            currentDevices.sortBy { it.toString() }
+            CustomDevicesHelper.saveCustomDeviceList(context, currentDevices)
+            loadCustomDevices(context)
+        }
+    }
+
+    fun deleteCustomDevice(device: DeviceHost, context: Context) {
+        val currentDevices = _uiState.value.customDevices.filter { it != device }
+        CustomDevicesHelper.saveCustomDeviceList(context, currentDevices)
+        _uiState.update { it.copy(
+            customDevices = currentDevices,
+        ) }
+    }
+
     fun setAllNetworksAllowed(allowed: Boolean) {
-        helper.allNetworksAllowed = allowed
-        // Preference listener will trigger updateUiState
+        allowed.also { helper.allNetworksAllowed = it }
     }
 
     fun addTrustedNetwork(ssid: String) {

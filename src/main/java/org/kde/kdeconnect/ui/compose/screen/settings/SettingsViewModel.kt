@@ -17,9 +17,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.apache.commons.io.IOUtils
 import org.kde.kdeconnect.BackgroundService
+import org.kde.kdeconnect.helpers.CustomDevicesHelper
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.NotificationHelper
-import org.kde.kdeconnect.ui.CustomDevicesActivity
 import org.kde.kdeconnect.ui.ThemeUtil
 import org.kde.kdeconnect_tp.BuildConfig
 import java.io.InputStreamReader
@@ -69,7 +69,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun updateCustomDevicesCount() {
-        _uiState.update { it.copy(customDevicesCount = CustomDevicesActivity.getCustomDeviceList(context).size) }
+        _uiState.update { it.copy(customDevicesCount = CustomDevicesHelper.getCustomDeviceList(context).size) }
     }
 
     fun setDeviceName(name: String) {

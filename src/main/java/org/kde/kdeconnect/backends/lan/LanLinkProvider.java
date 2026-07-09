@@ -22,13 +22,13 @@ import org.kde.kdeconnect.backends.BaseLink;
 import org.kde.kdeconnect.backends.BaseLinkProvider;
 import org.kde.kdeconnect.DeviceHost;
 import org.kde.kdeconnect.DeviceInfo;
+import org.kde.kdeconnect.helpers.CustomDevicesHelper;
 import org.kde.kdeconnect.helpers.DeviceHelper;
 import org.kde.kdeconnect.helpers.security.SslHelper;
 import org.kde.kdeconnect.helpers.ThreadHelper;
 import org.kde.kdeconnect.helpers.TrustedDevices;
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper;
 import org.kde.kdeconnect.NetworkPacket;
-import org.kde.kdeconnect.ui.CustomDevicesActivity;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -481,8 +481,7 @@ public class LanLinkProvider extends BaseLinkProvider {
 
     private void broadcastUdpIdentityPacket(@Nullable Network network) {
         ThreadHelper.execute(() -> {
-            List<DeviceHost> hostList = CustomDevicesActivity
-                    .getCustomDeviceList(context);
+            List<DeviceHost> hostList = CustomDevicesHelper.getCustomDeviceList(context);
 
             if (TrustedNetworkHelper.isTrustedNetwork(context)) {
                 hostList.add(DeviceHost.BROADCAST); //Default: broadcast.

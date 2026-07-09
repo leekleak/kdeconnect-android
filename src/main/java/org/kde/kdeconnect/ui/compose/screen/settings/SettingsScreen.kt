@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -19,9 +18,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.kde.kdeconnect.helpers.CreateFileParams
 import org.kde.kdeconnect.helpers.CreateFileResultContract
 import org.kde.kdeconnect.helpers.DeviceHelper
-import org.kde.kdeconnect.plugins.sftp.SftpPlugin
 import org.kde.kdeconnect.plugins.sftp.SimpleSftpServer
-import org.kde.kdeconnect.ui.CustomDevicesActivity
 import org.kde.kdeconnect.ui.PermissionsAlertDialogFragment
 import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.compose.components.DialogItemSelectPreference
@@ -32,6 +29,7 @@ import org.kde.kdeconnect.ui.compose.components.Preference
 import org.kde.kdeconnect.ui.compose.components.SectionHeader
 import org.kde.kdeconnect.ui.compose.components.SwitchPreference
 import org.kde.kdeconnect.ui.navigation.AboutKey
+import org.kde.kdeconnect.ui.navigation.ConnectionsSettingsKey
 import org.kde.kdeconnect.ui.navigation.DigitizerPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.MousePadPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.Navigator
@@ -42,7 +40,6 @@ import org.kde.kdeconnect.ui.navigation.RunCommandPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.SftpPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.SharePluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.TelephonyPluginSettingsKey
-import org.kde.kdeconnect.ui.navigation.ConnectionsSettingsKey
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -58,12 +55,6 @@ fun SettingsScreen(
     DisposableEffect(Unit) {
         viewModel.updateAll()
         onDispose {}
-    }
-
-    val devicesByIpLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) {
-        viewModel.updateCustomDevicesCount()
     }
 
     val exportLogsLauncher = rememberLauncherForActivityResult(
@@ -147,14 +138,6 @@ fun SettingsScreen(
                 onClick = { navigator.goTo(SftpPluginSettingsKey) }
             )
         }
-
-        NavigatePreference(
-            title = stringResource(R.string.custom_device_list),
-            summary = stringResource(R.string.custom_devices_settings_summary, uiState.customDevicesCount),
-            onClick = {
-                devicesByIpLauncher.launch(Intent(context, CustomDevicesActivity::class.java))
-            }
-        )
 
         SwitchPreference(
             title = stringResource(R.string.enable_bluetooth),
