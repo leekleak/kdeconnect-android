@@ -26,6 +26,8 @@ import org.kde.kdeconnect.plugins.mousepad.MousePadSettingsScreen
 import org.kde.kdeconnect.plugins.mousepad.MousePadSettingsViewModel
 import org.kde.kdeconnect.ui.compose.screen.settings.advanced.notifications.NotificationSettings
 import org.kde.kdeconnect.ui.compose.screen.settings.advanced.notifications.NotificationSettingsViewModel
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.connections.ConnectionsSettingsScreen
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.connections.ConnectionsSettingsViewModel
 import org.kde.kdeconnect.plugins.presenter.PresenterSettingsScreen
 import org.kde.kdeconnect.plugins.presenter.PresenterSettingsViewModel
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardSettingsScreen
@@ -57,7 +59,6 @@ import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.DigitizerPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.LicensesKey
 import org.kde.kdeconnect.ui.navigation.MousePadPluginSettingsKey
-import org.kde.kdeconnect.ui.navigation.MprisPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.NotificationSettingsKey
 import org.kde.kdeconnect.ui.navigation.PairingKey
@@ -70,6 +71,7 @@ import org.kde.kdeconnect.ui.navigation.SettingsKey
 import org.kde.kdeconnect.ui.navigation.SftpPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.SharePluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.TelephonyPluginSettingsKey
+import org.kde.kdeconnect.ui.navigation.ConnectionsSettingsKey
 import org.kde.kdeconnect_tp.R
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -169,8 +171,12 @@ val aboutModule = module {
 
 val settingsModule = module {
     viewModel<SettingsViewModel>()
+    viewModel<ConnectionsSettingsViewModel>()
     navigation<SettingsKey> {
         SettingsScreen()
+    }
+    navigation<ConnectionsSettingsKey> {
+        ConnectionsSettingsScreen()
     }
 }
 

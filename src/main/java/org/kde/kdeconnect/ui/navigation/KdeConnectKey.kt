@@ -18,6 +18,9 @@ data object PairingKey : KdeConnectKey
 data object SettingsKey : KdeConnectKey
 
 @Serializable
+data object ConnectionsSettingsKey : KdeConnectKey
+
+@Serializable
 data object AboutKey : KdeConnectKey
 @Serializable
 data object LicensesKey : KdeConnectKey

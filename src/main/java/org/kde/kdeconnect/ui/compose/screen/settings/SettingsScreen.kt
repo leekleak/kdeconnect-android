@@ -21,7 +21,6 @@ import org.kde.kdeconnect.helpers.CreateFileResultContract
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.ui.CustomDevicesActivity
 import org.kde.kdeconnect.ui.PermissionsAlertDialogFragment
-import org.kde.kdeconnect.ui.TrustedNetworksActivity
 import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.compose.components.DialogItemSelectPreference
 import org.kde.kdeconnect.ui.compose.components.DialogTextPreference
@@ -42,6 +41,7 @@ import org.kde.kdeconnect.ui.navigation.RunCommandPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.SftpPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.SharePluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.TelephonyPluginSettingsKey
+import org.kde.kdeconnect.ui.navigation.ConnectionsSettingsKey
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -63,12 +63,6 @@ fun SettingsScreen(
         contract = ActivityResultContracts.StartActivityForResult()
     ) {
         viewModel.updateCustomDevicesCount()
-    }
-
-    val trustedNetworksLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) {
-        // No-op or update something if needed
     }
 
     val exportLogsLauncher = rememberLauncherForActivityResult(
@@ -134,9 +128,7 @@ fun SettingsScreen(
         NavigatePreference(
             title = stringResource(R.string.trusted_networks),
             summary = stringResource(R.string.trusted_networks_desc),
-            onClick = {
-                trustedNetworksLauncher.launch(Intent(context, TrustedNetworksActivity::class.java))
-            }
+            onClick = { navigator.goTo(ConnectionsSettingsKey) }
         )
 
         NavigatePreference(

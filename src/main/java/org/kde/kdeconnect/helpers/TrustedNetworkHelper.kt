@@ -26,7 +26,7 @@ class TrustedNetworkHelper(private val context: Context) {
             PreferenceManager.getDefaultSharedPreferences(context).edit {
                     putString(
                         KEY_CUSTOM_TRUSTED_NETWORKS,
-                        value.joinToString(NETWORK_SSID_DELIMITER)
+                        value.joinToString(NETWORK_SSID_DELIMITER) { it.cleanSsid() }
                     )
                 }
         }
@@ -48,17 +48,26 @@ class TrustedNetworkHelper(private val context: Context) {
             if (wifiInfo.supplicantState != SupplicantState.COMPLETED) return null
             val ssid = wifiInfo.ssid
             return when {
+                ssid == null -> null
                 ssid.equals(NOT_AVAILABLE_SSID_RESULT, ignoreCase = true) -> {
                     Log.d("TrustedNetworkHelper", "Current SSID is unknown")
                     null
                 }
                 ssid.isBlank() -> null
-                else -> ssid
+                else -> ssid.cleanSsid()
             }
         }
 
     val isTrustedNetwork: Boolean
         get() = this.allNetworksAllowed || this.currentSSID in this.trustedNetworks
+
+    private fun String.cleanSsid(): String {
+        return if (startsWith("\"") && endsWith("\"") && length >= 2) {
+            substring(1, length - 1)
+        } else {
+            this
+        }
+    }
 
     companion object {
         private const val KEY_CUSTOM_TRUSTED_NETWORKS = "trusted_network_preference"
