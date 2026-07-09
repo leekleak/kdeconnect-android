@@ -33,7 +33,6 @@ logger = "1.0.3"
 androidMaterial = "1.14.0"
 composeMaterial3 = "1.5.0-alpha23"
 media = "1.8.0"
-minaCore = "2.2.9"
 mockk = "1.14.11"
 preferenceKtx = "1.2.1"
 reactiveStreams = "1.0.4"
@@ -95,11 +94,9 @@ koin-compose-navigation3 = { module = "io.insert-koin:koin-compose-navigation3",
 koin-annotations = { module = "io.insert-koin:koin-annotations", version.ref = "koin" }
 logger = { module = "com.klinkerapps:logger", version.ref = "logger" }
 google-android-material = { module = "com.google.android.material:material", version.ref = "androidMaterial" }
-apache-mina-core = { module = "org.apache.mina:mina-core", version.ref = "minaCore" }
 apache-sshd-core = { module = "org.apache.sshd:sshd-core", version.ref = "sshdCore" }
 apache-sshd-sftp = { module = "org.apache.sshd:sshd-sftp", version.ref = "sshdCore" }
 apache-sshd-scp = { module = "org.apache.sshd:sshd-scp", version.ref = "sshdCore" }
-apache-sshd-mina = { module = "org.apache.sshd:sshd-mina", version.ref = "sshdCore" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 reactive-streams = { module = "org.reactivestreams:reactive-streams", version.ref = "reactiveStreams" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
