@@ -34,8 +34,8 @@ import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardSettingsScreen
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardSettingsViewModel
 import org.kde.kdeconnect.plugins.runcommand.RunCommandSettingsScreen
 import org.kde.kdeconnect.plugins.runcommand.RunCommandSettingsViewModel
-import org.kde.kdeconnect.plugins.sftp.SftpSettingsScreen
-import org.kde.kdeconnect.plugins.sftp.SftpSettingsViewModel
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.filesystem.SftpSettingsScreen
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.filesystem.SftpSettingsViewModel
 import org.kde.kdeconnect.plugins.share.ShareSettingsScreen
 import org.kde.kdeconnect.plugins.share.ShareSettingsViewModel
 import org.kde.kdeconnect.ui.about.getApplicationAboutData

@@ -1,13 +1,6 @@
-/*
- * SPDX-FileCopyrightText: 2024 Albert Vaca Cintora <albertvaka@gmail.com>
- *
- * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
-*/
-
-package org.kde.kdeconnect.plugins.sftp
+package org.kde.kdeconnect.ui.compose.screen.settings.advanced.filesystem
 
 import android.content.Intent
-import android.net.Uri
 import android.provider.DocumentsContract
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -37,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.kde.kdeconnect.helpers.StorageHelper
+import org.kde.kdeconnect.plugins.sftp.SftpPlugin
 import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.Preference
@@ -62,7 +56,6 @@ fun SftpSettingsScreen(
                     Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                 )
             }
-            // TODO: show error toast or snackbar if error != null
         }
     }
 

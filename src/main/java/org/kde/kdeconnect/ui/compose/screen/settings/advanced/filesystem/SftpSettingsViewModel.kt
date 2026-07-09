@@ -1,10 +1,4 @@
-/*
- * SPDX-FileCopyrightText: 2024 Albert Vaca Cintora <albertvaka@gmail.com>
- *
- * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
-*/
-
-package org.kde.kdeconnect.plugins.sftp
+package org.kde.kdeconnect.ui.compose.screen.settings.advanced.filesystem
 
 import android.app.Application
 import android.content.Context
@@ -22,6 +16,7 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.plugins.Plugin
+import org.kde.kdeconnect.plugins.sftp.SftpPlugin
 import org.kde.kdeconnect_tp.R
 
 data class SftpSettingsUiState(
@@ -91,7 +86,6 @@ class SftpSettingsViewModel(
             putString(key, jsonArray.toString())
         }
 
-        // Notify plugins to reload
         KdeConnect.getInstance().devices.values.forEach { it.launchBackgroundReloadPluginsFromSettings() }
     }
 
