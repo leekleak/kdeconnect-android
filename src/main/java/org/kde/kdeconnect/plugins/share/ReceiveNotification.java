@@ -144,7 +144,7 @@ class ReceiveNotification {
         Intent intent = new Intent(Intent.ACTION_VIEW);
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.setType(mimeType);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && "file".equals(destinationUri.getScheme())) {
+        if ("file".equals(destinationUri.getScheme())) {
             //Nougat and later require "content://" uris instead of "file://" uris
             File file = new File(destinationUri.getPath());
             Uri contentUri = FileProvider.getUriForFile(device.getContext(), BuildConfig.APPLICATION_ID+".fileprovider", file);

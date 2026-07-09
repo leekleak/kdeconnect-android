@@ -109,7 +109,7 @@ class BackgroundService : Service() {
         // Register screen on listener
         val filter = IntentFilter(Intent.ACTION_SCREEN_ON)
         // See: https://developer.android.com/reference/android/net/ConnectivityManager.html#CONNECTIVITY_ACTION
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
             filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION)
         }
         registerReceiver(KdeConnectBroadcastReceiver(), filter)
@@ -179,11 +179,6 @@ class BackgroundService : Service() {
             setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             setAutoCancel(false)
             setGroup("BackgroundService")
-        }
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            // Pre-oreo, the notification will have an empty title line without this
-            notification.setContentTitle(getString(R.string.kde_connect))
         }
 
         if (connectedDevices.isEmpty()) {

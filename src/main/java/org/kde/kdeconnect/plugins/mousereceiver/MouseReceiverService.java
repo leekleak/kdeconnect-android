@@ -147,7 +147,7 @@ public class MouseReceiverService extends AccessibilityService {
 
         instance.hideAfter5Seconds();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && instance.isSwiping()) {
+        if (instance.isSwiping()) {
             return instance.continueSwipe(fromX, fromY);
         }
 
@@ -160,7 +160,6 @@ public class MouseReceiverService extends AccessibilityService {
         return move(x - instance.getX(), y - instance.getY());
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     private static GestureDescription createClick(int x, int y, int duration) {
         Path clickPath = new Path();
         clickPath.moveTo(x, y);
@@ -171,32 +170,28 @@ public class MouseReceiverService extends AccessibilityService {
         return clickBuilder.build();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     public static boolean click() {
         if (instance == null) return false;
         // Log.i("MouseReceiverService", "x: " + instance.getX() + " y:" + instance.getY());
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && instance.isSwiping()) {
+        if (instance.isSwiping()) {
             return instance.stopSwipe();
         }
 
         return click(instance.getX(), instance.getY());
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     public static boolean click(int x, int y) {
         if (instance == null) return false;
         return instance.dispatchGesture(createClick(x, y, 1 /*ms*/), null, null);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     public static boolean longClick() {
         if (instance == null) return false;
         return instance.dispatchGesture(createClick(instance.getX(), instance.getY(),
                 ViewConfiguration.getLongPressTimeout()), null, null);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     public static boolean longClickSwipe() {
         if (instance == null) return false;
 
@@ -211,7 +206,6 @@ public class MouseReceiverService extends AccessibilityService {
         return swipeStoke != null;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     private boolean startSwipe() {
         assert swipeStoke == null;
         Path path = new Path();
@@ -223,7 +217,6 @@ public class MouseReceiverService extends AccessibilityService {
         return dispatchGesture(builder.build(), null, null);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     private boolean continueSwipe(int fromX, int fromY) {
         Path path = new Path();
         path.moveTo(fromX, fromY);
@@ -234,7 +227,6 @@ public class MouseReceiverService extends AccessibilityService {
         return dispatchGesture(builder.build(), null, null);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     public boolean stopSwipe() {
         Path path = new Path();
         path.moveTo(getX(), getY());

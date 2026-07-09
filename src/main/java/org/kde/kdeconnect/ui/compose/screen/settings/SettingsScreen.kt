@@ -95,25 +95,17 @@ fun SettingsScreen(
             onValueChanged = { viewModel.setTheme(it) }
         )
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Preference(
-                title = stringResource(R.string.setting_persistent_notification_oreo),
-                summary = stringResource(R.string.setting_persistent_notification_description),
-                onClick = {
-                    val intent = Intent().apply {
-                        action = "android.settings.APP_NOTIFICATION_SETTINGS"
-                        putExtra("android.provider.extra.APP_PACKAGE", context.packageName)
-                    }
-                    context.startActivity(intent)
+        Preference(
+            title = stringResource(R.string.setting_persistent_notification_oreo),
+            summary = stringResource(R.string.setting_persistent_notification_description),
+            onClick = {
+                val intent = Intent().apply {
+                    action = "android.settings.APP_NOTIFICATION_SETTINGS"
+                    putExtra("android.provider.extra.APP_PACKAGE", context.packageName)
                 }
-            )
-        } else {
-            SwitchPreference(
-                title = stringResource(R.string.setting_persistent_notification),
-                value = uiState.persistentNotificationEnabled,
-                onValueChanged = { viewModel.setPersistentNotificationEnabled(it) }
-            )
-        }
+                context.startActivity(intent)
+            }
+        )
 
         CategoryTitleTextSmall(stringResource(R.string.advanced))
         NavigatePreference(

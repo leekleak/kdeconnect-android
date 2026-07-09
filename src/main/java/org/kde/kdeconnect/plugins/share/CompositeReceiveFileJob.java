@@ -172,15 +172,13 @@ public class CompositeReceiveFileJob extends BackgroundJob<Device, Void> {
                     publishFile(fileDocument, 0);
                 }
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    if (currentNetworkPacket.has("lastModified")) {
-                        try {
-                            long lastModified = currentNetworkPacket.getLong("lastModified");
-                            Files.setLastModifiedTime(Paths.get(fileDocument.getUri().getPath()), FileTime.fromMillis(lastModified));
-                        } catch (Exception e) {
-                            Log.e("SharePlugin", "Can't set date on file");
-                            e.printStackTrace();
-                        }
+                if (currentNetworkPacket.has("lastModified")) {
+                    try {
+                        long lastModified = currentNetworkPacket.getLong("lastModified");
+                        Files.setLastModifiedTime(Paths.get(fileDocument.getUri().getPath()), FileTime.fromMillis(lastModified));
+                    } catch (Exception e) {
+                        Log.e("SharePlugin", "Can't set date on file");
+                        e.printStackTrace();
                     }
                 }
 
@@ -365,15 +363,11 @@ public class CompositeReceiveFileJob extends BackgroundJob<Device, Void> {
     private void openFile(DocumentFile fileDocument) {
         String mimeType = FilesHelper.getMimeTypeFromFile(fileDocument.getName());
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            //Nougat and later require "content://" uris instead of "file://" uris
-            File file = new File(fileDocument.getUri().getPath());
-            Uri contentUri = FileProvider.getUriForFile(getDevice().getContext(), "org.kde.kdeconnect_tp.fileprovider", file);
-            intent.setDataAndType(contentUri, mimeType);
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
-        } else {
-            intent.setDataAndType(fileDocument.getUri(), mimeType);
-        }
+        //Nougat and later require "content://" uris instead of "file://" uris
+        File file = new File(fileDocument.getUri().getPath());
+        Uri contentUri = FileProvider.getUriForFile(getDevice().getContext(), "org.kde.kdeconnect_tp.fileprovider", file);
+        intent.setDataAndType(contentUri, mimeType);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
 
         // Open files for KDE Itinerary explicitly because Android's activity resolution sucks
         if (fileDocument.getName().endsWith(".itinerary")) {

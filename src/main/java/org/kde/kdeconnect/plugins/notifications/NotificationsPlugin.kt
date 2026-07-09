@@ -193,11 +193,9 @@ class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener 
                 // HACK: Android low battery notification are posted again every few seconds. Ignore them, as we already have a battery indicator.
                 return
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if ("MediaOngoingActivity" == notification.channelId) {
-                    // HACK: Samsung OneUI sends this notification when media playback is started. Ignore it, as this is handled by Mpris plugin
-                    return
-                }
+            if ("MediaOngoingActivity" == notification.channelId) {
+                // HACK: Samsung OneUI sends this notification when media playback is started. Ignore it, as this is handled by Mpris plugin
+                return
             }
         }
 
@@ -363,7 +361,7 @@ class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener 
     }
 
     private fun extractConversation(messagingStyle: NotificationCompat.MessagingStyle?): JSONArray {
-        if (messagingStyle == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+        if (messagingStyle == null) {
             return JSONArray()
         }
         val messages = messagingStyle.messages

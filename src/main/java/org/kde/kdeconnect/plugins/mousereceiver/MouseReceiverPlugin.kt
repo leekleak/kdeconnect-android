@@ -21,7 +21,6 @@ import kotlin.math.ceil
 import kotlin.math.floor
 
 @LoadablePlugin
-@RequiresApi(api = Build.VERSION_CODES.N)
 class MouseReceiverPlugin : Plugin() {
     override fun checkRequiredPermissions(): Boolean {
         return MouseReceiverService.instance != null
@@ -92,16 +91,10 @@ class MouseReceiverPlugin : Plugin() {
                 isSingleHold -> {
                     // For drag'n drop
                     // Log.i("MouseReceiverPlugin", "singleHold")
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        return MouseReceiverService.longClickSwipe()
-                    } else {
-                        return MouseReceiverService.longClick()
-                    }
+                    return MouseReceiverService.longClickSwipe()
                 }
                 isSingleRelease -> {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        return MouseReceiverService.instance.stopSwipe()
-                    }
+                    return MouseReceiverService.instance.stopSwipe()
                 }
                 isScroll -> {
                     // Log.i("MouseReceiverPlugin", "scroll dx: $dx dy: $dy")

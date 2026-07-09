@@ -66,7 +66,6 @@ class ConnectivityListener(context: Context) {
     }
 
     val subscriptionsListener: OnSubscriptionsChangedListener by lazy {
-        @RequiresApi(Build.VERSION_CODES.N)
         object : OnSubscriptionsChangedListener() {
             override fun onSubscriptionsChanged() {
                 val nextSubs = getActiveSubscriptionIDs().toSet()
@@ -134,18 +133,12 @@ class ConnectivityListener(context: Context) {
 
     private fun startListening() {
         runOnMainThread {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                // Multi-SIM supported on Nougat+
-                val sm = ContextCompat.getSystemService(context, SubscriptionManager::class.java)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    sm?.addOnSubscriptionsChangedListener(context.mainExecutor, subscriptionsListener)
-                } else {
-                    sm?.addOnSubscriptionsChangedListener(subscriptionsListener)
-                }
+            // Multi-SIM supported on Nougat+
+            val sm = ContextCompat.getSystemService(context, SubscriptionManager::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                sm?.addOnSubscriptionsChangedListener(context.mainExecutor, subscriptionsListener)
             } else {
-                // Fallback to single SIM
-                connectivityListeners.put(0, createListenerForSubscription(0))
-                states.put(0, SubscriptionState())
+                sm?.addOnSubscriptionsChangedListener(subscriptionsListener)
             }
         }
     }
@@ -153,10 +146,8 @@ class ConnectivityListener(context: Context) {
     private fun stopListening() {
         runOnMainThread {
             val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                val sm = ContextCompat.getSystemService(context, SubscriptionManager::class.java)
-                sm?.removeOnSubscriptionsChangedListener(subscriptionsListener)
-            }
+            val sm = ContextCompat.getSystemService(context, SubscriptionManager::class.java)
+            sm?.removeOnSubscriptionsChangedListener(subscriptionsListener)
             for (subID in connectivityListeners.keys) {
                 Log.i(TAG, "Removed subscription ID $subID")
                 tm.listen(connectivityListeners[subID], PhoneStateListener.LISTEN_NONE)

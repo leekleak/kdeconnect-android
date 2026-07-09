@@ -323,18 +323,8 @@ class Device : PacketReceiver {
         // FilesHelper.LogOpenFileCount();
         links.add(link)
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            // sorting CopyOnWriteArrayList is not supported in SDK < 26 (throws UnsupportedOperationException)
-            val copy = links.toMutableList()
-            copy.sortWith { o1, o2 ->
-                o2.linkProvider.priority compareTo o1.linkProvider.priority
-            }
-            links.clear()
-            links.addAll(copy)
-        } else {
-            links.sortWith { o1, o2 ->
-                o2.linkProvider.priority compareTo o1.linkProvider.priority
-            }
+        links.sortWith { o1, o2 ->
+            o2.linkProvider.priority compareTo o1.linkProvider.priority
         }
 
         link.addPacketReceiver(this)

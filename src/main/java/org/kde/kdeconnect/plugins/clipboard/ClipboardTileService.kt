@@ -15,7 +15,6 @@ import androidx.core.service.quicksettings.PendingIntentActivityWrapper
 import androidx.core.service.quicksettings.TileServiceCompat
 import org.kde.kdeconnect.KdeConnect
 
-@RequiresApi(Build.VERSION_CODES.N)
 class ClipboardTileService : TileService() {
     override fun onClick() {
         super.onClick()

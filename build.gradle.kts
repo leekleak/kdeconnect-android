@@ -1,16 +1,7 @@
-import com.android.build.api.instrumentation.AsmClassVisitorFactory
-import com.android.build.api.instrumentation.ClassContext
-import com.android.build.api.instrumentation.ClassData
-import com.android.build.api.instrumentation.InstrumentationParameters
-import com.android.build.api.instrumentation.InstrumentationScope
 import com.github.jk1.license.LicenseReportExtension
 import com.github.jk1.license.render.ReportRenderer
 import com.github.jk1.license.render.TextReportRenderer
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes.CHECKCAST
-import org.objectweb.asm.Opcodes.INVOKESTATIC
 
 buildscript {
     dependencies {
@@ -42,7 +33,7 @@ android {
     compileSdk = 37
     defaultConfig {
         applicationId = "org.kde.kdeconnect_tp"
-        minSdk = 23
+        minSdk = 26
         targetSdk = 37
         versionCode = 13509
         versionName = "1.35.9"
@@ -86,7 +77,6 @@ android {
     buildTypes {
         getByName("debug") {
             isMinifyEnabled = false
-            isShrinkResources = false
             signingConfig = signingConfigs.getByName("debug")
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
@@ -102,135 +92,12 @@ android {
     }
 }
 
-/**
- * Fix PosixFilePermission class type check issue.
- *
- * It fixed the class cast exception when lib desugar enabled and minSdk < 26.
- */
-abstract class FixPosixFilePermissionClassVisitorFactory :
-    AsmClassVisitorFactory<FixPosixFilePermissionClassVisitorFactory.Params> {
-
-    override fun createClassVisitor(
-        classContext: ClassContext,
-        nextClassVisitor: ClassVisitor
-    ): ClassVisitor {
-        return object : ClassVisitor(instrumentationContext.apiVersion.get(), nextClassVisitor) {
-            override fun visitMethod(
-                access: Int,
-                name: String?,
-                descriptor: String?,
-                signature: String?,
-                exceptions: Array<out String>?
-            ): MethodVisitor {
-                if (name == "attributesToPermissions") { // org.apache.sshd.sftp.common.SftpHelper.attributesToPermissions
-                    return object : MethodVisitor(
-                        instrumentationContext.apiVersion.get(),
-                        super.visitMethod(access, name, descriptor, signature, exceptions)
-                    ) {
-                        override fun visitTypeInsn(opcode: Int, type: String?) {
-                            // We need to prevent Android Desugar modifying the `PosixFilePermission` classname.
-                            //
-                            // Android Desugar will replace `CHECKCAST java/nio/file/attribute/PosixFilePermission`
-                            // to `CHECKCAST j$/nio/file/attribute/PosixFilePermission`.
-                            // We need to replace it with `CHECKCAST java/lang/Enum` to prevent Android Desugar from modifying it.
-                            if (opcode == CHECKCAST && type == "java/nio/file/attribute/PosixFilePermission") {
-                                println("Bypass PosixFilePermission type check success.")
-                                // `Enum` is the superclass of `PosixFilePermission`.
-                                // Due to `Object` is not the superclass of `Enum`, we need to use `Enum` instead of `Object`.
-                                super.visitTypeInsn(opcode, "java/lang/Enum")
-                            } else {
-                                super.visitTypeInsn(opcode, type)
-                            }
-                        }
-                    }
-                }
-                return super.visitMethod(access, name, descriptor, signature, exceptions)
-            }
-        }
-    }
-
-    override fun isInstrumentable(classData: ClassData): Boolean {
-        return (classData.className == "org.apache.sshd.sftp.common.SftpHelper").also {
-            if (it) println("SftpHelper Found! Instrumenting...")
-        }
-    }
-
-    interface Params : InstrumentationParameters
-}
-
-/**
- * Collections.unmodifiableXXX is not exist when Android API level is lower than 26.
- * So we replace the call to Collections.unmodifiableXXX with the original collection by removing the call.
- */
-abstract class FixCollectionsClassVisitorFactory :
-    AsmClassVisitorFactory<FixCollectionsClassVisitorFactory.Params> {
-    override fun createClassVisitor(
-        classContext: ClassContext,
-        nextClassVisitor: ClassVisitor
-    ): ClassVisitor {
-        return object : ClassVisitor(instrumentationContext.apiVersion.get(), nextClassVisitor) {
-            override fun visitMethod(
-                access: Int,
-                name: String?,
-                descriptor: String?,
-                signature: String?,
-                exceptions: Array<out String>?
-            ): MethodVisitor {
-                return object : MethodVisitor(
-                    instrumentationContext.apiVersion.get(),
-                    super.visitMethod(access, name, descriptor, signature, exceptions)
-                ) {
-                    override fun visitMethodInsn(
-                        opcode: Int,
-                        type: String?,
-                        name: String?,
-                        descriptor: String?,
-                        isInterface: Boolean
-                    ) {
-                        val backportClass = "org/kde/kdeconnect/helpers/CollectionsBackport"
-
-                        if (opcode == INVOKESTATIC && type == "java/util/Collections") {
-                            val replaceRules = mapOf(
-                                "unmodifiableNavigableSet" to "(Ljava/util/NavigableSet;)Ljava/util/NavigableSet;",
-                                "unmodifiableSet" to "(Ljava/util/Set;)Ljava/util/Set;",
-                                "unmodifiableNavigableMap" to "(Ljava/util/NavigableMap;)Ljava/util/NavigableMap;",
-                                "emptyNavigableMap" to "()Ljava/util/NavigableMap;")
-                            if (name in replaceRules && descriptor == replaceRules[name]) {
-                                super.visitMethodInsn(opcode, backportClass, name, descriptor, isInterface)
-                                val calleeClass = classContext.currentClassData.className
-                                println("Replace Collections.$name call with CollectionsBackport.$name from $calleeClass success.")
-                                return
-                            }
-                        }
-                        super.visitMethodInsn(opcode, type, name, descriptor, isInterface)
-                    }
-                }
-            }
-        }
-    }
-
-    override fun isInstrumentable(classData: ClassData): Boolean {
-        return classData.className.startsWith("org.apache.sshd") // We only need to fix the Apache SSHD library
-    }
-
-    interface Params : InstrumentationParameters
-}
-
 ksp {
     arg("com.albertvaka.classindexksp.annotations", "org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin")
 }
 
 androidComponents {
     onVariants { variant ->
-        variant.instrumentation.transformClassesWith(
-            FixPosixFilePermissionClassVisitorFactory::class.java,
-            InstrumentationScope.ALL
-        ) { }
-        variant.instrumentation.transformClassesWith(
-            FixCollectionsClassVisitorFactory::class.java,
-            InstrumentationScope.ALL
-        ) { }
-
         // When the "Generate Signed APK/Bundle" wizard is used, copy the source map to the output directory
         val variantName = variant.name
         val capitalized = variantName.replaceFirstChar { it.uppercase() }
@@ -304,8 +171,6 @@ dependencies {
     implementation(libs.apache.sshd.core)
     implementation(libs.apache.sshd.sftp)
     implementation(libs.apache.sshd.scp)
-    implementation(libs.apache.sshd.mina)
-    implementation(libs.apache.mina.core)
 
     implementation(libs.bcpkix.jdk15on) //For SSL certificate generation
 

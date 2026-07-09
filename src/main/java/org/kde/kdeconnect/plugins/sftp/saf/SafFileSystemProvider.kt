@@ -74,13 +74,6 @@ class SafFileSystemProvider(
     ): SeekableByteChannel {
         val channel = newFileChannel(path, options, *attrs_)
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            return convertMaybeLegacyFileChannelFromLibraryFunction.invoke(
-                null,
-                channel
-            ) as SeekableByteChannel
-        }
-
         return channel
     }
 
@@ -280,9 +273,7 @@ class SafFileSystemProvider(
         val destTreeDocumentId = DocumentsContract.getTreeDocumentId(destParentUri)
 
         // 2. If source and dest are in the same tree, and the API level is high enough, move the file
-        if (sourceTreeDocumentId == destTreeDocumentId &&
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
-        ) {
+        if (sourceTreeDocumentId == destTreeDocumentId) {
             val newUri = DocumentsContract.moveDocument(
                 context.contentResolver,
                 sourceUri,

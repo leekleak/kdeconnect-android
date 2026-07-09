@@ -344,7 +344,7 @@ private fun DeviceCard(
                     tint = colorScheme.onPrimary
                 )
             }
-            Column {
+            Column(Modifier.weight(1f)) {
                 val deviceReal = remember { KdeConnect.getInstance().getDevice(device.id) }
                 Text(
                     fontSize = 42.sp,
@@ -361,7 +361,6 @@ private fun DeviceCard(
                     }
                 }
             }
-            Spacer(Modifier.weight(1f))
             IconButton (
                 modifier = Modifier
                     .fillMaxHeight()

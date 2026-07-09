@@ -76,11 +76,7 @@ object NotificationHelper {
     }
 
     fun isPersistentNotificationEnabled(context: Context?): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            return true
-        }
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        return prefs.getBoolean("persistentNotification", false)
+        return true
     }
 
     object Channels {

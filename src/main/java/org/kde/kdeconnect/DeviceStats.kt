@@ -26,7 +26,6 @@ object DeviceStats {
     private val eventsByDevice: MutableMap<String, PacketStats> = HashMap<String, PacketStats>()
     private var nextCleanup = System.currentTimeMillis() + CLEANUP_INTERVAL_MILLIS
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     fun getStatsForDevice(deviceId: String): String {
         cleanupIfNeeded()
 
