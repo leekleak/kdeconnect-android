@@ -54,6 +54,7 @@ import org.kde.kdeconnect.ui.compose.screen.settings.SettingsScreen
 import org.kde.kdeconnect.ui.compose.screen.settings.SettingsViewModel
 import org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages.TelephonySettingsScreen
 import org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages.TelephonySettingsViewModel
+import org.kde.kdeconnect.settings.TelephonySettingsDataStore
 import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.DigitizerKey
@@ -170,6 +171,7 @@ val aboutModule = module {
 }
 
 val settingsModule = module {
+    single<TelephonySettingsDataStore>()
     viewModel<SettingsViewModel>()
     viewModel<ConnectionsSettingsViewModel>()
     navigation<SettingsKey> {

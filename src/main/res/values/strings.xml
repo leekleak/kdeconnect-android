@@ -493,13 +493,13 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
         <item>After four messages</item>
         <item>After five messages</item>
     </string-array>
-    <string-array name="convert_to_mms_after_values" translatable="false">
+    <integer-array name="convert_to_mms_after_values" translatable="false">
         <item>1</item>
         <item>2</item>
         <item>3</item>
         <item>4</item>
         <item>5</item>
-    </string-array>
+    </integer-array>
 
     <string name="theme_dialog_title">Choose theme</string>
     <string-array name="theme_list">

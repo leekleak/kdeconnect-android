@@ -13,12 +13,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.database.ContentObserver
 import android.os.Bundle
 import android.os.Handler
-import android.preference.PreferenceManager
 import android.provider.Telephony
 import android.telephony.PhoneNumberUtils
 import android.telephony.SmsMessage
@@ -46,9 +44,10 @@ import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
 import org.kde.kdeconnect.plugins.sms.SmsMmsUtils.partIdToMessageAttachmentPacket
 import org.kde.kdeconnect.plugins.sms.SmsMmsUtils.sendMessage
 import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin
-import org.kde.kdeconnect.ui.PluginSettingsFragment
+import org.kde.kdeconnect.settings.TelephonySettingsDataStore
 import org.kde.kdeconnect_tp.BuildConfig
 import org.kde.kdeconnect_tp.R
+import org.koin.core.context.GlobalContext
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
@@ -280,7 +279,8 @@ class SMSPlugin : Plugin() {
             }
             val attachedFiles: List<SMSHelper.Attachment> = jsonArrayToAttachmentsList(np.getJSONArray("attachments"))
 
-            sendMessage(context, textMessage, attachedFiles, addressList.toMutableList(), subID.toInt())
+            val telephonyDataStore = GlobalContext.get().get<TelephonySettingsDataStore>()
+            sendMessage(context, textMessage, attachedFiles, addressList.toMutableList(), subID.toInt(), telephonyDataStore)
 
             true
         }
@@ -344,15 +344,10 @@ class SMSPlugin : Plugin() {
     }
 
     private fun isNumberBlocked(number: String?): Boolean {
-        val sharedPref: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-        val blockedNumbers: Array<String> =
-            sharedPref.getString(KEY_PREF_BLOCKED_NUMBERS, "")!!.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        val telephonySettings = org.koin.core.context.GlobalContext.get().get<TelephonySettingsDataStore>()
+        val blockedNumbers = telephonySettings.getBlockedNumbersBlockingBlocking()
 
-        for (s: String in blockedNumbers) {
-            if (PhoneNumberUtils.compare(number, s)) return true
-        }
-
-        return false
+        return blockedNumbers.any { s -> PhoneNumberUtils.compare(number, s) }
     }
 
     override val supportedPacketTypes: Array<String> = arrayOf(
@@ -492,8 +487,6 @@ class SMSPlugin : Plugin() {
          * "payload":               // Actual attachment file to be transferred
          */
         private const val PACKET_TYPE_SMS_ATTACHMENT_FILE: String = "kdeconnect.sms.attachment_file"
-
-        private const val KEY_PREF_BLOCKED_NUMBERS: String = "telephony_blocked_numbers"
 
         /**
          * Construct a proper packet of [PACKET_TYPE_SMS_MESSAGE] from the passed messages

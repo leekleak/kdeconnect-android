@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.integerArrayResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
@@ -135,7 +136,7 @@ private fun MMSComponent(
     uiState: TelephonySettingsUiState,
 ) {
     val convertToMmsAfterEntries = stringArrayResource(R.array.convert_to_mms_after_entries)
-    val convertToMmsAfterValues = stringArrayResource(R.array.convert_to_mms_after_values)
+    val convertToMmsAfterValues = integerArrayResource(R.array.convert_to_mms_after_values)
     val convertToMmsAfterOptions = convertToMmsAfterValues.zip(convertToMmsAfterEntries)
 
     SwitchPreference(
@@ -157,7 +158,7 @@ private fun MMSComponent(
         icon = painterResource(R.drawable.convert_to_text),
         value = uiState.convertToMmsAfter,
         values = convertToMmsAfterOptions,
-        onValueChanged = viewModel::setConvertToMmsAfter
+        onValueChanged = { viewModel.setConvertToMmsAfter(it) }
     )
 }
 

@@ -6,14 +6,10 @@
 
 package org.kde.kdeconnect.plugins.findmyphone;
 
-import static org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages.TelephonySettingsViewModel.KEY_PREF_FLASHLIGHT;
-import static org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages.TelephonySettingsViewModel.KEY_PREF_RINGTONE;
-
 import android.Manifest;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -26,7 +22,6 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
-import androidx.preference.PreferenceManager;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.kde.kdeconnect.helpers.DeviceHelper;
@@ -35,7 +30,9 @@ import org.kde.kdeconnect.helpers.NotificationHelper;
 import org.kde.kdeconnect.NetworkPacket;
 import org.kde.kdeconnect.plugins.Plugin;
 import org.kde.kdeconnect.plugins.PluginFactory;
+import org.kde.kdeconnect.settings.TelephonySettingsDataStore;
 import org.kde.kdeconnect_tp.R;
+import org.koin.java.KoinJavaComponent;
 
 import java.io.IOException;
 
@@ -78,9 +75,10 @@ public class FindMyPhonePlugin extends Plugin {
         powerManager = ContextCompat.getSystemService(context, PowerManager.class);
         flashlightManager = new FlashlightManager(context);
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        TelephonySettingsDataStore dataStore = KoinJavaComponent.get(TelephonySettingsDataStore.class);
+
         Uri ringtone;
-        String ringtoneString = prefs.getString(KEY_PREF_RINGTONE, "");
+        String ringtoneString = dataStore.getRingtoneUriBlockingBlocking();
         if (ringtoneString.isEmpty()) {
             ringtone = Settings.System.DEFAULT_RINGTONE_URI;
         } else {
@@ -243,7 +241,7 @@ public class FindMyPhonePlugin extends Plugin {
     }
 
     private boolean isFlashlightEnabledInSettings() {
-       SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-       return prefs.getBoolean(KEY_PREF_FLASHLIGHT, false);
+        TelephonySettingsDataStore dataStore = KoinJavaComponent.get(TelephonySettingsDataStore.class);
+        return dataStore.getFlashlightEnabledBlockingBlocking();
     }
 }

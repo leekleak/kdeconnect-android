@@ -10,12 +10,10 @@ import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
-import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.provider.Telephony
 import android.telephony.SmsManager
 import android.text.TextUtils
@@ -44,11 +42,7 @@ import org.kde.kdeconnect.helpers.SMSHelper
 import org.kde.kdeconnect.helpers.TelephonyHelper
 import org.kde.kdeconnect.helpers.TelephonyHelper.LocalPhoneNumber
 import org.kde.kdeconnect.NetworkPacket
-import org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages.TelephonySettingsViewModel.Companion.KEY_PREF_CONVERT_TO_MMS
-import org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages.TelephonySettingsViewModel.Companion.KEY_PREF_CONVERT_TO_MMS_DEFAULT
-import org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages.TelephonySettingsViewModel.Companion.KEY_PREF_MMS_GROUP
-import org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages.TelephonySettingsViewModel.Companion.KEY_PREF_MMS_LONG_TEXT
-import org.kde.kdeconnect_tp.R
+import org.kde.kdeconnect.settings.TelephonySettingsDataStore
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -92,10 +86,10 @@ object SmsMmsUtils {
         return sendingPhoneNumber
     }
 
-    private fun getTransactionSettings(context: Context, subID: Int, prefs: SharedPreferences): Settings {
-        val longTextAsMms = prefs.getBoolean(KEY_PREF_MMS_LONG_TEXT, false)
-        val groupMessageAsMms = prefs.getBoolean(KEY_PREF_MMS_GROUP, true)
-        val sendLongAsMmsAfter = prefs.getString(KEY_PREF_CONVERT_TO_MMS, KEY_PREF_CONVERT_TO_MMS_DEFAULT)!!.toInt()
+    private fun getTransactionSettings(context: Context, subID: Int, telephonyDataStore: TelephonySettingsDataStore): Settings {
+        val longTextAsMms = telephonyDataStore.getLongTextAsMmsBlockingBlocking()
+        val groupMessageAsMms = telephonyDataStore.getGroupMessageAsMmsBlockingBlocking()
+        val sendLongAsMmsAfter = telephonyDataStore.getConvertToMmsAfterBlockingBlocking()
 
         val settings = Settings()
 
@@ -130,9 +124,7 @@ object SmsMmsUtils {
      * @param subID         Note that here subID is of type int and not long because klinker library requires it as int
      * I don't really know the exact reason why they implemented it as int instead of long
      */
-    fun sendMessage(context: Context, textMessage: String?, attachedFiles: List<SMSHelper.Attachment>, addressList: MutableList<SMSHelper.Address>, subID: Int) {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-
+    fun sendMessage(context: Context, textMessage: String?, attachedFiles: List<SMSHelper.Attachment>, addressList: MutableList<SMSHelper.Address>, subID: Int, telephonyDataStore: TelephonySettingsDataStore) {
         val sendingPhoneNumber: LocalPhoneNumber = getSendingPhoneNumber(context, subID)
         if (sendingPhoneNumber.number != null) {
             // If the message is going to more than one target (to allow the user to send a message to themselves)
@@ -143,7 +135,7 @@ object SmsMmsUtils {
         }
 
         try {
-            val settings = getTransactionSettings(context, subID, prefs)
+            val settings = getTransactionSettings(context, subID, telephonyDataStore)
 
             val transaction = Transaction(context, settings)
 

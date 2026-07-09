@@ -12,7 +12,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.media.AudioManager
-import android.preference.PreferenceManager
 import android.telephony.PhoneNumberUtils
 import android.telephony.TelephonyManager
 import android.util.Log
@@ -21,7 +20,9 @@ import org.kde.kdeconnect.helpers.ContactsHelper
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
+import org.kde.kdeconnect.settings.TelephonySettingsDataStore
 import org.kde.kdeconnect_tp.R
+import org.koin.core.context.GlobalContext
 import java.util.Timer
 import java.util.TimerTask
 
@@ -179,8 +180,8 @@ class TelephonyPlugin : Plugin() {
     }
 
     private fun isNumberBlocked(number: String?): Boolean {
-        val sharedPref = PreferenceManager.getDefaultSharedPreferences(context)
-        val blockedNumbers: List<String> = sharedPref.getString(KEY_PREF_BLOCKED_NUMBERS, "")!!.split("\n").dropLastWhile { it.isEmpty() }
+        val telephonySettings = GlobalContext.get().get<TelephonySettingsDataStore>()
+        val blockedNumbers = telephonySettings.getBlockedNumbersBlockingBlocking()
 
         return blockedNumbers.any { s -> PhoneNumberUtils.compare(number, s) }
     }
@@ -214,7 +215,5 @@ class TelephonyPlugin : Plugin() {
          * The body should be empty
          */
         private const val PACKET_TYPE_TELEPHONY_REQUEST_MUTE = "kdeconnect.telephony.request_mute"
-
-        private const val KEY_PREF_BLOCKED_NUMBERS = "telephony_blocked_numbers"
     }
 }

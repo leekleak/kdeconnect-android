@@ -126,6 +126,7 @@ androidComponents {
 
 dependencies {
     implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.datastore.preferences)
     // It has a bug that causes a crash when using PosixFilePermission and minSdk < 26.
     // It has been used in SSHD Core.
     // We have taken a workaround to fix it.
