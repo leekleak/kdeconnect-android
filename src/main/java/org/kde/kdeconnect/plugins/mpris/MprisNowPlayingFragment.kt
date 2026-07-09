@@ -9,7 +9,6 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
-import android.preference.PreferenceManager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
@@ -34,6 +33,7 @@ import org.kde.kdeconnect.helpers.VideoUrlsHelper
 import org.kde.kdeconnect.helpers.calculateNewVolume
 import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.plugins.mpris.MprisPlugin.MprisPlayer
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.notifications.NotificationSettingsViewModel.Companion.MPRIS_TIME_DEFAULT
 import org.kde.kdeconnect_tp.R
 import org.kde.kdeconnect_tp.databinding.MprisControlBinding
 import org.kde.kdeconnect_tp.databinding.MprisNowPlayingBinding
@@ -73,11 +73,7 @@ class MprisNowPlayingFragment : Fragment(), VolumeKeyListener {
 
         connectToPlugin()
 
-        val prefs = PreferenceManager.getDefaultSharedPreferences(requireContext())
-        val intervalTime = prefs.getString(
-            getString(R.string.mpris_time_key),
-            getString(R.string.mpris_time_default)
-        )!!.toInt()
+        val intervalTime = MPRIS_TIME_DEFAULT
 
         performActionOnClick(mprisControlBinding.loopButton) { p: MprisPlayer ->
             when (p.loopStatus) {

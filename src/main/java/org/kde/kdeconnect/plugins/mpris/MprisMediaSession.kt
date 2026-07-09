@@ -34,6 +34,7 @@ import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumeProvider
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumeProvider.Companion.currentProvider
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumeProvider.ProviderStateListener
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.notifications.NotificationSettingsViewModel.Companion.KEY_PREF_MPRIS_NOTIF
 import org.kde.kdeconnect_tp.R
 
 /**
@@ -232,7 +233,7 @@ class MprisMediaSession : OnSharedPreferenceChangeListener, NotificationReceiver
 
         // If the user disabled the media notification, do not show it
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        if (!prefs.getBoolean(context!!.getString(R.string.mpris_notification_key), true)) {
+        if (!prefs.getBoolean(KEY_PREF_MPRIS_NOTIF, true)) {
             closeMediaNotification()
             return
         }

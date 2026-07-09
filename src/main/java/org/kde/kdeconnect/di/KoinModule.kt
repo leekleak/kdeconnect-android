@@ -24,8 +24,6 @@ import org.kde.kdeconnect.plugins.digitizer.DigitizerSettingsScreen
 import org.kde.kdeconnect.plugins.digitizer.DigitizerSettingsViewModel
 import org.kde.kdeconnect.plugins.mousepad.MousePadSettingsScreen
 import org.kde.kdeconnect.plugins.mousepad.MousePadSettingsViewModel
-import org.kde.kdeconnect.plugins.mpris.MprisSettingsScreen
-import org.kde.kdeconnect.plugins.mpris.MprisSettingsViewModel
 import org.kde.kdeconnect.ui.compose.screen.settings.advanced.notifications.NotificationSettings
 import org.kde.kdeconnect.ui.compose.screen.settings.advanced.notifications.NotificationSettingsViewModel
 import org.kde.kdeconnect.plugins.presenter.PresenterSettingsScreen
@@ -193,7 +191,6 @@ val pluginSettingsModule = module {
     viewModel<PluginSettingsViewModel>()
     viewModel<DigitizerSettingsViewModel>()
     viewModel<MousePadSettingsViewModel>()
-    viewModel<MprisSettingsViewModel>()
     viewModel<SftpSettingsViewModel>()
     viewModel<TelephonySettingsViewModel>()
     viewModel<ShareSettingsViewModel>()
@@ -206,7 +203,6 @@ val pluginSettingsModule = module {
     }
     navigation<DigitizerPluginSettingsKey> { DigitizerSettingsScreen() }
     navigation<MousePadPluginSettingsKey> { MousePadSettingsScreen() }
-    navigation<MprisPluginSettingsKey> { MprisSettingsScreen() }
     navigation<SftpPluginSettingsKey> { SftpSettingsScreen() }
     navigation<TelephonyPluginSettingsKey> { TelephonySettingsScreen() }
     navigation<SharePluginSettingsKey> { ShareSettingsScreen() }

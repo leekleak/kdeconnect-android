@@ -29,6 +29,7 @@ import org.kde.kdeconnect.plugins.mpris.AlbumArtCache.payloadToDiskCache
 import org.kde.kdeconnect.plugins.mpris.AlbumArtCache.registerPlugin
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.notifications.NotificationSettingsViewModel.Companion.KEY_PREF_KEEP_WATCHING
 import org.kde.kdeconnect_tp.R
 import java.net.MalformedURLException
 import java.util.concurrent.ConcurrentHashMap
@@ -356,7 +357,7 @@ class MprisPlugin : Plugin() {
             }
             val prefs = PreferenceManager.getDefaultSharedPreferences(context)
             val httpUrl = playerStatus.getHttpUrl()
-            if (prefs.getBoolean(context.getString(R.string.mpris_keepwatching_key), true) && httpUrl != null) {
+            if (prefs.getBoolean(KEY_PREF_KEEP_WATCHING, true) && httpUrl != null) {
                 try {
                     val transformedUrl = httpUrl
                         .let { VideoUrlsHelper.convertToAndFromYoutubeTvLinks(it) }

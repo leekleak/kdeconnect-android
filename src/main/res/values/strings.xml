@@ -264,26 +264,10 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     <string name="mpris_volume">Volume</string>
     <string name="mpris_time_settings_title">Forward/rewind buttons</string>
     <string name="mpris_time_settings_summary">Adjust the time to fast forward/rewind when pressed</string>
-    <string name="mpris_time_key" translatable="false">mpris_interval_time</string>
-    <string-array name="mpris_time_entries">
-        <item>10 seconds</item>
-        <item>20 seconds</item>
-        <item>30 seconds</item>
-        <item>1 minute</item>
-        <item>2 minutes</item>
-    </string-array>
     <string name="mpris_time_default" translatable="false">10000000</string>
-    <string-array name="mpris_time_entries_values" translatable="false">
-        <item>10000000</item>
-        <item>20000000</item>
-        <item>30000000</item>
-        <item>60000000</item>
-        <item>120000000</item>
-    </string-array>
     <string name="mpris_notifications_explanation">The notifications permission is needed to show remote media in the notifications drawer</string>
-    <string name="mpris_notification_settings_title">Show media control notification</string>
-    <string name="mpris_notification_settings_summary">Allow controlling your media players without opening KDE Connect</string>
-    <string name="mpris_notification_key" translatable="false">mpris_notification_enabled</string>
+    <string name="mpris_notification_settings_title">Media control notification</string>
+    <string name="mpris_notification_settings_summary">Control playback with a persistent notification</string>
     <string name="share_to">Share to…</string>
     <string name="unreachable_device_dynamic_shortcut">%s (✕)</string>
     <string name="unreachable_device_url_share_text">URLs shared to an unreachable device will be delivered to it once it becomes reachable.\n\n</string>
@@ -628,9 +612,8 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
 
 
     <string name="mpris_keepwatching">Continue playing</string>
-    <string name="mpris_keepwatching_key" translatable="false">mpris_keepwatching_enabled</string>
     <string name="mpris_keepwatching_settings_title">Continue playing</string>
-    <string name="mpris_keepwatching_settings_summary">Show a silent notification to continue playing on this device after closing media</string>
+    <string name="mpris_keepwatching_settings_summary">Show a notification to continue playing media.</string>
     <string name="notification_channel_keepwatching">Continue playing</string>
 
     <string name="ping_result">Pinged in %1$d milliseconds</string>
@@ -675,6 +658,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
   <string name="runcommand_output_no_output_desc">The output from the commands will appear here.</string>
   <string name="runcommand_output_no_output">No commands executed</string>
   <string name="runcommand_stop">Stop the current command</string>
+  <string name="media_controls">Media controls</string>
 
 
 </resources>

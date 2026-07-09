@@ -70,6 +70,23 @@ fun NotificationSettings(
             onValueChanged = viewModel::setScreenOffNotification
         )
         NotificationBlacklistComponent(viewModel, uiState)
+
+        CategoryTitleTextSmall(stringResource(R.string.media_controls))
+        SwitchPreference(
+            title = stringResource(R.string.mpris_notification_settings_title),
+            summary = stringResource(R.string.mpris_notification_settings_summary),
+            icon = painterResource(R.drawable.pinboard_unread),
+            value = uiState.notificationEnabled,
+            onValueChanged = viewModel::setNotificationEnabled
+        )
+
+        SwitchPreference(
+            title = stringResource(R.string.mpris_keepwatching_settings_title),
+            summary = stringResource(R.string.mpris_keepwatching_settings_summary),
+            icon = painterResource(R.drawable.replay),
+            value = uiState.keepWatchingEnabled,
+            onValueChanged = viewModel::setKeepWatchingEnabled
+        )
     }
 }
 

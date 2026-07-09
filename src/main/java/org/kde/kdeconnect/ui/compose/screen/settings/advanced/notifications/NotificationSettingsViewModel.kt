@@ -38,7 +38,9 @@ data class NotificationSettingsUiState(
     val searchQuery: String = "",
     val allEnabled: Boolean = true,
     val enabledApps: List<AppInfo> = emptyList(),
-    val disabledApps: List<AppInfo> = emptyList()
+    val disabledApps: List<AppInfo> = emptyList(),
+    val notificationEnabled: Boolean = true,
+    val keepWatchingEnabled: Boolean = true
 )
 
 @KoinViewModel
@@ -61,7 +63,9 @@ class NotificationSettingsViewModel(
     private fun loadSettings() {
         _uiState.update { it.copy(
             screenOffNotification = prefs.getBoolean(NotificationsPlugin.PREF_NOTIFICATION_SCREEN_OFF, false),
-            allEnabled = appDatabase.allEnabled
+            allEnabled = appDatabase.allEnabled,
+            notificationEnabled = prefs.getBoolean(KEY_PREF_MPRIS_NOTIF, true),
+            keepWatchingEnabled = prefs.getBoolean(KEY_PREF_KEEP_WATCHING, true)
         ) }
     }
 
@@ -180,5 +184,19 @@ class NotificationSettingsViewModel(
             } else it 
         }
         filterApps()
+    }
+
+    fun setNotificationEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean(KEY_PREF_MPRIS_NOTIF, enabled) }
+    }
+
+    fun setKeepWatchingEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean(KEY_PREF_KEEP_WATCHING, enabled) }
+    }
+
+    companion object {
+        const val MPRIS_TIME_DEFAULT = 10000000
+        const val KEY_PREF_MPRIS_NOTIF = "mpris_notification_enabled"
+        const val KEY_PREF_KEEP_WATCHING = "mpris_keepwatching_enabled"
     }
 }
