@@ -177,11 +177,10 @@ class RunCommandControlsProviderService : ControlsProviderService() {
         if (!this::sharedPreferences.isInitialized) {
             sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
         }
-        val useNameForTitle = sharedPreferences.getBoolean(getString(R.string.set_runcommand_name_as_title), true)
 
         return Control.StatefulBuilder(controlId, getIntent(commandEntry.device))
-                .setTitle(if (useNameForTitle) commandEntry.name else commandEntry.command)
-                .setSubtitle(if (useNameForTitle) commandEntry.command else commandEntry.name)
+                .setTitle(commandEntry.name)
+                .setSubtitle(commandEntry.command)
                 .setStructure(commandEntry.device.name)
                 .setControlTemplate(StatelessTemplate(commandEntry.key))
                 .setDeviceType(DeviceTypes.TYPE_ROUTINE)

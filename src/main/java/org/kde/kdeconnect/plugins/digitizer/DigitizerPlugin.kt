@@ -14,7 +14,6 @@ import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.navigation.DigitizerKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
-import org.koin.core.component.get
 
 @PluginFactory.LoadablePlugin
 class DigitizerPlugin : Plugin() {
@@ -80,8 +79,6 @@ class DigitizerPlugin : Plugin() {
         )
 
     companion object {
-        const val PREFERENCES_NAME: String = "DigitizerPlugin_preferences"
-
         private const val PACKET_TYPE_DIGITIZER_SESSION = "kdeconnect.digitizer.session"
         private const val PACKET_TYPE_DIGITIZER = "kdeconnect.digitizer"
 

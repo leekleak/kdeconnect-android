@@ -30,13 +30,11 @@ import org.kde.kdeconnect.ui.compose.components.SectionHeader
 import org.kde.kdeconnect.ui.compose.components.SwitchPreference
 import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.ConnectionsSettingsKey
-import org.kde.kdeconnect.ui.navigation.DigitizerPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.MousePadPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.NotificationSettingsKey
 import org.kde.kdeconnect.ui.navigation.PresenterPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.RemoteKeyboardPluginSettingsKey
-import org.kde.kdeconnect.ui.navigation.RunCommandPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.SftpPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.SharePluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.TelephonyPluginSettingsKey
@@ -160,10 +158,6 @@ fun SettingsScreen(
         SectionHeader(title = stringResource(R.string.plugins))
 
         NavigatePreference(
-            title = "Drawing tablet",
-            onClick = { navigator.goTo(DigitizerPluginSettingsKey) }
-        )
-        NavigatePreference(
             title = "Mouse pad settings",
             onClick = { navigator.goTo(MousePadPluginSettingsKey) }
         )
@@ -178,10 +172,6 @@ fun SettingsScreen(
         NavigatePreference(
             title = "Remote keyboard settings",
             onClick = { navigator.goTo(RemoteKeyboardPluginSettingsKey) }
-        )
-        NavigatePreference(
-            title = "Run command settings",
-            onClick = { navigator.goTo(RunCommandPluginSettingsKey) }
         )
 
         CategoryTitleTextSmall(stringResource(R.string.other))

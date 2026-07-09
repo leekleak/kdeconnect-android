@@ -2,7 +2,6 @@ package org.kde.kdeconnect.plugins.digitizer
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import kotlinx.coroutines.flow.StateFlow
 import org.kde.kdeconnect.KdeConnect
 import org.koin.core.annotation.InjectedParam
 
@@ -12,9 +11,6 @@ class DigitizerViewModel(
 ) : AndroidViewModel(application) {
 
     val plugin: DigitizerPlugin? = KdeConnect.getInstance().getDevicePlugin(deviceId, DigitizerPlugin::class.java)
-    
-    private val settingsViewModel = DigitizerSettingsViewModel(application)
-    val settingsUiState: StateFlow<DigitizerSettingsUiState> = settingsViewModel.uiState
 
     fun startSession(width: Int, height: Int, xdpi: Float, ydpi: Float) {
         plugin?.startSession(

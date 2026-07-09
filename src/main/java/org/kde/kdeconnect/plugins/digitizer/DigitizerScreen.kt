@@ -16,7 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.BottomStart
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInteropFilter
@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.viewmodel.koinViewModel
@@ -40,7 +39,6 @@ fun DigitizerScreen(
     viewModel: DigitizerViewModel = koinViewModel(key = "DigitizerViewModel_$deviceId") { parametersOf(deviceId) }
 ) {
     val context = LocalContext.current
-    val uiState by viewModel.settingsUiState.collectAsStateWithLifecycle()
     var isFullscreen by remember { mutableStateOf(false) }
     var fingerTouchEventsEnabled by remember { mutableStateOf(false) }
     var buttonPressed by remember { mutableStateOf(false) }
@@ -104,42 +102,32 @@ fun DigitizerScreen(
                 }
             )
 
-            if (!uiState.hideDrawButton) {
-                val gravity = when (uiState.drawButtonSide) {
-                    "top_left" -> Alignment.TopStart
-                    "top_right" -> Alignment.TopEnd
-                    "bottom_left" -> Alignment.BottomStart
-                    "bottom_right" -> Alignment.BottomEnd
-                    else -> Alignment.BottomStart
-                }
-
-                Box(
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                contentAlignment = BottomStart
+            ) {
+                FloatingActionButton(
+                    onClick = { },
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    contentAlignment = gravity
-                ) {
-                    FloatingActionButton(
-                        onClick = { },
-                        modifier = Modifier
-                            .size(56.dp)
-                            .pointerInteropFilter { event ->
-                                when (event.action) {
-                                    MotionEvent.ACTION_DOWN -> {
-                                        fingerTouchEventsEnabled = true
-                                        true
-                                    }
-                                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                                        fingerTouchEventsEnabled = false
-                                        true
-                                    }
-                                    else -> false
+                        .size(56.dp)
+                        .pointerInteropFilter { event ->
+                            when (event.action) {
+                                MotionEvent.ACTION_DOWN -> {
+                                    fingerTouchEventsEnabled = true
+                                    true
                                 }
-                            },
-                        containerColor = if (buttonPressed) androidx.compose.material3.FloatingActionButtonDefaults.containerColor else androidx.compose.material3.MaterialTheme.colorScheme.primaryContainer
-                    ) {
-                        Icon(painterResource(R.drawable.ic_draw_24dp), null)
-                    }
+                                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                                    fingerTouchEventsEnabled = false
+                                    true
+                                }
+                                else -> false
+                            }
+                        },
+                    containerColor = if (buttonPressed) androidx.compose.material3.FloatingActionButtonDefaults.containerColor else androidx.compose.material3.MaterialTheme.colorScheme.primaryContainer
+                ) {
+                    Icon(painterResource(R.drawable.ic_draw_24dp), null)
                 }
             }
         }

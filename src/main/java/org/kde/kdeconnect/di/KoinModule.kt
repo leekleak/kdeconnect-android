@@ -21,8 +21,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.helpers.AppIconFetcher
 import org.kde.kdeconnect.plugins.digitizer.DigitizerScreen
-import org.kde.kdeconnect.plugins.digitizer.DigitizerSettingsScreen
-import org.kde.kdeconnect.plugins.digitizer.DigitizerSettingsViewModel
 import org.kde.kdeconnect.plugins.digitizer.DigitizerViewModel
 import org.kde.kdeconnect.plugins.mousepad.MousePadSettingsScreen
 import org.kde.kdeconnect.plugins.mousepad.MousePadSettingsViewModel
@@ -35,8 +33,6 @@ import org.kde.kdeconnect.plugins.presenter.PresenterSettingsViewModel
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardSettingsScreen
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardSettingsViewModel
 import org.kde.kdeconnect.plugins.runcommand.RunCommandScreen
-import org.kde.kdeconnect.plugins.runcommand.RunCommandSettingsScreen
-import org.kde.kdeconnect.plugins.runcommand.RunCommandSettingsViewModel
 import org.kde.kdeconnect.plugins.runcommand.RunCommandViewModel
 import org.kde.kdeconnect.ui.compose.screen.settings.advanced.filesystem.SftpSettingsScreen
 import org.kde.kdeconnect.ui.compose.screen.settings.advanced.filesystem.SftpSettingsViewModel
@@ -61,7 +57,6 @@ import org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages
 import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.DigitizerKey
-import org.kde.kdeconnect.ui.navigation.DigitizerPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.LicensesKey
 import org.kde.kdeconnect.ui.navigation.MousePadPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.Navigator
@@ -72,7 +67,6 @@ import org.kde.kdeconnect.ui.navigation.PresenterKey
 import org.kde.kdeconnect.ui.navigation.PresenterPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.RemoteKeyboardPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.RunCommandKey
-import org.kde.kdeconnect.ui.navigation.RunCommandPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.SettingsKey
 import org.kde.kdeconnect.ui.navigation.SftpPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.SharePluginSettingsKey
@@ -201,26 +195,22 @@ val deviceModule = module {
 
 val pluginSettingsModule = module {
     viewModel<PluginSettingsViewModel>()
-    viewModel<DigitizerSettingsViewModel>()
     viewModel<MousePadSettingsViewModel>()
     viewModel<SftpSettingsViewModel>()
     viewModel<TelephonySettingsViewModel>()
     viewModel<ShareSettingsViewModel>()
     viewModel<PresenterSettingsViewModel>()
     viewModel<RemoteKeyboardSettingsViewModel>()
-    viewModel<RunCommandSettingsViewModel>()
     viewModel<NotificationSettingsViewModel>()
     navigation<PluginSettingsKey> { key ->
         PluginSettingsScreen(key.deviceId)
     }
-    navigation<DigitizerPluginSettingsKey> { DigitizerSettingsScreen() }
     navigation<MousePadPluginSettingsKey> { MousePadSettingsScreen() }
     navigation<SftpPluginSettingsKey> { SftpSettingsScreen() }
     navigation<TelephonyPluginSettingsKey> { TelephonySettingsScreen() }
     navigation<SharePluginSettingsKey> { ShareSettingsScreen() }
     navigation<PresenterPluginSettingsKey> { PresenterSettingsScreen() }
     navigation<RemoteKeyboardPluginSettingsKey> { RemoteKeyboardSettingsScreen() }
-    navigation<RunCommandPluginSettingsKey> { RunCommandSettingsScreen() }
     navigation<NotificationSettingsKey> { NotificationSettings() }
 }
 
