@@ -19,6 +19,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.kde.kdeconnect.helpers.CreateFileParams
 import org.kde.kdeconnect.helpers.CreateFileResultContract
 import org.kde.kdeconnect.helpers.DeviceHelper
+import org.kde.kdeconnect.plugins.sftp.SftpPlugin
+import org.kde.kdeconnect.plugins.sftp.SimpleSftpServer
 import org.kde.kdeconnect.ui.CustomDevicesActivity
 import org.kde.kdeconnect.ui.PermissionsAlertDialogFragment
 import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
@@ -32,7 +34,6 @@ import org.kde.kdeconnect.ui.compose.components.SwitchPreference
 import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.DigitizerPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.MousePadPluginSettingsKey
-import org.kde.kdeconnect.ui.navigation.MprisPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.NotificationSettingsKey
 import org.kde.kdeconnect.ui.navigation.PresenterPluginSettingsKey
@@ -124,12 +125,28 @@ fun SettingsScreen(
         }
 
         CategoryTitleTextSmall(stringResource(R.string.advanced))
-
         NavigatePreference(
-            title = stringResource(R.string.trusted_networks),
-            summary = stringResource(R.string.trusted_networks_desc),
+            title = stringResource(R.string.connections),
+            icon = painterResource(R.drawable.responsive_layout),
             onClick = { navigator.goTo(ConnectionsSettingsKey) }
         )
+        NavigatePreference(
+            title = stringResource(R.string.calls_messages),
+            icon = painterResource(R.drawable.perm_phone_msg),
+            onClick = { navigator.goTo(TelephonyPluginSettingsKey) }
+        )
+        NavigatePreference(
+            title = stringResource(R.string.notifications),
+            icon = painterResource(R.drawable.notifications),
+            onClick = { navigator.goTo(NotificationSettingsKey) }
+        )
+        if (!SimpleSftpServer.SUPPORTS_NATIVEFS) {
+            NavigatePreference(
+                title = stringResource(R.string.filesystem),
+                icon = painterResource(R.drawable.folder_managed),
+                onClick = { navigator.goTo(SftpPluginSettingsKey) }
+            )
+        }
 
         NavigatePreference(
             title = stringResource(R.string.custom_device_list),
@@ -167,31 +184,12 @@ fun SettingsScreen(
         SectionHeader(title = stringResource(R.string.plugins))
 
         NavigatePreference(
-            title = stringResource(R.string.calls_messages),
-            icon = painterResource(R.drawable.perm_phone_msg),
-            onClick = { navigator.goTo(TelephonyPluginSettingsKey) }
-        )
-        NavigatePreference(
-            title = stringResource(R.string.notifications),
-            icon = painterResource(R.drawable.notifications),
-            onClick = { navigator.goTo(NotificationSettingsKey) }
-        )
-
-        NavigatePreference(
             title = "Drawing tablet",
             onClick = { navigator.goTo(DigitizerPluginSettingsKey) }
         )
         NavigatePreference(
             title = "Mouse pad settings",
             onClick = { navigator.goTo(MousePadPluginSettingsKey) }
-        )
-        NavigatePreference(
-            title = "Multimedia Controls",
-            onClick = { navigator.goTo(MprisPluginSettingsKey) }
-        )
-        NavigatePreference(
-            title = "Filesystem settings",
-            onClick = { navigator.goTo(SftpPluginSettingsKey) }
         )
         NavigatePreference(
             title = "Share settings",

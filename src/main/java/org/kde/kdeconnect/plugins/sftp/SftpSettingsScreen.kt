@@ -74,7 +74,8 @@ fun SftpSettingsScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(paddingValues),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             item {
                 CategoryTitleTextSmall(text = stringResource(R.string.sftp_preference_configured_storage_locations))

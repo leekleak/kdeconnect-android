@@ -44,8 +44,6 @@ data object DigitizerPluginSettingsKey : KdeConnectKey
 @Serializable
 data object MousePadPluginSettingsKey : KdeConnectKey
 @Serializable
-data object MprisPluginSettingsKey : KdeConnectKey
-@Serializable
 data object SftpPluginSettingsKey : KdeConnectKey
 @Serializable
 data object TelephonyPluginSettingsKey : KdeConnectKey

@@ -664,6 +664,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
   <string name="connections">Connections</string>
   <string name="network_whitelist">Network whitelist</string>
   <string name="network_whitelist_summary">Restrict activity unknown networks</string>
+  <string name="filesystem">Filesystem</string>
 
 
 </resources>
