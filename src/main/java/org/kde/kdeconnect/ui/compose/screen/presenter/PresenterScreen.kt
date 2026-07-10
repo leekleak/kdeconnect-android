@@ -8,35 +8,36 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.view.MotionEvent
 import android.view.WindowManager
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media.VolumeProviderCompat
-import org.kde.kdeconnect.ui.compose.components.KdeButton
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.viewmodel.koinViewModel
@@ -54,7 +55,6 @@ fun PresenterScreen(
     val context = LocalContext.current
     val plugin = viewModel.plugin ?: return
     val sensorManager = context.getSystemService(android.content.Context.SENSOR_SERVICE) as? SensorManager
-    var dropdownShownState by remember { mutableStateOf(false) }
 
     val offScreenControlsSupported = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA
 
@@ -96,71 +96,72 @@ fun PresenterScreen(
 
     HazeScaffold(
         title = stringResource(R.string.pref_plugin_presenter),
-        scrollState = null,
         backButton = true,
-        actions = {
-            Box(modifier = Modifier) {
-                IconButton(onClick = { dropdownShownState = true }) {
-                    Icon(painter = painterResource(R.drawable.more_vert), stringResource(R.string.extra_options))
-                }
-                DropdownMenu(expanded = dropdownShownState, onDismissRequest = { dropdownShownState = false }) {
-                    DropdownMenuItem(
-                        onClick = {
-                            dropdownShownState = false
-                            plugin.sendFullscreen()
-                        },
-                        text = { Text(stringResource(R.string.presenter_fullscreen)) },
-                    )
-                    DropdownMenuItem(
-                        onClick = {
-                            dropdownShownState = false
-                            plugin.sendEsc()
-                        },
-                        text = { Text(stringResource(R.string.presenter_exit)) },
-                    )
-                }
-            }
+    ) {
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+        ) {
+            TopButton(
+                text = stringResource(R.string.presenter_fullscreen),
+                painter = painterResource(R.drawable.fullscreen),
+                onClick = { plugin.sendFullscreen() }
+            )
+            TopButton(
+                text = stringResource(R.string.presenter_exit),
+                painter = painterResource(R.drawable.close),
+                onClick = { plugin.sendEsc() }
+            )
         }
-    ) { paddingValues ->
-        Column(
+        if (viewModel.volumeKeys) Text(
+            text = stringResource(if (offScreenControlsSupported) R.string.presenter_volume_keys_tip else R.string.presenter_volume_keys_foreground_tip),
+            modifier = Modifier
+                .padding(bottom = 8.dp)
+                .padding(horizontal = 16.dp),
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
+                .weight(3f),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.Bottom
         ) {
-            if (viewModel.volumeKeys) Text(
-                text = stringResource(if (offScreenControlsSupported) R.string.presenter_volume_keys_tip else R.string.presenter_volume_keys_foreground_tip),
+            FilledIconButton (
+                onClick = { plugin.sendPrevious() },
+                shape = MaterialTheme.shapes.extraLarge,
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                ),
                 modifier = Modifier
-                    .padding(bottom = 8.dp)
-                    .padding(horizontal = 16.dp),
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(3f),
-                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                    .fillMaxHeight(0.35f)
+                    .weight(1f),
             ) {
-                KdeButton(
-                    onClick = { plugin.sendPrevious() },
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .weight(1f),
+                Icon(
+                    modifier = Modifier.size(42.dp),
+                    painter = painterResource(R.drawable.arrow_back_ios_new),
                     contentDescription = stringResource(R.string.mpris_previous),
-                    icon = painterResource(R.drawable.arrow_back),
-                )
-                KdeButton(
-                    onClick = { plugin.sendNext() },
-                    contentDescription = stringResource(R.string.mpris_next),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .weight(1f),
-                    icon = painterResource(R.drawable.arrow_forward),
                 )
             }
-            if (sensorManager != null) KdeButton(
+            FilledIconButton (
+                onClick = { plugin.sendNext() },
+                shape = MaterialTheme.shapes.extraLarge,
+                modifier = Modifier
+                    .fillMaxHeight(0.55f)
+                    .weight(1f),
+            ) {
+                Icon(
+                    modifier = Modifier.size(42.dp),
+                    painter = painterResource(R.drawable.arrow_forward_ios),
+                    contentDescription = stringResource(R.string.mpris_next)
+                )
+            }
+        }
+        if (sensorManager != null) {
+            FilledIconButton (
                 onClick = {},
-                colors = ButtonDefaults.filledTonalButtonColors(),
+                shape = MaterialTheme.shapes.extraLarge,
                 modifier = Modifier
                     .fillMaxSize()
                     .weight(1f)
@@ -184,8 +185,41 @@ fun PresenterScreen(
                             else -> false
                         }
                     },
-                text = stringResource(R.string.presenter_pointer),
-            )
+            ) {
+                Icon(
+                    modifier = Modifier.size(42.dp),
+                    painter = painterResource(R.drawable.ads_click),
+                    contentDescription = stringResource(R.string.presenter_pointer)
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun TopButton(
+    text: String,
+    painter: Painter,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .clip(MaterialTheme.shapes.medium)
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Icon(
+            painter = painter,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
     }
 }

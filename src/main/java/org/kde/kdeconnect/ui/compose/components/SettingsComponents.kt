@@ -169,7 +169,7 @@ fun NavigatePreference(
             if (showControl) {
                 {
                     Icon(
-                        painter = painterResource(R.drawable.arrow_forward),
+                        painter = painterResource(R.drawable.arrow_forward_ios),
                         contentDescription = null,
                     )
                 }

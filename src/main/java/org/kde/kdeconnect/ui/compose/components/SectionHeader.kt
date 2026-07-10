@@ -8,10 +8,6 @@ package org.kde.kdeconnect.ui.compose.components
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.ScrollState
@@ -185,7 +181,7 @@ fun CategoryTitleText(text: String, backButton: Boolean = false) {
         if (backButton) {
             IconButton(onClick = { navigator.goBack() }) {
                 Icon(
-                    painter = painterResource(R.drawable.arrow_back),
+                    painter = painterResource(R.drawable.arrow_back_ios_new),
                     contentDescription = stringResource(R.string.bigscreen_back),
                 )
             }

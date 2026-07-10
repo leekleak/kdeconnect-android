@@ -8,7 +8,6 @@ package org.kde.kdeconnect.ui.compose.screen.pairing
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -369,7 +368,7 @@ private fun DeviceCard(
                 onClick = { onClick(device.id) }
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.arrow_forward),
+                    painter = painterResource(R.drawable.arrow_forward_ios),
                     contentDescription = stringResource(R.string.open),
                     tint = colorScheme.onPrimary
                 )

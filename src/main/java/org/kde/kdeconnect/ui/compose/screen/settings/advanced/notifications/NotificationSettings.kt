@@ -138,7 +138,7 @@ private fun NotificationBlacklistComponent(
                         modifier = Modifier
                             .padding(start = 16.dp)
                             .rotate(rotateDegrees),
-                        painter = painterResource(R.drawable.arrow_forward),
+                        painter = painterResource(R.drawable.arrow_forward_ios),
                         contentDescription = stringResource(R.string.expand)
                     )
                 }

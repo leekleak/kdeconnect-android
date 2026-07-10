@@ -9,11 +9,12 @@ package org.kde.kdeconnect.ui.compose.components
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -55,6 +56,7 @@ fun KdeButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     colors: ButtonColors = ButtonDefaults.buttonColors(),
+    shape: CornerBasedShape = MaterialTheme.shapes.large,
     text: String? = null,
     contentDescription: String? = null,
     icon: Painter? = null,
@@ -70,8 +72,7 @@ fun KdeButton(
     Button(
         onClick = onClick,
         modifier = modifier,
-//        shape = RoundedCornerShape(cornerSize),
-        shape = RoundedCornerShape(24.dp),
+        shape = shape,
         colors = colors,
 //        interactionSource = interactionSource,
         content = {
@@ -85,11 +86,10 @@ fun KdeButton(
 @Composable
 fun IconButtonPreview() {
     KdeButton(
-        {},
-        Modifier.width(120.dp),
-        ButtonDefaults.buttonColors(Color.Gray, Color.DarkGray),
-        "Button Text",
-        null,
-        painterResource(R.drawable.ic_baseline_bug_report_24),
+        onClick = {},
+        modifier = Modifier.width(120.dp),
+        colors = ButtonDefaults.buttonColors(Color.Gray, Color.DarkGray),
+        text = "Button Text",
+        icon = painterResource(R.drawable.ic_baseline_bug_report_24),
     )
 }

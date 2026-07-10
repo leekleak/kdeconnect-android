@@ -384,7 +384,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     <string name="settings_icon_description">Settings icon</string>
 
     <string name="presenter_fullscreen">Fullscreen</string>
-    <string name="presenter_exit">Exit presentation</string>
+    <string name="presenter_exit">Exit</string>
     <string name="presenter_lock_tip">You can lock your device and use the volume keys to go to the previous/next slide</string>
 
     <string name="add_command">Add a command</string>
