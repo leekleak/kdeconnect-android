@@ -121,44 +121,44 @@ class MousePadPlugin : Plugin() {
 
     fun sendLeft() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = KeyListenerView.SpecialKeysMap.get(KeyEvent.KEYCODE_DPAD_LEFT)
+        np["specialKey"] = MOUSE_PAD_SPECIAL_KEYS.get(KeyEvent.KEYCODE_DPAD_LEFT)
         sendPacket(np)
     }
 
     fun sendRight() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = KeyListenerView.SpecialKeysMap.get(KeyEvent.KEYCODE_DPAD_RIGHT)
+        np["specialKey"] = MOUSE_PAD_SPECIAL_KEYS.get(KeyEvent.KEYCODE_DPAD_RIGHT)
         sendPacket(np)
     }
 
     fun sendUp() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = KeyListenerView.SpecialKeysMap.get(KeyEvent.KEYCODE_DPAD_UP)
+        np["specialKey"] = MOUSE_PAD_SPECIAL_KEYS.get(KeyEvent.KEYCODE_DPAD_UP)
         sendPacket(np)
     }
 
     fun sendDown() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = KeyListenerView.SpecialKeysMap.get(KeyEvent.KEYCODE_DPAD_DOWN)
+        np["specialKey"] = MOUSE_PAD_SPECIAL_KEYS.get(KeyEvent.KEYCODE_DPAD_DOWN)
         sendPacket(np)
     }
 
     fun sendSelect() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = KeyListenerView.SpecialKeysMap.get(KeyEvent.KEYCODE_ENTER)
+        np["specialKey"] = MOUSE_PAD_SPECIAL_KEYS.get(KeyEvent.KEYCODE_ENTER)
         sendPacket(np)
     }
 
     fun sendHome() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
         np["alt"] = true
-        np["specialKey"] = KeyListenerView.SpecialKeysMap.get(KeyEvent.KEYCODE_F4)
+        np["specialKey"] = MOUSE_PAD_SPECIAL_KEYS.get(KeyEvent.KEYCODE_F4)
         device.sendPacket(np)
     }
 
     fun sendBack() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = KeyListenerView.SpecialKeysMap.get(KeyEvent.KEYCODE_ESCAPE)
+        np["specialKey"] = MOUSE_PAD_SPECIAL_KEYS.get(KeyEvent.KEYCODE_ESCAPE)
         device.sendPacket(np)
     }
 

@@ -243,7 +243,7 @@ class MousePadViewModel(
             modifier = true
         }
 
-        val specialKey = KeyListenerView.SpecialKeysMap.get(event.keyCode, -1)
+        val specialKey = MOUSE_PAD_SPECIAL_KEYS.get(event.keyCode, -1)
 
         if (specialKey != -1) {
             np["specialKey"] = specialKey

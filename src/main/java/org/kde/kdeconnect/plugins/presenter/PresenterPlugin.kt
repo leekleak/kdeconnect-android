@@ -8,9 +8,9 @@ package org.kde.kdeconnect.plugins.presenter
 import android.view.KeyEvent
 import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.NetworkPacket
-import org.kde.kdeconnect.plugins.mousepad.KeyListenerView
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
+import org.kde.kdeconnect.plugins.mousepad.MOUSE_PAD_SPECIAL_KEYS
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.PresenterKey
 import org.kde.kdeconnect_tp.R
@@ -44,25 +44,25 @@ class PresenterPlugin : Plugin() {
 
     fun sendNext() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = KeyListenerView.SpecialKeysMap.get(KeyEvent.KEYCODE_PAGE_DOWN)
+        np["specialKey"] = MOUSE_PAD_SPECIAL_KEYS.get(KeyEvent.KEYCODE_PAGE_DOWN)
         device.sendPacket(np)
     }
 
     fun sendPrevious() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = KeyListenerView.SpecialKeysMap.get(KeyEvent.KEYCODE_PAGE_UP)
+        np["specialKey"] = MOUSE_PAD_SPECIAL_KEYS.get(KeyEvent.KEYCODE_PAGE_UP)
         device.sendPacket(np)
     }
 
     fun sendFullscreen() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = KeyListenerView.SpecialKeysMap.get(KeyEvent.KEYCODE_F5)
+        np["specialKey"] = MOUSE_PAD_SPECIAL_KEYS.get(KeyEvent.KEYCODE_F5)
         device.sendPacket(np)
     }
 
     fun sendEsc() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = KeyListenerView.SpecialKeysMap.get(KeyEvent.KEYCODE_ESCAPE)
+        np["specialKey"] = MOUSE_PAD_SPECIAL_KEYS.get(KeyEvent.KEYCODE_ESCAPE)
         device.sendPacket(np)
     }
 
