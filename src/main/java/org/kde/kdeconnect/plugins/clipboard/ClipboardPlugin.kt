@@ -29,8 +29,6 @@ class ClipboardPlugin : Plugin() {
     override val description: String
         get() = context.resources.getString(R.string.pref_plugin_clipboard_desc)
 
-    override val isEnabledByDefault: Boolean = false
-
     override fun onPacketReceived(np: NetworkPacket): Boolean {
         val content = np.getString("content")
         when (np.type) {
@@ -91,26 +89,11 @@ class ClipboardPlugin : Plugin() {
     override val outgoingPacketTypes: Array<String> = arrayOf(PACKET_TYPE_CLIPBOARD, PACKET_TYPE_CLIPBOARD_CONNECT)
 
     override fun getUiButtons(): List<PluginUiButton> {
-        return if (!canSyncAutomatically(context)) {
-            listOf(PluginUiButton(
-                context.getString(R.string.send_clipboard),
-                R.drawable.ic_baseline_content_paste_24,
-                ButtonCategory.SEND,
-            ){ _: Activity? -> userInitiatedSendClipboard() })
-        } else {
-            emptyList()
-        }
-    }
-
-    override fun getUiMenuEntries(): List<PluginUiMenuEntry> {
-        return if (canSyncAutomatically(context)) {
-            // If automatic sync is supported, add the manual action less prominently, as a menu entry instead of a button.
-            listOf(PluginUiMenuEntry(context.getString(R.string.send_clipboard)) { _: Activity? ->
-                userInitiatedSendClipboard()
-            })
-        } else {
-            emptyList()
-        }
+        return listOf(PluginUiButton(
+            context.getString(R.string.send_clipboard),
+            R.drawable.ic_baseline_content_paste_24,
+            ButtonCategory.SEND,
+        ){ _: Activity? -> userInitiatedSendClipboard() })
     }
 
     private fun userInitiatedSendClipboard() {

@@ -61,11 +61,6 @@ abstract class Plugin {
      */
     open fun getUiButtons(): List<PluginUiButton> = listOf()
 
-    /**
-     * Return entries to display in the context menu instead of the main view
-     */
-    open fun getUiMenuEntries(): List<PluginUiMenuEntry> = listOf()
-
     val sharedPreferencesName: String
         get() = pluginKey + "_preferences"
 

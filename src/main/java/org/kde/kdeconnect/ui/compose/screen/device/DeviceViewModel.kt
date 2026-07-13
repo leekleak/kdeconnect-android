@@ -32,7 +32,6 @@ data class DeviceUiState(
     val pluginsNeedPermissions: List<Plugin> = emptyList(),
     val pluginsNeedOptionalPermissions: List<Plugin> = emptyList(),
     val batterySubtitle: String? = null,
-    val menuEntries: List<Plugin.PluginUiMenuEntry> = emptyList(),
     val isRefreshing: Boolean = false
 )
 
@@ -87,7 +86,6 @@ class DeviceViewModel(application: Application, @InjectedParam private val devic
         val pluginsWithButtons = device.loadedPlugins.values.flatMap { it.getUiButtons() }
         val pluginsNeedPermissions = device.pluginsWithoutPermissions.values.filter { device.isPluginEnabled(it.pluginKey) }
         val pluginsNeedOptionalPermissions = device.pluginsWithoutOptionalPermissions.values.filter { device.isPluginEnabled(it.pluginKey) }
-        val menuEntries = device.loadedPlugins.values.flatMap { it.getUiMenuEntries() }
 
         _uiState.update { state ->
             state.copy(
@@ -99,7 +97,6 @@ class DeviceViewModel(application: Application, @InjectedParam private val devic
                 pluginsNeedPermissions = pluginsNeedPermissions,
                 pluginsNeedOptionalPermissions = pluginsNeedOptionalPermissions,
                 batterySubtitle = getBatterySubtitle(getApplication<Application>().applicationContext, device),
-                menuEntries = menuEntries
             )
         }
     }

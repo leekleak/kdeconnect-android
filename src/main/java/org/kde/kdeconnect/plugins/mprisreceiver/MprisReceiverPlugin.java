@@ -106,6 +106,11 @@ public class MprisReceiverPlugin extends Plugin {
     }
 
     @Override
+    public boolean isEnabledByDefault() {
+        return false;
+    }
+
+    @Override
     public boolean onPacketReceived(@NonNull NetworkPacket np) {
         if (np.getBoolean("requestPlayerList")) {
             sendPlayerList();

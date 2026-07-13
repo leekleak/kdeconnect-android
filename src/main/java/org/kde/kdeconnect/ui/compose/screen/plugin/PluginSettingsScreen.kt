@@ -37,6 +37,7 @@ fun PluginSettingsScreen(
     val notificationReceive = uiState.plugins.find { it.key == "ReceiveNotificationsPlugin" }
     val contacts = uiState.plugins.find { it.key == "ContactsPlugin" }
     val clipboard = uiState.plugins.find { it.key == "ClipboardPlugin" }
+    val multimedia = uiState.plugins.find { it.key == "MprisReceiverPlugin" }
     HazeScaffold(
         title = uiState.deviceName,
         backButton = true,
@@ -73,6 +74,15 @@ fun PluginSettingsScreen(
             )
         }
         contacts?.let { plugin ->
+            SwitchPreference(
+                title = plugin.name,
+                summary = plugin.description,
+                icon = painterResource(R.drawable.contacts),
+                value = plugin.isEnabled,
+                onValueChanged = { viewModel.setPluginEnabled(context, plugin.key, it) }
+            )
+        }
+        multimedia?.let { plugin ->
             SwitchPreference(
                 title = plugin.name,
                 summary = plugin.description,

@@ -21,11 +21,14 @@ class FindRemoteDevicePlugin : Plugin() {
 
     override fun onPacketReceived(np: NetworkPacket): Boolean = true
 
-    override fun getUiMenuEntries(): List<PluginUiMenuEntry> = listOf(
-        PluginUiMenuEntry(context.getString(R.string.ring)) { parentActivity ->
+    override fun getUiButtons(): List<PluginUiButton> = listOf(
+        PluginUiButton(
+            name = context.getString(R.string.ring),
+            iconRes = R.drawable.arrow_upward,
+            category = ButtonCategory.CONTROL
+        ) { _ ->
             device.sendPacket(NetworkPacket(FindMyPhonePlugin.PACKET_TYPE_FINDMYPHONE_REQUEST))
-        }
-    )
+        })
 
     override val supportedPacketTypes: Array<String> = emptyArray()
 
