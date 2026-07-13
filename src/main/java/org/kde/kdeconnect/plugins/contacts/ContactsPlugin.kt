@@ -30,6 +30,7 @@ class ContactsPlugin : Plugin() {
     override val description: String
         get() = context.resources.getString(R.string.pref_plugin_contacts_desc)
 
+    override val isEnabledByDefault: Boolean = false
     override val supportedPacketTypes: Array<String> = arrayOf(PACKET_TYPE_CONTACTS_REQUEST_ALL_UIDS_TIMESTAMPS, PACKET_TYPE_CONTACTS_REQUEST_VCARDS_BY_UIDS)
 
     override val outgoingPacketTypes: Array<String> = arrayOf(PACKET_TYPE_CONTACTS_RESPONSE_UIDS_TIMESTAMPS, PACKET_TYPE_CONTACTS_RESPONSE_VCARDS)

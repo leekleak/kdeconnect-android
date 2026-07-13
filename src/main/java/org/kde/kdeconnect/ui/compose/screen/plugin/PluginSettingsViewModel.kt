@@ -7,6 +7,8 @@
 package org.kde.kdeconnect.ui.compose.screen.plugin
 
 import android.app.Application
+import android.content.Context
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +19,7 @@ import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.plugins.PluginFactory
+import org.kde.kdeconnect.ui.AlertDialogFragment
 import org.koin.core.annotation.InjectedParam
 
 data class PluginSettingsUiState(
@@ -79,8 +82,33 @@ class PluginSettingsViewModel(
     }
 
 
-    fun setPluginEnabled(pluginKey: String, isEnabled: Boolean) {
+    fun setPluginEnabled(context: Context, pluginKey: String, isEnabled: Boolean) {
         device?.setPluginEnabled(pluginKey, isEnabled)
-        // refreshUI will be called by pluginsChangedListener
+        if (!isEnabled) return
+
+        val missingPermission = device?.pluginsWithoutPermissions?.contains(pluginKey) ?: return
+        val plugin = device?.getPluginIncludingWithoutPermissions(pluginKey) ?: return
+        if (missingPermission) {
+            val dialog = plugin.permissionExplanationDialog
+            if (dialog is AlertDialogFragment) {
+                dialog.callback = object : AlertDialogFragment.Callback() {
+                    var isPositiveButtonClicked = false
+                    override fun onPositiveButtonClicked(): Boolean {
+                        isPositiveButtonClicked = true
+                        return true
+                    }
+
+                    override fun onDismiss() {
+                        if (!isPositiveButtonClicked) {
+                            device?.setPluginEnabled(pluginKey, false)
+                            refreshUI()
+                        }
+                    }
+                }
+            }
+            (context as? FragmentActivity)?.let {
+                dialog.show(it.supportFragmentManager, "permission_explanation")
+            }
+        }
     }
 }

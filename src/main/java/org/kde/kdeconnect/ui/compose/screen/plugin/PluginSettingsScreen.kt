@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -24,19 +25,13 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
 
-//Todo: Maybe don't hardcode strings
-val validSettings = listOf(
-    "NotificationsPlugin",
-    "ReceiveNotificationsPlugin",
-    "ContactsPlugin",
-    "ClipboardPlugin"
-)
 @Composable
 fun PluginSettingsScreen(
     deviceId: String,
     viewModel: PluginSettingsViewModel = koinViewModel(key = "PluginSettingsViewModel_$deviceId") { parametersOf(deviceId) },
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     val notificationSend = uiState.plugins.find { it.key == "NotificationsPlugin" }
     val notificationReceive = uiState.plugins.find { it.key == "ReceiveNotificationsPlugin" }
@@ -54,7 +49,7 @@ fun PluginSettingsScreen(
                     title = stringResource(R.string.send),
                     icon = painterResource(R.drawable.arrow_upward),
                     value = plugin.isEnabled,
-                    onValueChanged = { viewModel.setPluginEnabled(plugin.key, it) }
+                    onValueChanged = { viewModel.setPluginEnabled(context, plugin.key, it) }
                 )
             }
             notificationReceive?.let { plugin ->
@@ -63,7 +58,7 @@ fun PluginSettingsScreen(
                     title = stringResource(R.string.receive),
                     icon = painterResource(R.drawable.arrow_downward),
                     value = plugin.isEnabled,
-                    onValueChanged = { viewModel.setPluginEnabled(plugin.key, it) }
+                    onValueChanged = { viewModel.setPluginEnabled(context, plugin.key, it) }
                 )
             }
         }
@@ -74,7 +69,7 @@ fun PluginSettingsScreen(
                 summary = plugin.description,
                 icon = painterResource(R.drawable.assignment),
                 value = plugin.isEnabled,
-                onValueChanged = { viewModel.setPluginEnabled(plugin.key, it) }
+                onValueChanged = { viewModel.setPluginEnabled(context, plugin.key, it) }
             )
         }
         contacts?.let { plugin ->
@@ -83,7 +78,7 @@ fun PluginSettingsScreen(
                 summary = plugin.description,
                 icon = painterResource(R.drawable.contacts),
                 value = plugin.isEnabled,
-                onValueChanged = { viewModel.setPluginEnabled(plugin.key, it) }
+                onValueChanged = { viewModel.setPluginEnabled(context, plugin.key, it) }
             )
         }
     }

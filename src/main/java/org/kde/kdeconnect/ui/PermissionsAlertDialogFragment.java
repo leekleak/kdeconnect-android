@@ -36,11 +36,39 @@ public class PermissionsAlertDialogFragment extends AlertDialogFragment {
         permissions = args.getStringArray(KEY_PERMISSIONS);
         requestCode = args.getInt(KEY_REQUEST_CODE, 0);
 
+        final Callback externalCallback = getCallback();
         setCallback(new Callback() {
             @Override
             public boolean onPositiveButtonClicked() {
-                ActivityCompat.requestPermissions(requireActivity(), permissions, requestCode);
-                return true;
+                boolean result = true;
+                if (externalCallback != null) {
+                    result = externalCallback.onPositiveButtonClicked();
+                }
+                if (result) {
+                    ActivityCompat.requestPermissions(requireActivity(), permissions, requestCode);
+                }
+                return result;
+            }
+
+            @Override
+            public void onNegativeButtonClicked() {
+                if (externalCallback != null) {
+                    externalCallback.onNegativeButtonClicked();
+                }
+            }
+
+            @Override
+            public void onCancel() {
+                if (externalCallback != null) {
+                    externalCallback.onCancel();
+                }
+            }
+
+            @Override
+            public void onDismiss() {
+                if (externalCallback != null) {
+                    externalCallback.onDismiss();
+                }
             }
         });
     }

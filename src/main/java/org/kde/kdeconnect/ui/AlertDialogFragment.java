@@ -103,6 +103,11 @@ public class AlertDialogFragment extends DialogFragment {
         }
     }
 
+    @Nullable
+    public Callback getCallback() {
+        return callback;
+    }
+
     public void setCallback(@Nullable Callback callback) {
         this.callback = callback;
     }

@@ -640,7 +640,7 @@ class Device : PacketReceiver {
             val pluginInfo = PluginFactory.getPluginInfo(pluginKey)
             val listenToUnpaired = pluginInfo.listenToUnpaired
 
-            val pluginEnabled = (isPaired || listenToUnpaired) && this.isReachable
+            val pluginEnabled = (isPaired || listenToUnpaired) && this.isReachable && isPluginEnabled(pluginKey)
 
             if (pluginEnabled && addPlugin(pluginKey)) {
                 pluginInfo.supportedPacketTypes.forEach { packetType ->

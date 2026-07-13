@@ -29,6 +29,8 @@ class ClipboardPlugin : Plugin() {
     override val description: String
         get() = context.resources.getString(R.string.pref_plugin_clipboard_desc)
 
+    override val isEnabledByDefault: Boolean = false
+
     override fun onPacketReceived(np: NetworkPacket): Boolean {
         val content = np.getString("content")
         when (np.type) {
