@@ -71,7 +71,6 @@ class MousePadSettingsViewModel(
                 doubleTapDragEnabled = prefs.getBoolean(app.getString(R.string.mousepad_doubletap_drag_enabled_pref), true),
                 sendKeystrokesEnabled = prefs.getBoolean(app.getString(R.string.pref_sendkeystrokes_enabled), true),
                 sendSafeTextImmediately = prefs.getBoolean(app.getString(R.string.pref_send_safe_text_immediately), true),
-                showKeyboard = prefs.getBoolean(app.getString(R.string.pref_mousepad_show_keyboard), false),
                 showBack = prefs.getBoolean(app.getString(R.string.pref_bigscreen_show_back), true),
                 showHome = prefs.getBoolean(app.getString(R.string.pref_bigscreen_show_home), false),
                 hideMouseInput = prefs.getBoolean(app.getString(R.string.pref_bigscreen_hide_mouse_input), false)
@@ -86,14 +85,11 @@ class MousePadSettingsViewModel(
     fun setAccelerationProfile(value: String) = updatePref(R.string.mousepad_acceleration_profile_key, value)
     fun setScrollDirection(value: Boolean) = updatePref(R.string.mousepad_scroll_direction, value)
     fun setScrollSensitivity(value: Long) = updatePref(R.string.mousepad_scroll_sensitivity, value.toInt())
-    fun setGyroEnabled(value: Boolean) = updatePref(R.string.gyro_mouse_enabled, value)
     fun setGyroSensitivity(value: Long) = updatePref(R.string.gyro_mouse_sensitivity, value.toInt())
     fun setMouseButtonsEnabled(value: Boolean) = updatePref(R.string.mousepad_mouse_buttons_enabled_pref, value)
     fun setDoubleTapDragEnabled(value: Boolean) = updatePref(R.string.mousepad_doubletap_drag_enabled_pref, value)
     fun setSendKeystrokesEnabled(value: Boolean) = updatePref(R.string.pref_sendkeystrokes_enabled, value)
     fun setSendSafeTextImmediately(value: Boolean) = updatePref(R.string.pref_send_safe_text_immediately, value)
-    fun setShowKeyboard(value: Boolean) = updatePref(R.string.pref_mousepad_show_keyboard, value)
-    
     // TV settings
     fun setShowBack(value: Boolean) = updatePref(R.string.pref_bigscreen_show_back, value)
     fun setShowHome(value: Boolean) = updatePref(R.string.pref_bigscreen_show_home, value)

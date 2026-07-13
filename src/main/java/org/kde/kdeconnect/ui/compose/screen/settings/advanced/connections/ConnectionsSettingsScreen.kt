@@ -104,7 +104,7 @@ private fun ColumnScope.WhitelistComponent(
     SwitchPreference(
         title = stringResource(R.string.network_whitelist),
         summary = stringResource(R.string.network_whitelist_summary),
-        value = uiState.allNetworksAllowed,
+        value = !uiState.allNetworksAllowed,
         onValueChanged = { newValue ->
             if (!newValue && !uiState.hasLocationPermission) {
                 permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)

@@ -32,9 +32,6 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -46,6 +43,7 @@ import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.Preference
 import org.kde.kdeconnect.ui.compose.components.px
+import org.kde.kdeconnect.ui.compose.components.smartDashBorder
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -167,23 +165,11 @@ private fun OutputCard(
     val dashLength = 8.dp.px
     val cornerRadius = 16.dp.px
     val outlineColor = colorScheme.outline
-    val stroke = remember {
-        Stroke(
-            width = width,
-            pathEffect = PathEffect.dashPathEffect(floatArrayOf(dashLength, dashLength), 0f)
-        )
-    }
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(300.dp)
-            .drawBehind {
-                drawRoundRect(
-                    color = outlineColor,
-                    style = stroke,
-                    cornerRadius = CornerRadius(cornerRadius),
-                )
-            }
+            .drawBehind { smartDashBorder(cornerRadius, dashLength, width, outlineColor) }
     ) {
         if (outputList.isNotEmpty()) {
             Box {

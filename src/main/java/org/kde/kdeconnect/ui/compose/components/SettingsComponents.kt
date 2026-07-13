@@ -617,13 +617,30 @@ fun SettingsSearchBar(
     placeholder: String = "",
     actionButton: @Composable (() -> Unit)
 ) {
-    var isFocused by remember { mutableStateOf(false) }
-
-    Row(
+    SearchBar(
         modifier = modifier
             .fillMaxWidth()
             .card()
             .padding(4.dp),
+        state = state,
+        placeholder = placeholder,
+        actionButton = actionButton
+    )
+}
+
+@Composable
+fun SearchBar(
+    modifier: Modifier = Modifier,
+    state: TextFieldState = rememberTextFieldState(),
+    placeholder: String = "",
+    contentColor: Color = colorScheme.onSurface,
+    caretColor: Color = colorScheme.onSurfaceVariant,
+    actionButton: @Composable (() -> Unit)
+) {
+    var isFocused by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
         BasicTextField(
@@ -632,19 +649,19 @@ fun SettingsSearchBar(
                 .padding(start = 12.dp)
                 .onFocusChanged { isFocused = it.isFocused },
             textStyle = TextStyle(
-                color = colorScheme.onSurface,
+                color = contentColor,
                 fontSize = MaterialTheme.typography.bodyLarge.fontSize
             ),
             state = state,
             lineLimits = TextFieldLineLimits.SingleLine,
-            cursorBrush = SolidColor(colorScheme.onSurface),
+            cursorBrush = SolidColor(contentColor),
             decorator = { innerTextField ->
                 Box {
                     if (state.text.isEmpty() && !isFocused) {
                         Text(
                             text = placeholder,
                             style = MaterialTheme.typography.bodyLarge,
-                            color = colorScheme.onSurfaceVariant
+                            color = caretColor
                         )
                     }
                     innerTextField()

@@ -1,17 +1,10 @@
 package org.kde.kdeconnect.plugins.mousepad
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.ui.compose.components.DialogItemSelectPreference
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.SectionHeader
@@ -19,7 +12,6 @@ import org.kde.kdeconnect.ui.compose.components.SliderPreference
 import org.kde.kdeconnect.ui.compose.components.SwitchPreference
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.parameter.parametersOf
 
 @Composable
 fun MousePadSettingsScreen(
@@ -35,13 +27,11 @@ fun MousePadSettingsScreen(
         onAccelerationProfileChanged = viewModel::setAccelerationProfile,
         onScrollDirectionChanged = viewModel::setScrollDirection,
         onScrollSensitivityChanged = viewModel::setScrollSensitivity,
-        onGyroEnabledChanged = viewModel::setGyroEnabled,
         onGyroSensitivityChanged = viewModel::setGyroSensitivity,
         onMouseButtonsEnabledChanged = viewModel::setMouseButtonsEnabled,
         onDoubleTapDragEnabledChanged = viewModel::setDoubleTapDragEnabled,
         onSendKeystrokesEnabledChanged = viewModel::setSendKeystrokesEnabled,
         onSendSafeTextImmediatelyChanged = viewModel::setSendSafeTextImmediately,
-        onShowKeyboardChanged = viewModel::setShowKeyboard,
         onShowBackChanged = viewModel::setShowBack,
         onShowHomeChanged = viewModel::setShowHome,
         onHideMouseInputChanged = viewModel::setHideMouseInput
@@ -58,13 +48,11 @@ fun MousePadSettingsScreenContent(
     onAccelerationProfileChanged: (String) -> Unit,
     onScrollDirectionChanged: (Boolean) -> Unit,
     onScrollSensitivityChanged: (Long) -> Unit,
-    onGyroEnabledChanged: (Boolean) -> Unit,
     onGyroSensitivityChanged: (Long) -> Unit,
     onMouseButtonsEnabledChanged: (Boolean) -> Unit,
     onDoubleTapDragEnabledChanged: (Boolean) -> Unit,
     onSendKeystrokesEnabledChanged: (Boolean) -> Unit,
     onSendSafeTextImmediatelyChanged: (Boolean) -> Unit,
-    onShowKeyboardChanged: (Boolean) -> Unit,
     onShowBackChanged: (Boolean) -> Unit,
     onShowHomeChanged: (Boolean) -> Unit,
     onHideMouseInputChanged: (Boolean) -> Unit
@@ -147,16 +135,10 @@ fun MousePadSettingsScreenContent(
             onValueChanged = onScrollSensitivityChanged
         )
 
-        SwitchPreference(
-            title = stringResource(R.string.gyro_mouse_enabled_title),
-            value = uiState.gyroEnabled,
-            onValueChanged = onGyroEnabledChanged
-        )
         SliderPreference(
             title = stringResource(R.string.gyro_mouse_sensitivity_title),
             value = uiState.gyroSensitivity,
             values = sensitivitySteps,
-            enabled = uiState.gyroEnabled,
             onValueChanged = onGyroSensitivityChanged
         )
 
@@ -184,12 +166,6 @@ fun MousePadSettingsScreenContent(
             summary = stringResource(R.string.sendkeystrokes_safe_text_enabled_summary),
             value = uiState.sendSafeTextImmediately,
             onValueChanged = onSendSafeTextImmediatelyChanged
-        )
-
-        SwitchPreference(
-            title = stringResource(R.string.mousepad_show_keyboard),
-            value = uiState.showKeyboard,
-            onValueChanged = onShowKeyboardChanged
         )
     }
 }

@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
+import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.NetworkPacket
@@ -33,20 +34,20 @@ class MousePadViewModel(
 
     var mouseButtonsEnabled by mutableStateOf(true)
     var doubleTapDragEnabled by mutableStateOf(true)
-    var gyroEnabled by mutableStateOf(false)
+    var isGyroListenerActive by mutableStateOf(false)
     var allowGyro by mutableStateOf(false)
     var gyroscopeSensitivity by mutableIntStateOf(100)
     var scrollDirection by mutableIntStateOf(1)
     var scrollCoefficient by mutableDoubleStateOf(1.0)
     var currentSensitivity by mutableFloatStateOf(1.0f)
     var accelerationProfile by mutableStateOf<PointerAccelerationProfile?>(null)
-    var showKeyboardInitially by mutableStateOf(true)
 
     var singleTapAction by mutableStateOf(ClickType.LEFT)
     var doubleTapAction by mutableStateOf(ClickType.RIGHT)
     var tripleTapAction by mutableStateOf(ClickType.MIDDLE)
 
     var isDragging by mutableStateOf(false)
+    private var isResumed = false
 
     enum class ClickType {
         LEFT, RIGHT, MIDDLE, NONE;
@@ -97,20 +98,25 @@ class MousePadViewModel(
 
         mouseButtonsEnabled = prefs.getBoolean(app.getString(R.string.mousepad_mouse_buttons_enabled_pref), true)
         doubleTapDragEnabled = prefs.getBoolean(app.getString(R.string.mousepad_doubletap_drag_enabled_pref), true)
-        showKeyboardInitially = prefs.getBoolean(app.getString(R.string.pref_mousepad_show_keyboard), true)
     }
 
     fun onResume() {
-        if (allowGyro && !gyroEnabled) {
-            sensorManager?.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), SensorManager.SENSOR_DELAY_GAME)
-            gyroEnabled = true
-        }
+        isResumed = true
+        updateGyroListener()
     }
 
     fun onPause() {
-        if (gyroEnabled) {
+        isResumed = false
+        updateGyroListener()
+    }
+
+    private fun updateGyroListener() {
+        if (isResumed && allowGyro && !isGyroListenerActive) {
+            sensorManager?.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), SensorManager.SENSOR_DELAY_GAME)
+            isGyroListenerActive = true
+        } else if ((!isResumed || !allowGyro) && isGyroListenerActive) {
             sensorManager?.unregisterListener(this)
-            gyroEnabled = false
+            isGyroListenerActive = false
         }
     }
 
@@ -136,10 +142,16 @@ class MousePadViewModel(
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
         applyPrefs()
+        updateGyroListener()
     }
 
-    private fun isGyroSensorAvailable(): Boolean {
+    fun isGyroSensorAvailable(): Boolean {
         return sensorManager?.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null
+    }
+
+    fun setGyroEnabled(enabled: Boolean) {
+        val app = getApplication<Application>()
+        prefs.edit { putBoolean(app.getString(R.string.gyro_mouse_enabled), enabled) }
     }
 
     fun sendLeftClick() {
@@ -187,6 +199,10 @@ class MousePadViewModel(
 
     fun sendChars(chars: CharSequence) {
         plugin?.sendText(chars.toString())
+    }
+
+    fun sendComposed(text: String) {
+        plugin?.sendText(text)
     }
 
     fun onKeyEvent(event: KeyEvent): Boolean {

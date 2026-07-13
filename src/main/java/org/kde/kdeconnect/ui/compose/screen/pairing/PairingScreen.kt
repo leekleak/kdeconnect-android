@@ -46,12 +46,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Matrix
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.copy
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -69,6 +66,7 @@ import org.kde.kdeconnect.ui.compose.components.SectionHeader
 import org.kde.kdeconnect.ui.compose.components.googleSans
 import org.kde.kdeconnect.ui.compose.components.px
 import org.kde.kdeconnect.ui.compose.components.roundedShapes
+import org.kde.kdeconnect.ui.compose.components.smartDashBorder
 import org.kde.kdeconnect.ui.compose.model.device.DeviceUiModel
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.SettingsKey
@@ -303,23 +301,11 @@ private fun DeviceCard(
         val matrix = Matrix().apply { scale(backgroundSizePx, backgroundSizePx) }
         backgroundShape.copy().apply { transform(matrix) }
     }
-    val stroke = remember {
-        Stroke(
-            width = width,
-            pathEffect = PathEffect.dashPathEffect(floatArrayOf(dashLength, dashLength), 0f)
-        )
-    }
     val font = remember { googleSans(weight = 600f) }
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .drawBehind {
-                drawRoundRect(
-                    color = outlineColor,
-                    style = stroke,
-                    cornerRadius = CornerRadius(cornerRadius),
-                )
-            }
+            .drawBehind { smartDashBorder(cornerRadius, dashLength, width, outlineColor) }
     ) {
         Row(
             modifier = Modifier
