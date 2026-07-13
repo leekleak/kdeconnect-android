@@ -63,6 +63,15 @@ fun PluginSettingsScreen(
                 )
             }
         }
+        multimedia?.let { plugin ->
+            SwitchPreference(
+                title = plugin.name,
+                summary = plugin.description,
+                icon = painterResource(R.drawable.media_link),
+                value = plugin.isEnabled,
+                onValueChanged = { viewModel.setPluginEnabled(context, plugin.key, it) }
+            )
+        }
         CategoryTitleTextSmall(stringResource(R.string.synchronization))
         clipboard?.let { plugin ->
             SwitchPreference(
@@ -74,15 +83,6 @@ fun PluginSettingsScreen(
             )
         }
         contacts?.let { plugin ->
-            SwitchPreference(
-                title = plugin.name,
-                summary = plugin.description,
-                icon = painterResource(R.drawable.contacts),
-                value = plugin.isEnabled,
-                onValueChanged = { viewModel.setPluginEnabled(context, plugin.key, it) }
-            )
-        }
-        multimedia?.let { plugin ->
             SwitchPreference(
                 title = plugin.name,
                 summary = plugin.description,

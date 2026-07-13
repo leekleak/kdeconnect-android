@@ -222,29 +222,48 @@ class SMSPlugin : Plugin() {
     override val permissionExplanation: Int = R.string.telepathy_permission_explanation
 
     override fun onCreate(): Boolean {
-        val filter = IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION)
-        filter.priority = 500
-        context.registerReceiver(receiver, filter)
-
-        val refreshFilter = IntentFilter(Transaction.REFRESH)
-        refreshFilter.priority = 500
-        context.registerReceiver(messagesUpdateReceiver, refreshFilter, ContextCompat.RECEIVER_EXPORTED)
-
-        context.contentResolver.registerContentObserver(SMSHelper.mConversationUri, true, messageObserver)
-
-        // To see debug messages for Klinker library, uncomment the below line
-        //Log.setDebug(true)
-        mostRecentTimestampLock.lock()
-        mostRecentTimestamp = getNewestMessageTimestamp(context)
-        mostRecentTimestampLock.unlock()
-
+        initialize()
         return true
+    }
+
+    private var initialized = false
+
+    private fun initialize() {
+        try {
+            val filter = IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION)
+            filter.priority = 500
+            context.registerReceiver(receiver, filter)
+
+            val refreshFilter = IntentFilter(Transaction.REFRESH)
+            refreshFilter.priority = 500
+            context.registerReceiver(
+                messagesUpdateReceiver,
+                refreshFilter,
+                ContextCompat.RECEIVER_EXPORTED
+            )
+
+            context.contentResolver.registerContentObserver(
+                SMSHelper.mConversationUri,
+                true,
+                messageObserver
+            )
+
+            // To see debug messages for Klinker library, uncomment the below line
+            //Log.setDebug(true)
+            mostRecentTimestampLock.lock()
+            mostRecentTimestamp = getNewestMessageTimestamp(context)
+            mostRecentTimestampLock.unlock()
+            initialized = true
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     override fun onDestroy() {
         context.unregisterReceiver(receiver)
         context.unregisterReceiver(messagesUpdateReceiver)
         context.contentResolver.unregisterContentObserver(messageObserver)
+        initialized = false
     }
 
     override val displayName: String
@@ -253,50 +272,58 @@ class SMSPlugin : Plugin() {
     override val description: String
         get() = context.resources.getString(R.string.pref_plugin_telepathy_desc)
 
-    override fun onPacketReceived(np: NetworkPacket): Boolean = when (np.type) {
-        PACKET_TYPE_SMS_REQUEST_CONVERSATIONS -> {
-            execute {
-                this.handleRequestAllConversations(np)
+    override fun onPacketReceived(np: NetworkPacket): Boolean {
+        val list = listOf(PACKET_TYPE_SMS_REQUEST_CONVERSATIONS, PACKET_TYPE_SMS_REQUEST_CONVERSATION,
+            PACKET_TYPE_SMS_REQUEST, PACKET_TYPE_SMS_REQUEST_ATTACHMENT)
+        if (!list.contains(np.type)) return false
+        showPermissionExplanation(device.deviceId) //Todo: Figure out a way to reemit all queries before permission had been granted.
+        if (!initialized) initialize()
+        if (!checkRequiredPermissions()) return false
+        return when (np.type) {
+            PACKET_TYPE_SMS_REQUEST_CONVERSATIONS -> {
+                execute {
+                    this.handleRequestAllConversations(np)
+                }
+                true
             }
-            true
-        }
-        PACKET_TYPE_SMS_REQUEST_CONVERSATION -> {
-            execute {
-                this.handleRequestSingleConversation(np)
+            PACKET_TYPE_SMS_REQUEST_CONVERSATION -> {
+                execute {
+                    this.handleRequestSingleConversation(np)
+                }
+                true
             }
-            true
-        }
-        PACKET_TYPE_SMS_REQUEST -> {
-            val textMessage: String = np.getString("messageBody")
-            val subID = np.getLong("subID", -1)
+            PACKET_TYPE_SMS_REQUEST -> {
+                val textMessage: String = np.getString("messageBody")
+                val subID = np.getLong("subID", -1)
 
-            val jsonAddressList = np.getJSONArray("addresses")
-            val addressList = if (jsonAddressList == null) {
-                // If jsonAddressList is null, then the SMS_REQUEST packet is most probably from the older version of the desktop app.
-                listOf(SMSHelper.Address(context, np.getString("phoneNumber")))
-            } else {
-                jsonArrayToAddressList(context, jsonAddressList)
+                val jsonAddressList = np.getJSONArray("addresses")
+                val addressList = if (jsonAddressList == null) {
+                    // If jsonAddressList is null, then the SMS_REQUEST packet is most probably from the older version of the desktop app.
+                    listOf(SMSHelper.Address(context, np.getString("phoneNumber")))
+                } else {
+                    jsonArrayToAddressList(context, jsonAddressList)
+                }
+                val attachedFiles: List<SMSHelper.Attachment> = jsonArrayToAttachmentsList(np.getJSONArray("attachments"))
+
+                val telephonyDataStore = GlobalContext.get().get<TelephonySettingsDataStore>()
+                sendMessage(context, textMessage, attachedFiles, addressList.toMutableList(), subID.toInt(), telephonyDataStore)
+
+                true
             }
-            val attachedFiles: List<SMSHelper.Attachment> = jsonArrayToAttachmentsList(np.getJSONArray("attachments"))
+            PACKET_TYPE_SMS_REQUEST_ATTACHMENT -> {
+                val partID: Long = np.getLong("part_id")
+                val uniqueIdentifier: String = np.getString("unique_identifier")
 
-            val telephonyDataStore = GlobalContext.get().get<TelephonySettingsDataStore>()
-            sendMessage(context, textMessage, attachedFiles, addressList.toMutableList(), subID.toInt(), telephonyDataStore)
+                val networkPacket: NetworkPacket? = partIdToMessageAttachmentPacket(context, partID, uniqueIdentifier, PACKET_TYPE_SMS_ATTACHMENT_FILE)
 
-            true
-        }
-        PACKET_TYPE_SMS_REQUEST_ATTACHMENT -> {
-            val partID: Long = np.getLong("part_id")
-            val uniqueIdentifier: String = np.getString("unique_identifier")
+                if (networkPacket != null) {
+                    device.sendPacket(networkPacket)
+                }
 
-            val networkPacket: NetworkPacket? = partIdToMessageAttachmentPacket(context, partID, uniqueIdentifier, PACKET_TYPE_SMS_ATTACHMENT_FILE)
-
-            if (networkPacket != null) {
-                device.sendPacket(networkPacket)
+                true
             }
-
-            true
+            else -> false
         }
-        else -> true
     }
 
     /**

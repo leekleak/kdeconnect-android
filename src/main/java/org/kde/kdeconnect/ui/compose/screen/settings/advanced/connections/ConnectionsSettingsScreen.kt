@@ -106,15 +106,15 @@ private fun ColumnScope.WhitelistComponent(
         summary = stringResource(R.string.network_whitelist_summary),
         value = !uiState.allNetworksAllowed,
         onValueChanged = { newValue ->
-            if (!newValue && !uiState.hasLocationPermission) {
+            if (newValue && !uiState.hasLocationPermission) {
                 permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             } else {
-                viewModel.setAllNetworksAllowed(newValue)
+                viewModel.setAllNetworksAllowed(!newValue)
             }
         }
     )
 
-    AnimatedVisibility(uiState.allNetworksAllowed) {
+    AnimatedVisibility(!uiState.allNetworksAllowed) {
         val textFieldState = rememberTextFieldState()
 
         Column {

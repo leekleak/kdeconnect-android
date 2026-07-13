@@ -73,14 +73,6 @@ abstract class Plugin {
     }
 
     /**
-     * Returns whether this plugin should be loaded or not, to listen to NetworkPackets
-     * from the unpaired devices. By default, returns false.
-     */
-    open fun listensToUnpairedDevices(): Boolean {
-        return false
-    }
-
-    /**
      * Return the internal plugin name, that will be used as a
      * unique key to distinguish it.
      * Use the class name as `key`.
@@ -238,8 +230,6 @@ abstract class Plugin {
             context.startActivity(intent)
         }
     }
-
-    open fun loadPluginWhenRequiredPermissionsMissing(): Boolean = false
 
     open fun onDeviceUnpaired(context: Context, deviceId: String) {}
 

@@ -558,12 +558,7 @@ class Device : PacketReceiver {
         if (!plugin.checkRequiredPermissions()) {
             Log.d("KDE/addPlugin", "No permission $pluginKey")
             pluginsWithoutPermissions[pluginKey] = plugin
-            if (plugin.loadPluginWhenRequiredPermissionsMissing()) {
-                loadedPlugins[pluginKey] = plugin
-            } else {
-                loadedPlugins.remove(pluginKey)
-                return false
-            }
+            loadedPlugins[pluginKey] = plugin
         } else {
             Log.d("KDE/addPlugin", "Permissions OK $pluginKey")
             loadedPlugins[pluginKey] = plugin
@@ -638,9 +633,8 @@ class Device : PacketReceiver {
 
         supportedPlugins.forEach { pluginKey ->
             val pluginInfo = PluginFactory.getPluginInfo(pluginKey)
-            val listenToUnpaired = pluginInfo.listenToUnpaired
 
-            val pluginEnabled = (isPaired || listenToUnpaired) && this.isReachable && isPluginEnabled(pluginKey)
+            val pluginEnabled = isPaired && this.isReachable && isPluginEnabled(pluginKey)
 
             if (pluginEnabled && addPlugin(pluginKey)) {
                 pluginInfo.supportedPacketTypes.forEach { packetType ->

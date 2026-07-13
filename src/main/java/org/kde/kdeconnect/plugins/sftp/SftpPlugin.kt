@@ -75,8 +75,6 @@ class SftpPlugin : Plugin(), OnSharedPreferenceChangeListener {
         preferences?.unregisterOnSharedPreferenceChangeListener(this)
     }
 
-    override fun loadPluginWhenRequiredPermissionsMissing() = true
-
     override fun onPacketReceived(np: NetworkPacket): Boolean {
         if (!np.getBoolean("startBrowsing")) return false
 

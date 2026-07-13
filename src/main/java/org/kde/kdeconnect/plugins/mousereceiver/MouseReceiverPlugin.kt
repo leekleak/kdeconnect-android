@@ -46,7 +46,6 @@ class MouseReceiverPlugin : Plugin() {
         if (RemoteKeyboardPlugin.getMousePadPacketType(np) != RemoteKeyboardPlugin.MousePadPacketType.Mouse) {
             return false // This packet will be handled by the remotekeyboard instead, silently ignore
         }
-        super.onPacketReceived(np)
 
         val dx = np.getDouble("dx", 0.toDouble()).let { if (it < 0) floor(it) else ceil(it) }.toInt()
         val dy = np.getDouble("dy", 0.toDouble()).let { if (it < 0) floor(it) else ceil(it) }.toInt()
