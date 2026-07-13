@@ -73,6 +73,9 @@ class InputDevicesReceiverPlugin : Plugin() {
         // If we do not have the permission or the MouseReceiverPlugin is disabled (either from the beginning or the user disabled it while the cursor was in our possession),
         // we must hand over control to the other end.
         if (mouseReceiverPlugin == null) {
+            val plugin = device.getPluginIncludingWithoutPermissions("MouseReceiverPlugin")
+            plugin?.showPermissionExplanation(device.deviceId)
+
             Cursor.x = np.getInt("deltax", Cursor.x)
             Cursor.y = np.getInt("deltay", Cursor.y)
 

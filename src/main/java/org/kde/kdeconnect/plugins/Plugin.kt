@@ -7,6 +7,7 @@ package org.kde.kdeconnect.plugins
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
@@ -227,6 +228,20 @@ abstract class Plugin {
 
     open fun checkOptionalPermissions(): Boolean {
         return arePermissionsGranted(optionalPermissions)
+    }
+
+    /**
+     * Shows the permissionExplanationDialog if required permissions are not granted.
+     */
+    fun showPermissionExplanation(deviceId: String) {
+        if (!checkRequiredPermissions()) {
+            val intent = Intent(context, org.kde.kdeconnect.ui.PermissionExplanationActivity::class.java).apply {
+                putExtra("deviceId", deviceId)
+                putExtra("pluginKey", pluginKey)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+        }
     }
 
     open fun loadPluginWhenRequiredPermissionsMissing(): Boolean = false
