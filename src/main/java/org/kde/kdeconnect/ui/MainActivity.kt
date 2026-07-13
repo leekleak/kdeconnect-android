@@ -40,6 +40,7 @@ import org.kde.kdeconnect.BackgroundService
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.helpers.DeviceHelper
+import org.kde.kdeconnect.plugins.mousepad.MousePadViewModel
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
 import org.kde.kdeconnect.plugins.share.ShareSettingsViewModel
 import org.kde.kdeconnect.ui.compose.KdeTheme
@@ -51,6 +52,7 @@ import org.kde.kdeconnect.ui.navigation.PairingKey
 import org.kde.kdeconnect.ui.navigation.PresenterKey
 import org.kde.kdeconnect.ui.navigation.RunCommandKey
 import org.kde.kdeconnect.ui.navigation.DigitizerKey
+import org.kde.kdeconnect.ui.navigation.MousePadKey
 import org.kde.kdeconnect.ui.navigation.SettingsKey
 import org.kde.kdeconnect_tp.R
 import org.koin.android.ext.android.inject
@@ -59,6 +61,7 @@ import org.koin.androidx.scope.activityRetainedScope
 import org.koin.compose.koinInject
 import org.koin.compose.navigation3.koinEntryProvider
 import org.koin.core.annotation.KoinExperimentalAPI
+import org.koin.core.parameter.parametersOf
 import org.koin.core.scope.Scope
 
 private const val STORAGE_LOCATION_CONFIGURED = 2020
@@ -70,6 +73,10 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val currentKey = mNavigator.backStack.lastOrNull()
+        if (currentKey is MousePadKey) {
+            val viewModel: MousePadViewModel = scope.get(MousePadViewModel::class, null) { parametersOf(currentKey.deviceId) }
+            if (viewModel.onKeyEvent(event)) return true
+        }
         if (currentKey is PresenterKey) {
             val offScreenControlsSupported = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA
             if (!offScreenControlsSupported) {
@@ -134,6 +141,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
                 when (pluginKey) {
                     "RunCommandPlugin" -> navigator.goTo(RunCommandKey(deviceId))
                     "DigitizerPlugin" -> navigator.goTo(DigitizerKey(deviceId))
+                    "MousePadPlugin" -> navigator.goTo(MousePadKey(deviceId))
                     else -> navigator.goTo(DeviceKey(deviceId))
                 }
             }

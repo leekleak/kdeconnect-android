@@ -40,6 +40,9 @@ data class PluginSettingsKey(val deviceId: String) : KdeConnectKey
 @Serializable
 data class PresenterKey(val deviceId: String) : KdeConnectKey
 
+@Serializable
+data class MousePadKey(val deviceId: String) : KdeConnectKey
+
 
 /**
  * Plugin setting keys

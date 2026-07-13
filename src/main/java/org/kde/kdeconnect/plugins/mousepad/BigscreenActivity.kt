@@ -16,10 +16,13 @@ import android.view.MenuItem
 import android.view.View
 import androidx.preference.PreferenceManager
 import org.kde.kdeconnect.KdeConnect.Companion.getInstance
-import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.PermissionsAlertDialogFragment
 import org.kde.kdeconnect.base.BaseActivity
 import org.kde.kdeconnect.extensions.viewBinding
+import org.kde.kdeconnect.ui.MainActivity
+import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
+import org.kde.kdeconnect.ui.navigation.Navigator
+import org.kde.kdeconnect.ui.navigation.MousePadKey
 import org.kde.kdeconnect_tp.R
 import org.kde.kdeconnect_tp.databinding.ActivityBigscreenBinding
 
@@ -98,9 +101,14 @@ class BigscreenActivity : BaseActivity<ActivityBigscreenBinding>() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id = item.itemId
         if (id == R.id.menu_use_mouse_and_keyboard) {
-            val intent = Intent(this, MousePadActivity::class.java)
-            intent.putExtra("deviceId", getIntent().getStringExtra("deviceId"))
-            startActivity(intent)
+            val deviceId = intent.getStringExtra("deviceId")
+            if (deviceId != null) {
+                val intent = Intent(this, MainActivity::class.java).apply {
+                    putExtra(KdeConnectKeyConstants.EXTRA_DEVICE_ID, deviceId)
+                    putExtra(KdeConnectKeyConstants.EXTRA_PLUGIN_KEY, "MousePadPlugin")
+                }
+                startActivity(intent)
+            }
             return true
         } else {
             return super.onOptionsItemSelected(item)

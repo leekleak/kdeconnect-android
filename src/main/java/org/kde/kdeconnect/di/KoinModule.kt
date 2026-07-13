@@ -22,6 +22,8 @@ import kotlinx.coroutines.launch
 import org.kde.kdeconnect.helpers.AppIconFetcher
 import org.kde.kdeconnect.plugins.digitizer.DigitizerScreen
 import org.kde.kdeconnect.plugins.digitizer.DigitizerViewModel
+import org.kde.kdeconnect.plugins.mousepad.MousePadScreen
+import org.kde.kdeconnect.plugins.mousepad.MousePadViewModel
 import org.kde.kdeconnect.plugins.mousepad.MousePadSettingsScreen
 import org.kde.kdeconnect.plugins.mousepad.MousePadSettingsViewModel
 import org.kde.kdeconnect.ui.compose.screen.settings.advanced.notifications.NotificationSettings
@@ -59,6 +61,7 @@ import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.DigitizerKey
 import org.kde.kdeconnect.ui.navigation.LicensesKey
+import org.kde.kdeconnect.ui.navigation.MousePadKey
 import org.kde.kdeconnect.ui.navigation.MousePadPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.NotificationSettingsKey
@@ -223,6 +226,13 @@ val presenterModule = module {
     }
 }
 
+val mousePadModule = module {
+    viewModel<MousePadViewModel>()
+    navigation<MousePadKey> { key ->
+        MousePadScreen(deviceId = key.deviceId)
+    }
+}
+
 val runCommandModule = module {
     viewModel<RunCommandViewModel>()
     navigation<RunCommandKey> { key ->
@@ -244,7 +254,7 @@ fun buildImageLoader(context: Context): ImageLoader =
         .build()
 
 val appModule = module {
-    includes(pairingModule, deviceModule, pluginSettingsModule, presenterModule, runCommandModule, digitizerModule, settingsModule, aboutModule)
+    includes(pairingModule, deviceModule, pluginSettingsModule, presenterModule, mousePadModule, runCommandModule, digitizerModule, settingsModule, aboutModule)
 
     single<Navigator>()
     single<ImageLoader> { create(::buildImageLoader) }

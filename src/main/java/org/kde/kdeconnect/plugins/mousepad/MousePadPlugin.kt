@@ -13,6 +13,9 @@ import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
+import org.kde.kdeconnect.ui.MainActivity
+import org.kde.kdeconnect.ui.navigation.MousePadKey
+import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 
 @LoadablePlugin
@@ -34,9 +37,8 @@ class MousePadPlugin : Plugin() {
             iconRes = R.drawable.touchpad_plugin_action_24dp,
             category = ButtonCategory.CONTROL
         ) { parentActivity ->
-            val intent = Intent(parentActivity, MousePadActivity::class.java)
-            intent.putExtra("deviceId", device.deviceId)
-            parentActivity.startActivity(intent)
+            val navigator: Navigator = (parentActivity as MainActivity).scope.get(Navigator::class, null, null)
+            navigator.goTo(MousePadKey(device.deviceId))
         }
         return if (device.deviceType == DeviceType.TV) {
             val tvInput = PluginUiButton(
