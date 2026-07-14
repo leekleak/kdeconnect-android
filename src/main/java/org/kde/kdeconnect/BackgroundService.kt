@@ -22,6 +22,7 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
 import android.os.IBinder
+import android.provider.Settings
 import android.util.Log
 import androidx.annotation.MainThread
 import androidx.core.app.NotificationCompat
@@ -33,6 +34,7 @@ import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.backends.BaseLinkProvider.ConnectionReceiver
 import org.kde.kdeconnect.backends.bluetooth.BluetoothLinkProvider
 import org.kde.kdeconnect.backends.lan.LanLinkProvider
+import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.plugins.clipboard.ClipboardFloatingActivity
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin
@@ -41,6 +43,8 @@ import org.kde.kdeconnect.plugins.share.SendFileActivity
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import org.kde.kdeconnect_tp.R
+import org.koin.android.ext.android.inject
+import org.koin.core.component.KoinComponent
 
 /**
  * This class (still) does 3 things:
@@ -53,6 +57,7 @@ class BackgroundService : Service() {
     private lateinit var applicationInstance: KdeConnect
 
     private val linkProviders = mutableListOf<BaseLinkProvider>()
+    private val settingsDataStore: SettingsDataStore by inject()
 
     private val connectedToNonCellularNetwork = MutableLiveData<Boolean>()
     /** Indicates whether device is connected over wifi / usb / bluetooth / (anything other than cellular) */
@@ -70,7 +75,7 @@ class BackgroundService : Service() {
     private fun registerLinkProviders() {
         linkProviders.add(LanLinkProvider(this))
         //linkProviders.add(LoopbackLinkProvider(this))
-        linkProviders.add(BluetoothLinkProvider(this))
+        linkProviders.add(BluetoothLinkProvider(this, settingsDataStore))
     }
 
     fun onNetworkChange(network: Network?) {

@@ -9,13 +9,16 @@ import android.app.Application
 import android.os.Build
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.preference.PreferenceManager
 import com.google.android.material.color.DynamicColors
+import org.kde.kdeconnect.datastore.SettingsDataStore
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 /**
  * Utilities for working with android [Themes][android.content.res.Resources.Theme].
  */
-object ThemeUtil {
+object ThemeUtil : KoinComponent {
+    val dataStore: SettingsDataStore by inject()
     @Suppress("MemberVisibilityCanBePrivate")
     const val LIGHT_MODE: String = "light"
     @Suppress("MemberVisibilityCanBePrivate")
@@ -52,9 +55,7 @@ object ThemeUtil {
      * Called when an activity is created for the first time to reliably load the correct theme.
      */
     fun setUserPreferredTheme(application: Application) {
-        val appTheme = PreferenceManager
-            .getDefaultSharedPreferences(application)
-            .getString("theme_pref", DEFAULT_MODE)!!
+        val appTheme = dataStore.getThemeBlocking()
         DynamicColors.applyToActivitiesIfAvailable(application)
         applyTheme(appTheme)
     }

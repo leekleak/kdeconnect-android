@@ -63,7 +63,7 @@ object SslHelper {
 
         Log.i(LOG_TAG, "Key algorithm: " + publicKey.algorithm)
 
-        val deviceId = getDeviceId(context)
+        val deviceId = getDeviceId()
 
         var needsToGenerateCertificate = false
         val settings = PreferenceManager.getDefaultSharedPreferences(context)

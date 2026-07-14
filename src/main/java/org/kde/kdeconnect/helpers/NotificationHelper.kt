@@ -6,14 +6,16 @@
 package org.kde.kdeconnect.helpers
 
 import android.content.Context
-import android.os.Build
-import android.preference.PreferenceManager
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationManagerCompat
+import kotlinx.coroutines.runBlocking
+import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect_tp.R
-import androidx.core.content.edit
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
-object NotificationHelper {
+object NotificationHelper : KoinComponent {
+    val dataStore: SettingsDataStore by inject()
     fun initializeChannels(context: Context) {
         val persistentChannel = NotificationChannelCompat.Builder(Channels.PERSISTENT, NotificationManagerCompat.IMPORTANCE_MIN)
             .setName(context.getString(R.string.notification_channel_persistent))
@@ -71,12 +73,13 @@ object NotificationHelper {
     }
 
     fun setPersistentNotificationEnabled(context: Context?, enabled: Boolean) {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        prefs.edit { putBoolean("persistentNotification", enabled) }
+        runBlocking {
+            dataStore.setPersistentNotificationEnabled(enabled)
+        }
     }
 
     fun isPersistentNotificationEnabled(context: Context?): Boolean {
-        return true
+        return dataStore.isPersistentNotificationEnabledBlocking()
     }
 
     object Channels {

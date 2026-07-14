@@ -105,7 +105,7 @@ class MdnsDiscovery {
     fun createNsdServiceInfo(): NsdServiceInfo {
         val serviceInfo = NsdServiceInfo()
 
-        val deviceId = getDeviceId(context)
+        val deviceId = getDeviceId()
         // Without resolving the DNS, the service name is the only info we have so it must be sufficient to identify a device.
         // Also, it must be unique, otherwise it will be automatically renamed. For these reasons we use the deviceId.
         serviceInfo.serviceName = deviceId
@@ -115,7 +115,7 @@ class MdnsDiscovery {
         // The following fields aren't really used for anything, since we can't include enough info
         // for it to be useful (namely: we can't include the device certificate).
         // Each field (key + value) needs to be < 255 bytes. All the fields combined need to be < 1300 bytes.
-        val deviceName = getDeviceName(context)
+        val deviceName = getDeviceName()
         val deviceType = deviceType.toString()
         val protocolVersion = DeviceHelper.PROTOCOL_VERSION.toString()
         serviceInfo.setAttribute("id", deviceId)
@@ -129,7 +129,7 @@ class MdnsDiscovery {
     }
 
     fun createDiscoveryListener() = object : DiscoveryListener {
-        val myId: String = getDeviceId(context)
+        val myId: String = getDeviceId()
 
         override fun onDiscoveryStarted(serviceType: String?) {
             Log.i(LOG_TAG, "Service discovery started: $serviceType")

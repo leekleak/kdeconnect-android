@@ -2,95 +2,82 @@ package org.kde.kdeconnect.ui.compose.screen.settings
 
 import android.app.Application
 import android.content.Context
-import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
-import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.preference.PreferenceManager
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.apache.commons.io.IOUtils
 import org.kde.kdeconnect.BackgroundService
+import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.CustomDevicesHelper
-import org.kde.kdeconnect.helpers.DeviceHelper
-import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.ui.ThemeUtil
 import org.kde.kdeconnect_tp.BuildConfig
 import java.io.InputStreamReader
 
-class SettingsViewModel(application: Application) : AndroidViewModel(application) {
+class SettingsViewModel(
+    application: Application,
+    private val dataStore: SettingsDataStore
+) : AndroidViewModel(application) {
     private val context: Context get() = getApplication()
-    private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
-    private val _uiState = MutableStateFlow(SettingsUiState())
-    val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<SettingsUiState> = combine(
+        dataStore.deviceName,
+        dataStore.theme,
+        dataStore.persistentNotificationEnabled,
+        dataStore.bluetoothEnabled,
+        dataStore.customDeviceList
+    ) { params: Array<Any> ->
+        val deviceName = params[0] as String
+        val theme = params[1] as String
+        val persistentNotificationEnabled = params[2] as Boolean
+        val bluetoothEnabled = params[3] as Boolean
+        val customDeviceListSerialized = params[4] as String
 
-    private val preferenceChangeListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-        when (key) {
-            DeviceHelper.KEY_DEVICE_NAME_PREFERENCE -> updateDeviceName()
-            KEY_APP_THEME -> updateTheme()
-            KEY_BLUETOOTH_ENABLED -> updateBluetoothEnabled()
-        }
-    }
-
-    init {
-        prefs.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
-        updateAll()
-    }
-
-    fun updateAll() {
-        updateDeviceName()
-        updateTheme()
-        updatePersistentNotification()
-        updateBluetoothEnabled()
-        updateCustomDevicesCount()
-    }
-
-    private fun updateDeviceName() {
-        _uiState.update { it.copy(deviceName = DeviceHelper.getDeviceName(context)) }
-    }
-
-    private fun updateTheme() {
-        _uiState.update { it.copy(theme = prefs.getString(KEY_APP_THEME, ThemeUtil.DEFAULT_MODE) ?: ThemeUtil.DEFAULT_MODE) }
-    }
-
-    private fun updatePersistentNotification() {
-        _uiState.update { it.copy(persistentNotificationEnabled = NotificationHelper.isPersistentNotificationEnabled(context)) }
-    }
-
-    private fun updateBluetoothEnabled() {
-        _uiState.update { it.copy(bluetoothEnabled = prefs.getBoolean(KEY_BLUETOOTH_ENABLED, false)) }
-    }
-
-    fun updateCustomDevicesCount() {
-        _uiState.update { it.copy(customDevicesCount = CustomDevicesHelper.getCustomDeviceList(context).size) }
-    }
+        SettingsUiState(
+            deviceName = deviceName,
+            theme = theme,
+            persistentNotificationEnabled = persistentNotificationEnabled,
+            bluetoothEnabled = bluetoothEnabled,
+            customDevicesCount = CustomDevicesHelper.deserializeIpList(customDeviceListSerialized).size
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = SettingsUiState()
+    )
 
     fun setDeviceName(name: String) {
         if (name.isNotBlank()) {
-            prefs.edit { putString(DeviceHelper.KEY_DEVICE_NAME_PREFERENCE, name) }
+            viewModelScope.launch {
+                dataStore.setDeviceName(name)
+            }
         }
     }
 
     fun setTheme(theme: String) {
-        prefs.edit { putString(KEY_APP_THEME, theme) }
-        ThemeUtil.applyTheme(theme)
+        viewModelScope.launch {
+            dataStore.setTheme(theme)
+            ThemeUtil.applyTheme(theme)
+        }
     }
 
     fun setPersistentNotificationEnabled(enabled: Boolean) {
-        NotificationHelper.setPersistentNotificationEnabled(context, enabled)
-        BackgroundService.instance?.changePersistentNotificationVisibility(enabled)
-        updatePersistentNotification()
+        viewModelScope.launch {
+            dataStore.setPersistentNotificationEnabled(enabled)
+            BackgroundService.instance?.changePersistentNotificationVisibility(enabled)
+        }
     }
 
     fun setBluetoothEnabled(enabled: Boolean) {
-        prefs.edit { putBoolean(KEY_BLUETOOTH_ENABLED, enabled) }
+        viewModelScope.launch {
+            dataStore.setBluetoothEnabled(enabled)
+        }
     }
 
     fun exportLogs(uri: Uri) {
@@ -104,15 +91,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 IOUtils.copy(reader, it, Charsets.UTF_8)
             }
         }
-    }
-
-    override fun onCleared() {
-        prefs.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
-    }
-
-    companion object {
-        const val KEY_BLUETOOTH_ENABLED: String = "bluetooth_enabled"
-        const val KEY_APP_THEME: String = "theme_pref"
     }
 }
 

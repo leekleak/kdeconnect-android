@@ -18,7 +18,7 @@ class LoopbackLink : BaseLink {
     constructor(context: Context, linkProvider: BaseLinkProvider) : super(context, linkProvider)
 
     override fun getName(): String = "LoopbackLink"
-    override fun getDeviceInfo(): DeviceInfo = getDeviceInfo(context)
+    override fun getDeviceInfo(): DeviceInfo = getDeviceInfo()
 
     @WorkerThread
     override fun sendPacket(packet: NetworkPacket, callback: Device.SendPacketStatusCallback, sendPayloadFromSameThread: Boolean): Boolean {

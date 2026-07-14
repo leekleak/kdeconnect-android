@@ -60,7 +60,7 @@ class KdeConnect : Application() {
         }
         Log.d("KdeConnect/Application", "onCreate")
         ThemeUtil.setUserPreferredTheme(this)
-        DeviceHelper.initializeDeviceId(this)
+        DeviceHelper.initializeDeviceId()
         RsaHelper.initialiseRsaKeys(this)
         SslHelper.initialiseCertificate(this)
         PluginFactory.initPluginInfo(this)

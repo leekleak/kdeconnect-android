@@ -110,7 +110,7 @@ public class LanLinkProvider extends BaseLinkProvider {
         }
 
         final String deviceId = identityPacket.getString("deviceId");
-        String myId = DeviceHelper.getDeviceId(context);
+        String myId = DeviceHelper.getDeviceId();
         if (deviceId.equals(myId)) {
             //Ignore my own broadcast
             return null;
@@ -169,7 +169,7 @@ public class LanLinkProvider extends BaseLinkProvider {
 
         String targetDeviceId = identityPacket.getStringOrNull("targetDeviceId");
         Integer targetProtocolVersion = identityPacket.getIntOrNull("targetProtocolVersion");
-        if (targetDeviceId != null && !targetDeviceId.equals(DeviceHelper.getDeviceId(context))) {
+        if (targetDeviceId != null && !targetDeviceId.equals(DeviceHelper.getDeviceId())) {
             Log.e("KDE/LanLinkProvider","Received a connection request for a device that isn't me: " + targetDeviceId);
             return;
         }
@@ -245,7 +245,7 @@ public class LanLinkProvider extends BaseLinkProvider {
             socket = SocketFactory.getDefault().createSocket(address, tcpPort);
             configureSocket(socket);
 
-            DeviceInfo myDeviceInfo = DeviceHelper.getDeviceInfo(context);
+            DeviceInfo myDeviceInfo = DeviceHelper.getDeviceInfo();
             NetworkPacket myIdentity = myDeviceInfo.toIdentityPacket();
             myIdentity.set("targetDeviceId", identityPacket.getString("deviceId"));
             myIdentity.set("targetProtocolVersion", identityPacket.getString("protocolVersion"));
@@ -308,7 +308,7 @@ public class LanLinkProvider extends BaseLinkProvider {
                 try {
                     NetworkPacket secureIdentityPacket;
                     if (protocolVersion >= 8) {
-                        DeviceInfo myDeviceInfo = DeviceHelper.getDeviceInfo(context);
+                        DeviceInfo myDeviceInfo = DeviceHelper.getDeviceInfo();
                         NetworkPacket myIdentity = myDeviceInfo.toIdentityPacket();
 
                         OutputStream writer = sslSocket.getOutputStream();
@@ -515,7 +515,7 @@ public class LanLinkProvider extends BaseLinkProvider {
 
         // TODO: In protocol version 8 this packet doesn't need to contain identity info
         //       since it will be exchanged after the socket is encrypted.
-        DeviceInfo myDeviceInfo = DeviceHelper.getDeviceInfo(context);
+        DeviceInfo myDeviceInfo = DeviceHelper.getDeviceInfo();
         NetworkPacket identity = myDeviceInfo.toIdentityPacket();
         identity.set("tcpPort", tcpServer.getLocalPort());
 

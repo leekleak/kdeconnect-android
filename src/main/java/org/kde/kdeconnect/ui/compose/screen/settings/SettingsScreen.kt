@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -49,11 +48,6 @@ fun SettingsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val navigator: Navigator = koinInject()
-
-    DisposableEffect(Unit) {
-        viewModel.updateAll()
-        onDispose {}
-    }
 
     val exportLogsLauncher = rememberLauncherForActivityResult(
         contract = CreateFileResultContract()

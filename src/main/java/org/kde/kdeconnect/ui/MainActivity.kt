@@ -27,7 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.edit
 import androidx.navigation3.ui.NavDisplay
 import androidx.preference.PreferenceManager
 import coil3.ImageLoader
@@ -39,12 +38,12 @@ import org.apache.commons.lang3.ArrayUtils
 import org.kde.kdeconnect.BackgroundService
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.plugins.mousepad.MousePadViewModel
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
 import org.kde.kdeconnect.plugins.share.ShareSettingsViewModel
 import org.kde.kdeconnect.ui.compose.KdeTheme
-import org.kde.kdeconnect.ui.compose.screen.settings.SettingsViewModel.Companion.KEY_BLUETOOTH_ENABLED
 import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import org.kde.kdeconnect.ui.navigation.Navigator
@@ -68,6 +67,7 @@ private const val STORAGE_LOCATION_CONFIGURED = 2020
 
 class MainActivity : AppCompatActivity(), AndroidScopeComponent {
     override val scope: Scope by activityRetainedScope()
+    val settingsDataStore: SettingsDataStore by inject()
 
     private val mNavigator: Navigator by inject()
 
@@ -105,7 +105,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        DeviceHelper.initializeDeviceId(this)
+        DeviceHelper.initializeDeviceId()
 
         setContent {
             val imageLoader: ImageLoader = koinInject()
@@ -239,8 +239,8 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
 
             if (isPermissionGranted(permissions, grantResults, Manifest.permission.BLUETOOTH_CONNECT) &&
                 isPermissionGranted(permissions, grantResults, Manifest.permission.BLUETOOTH_SCAN)) {
-                PreferenceManager.getDefaultSharedPreferences(this).edit {
-                    putBoolean(KEY_BLUETOOTH_ENABLED, true)
+                CoroutineScope(Dispatchers.IO).launch {
+                    settingsDataStore.setBluetoothEnabled(true)
                 }
                 mNavigator.goTo(SettingsKey)
             }

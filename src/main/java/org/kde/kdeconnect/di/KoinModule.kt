@@ -35,6 +35,7 @@ import org.kde.kdeconnect.plugins.runcommand.RunCommandViewModel
 import org.kde.kdeconnect.plugins.share.ShareSettingsScreen
 import org.kde.kdeconnect.plugins.share.ShareSettingsViewModel
 import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
+import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.ui.about.getApplicationAboutData
 import org.kde.kdeconnect.ui.compose.screen.about.AboutScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceScreen
@@ -175,6 +176,7 @@ val aboutModule = module {
 
 val settingsModule = module {
     single<TelephonySettingsDataStore>()
+    single<SettingsDataStore>()
     viewModel<SettingsViewModel>()
     viewModel<ConnectionsSettingsViewModel>()
     navigation<SettingsKey> {
