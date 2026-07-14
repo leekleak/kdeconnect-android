@@ -76,18 +76,11 @@ class SettingsDataStore(private val context: Context) {
         }
     }
 
-    suspend fun setDeviceNameFetched(fetched: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[KEY_DEVICE_NAME_FETCHED] = fetched
-        }
-    }
-
     companion object {
         private val KEY_DEVICE_NAME = stringPreferencesKey("device_name_preference")
         private val KEY_THEME = stringPreferencesKey("theme_pref")
         private val KEY_BLUETOOTH_ENABLED = booleanPreferencesKey("bluetooth_enabled")
         private val KEY_PERSISTENT_NOTIFICATION = booleanPreferencesKey("persistentNotification")
         private val KEY_DEVICE_ID = stringPreferencesKey("device_id_preference")
-        private val KEY_DEVICE_NAME_FETCHED = booleanPreferencesKey("device_name_downloaded_preference")
     }
 }
