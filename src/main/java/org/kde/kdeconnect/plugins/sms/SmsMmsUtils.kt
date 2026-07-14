@@ -42,7 +42,7 @@ import org.kde.kdeconnect.helpers.SMSHelper
 import org.kde.kdeconnect.helpers.TelephonyHelper
 import org.kde.kdeconnect.helpers.TelephonyHelper.LocalPhoneNumber
 import org.kde.kdeconnect.NetworkPacket
-import org.kde.kdeconnect.settings.TelephonySettingsDataStore
+import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File

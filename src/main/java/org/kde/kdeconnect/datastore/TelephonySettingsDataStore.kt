@@ -1,4 +1,4 @@
-package org.kde.kdeconnect.settings
+package org.kde.kdeconnect.datastore
 
 import android.content.Context
 import androidx.datastore.core.DataStore

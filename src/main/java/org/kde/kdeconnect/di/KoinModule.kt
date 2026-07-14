@@ -34,7 +34,7 @@ import org.kde.kdeconnect.plugins.runcommand.RunCommandScreen
 import org.kde.kdeconnect.plugins.runcommand.RunCommandViewModel
 import org.kde.kdeconnect.plugins.share.ShareSettingsScreen
 import org.kde.kdeconnect.plugins.share.ShareSettingsViewModel
-import org.kde.kdeconnect.settings.TelephonySettingsDataStore
+import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 import org.kde.kdeconnect.ui.about.getApplicationAboutData
 import org.kde.kdeconnect.ui.compose.screen.about.AboutScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceScreen

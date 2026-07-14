@@ -20,7 +20,7 @@ import org.kde.kdeconnect.helpers.ContactsHelper
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
-import org.kde.kdeconnect.settings.TelephonySettingsDataStore
+import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 import org.kde.kdeconnect_tp.R
 import org.koin.core.context.GlobalContext
 import java.util.Timer

@@ -30,7 +30,7 @@ import org.kde.kdeconnect.helpers.NotificationHelper;
 import org.kde.kdeconnect.NetworkPacket;
 import org.kde.kdeconnect.plugins.Plugin;
 import org.kde.kdeconnect.plugins.PluginFactory;
-import org.kde.kdeconnect.settings.TelephonySettingsDataStore;
+import org.kde.kdeconnect.datastore.TelephonySettingsDataStore;
 import org.kde.kdeconnect_tp.R;
 import org.koin.java.KoinJavaComponent;
 

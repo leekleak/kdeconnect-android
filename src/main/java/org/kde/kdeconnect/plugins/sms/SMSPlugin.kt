@@ -44,7 +44,7 @@ import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
 import org.kde.kdeconnect.plugins.sms.SmsMmsUtils.partIdToMessageAttachmentPacket
 import org.kde.kdeconnect.plugins.sms.SmsMmsUtils.sendMessage
 import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin
-import org.kde.kdeconnect.settings.TelephonySettingsDataStore
+import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 import org.kde.kdeconnect_tp.BuildConfig
 import org.kde.kdeconnect_tp.R
 import org.koin.core.context.GlobalContext

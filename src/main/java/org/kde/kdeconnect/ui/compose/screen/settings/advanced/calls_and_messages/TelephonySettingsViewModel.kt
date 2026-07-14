@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.kde.kdeconnect.settings.TelephonySettingsDataStore
+import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 
 data class TelephonySettingsUiState(
     val blockedNumbers: Set<String> = emptySet(),
