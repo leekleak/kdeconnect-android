@@ -17,11 +17,11 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
-import androidx.preference.PreferenceManager
+import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.helpers.ThreadHelper
 import org.kde.kdeconnect.helpers.VideoUrlsHelper
-import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.mpris.AlbumArtCache.deregisterPlugin
 import org.kde.kdeconnect.plugins.mpris.AlbumArtCache.getAlbumArt
 import org.kde.kdeconnect.plugins.mpris.AlbumArtCache.initializeDiskCache
@@ -29,13 +29,16 @@ import org.kde.kdeconnect.plugins.mpris.AlbumArtCache.payloadToDiskCache
 import org.kde.kdeconnect.plugins.mpris.AlbumArtCache.registerPlugin
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
-import org.kde.kdeconnect.ui.compose.screen.settings.advanced.notifications.NotificationSettingsViewModel.Companion.KEY_PREF_KEEP_WATCHING
 import org.kde.kdeconnect_tp.R
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import org.koin.core.context.GlobalContext
+import org.koin.java.KoinJavaComponent.inject
 import java.net.MalformedURLException
 import java.util.concurrent.ConcurrentHashMap
 
 @LoadablePlugin
-class MprisPlugin : Plugin() {
+class MprisPlugin : Plugin(), KoinComponent {
     inner class MprisPlayer internal constructor() {
         var playerName: String = ""
             internal set
@@ -184,6 +187,7 @@ class MprisPlugin : Plugin() {
     }
 
     private val players = ConcurrentHashMap<String, MprisPlayer>()
+    private val dataStore: NotificationSettingsDataStore by inject()
     private var supportAlbumArtPayload = false
     private val playerStatusUpdated = ConcurrentHashMap<String, () -> Unit>()
     private val playerListUpdated = ConcurrentHashMap<String, () -> Unit>()
@@ -355,9 +359,8 @@ class MprisPlugin : Plugin() {
                 // Pause was too short. Probably just the gap between songs
                 return@execute
             }
-            val prefs = PreferenceManager.getDefaultSharedPreferences(context)
             val httpUrl = playerStatus.getHttpUrl()
-            if (prefs.getBoolean(KEY_PREF_KEEP_WATCHING, true) && httpUrl != null) {
+            if (dataStore.isMprisKeepWatchingEnabledBlocking() && httpUrl != null) {
                 try {
                     val transformedUrl = httpUrl
                         .let { VideoUrlsHelper.convertToAndFromYoutubeTvLinks(it) }

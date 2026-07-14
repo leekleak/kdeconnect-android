@@ -11,14 +11,12 @@ import android.app.PendingIntent
 import android.app.RemoteInput
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.Icon
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -28,25 +26,29 @@ import android.text.SpannableString
 import android.text.TextUtils
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.graphics.createBitmap
 import androidx.fragment.app.DialogFragment
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap
 import org.json.JSONArray
 import org.json.JSONObject
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
 import org.kde.kdeconnect.helpers.AppsHelper.appNameLookup
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.StartActivityAlertDialogFragment
 import org.kde.kdeconnect_tp.R
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.io.ByteArrayOutputStream
 import java.security.MessageDigest
 import java.util.Locale
-import androidx.core.graphics.createBitmap
 
 @LoadablePlugin
-class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener {
+class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener, KoinComponent {
     private lateinit var appDatabase: AppDatabase
+    private val dataStore: NotificationSettingsDataStore by inject()
     private val currentNotifications = mutableSetOf<String>()
     // Here we will map every notification to it's icon(hash)
     private val notificationsIcons = mutableMapOf<String, String>()
@@ -54,7 +56,6 @@ class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener 
     private val pendingIntents = mutableMapOf<String, RepliableNotification>()
     private val pendingActions = ArrayListValuedHashMap<String, Notification.Action>()
     private var serviceReady = false
-    private lateinit var sharedPreferences: SharedPreferences
     private lateinit var keyguardManager: KeyguardManager
     private lateinit var mainHandler: Handler
     private val postedNotificationsLock = Any()
@@ -71,7 +72,6 @@ class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener 
 
     override fun onCreate(): Boolean {
         appDatabase = AppDatabase.getInstance(context)
-        sharedPreferences = context.getSharedPreferences(sharedPreferencesName, Context.MODE_PRIVATE)
         keyguardManager = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
         mainHandler = Handler(Looper.getMainLooper())
         NotificationReceiver.RunCommand(context) { service ->
@@ -135,7 +135,7 @@ class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener 
             postedNotifications.add(key)
         }
 
-        val sendOnlyIfLocked = sharedPreferences.getBoolean(PREF_NOTIFICATION_SCREEN_OFF, false)
+        val sendOnlyIfLocked = dataStore.isScreenOffNotificationEnabledBlocking()
         val isLocked = keyguardManager.isKeyguardLocked
         if (!sendOnlyIfLocked || isLocked) {
             sendNotificationWithDelay(statusBarNotification)
@@ -550,9 +550,6 @@ class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener 
         private const val PACKET_TYPE_NOTIFICATION_REQUEST = "kdeconnect.notification.request"
         private const val PACKET_TYPE_NOTIFICATION_REPLY = "kdeconnect.notification.reply"
         private const val PACKET_TYPE_NOTIFICATION_ACTION = "kdeconnect.notification.action"
-        const val PREFERENCE_KEY = "prefKey"
-        const val PREFERENCES_NAME = "NotificationsPlugin_preferences"
-        const val PREF_NOTIFICATION_SCREEN_OFF = "pref_notification_screen_off"
         private const val NOTIFICATION_SYNC_DELAY_MS = 50L
 
         private const val TAG = "KDE/NotificationsPlugin"

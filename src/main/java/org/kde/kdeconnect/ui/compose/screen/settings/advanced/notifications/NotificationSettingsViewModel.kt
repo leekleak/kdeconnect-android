@@ -3,7 +3,6 @@ package org.kde.kdeconnect.ui.compose.screen.settings.advanced.notifications
 import android.Manifest
 import android.app.Application
 import android.content.Context
-import android.content.SharedPreferences
 import android.content.pm.ApplicationInfo
 import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
@@ -11,18 +10,19 @@ import android.os.Build
 import android.os.Process
 import android.os.UserManager
 import android.util.Log
-import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
 import org.kde.kdeconnect.plugins.notifications.AppDatabase
-import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin
 import org.koin.core.annotation.KoinViewModel
 
 data class AppInfo(
@@ -46,32 +46,52 @@ data class NotificationSettingsUiState(
 @KoinViewModel
 class NotificationSettingsViewModel(
     application: Application,
+    private val dataStore: NotificationSettingsDataStore,
 ) : AndroidViewModel(application) {
     private val appDatabase = AppDatabase.getInstance(application)
-    private val prefs: SharedPreferences = application.getSharedPreferences(NotificationsPlugin.PREFERENCES_NAME, Context.MODE_PRIVATE)
 
-    private val _uiState = MutableStateFlow(NotificationSettingsUiState())
-    val uiState: StateFlow<NotificationSettingsUiState> = _uiState.asStateFlow()
+    private val _searchQuery = MutableStateFlow("")
+    private val _allApps = MutableStateFlow<List<AppInfo>>(emptyList())
 
-    private var allApps: List<AppInfo> = emptyList()
+    val uiState: StateFlow<NotificationSettingsUiState> = combine(
+        dataStore.screenOffNotification,
+        dataStore.mprisNotificationEnabled,
+        dataStore.mprisKeepWatchingEnabled,
+        dataStore.allNotificationsEnabled,
+        _searchQuery,
+        _allApps
+    ) { params: Array<Any> ->
+        val screenOff = params[0] as Boolean
+        val mprisEnabled = params[1] as Boolean
+        val keepWatching = params[2] as Boolean
+        val allEnabled = params[3] as Boolean
+        val query = params[4] as String
+        val apps = params[5] as List<AppInfo>
+
+        val filtered = if (query.isEmpty()) apps else apps.filter { it.name.contains(query, ignoreCase = true) }
+        val (enabled, disabled) = filtered.partition { it.isEnabled }
+        NotificationSettingsUiState(
+            screenOffNotification = screenOff,
+            notificationEnabled = mprisEnabled,
+            keepWatchingEnabled = keepWatching,
+            allEnabled = allEnabled,
+            searchQuery = query,
+            enabledApps = enabled,
+            disabledApps = disabled
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = NotificationSettingsUiState()
+    )
 
     init {
-        loadSettings()
         loadApps()
-    }
-
-    private fun loadSettings() {
-        _uiState.update { it.copy(
-            screenOffNotification = prefs.getBoolean(NotificationsPlugin.PREF_NOTIFICATION_SCREEN_OFF, false),
-            allEnabled = appDatabase.allEnabled,
-            notificationEnabled = prefs.getBoolean(KEY_PREF_MPRIS_NOTIF, true),
-            keepWatchingEnabled = prefs.getBoolean(KEY_PREF_KEEP_WATCHING, true)
-        ) }
     }
 
     private fun loadApps() {
         viewModelScope.launch {
-            allApps = withContext(Dispatchers.IO) {
+            val apps = withContext(Dispatchers.IO) {
                 val packageManager = getApplication<Application>().packageManager
                 val installedApps = packageManager.getInstalledApplications(0)
                 val allPackageNames = mutableSetOf<String>()
@@ -107,7 +127,7 @@ class NotificationSettingsViewModel(
 
                 result.sortedBy { it.name.lowercase() }
             }
-            filterApps()
+            _allApps.value = apps
         }
     }
 
@@ -134,69 +154,65 @@ class NotificationSettingsViewModel(
     }
 
     fun setScreenOffNotification(enabled: Boolean) {
-        prefs.edit { putBoolean(NotificationsPlugin.PREF_NOTIFICATION_SCREEN_OFF, enabled) }
-        _uiState.update { it.copy(screenOffNotification = enabled) }
+        viewModelScope.launch {
+            dataStore.setScreenOffNotification(enabled)
+        }
     }
 
     fun setSearchQuery(query: String) {
-        _uiState.update { it.copy(searchQuery = query) }
-        filterApps()
-    }
-
-    private fun filterApps() {
-        val query = _uiState.value.searchQuery.lowercase().trim()
-
-        fun search(list: List<AppInfo>): List<AppInfo> = if (query.isEmpty()) {
-            list
-        } else {
-            list.filter { it.name.lowercase().contains(query) }
-        }
-
-        val enabled = search(allApps.filter { it.isEnabled })
-        val disabled = search(allApps.filter { !it.isEnabled })
-        _uiState.update { it.copy(
-            enabledApps = enabled,
-            disabledApps = disabled,
-        ) }
+        _searchQuery.value = query
     }
 
     fun setAllEnabled(enabled: Boolean) {
-        appDatabase.allEnabled = enabled
-        allApps = allApps.map { it.copy(isEnabled = enabled) }
-        _uiState.update { it.copy(allEnabled = enabled) }
-        filterApps()
+        viewModelScope.launch {
+            dataStore.setAllNotificationsEnabled(enabled)
+            withContext(Dispatchers.IO) {
+                appDatabase.allEnabled = enabled
+            }
+            _allApps.update { it.map { app -> app.copy(isEnabled = enabled) } }
+        }
     }
 
     fun setAppEnabled(packageName: String, enabled: Boolean) {
-        appDatabase.setEnabled(packageName, enabled)
-        allApps = allApps.map { if (it.packageName == packageName) it.copy(isEnabled = enabled) else it }
-        filterApps()
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                appDatabase.setEnabled(packageName, enabled)
+            }
+            _allApps.update { apps -> apps.map { if (it.packageName == packageName) it.copy(isEnabled = enabled) else it } }
+        }
     }
 
     fun setAppPrivacy(packageName: String, option: AppDatabase.PrivacyOptions, blocked: Boolean) {
-        appDatabase.setPrivacy(packageName, option, blocked)
-        allApps = allApps.map { 
-            if (it.packageName == packageName) {
-                when (option) {
-                    AppDatabase.PrivacyOptions.BLOCK_CONTENTS -> it.copy(blockContents = blocked)
-                    AppDatabase.PrivacyOptions.BLOCK_IMAGES -> it.copy(blockImages = blocked)
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                appDatabase.setPrivacy(packageName, option, blocked)
+            }
+            _allApps.update { apps ->
+                apps.map {
+                    if (it.packageName == packageName) {
+                        when (option) {
+                            AppDatabase.PrivacyOptions.BLOCK_CONTENTS -> it.copy(blockContents = blocked)
+                            AppDatabase.PrivacyOptions.BLOCK_IMAGES -> it.copy(blockImages = blocked)
+                        }
+                    } else it
                 }
-            } else it 
+            }
         }
-        filterApps()
     }
 
     fun setNotificationEnabled(enabled: Boolean) {
-        prefs.edit { putBoolean(KEY_PREF_MPRIS_NOTIF, enabled) }
+        viewModelScope.launch {
+            dataStore.setMprisNotificationEnabled(enabled)
+        }
     }
 
     fun setKeepWatchingEnabled(enabled: Boolean) {
-        prefs.edit { putBoolean(KEY_PREF_KEEP_WATCHING, enabled) }
+        viewModelScope.launch {
+            dataStore.setMprisKeepWatchingEnabled(enabled)
+        }
     }
 
     companion object {
         const val MPRIS_TIME_DEFAULT = 10000000
-        const val KEY_PREF_MPRIS_NOTIF = "mpris_notification_enabled"
-        const val KEY_PREF_KEEP_WATCHING = "mpris_keepwatching_enabled"
     }
 }

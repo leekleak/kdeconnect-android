@@ -14,6 +14,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import org.kde.kdeconnect.datastore.NotificationSettingsDataStore;
+import org.koin.java.KoinJavaComponent;
+
 import java.util.HashSet;
 
 public class AppDatabase {
@@ -22,9 +25,6 @@ public class AppDatabase {
     static {
         disabledByDefault.add("com.google.android.googlequicksearchbox"); //Google Now notifications re-spawn every few minutes
     }
-
-    private static final String SETTINGS_NAME = "app_database";
-    private static final String SETTINGS_KEY_ALL_ENABLED = "all_enabled";
 
     private static final int DATABASE_VERSION = 5;
     private static final String DATABASE_NAME = "Applications";
@@ -44,7 +44,6 @@ public class AppDatabase {
 
 
     private final DbHelper ourHelper;
-    private final SharedPreferences prefs;
 
     static private AppDatabase _instance = null;
 
@@ -57,7 +56,6 @@ public class AppDatabase {
 
     private AppDatabase(Context context) {
         ourHelper = new DbHelper(context);
-        prefs = context.getSharedPreferences(SETTINGS_NAME, Context.MODE_PRIVATE);
     }
 
     @Override
@@ -104,11 +102,10 @@ public class AppDatabase {
     }
 
     public boolean getAllEnabled() {
-        return prefs.getBoolean(SETTINGS_KEY_ALL_ENABLED, true);
+        return ((NotificationSettingsDataStore) KoinJavaComponent.get(NotificationSettingsDataStore.class)).areAllNotificationsEnabledBlocking();
     }
 
     public void setAllEnabled(boolean enabled) {
-        prefs.edit().putBoolean(SETTINGS_KEY_ALL_ENABLED, enabled).apply();
         SQLiteDatabase ourDatabase = ourHelper.getWritableDatabase();
         ourDatabase.execSQL("UPDATE " + TABLE_ENABLED + " SET " + KEY_IS_ENABLED + "=" + (enabled? "1" : "0"));
     }

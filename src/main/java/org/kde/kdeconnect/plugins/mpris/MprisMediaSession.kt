@@ -10,13 +10,10 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.content.pm.PackageManager
 import android.media.AudioManager
 import android.os.Build
 import android.os.Handler
-import android.preference.PreferenceManager
 import android.service.notification.StatusBarNotification
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
@@ -25,7 +22,14 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.plugins.mpris.MprisPlugin.MprisPlayer
@@ -34,8 +38,10 @@ import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumeProvider
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumeProvider.Companion.currentProvider
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumeProvider.ProviderStateListener
-import org.kde.kdeconnect.ui.compose.screen.settings.advanced.notifications.NotificationSettingsViewModel.Companion.KEY_PREF_MPRIS_NOTIF
 import org.kde.kdeconnect_tp.R
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import org.koin.core.context.GlobalContext
 
 /**
  * Controls the mpris media control notification
@@ -46,9 +52,12 @@ import org.kde.kdeconnect_tp.R
  * - The media session (via MediaSessionCompat; for lock screen control on
  * older Android version. And in the future for lock screen album covers)
  */
-class MprisMediaSession : OnSharedPreferenceChangeListener, NotificationReceiver.NotificationListener,
+class MprisMediaSession : NotificationReceiver.NotificationListener, KoinComponent,
     ProviderStateListener {
     private var spotifyRunning = false
+
+    private val dataStore: NotificationSettingsDataStore by inject()
+    private var job: Job? = null
 
     // Holds the device and player displayed in the notification
     private var notificationDeviceId: String? = null
@@ -95,8 +104,11 @@ class MprisMediaSession : OnSharedPreferenceChangeListener, NotificationReceiver
      */
     fun onCreate(context: Context?, plugin: MprisPlugin, device: String) {
         if (mprisDevices.isEmpty()) {
-            val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-            prefs.registerOnSharedPreferenceChangeListener(this)
+            job = CoroutineScope(Dispatchers.Main).launch {
+                dataStore.mprisNotificationEnabled.collect {
+                    updateMediaNotification()
+                }
+            }
         }
         this.context = context
         mprisDevices.add(device)
@@ -137,8 +149,8 @@ class MprisMediaSession : OnSharedPreferenceChangeListener, NotificationReceiver
         systemVolumeProvider.removeStateListener( this)
 
         if (mprisDevices.isEmpty()) {
-            val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-            prefs.unregisterOnSharedPreferenceChangeListener(this)
+            job?.cancel()
+            job = null
         }
     }
 
@@ -232,8 +244,7 @@ class MprisMediaSession : OnSharedPreferenceChangeListener, NotificationReceiver
         }
 
         // If the user disabled the media notification, do not show it
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        if (!prefs.getBoolean(KEY_PREF_MPRIS_NOTIF, true)) {
+        if (!dataStore.isMprisNotificationEnabledBlocking()) {
             closeMediaNotification()
             return
         }
@@ -473,10 +484,6 @@ class MprisMediaSession : OnSharedPreferenceChangeListener, NotificationReceiver
             mediaSession = null
             currentProvider?.release()
         }
-    }
-
-    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String?) {
-        updateMediaNotification()
     }
 
     fun playerSelected(player: MprisPlayer?) {
