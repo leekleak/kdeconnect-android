@@ -7,19 +7,21 @@
 package org.kde.kdeconnect.plugins.sftp
 
 import android.content.ContentResolver
-import android.content.Context
-import android.content.SharedPreferences
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.net.Uri
 import android.os.Environment
 import android.os.storage.StorageManager
 import android.provider.Settings
 import android.util.Log
 import androidx.core.net.toUri
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.datastore.SftpSettingsDataStore
 import org.kde.kdeconnect.helpers.getLocalIpAddress
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
@@ -29,9 +31,15 @@ import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.StartActivityAlertDialogFragment
 import org.kde.kdeconnect_tp.BuildConfig
 import org.kde.kdeconnect_tp.R
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 @LoadablePlugin
-class SftpPlugin : Plugin(), OnSharedPreferenceChangeListener {
+class SftpPlugin : Plugin(), KoinComponent {
+
+    private val dataStore: SftpSettingsDataStore by inject()
+    private var job: Job? = null
+
     override val displayName: String
         get() = context.resources.getString(R.string.pref_plugin_sftp)
 
@@ -42,7 +50,7 @@ class SftpPlugin : Plugin(), OnSharedPreferenceChangeListener {
         return if (SimpleSftpServer.SUPPORTS_NATIVEFS) {
             Environment.isExternalStorageManager()
         } else {
-            getStorageInfoList(context, this).isNotEmpty()
+            getStorageInfoList().isNotEmpty()
         }
     }
 
@@ -70,9 +78,26 @@ class SftpPlugin : Plugin(), OnSharedPreferenceChangeListener {
                 .create()
         }
 
+    override fun onCreate(): Boolean {
+        job = CoroutineScope(Dispatchers.Main).launch {
+            dataStore.storageInfoListJson.collect {
+                if (!server.isStarted) return@collect
+
+                server.stop()
+
+                val np = NetworkPacket(PACKET_TYPE_SFTP_REQUEST).apply {
+                    this["startBrowsing"] = true
+                }
+                onPacketReceived(np)
+            }
+        }
+        return true
+    }
+
     override fun onDestroy() {
         server.stop()
-        preferences?.unregisterOnSharedPreferenceChangeListener(this)
+        job?.cancel()
+        job = null
     }
 
     override fun onPacketReceived(np: NetworkPacket): Boolean {
@@ -103,7 +128,7 @@ class SftpPlugin : Plugin(), OnSharedPreferenceChangeListener {
                 paths.add(sv.directory!!.path)
             }
         } else {
-            val storageInfoList = getStorageInfoList(context, this)
+            val storageInfoList = getStorageInfoList()
             storageInfoList.sortBy { it.uri }
             if (storageInfoList.isEmpty()) {
                 device.sendPacket(NetworkPacket(PACKET_TYPE_SFTP).apply {
@@ -118,10 +143,6 @@ class SftpPlugin : Plugin(), OnSharedPreferenceChangeListener {
 
         if (!server.start()) {
             return false
-        }
-
-        if (preferences != null) {
-            preferences!!.registerOnSharedPreferenceChangeListener(this)
         }
 
         device.sendPacket(NetworkPacket(PACKET_TYPE_SFTP).apply {
@@ -204,18 +225,6 @@ class SftpPlugin : Plugin(), OnSharedPreferenceChangeListener {
 
     override val outgoingPacketTypes: Array<String> = arrayOf(PACKET_TYPE_SFTP)
 
-    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String?) {
-        if (key != context.getString(PREFERENCE_KEY_STORAGE_INFO_LIST)) return
-        if (!server.isStarted) return
-
-        server.stop()
-
-        val np = NetworkPacket(PACKET_TYPE_SFTP_REQUEST).apply {
-            this["startBrowsing"] = true
-        }
-        onPacketReceived(np)
-    }
-
     data class StorageInfo(@JvmField var displayName: String, @JvmField val uri: Uri) {
         val isFileUri: Boolean = uri.scheme == ContentResolver.SCHEME_FILE
         val isContentUri: Boolean = uri.scheme == ContentResolver.SCHEME_CONTENT
@@ -243,13 +252,10 @@ class SftpPlugin : Plugin(), OnSharedPreferenceChangeListener {
         }
     }
 
-    fun getStorageInfoList(context: Context, plugin: Plugin): MutableList<StorageInfo> {
+    fun getStorageInfoList(): MutableList<StorageInfo> {
         val storageInfoList = mutableListOf<StorageInfo>()
 
-        val deviceSettings = plugin.preferences ?: return storageInfoList
-
-        val jsonString = deviceSettings
-            .getString(context.getString(PREFERENCE_KEY_STORAGE_INFO_LIST), "[]")
+        val jsonString = dataStore.getStorageInfoListJsonBlocking()
 
         try {
             val jsonArray = JSONArray(jsonString)
@@ -267,10 +273,6 @@ class SftpPlugin : Plugin(), OnSharedPreferenceChangeListener {
     companion object {
         private const val PACKET_TYPE_SFTP = "kdeconnect.sftp"
         private const val PACKET_TYPE_SFTP_REQUEST = "kdeconnect.sftp.request"
-
-        @JvmField
-        val PREFERENCE_KEY_STORAGE_INFO_LIST: Int = R.string.sftp_preference_key_storage_info_list
-
         private val server = SimpleSftpServer()
     }
 }

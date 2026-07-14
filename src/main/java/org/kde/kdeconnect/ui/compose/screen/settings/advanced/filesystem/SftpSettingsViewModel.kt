@@ -6,16 +6,17 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
-import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONException
 import org.kde.kdeconnect.KdeConnect
-import org.kde.kdeconnect.plugins.Plugin
+import org.kde.kdeconnect.datastore.SftpSettingsDataStore
 import org.kde.kdeconnect.plugins.sftp.SftpPlugin
 import org.kde.kdeconnect_tp.R
 
@@ -24,53 +25,28 @@ data class SftpSettingsUiState(
 )
 
 class SftpSettingsViewModel(
-    application: Application
+    application: Application,
+    private val dataStore: SftpSettingsDataStore
 ) : AndroidViewModel(application) {
 
-    private val pluginKey = Plugin.getPluginKey(SftpPlugin::class.java)
-    private val prefs: SharedPreferences = application.getSharedPreferences(
-        pluginKey + "_preferences",
-        Context.MODE_PRIVATE
-    )
-
-    private val _uiState = MutableStateFlow(SftpSettingsUiState())
-    val uiState: StateFlow<SftpSettingsUiState> = _uiState.asStateFlow()
-
-    private val preferenceChangeListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-        if (key == getApplication<Application>().getString(SftpPlugin.PREFERENCE_KEY_STORAGE_INFO_LIST)) {
-            loadSettings()
-        }
-    }
-
-    init {
-        prefs.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
-        loadSettings()
-    }
-
-    override fun onCleared() {
-        prefs.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
-    }
-
-    private fun loadSettings() {
-        val storageInfoList = mutableListOf<SftpPlugin.StorageInfo>()
-        val key = getApplication<Application>().getString(SftpPlugin.PREFERENCE_KEY_STORAGE_INFO_LIST)
-        val jsonString = prefs.getString(key, "[]")
-
-        try {
-            val jsonArray = JSONArray(jsonString)
-            for (i in 0 until jsonArray.length()) {
-                storageInfoList.add(SftpPlugin.StorageInfo.fromJSON(jsonArray.getJSONObject(i)))
+    val uiState: StateFlow<SftpSettingsUiState> = dataStore.storageInfoListJson
+        .map { jsonString ->
+            val storageInfoList = mutableListOf<SftpPlugin.StorageInfo>()
+            try {
+                val jsonArray = JSONArray(jsonString)
+                for (i in 0 until jsonArray.length()) {
+                    storageInfoList.add(SftpPlugin.StorageInfo.fromJSON(jsonArray.getJSONObject(i)))
+                }
+            } catch (e: JSONException) {
+                Log.e("SFTPSettingsViewModel", "Couldn't load storage info", e)
             }
-        } catch (e: JSONException) {
-            Log.e("SFTPSettingsViewModel", "Couldn't load storage info", e)
-        }
-
-        storageInfoList.sortBy { it.displayName.lowercase() }
-
-        _uiState.update { state ->
-            state.copy(storageInfoList = storageInfoList)
-        }
-    }
+            storageInfoList.sortBy { it.displayName.lowercase() }
+            SftpSettingsUiState(storageInfoList = storageInfoList)
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = SftpSettingsUiState()
+        )
 
     private fun saveSettings(storageInfoList: List<SftpPlugin.StorageInfo>) {
         val jsonArray = JSONArray()
@@ -81,22 +57,20 @@ class SftpSettingsViewModel(
         } catch (ignored: JSONException) {
         }
 
-        val key = getApplication<Application>().getString(SftpPlugin.PREFERENCE_KEY_STORAGE_INFO_LIST)
-        prefs.edit {
-            putString(key, jsonArray.toString())
+        viewModelScope.launch {
+            dataStore.setStorageInfoListJson(jsonArray.toString())
+            KdeConnect.getInstance().devices.values.forEach { it.launchBackgroundReloadPluginsFromSettings() }
         }
-
-        KdeConnect.getInstance().devices.values.forEach { it.launchBackgroundReloadPluginsFromSettings() }
     }
 
     fun addStorage(storageInfo: SftpPlugin.StorageInfo, takeFlags: Int) {
         getApplication<Application>().contentResolver.takePersistableUriPermission(storageInfo.uri, takeFlags)
-        val newList = _uiState.value.storageInfoList + storageInfo
+        val newList = uiState.value.storageInfoList + storageInfo
         saveSettings(newList)
     }
 
     fun updateStorage(oldUri: Uri, newDisplayName: String) {
-        val newList = _uiState.value.storageInfoList.map {
+        val newList = uiState.value.storageInfoList.map {
             if (it.uri == oldUri) {
                 it.copy(displayName = newDisplayName)
             } else {
@@ -107,7 +81,7 @@ class SftpSettingsViewModel(
     }
 
     fun deleteStorages(uris: Set<Uri>) {
-        val newList = _uiState.value.storageInfoList.filter { storageInfo ->
+        val newList = uiState.value.storageInfoList.filter { storageInfo ->
             if (uris.contains(storageInfo.uri)) {
                 try {
                     getApplication<Application>().contentResolver.releasePersistableUriPermission(
@@ -129,7 +103,7 @@ class SftpSettingsViewModel(
         if (displayName.isBlank()) {
             return getApplication<Application>().getString(R.string.sftp_storage_preference_display_name_cannot_be_empty)
         }
-        val alreadyUsed = _uiState.value.storageInfoList.any {
+        val alreadyUsed = uiState.value.storageInfoList.any {
             it.displayName == displayName && it.uri != excludeUri
         }
         if (alreadyUsed) {
@@ -139,7 +113,7 @@ class SftpSettingsViewModel(
     }
 
     fun isUriAllowed(uri: Uri): String? {
-        val alreadyConfigured = _uiState.value.storageInfoList.any { it.uri == uri }
+        val alreadyConfigured = uiState.value.storageInfoList.any { it.uri == uri }
         if (alreadyConfigured) {
             return getApplication<Application>().getString(R.string.sftp_storage_preference_storage_location_already_configured)
         }
