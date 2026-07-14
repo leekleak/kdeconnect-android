@@ -52,7 +52,7 @@ fun SettingsScreen(
     val exportLogsLauncher = rememberLauncherForActivityResult(
         contract = CreateFileResultContract()
     ) { uri ->
-        uri?.let { viewModel.exportLogs(it) }
+        uri?.let { viewModel.exportLogs(context, it) }
     }
 
     HazeScaffold(

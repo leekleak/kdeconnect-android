@@ -5,6 +5,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.Build
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,10 +22,8 @@ import org.kde.kdeconnect_tp.BuildConfig
 import java.io.InputStreamReader
 
 class SettingsViewModel(
-    application: Application,
     private val dataStore: SettingsDataStore
-) : AndroidViewModel(application) {
-    private val context: Context get() = getApplication()
+) : ViewModel() {
 
     val uiState: StateFlow<SettingsUiState> = combine(
         dataStore.deviceName,
@@ -80,7 +79,7 @@ class SettingsViewModel(
         }
     }
 
-    fun exportLogs(uri: Uri) {
+    fun exportLogs(context: Context, uri: Uri) {
         viewModelScope.launch(Dispatchers.IO) {
             val output = context.contentResolver.openOutputStream(uri) ?: return@launch
             val process = Runtime.getRuntime().exec(arrayOf("logcat", "-d"))
