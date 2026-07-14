@@ -10,32 +10,37 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.wifi.SupplicantState
 import android.net.wifi.WifiManager
-import android.preference.PreferenceManager
 import android.util.Log
 import androidx.core.content.ContextCompat
-import androidx.core.content.edit
+import kotlinx.coroutines.runBlocking
+import org.kde.kdeconnect.datastore.ConnectionsSettingsDataStore
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
-class TrustedNetworkHelper(private val context: Context) {
+class TrustedNetworkHelper(private val context: Context) : KoinComponent {
+
+    private val dataStore: ConnectionsSettingsDataStore by inject()
 
     var trustedNetworks: List<String>
         get() {
-            val serializedNetworks = PreferenceManager.getDefaultSharedPreferences(context).getString(KEY_CUSTOM_TRUSTED_NETWORKS, "") ?: ""
+            val serializedNetworks = dataStore.getTrustedNetworksRawBlocking()
             return serializedNetworks.split(NETWORK_SSID_DELIMITER).filter { it.isNotEmpty() }
         }
         set(value) {
-            PreferenceManager.getDefaultSharedPreferences(context).edit {
-                    putString(
-                        KEY_CUSTOM_TRUSTED_NETWORKS,
-                        value.joinToString(NETWORK_SSID_DELIMITER) { it.cleanSsid() }
-                    )
-                }
+            runBlocking {
+                dataStore.setTrustedNetworksRaw(
+                    value.joinToString(NETWORK_SSID_DELIMITER) { it.cleanSsid() }
+                )
+            }
         }
 
     var allNetworksAllowed: Boolean
-        get() = !hasPermissions || PreferenceManager.getDefaultSharedPreferences(context).getBoolean(KEY_CUSTOM_TRUST_ALL_NETWORKS, true)
-        set(value) = PreferenceManager.getDefaultSharedPreferences(context).edit {
-                putBoolean(KEY_CUSTOM_TRUST_ALL_NETWORKS, value)
+        get() = !hasPermissions || dataStore.areAllNetworksAllowedBlocking()
+        set(value) {
+            runBlocking {
+                dataStore.setAllNetworksAllowed(value)
             }
+        }
 
     val hasPermissions: Boolean
         get() = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -70,8 +75,6 @@ class TrustedNetworkHelper(private val context: Context) {
     }
 
     companion object {
-        private const val KEY_CUSTOM_TRUSTED_NETWORKS = "trusted_network_preference"
-        private const val KEY_CUSTOM_TRUST_ALL_NETWORKS = "trust_all_network_preference"
         private const val NETWORK_SSID_DELIMITER = "\u0000"
         private const val NOT_AVAILABLE_SSID_RESULT = "<unknown ssid>"
 

@@ -2,7 +2,6 @@ package org.kde.kdeconnect.datastore
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.SharedPreferencesMigration
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -17,11 +16,6 @@ class SftpSettingsDataStore(private val context: Context) {
 
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
         name = "sftp_settings",
-        produceMigrations = { context ->
-            listOf(
-                SharedPreferencesMigration(context, "SftpPlugin_preferences")
-            )
-        }
     )
 
     val storageInfoListJson: Flow<String> = context.dataStore.data

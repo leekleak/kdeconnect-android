@@ -39,17 +39,12 @@ class SettingsDataStore(private val context: Context) {
         .map { preferences -> preferences[KEY_DEVICE_ID] ?: "" }
         .distinctUntilChanged()
 
-    val customDeviceList: Flow<String> = context.dataStore.data
-        .map { preferences -> preferences[KEY_CUSTOM_DEVICE_LIST] ?: "" }
-        .distinctUntilChanged()
-
     // Blocking getters for legacy interop
     fun getDeviceNameBlocking(): String = runBlocking { deviceName.first() }
     fun getThemeBlocking(): String = runBlocking { theme.first() }
     fun getBluetoothEnabledBlocking(): Boolean = runBlocking { bluetoothEnabled.first() }
     fun isPersistentNotificationEnabledBlocking(): Boolean = runBlocking { persistentNotificationEnabled.first() }
     fun getDeviceIdBlocking(): String = runBlocking { deviceId.first() }
-    fun getCustomDeviceListBlocking(): String = runBlocking { customDeviceList.first() }
 
     suspend fun setDeviceName(name: String) {
         context.dataStore.edit { preferences ->
@@ -87,12 +82,6 @@ class SettingsDataStore(private val context: Context) {
         }
     }
 
-    suspend fun setCustomDeviceList(list: String) {
-        context.dataStore.edit { preferences ->
-            preferences[KEY_CUSTOM_DEVICE_LIST] = list
-        }
-    }
-
     companion object {
         private val KEY_DEVICE_NAME = stringPreferencesKey("device_name_preference")
         private val KEY_THEME = stringPreferencesKey("theme_pref")
@@ -100,6 +89,5 @@ class SettingsDataStore(private val context: Context) {
         private val KEY_PERSISTENT_NOTIFICATION = booleanPreferencesKey("persistentNotification")
         private val KEY_DEVICE_ID = stringPreferencesKey("device_id_preference")
         private val KEY_DEVICE_NAME_FETCHED = booleanPreferencesKey("device_name_downloaded_preference")
-        private val KEY_CUSTOM_DEVICE_LIST = stringPreferencesKey("device_list_preference")
     }
 }

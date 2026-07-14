@@ -481,7 +481,7 @@ public class LanLinkProvider extends BaseLinkProvider {
 
     private void broadcastUdpIdentityPacket(@Nullable Network network) {
         ThreadHelper.execute(() -> {
-            List<DeviceHost> hostList = CustomDevicesHelper.getCustomDeviceList(context);
+            List<DeviceHost> hostList = CustomDevicesHelper.getCustomDeviceList();
 
             if (TrustedNetworkHelper.isTrustedNetwork(context)) {
                 hostList.add(DeviceHost.BROADCAST); //Default: broadcast.

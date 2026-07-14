@@ -1,10 +1,8 @@
 package org.kde.kdeconnect.ui.compose.screen.settings
 
-import android.app.Application
 import android.content.Context
 import android.net.Uri
 import android.os.Build
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -16,7 +14,6 @@ import kotlinx.coroutines.launch
 import org.apache.commons.io.IOUtils
 import org.kde.kdeconnect.BackgroundService
 import org.kde.kdeconnect.datastore.SettingsDataStore
-import org.kde.kdeconnect.helpers.CustomDevicesHelper
 import org.kde.kdeconnect.ui.ThemeUtil
 import org.kde.kdeconnect_tp.BuildConfig
 import java.io.InputStreamReader
@@ -30,20 +27,12 @@ class SettingsViewModel(
         dataStore.theme,
         dataStore.persistentNotificationEnabled,
         dataStore.bluetoothEnabled,
-        dataStore.customDeviceList
-    ) { params: Array<Any> ->
-        val deviceName = params[0] as String
-        val theme = params[1] as String
-        val persistentNotificationEnabled = params[2] as Boolean
-        val bluetoothEnabled = params[3] as Boolean
-        val customDeviceListSerialized = params[4] as String
-
+    ) { deviceName, theme, persistentNotificationEnabled, bluetoothEnabled ->
         SettingsUiState(
             deviceName = deviceName,
             theme = theme,
             persistentNotificationEnabled = persistentNotificationEnabled,
             bluetoothEnabled = bluetoothEnabled,
-            customDevicesCount = CustomDevicesHelper.deserializeIpList(customDeviceListSerialized).size
         )
     }.stateIn(
         scope = viewModelScope,
@@ -98,5 +87,4 @@ data class SettingsUiState(
     val theme: String = "",
     val persistentNotificationEnabled: Boolean = false,
     val bluetoothEnabled: Boolean = false,
-    val customDevicesCount: Int = 0,
 )

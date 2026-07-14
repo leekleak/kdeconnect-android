@@ -23,7 +23,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -61,14 +60,13 @@ private fun ManualDeviceComponent(
     uiState: ConnectionsSettingsUiState
 ) {
     val textFieldState = rememberTextFieldState()
-    val context = LocalContext.current
     SettingsSearchBar(
         state = textFieldState,
         placeholder = stringResource(R.string.add_device_hint),
         actionButton = {
             IconButton(
                 onClick = {
-                    viewModel.addCustomDevice(textFieldState.text.toString(), context)
+                    viewModel.addCustomDevice(textFieldState.text.toString())
                     textFieldState.clearText()
                 }
             ) {
@@ -82,7 +80,7 @@ private fun ManualDeviceComponent(
     uiState.customDevices.forEach { device ->
         CustomDeviceItem(
             device = device,
-            onDelete = { viewModel.deleteCustomDevice(device, context) }
+            onDelete = { viewModel.deleteCustomDevice(device) }
         )
     }
 }

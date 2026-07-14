@@ -38,6 +38,7 @@ import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
 import org.kde.kdeconnect.datastore.SftpSettingsDataStore
+import org.kde.kdeconnect.datastore.ConnectionsSettingsDataStore
 import org.kde.kdeconnect.ui.about.getApplicationAboutData
 import org.kde.kdeconnect.ui.compose.screen.about.AboutScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceScreen
@@ -181,6 +182,7 @@ val settingsModule = module {
     single<SettingsDataStore>()
     single<NotificationSettingsDataStore>()
     single<SftpSettingsDataStore>()
+    single<ConnectionsSettingsDataStore>()
     viewModel<SettingsViewModel>()
     viewModel<ConnectionsSettingsViewModel>()
     navigation<SettingsKey> {
