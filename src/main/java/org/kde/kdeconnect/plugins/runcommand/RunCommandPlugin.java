@@ -75,7 +75,7 @@ public class RunCommandPlugin extends Plugin {
         callbacks.remove(theCallback);
     }
 
-    interface CommandsChangedCallback {
+    public interface CommandsChangedCallback {
         void update();
     }
 

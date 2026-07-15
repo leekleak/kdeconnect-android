@@ -28,18 +28,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.mpris.MprisPlugin
-import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
-import org.kde.kdeconnect.plugins.runcommand.RunCommandPlugin
 import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
@@ -48,18 +40,12 @@ import org.kde.kdeconnect_tp.R
 @Composable
 fun PluginsScreen(
     pluginsWithButtons: List<Plugin.PluginUiButton>,
-    pluginsNeedPermissions: List<Plugin>,
-    pluginsNeedOptionalPermissions: List<Plugin>,
     onButtonClick: (Plugin.PluginUiButton) -> Unit,
-    action: (plugin: Plugin) -> Unit,
     onUnpair: () -> Unit
 ) {
     PluginsScreenContent(
         pluginsWithButtons = pluginsWithButtons,
-        pluginsNeedPermissions = pluginsNeedPermissions,
-        pluginsNeedOptionalPermissions = pluginsNeedOptionalPermissions,
         onButtonClick = onButtonClick,
-        action = action,
         onUnpair = onUnpair
     )
 }
@@ -67,10 +53,7 @@ fun PluginsScreen(
 @Composable
 private fun PluginsScreenContent(
     pluginsWithButtons: List<Plugin.PluginUiButton>,
-    pluginsNeedPermissions: List<Plugin>,
-    pluginsNeedOptionalPermissions: List<Plugin>,
     onButtonClick: (Plugin.PluginUiButton) -> Unit,
-    action: (plugin: Plugin) -> Unit,
     onUnpair: () -> Unit
 ) {
     Column {
@@ -81,21 +64,6 @@ private fun PluginsScreenContent(
             onButtonClick = onButtonClick
         )
         Spacer(modifier = Modifier.padding(vertical = 6.dp))
-        if (pluginsNeedPermissions.isNotEmpty()) {
-            PluginsWithoutPermissions(
-                title = stringResource(id = R.string.plugins_need_permission),
-                plugins = pluginsNeedPermissions,
-                action = action
-            )
-            Spacer(modifier = Modifier.padding(vertical = 2.dp))
-        }
-        if (pluginsNeedOptionalPermissions.isNotEmpty()) {
-            PluginsWithoutPermissions(
-                title = stringResource(id = R.string.plugins_need_optional_permission),
-                plugins = pluginsNeedOptionalPermissions,
-                action = action
-            )
-        }
         TextButton(onClick = onUnpair) {
             Text(stringResource(R.string.device_menu_unpair))
         }
@@ -186,40 +154,13 @@ private fun PluginButton(
     }
 }
 
-@Composable
-private fun PluginsWithoutPermissions(
-    title: String,
-    plugins: Collection<Plugin>,
-    action: (plugin: Plugin) -> Unit
-) {
-    Text(
-        text = title,
-        modifier = Modifier
-            .padding(vertical = 6.dp)
-            .semantics { heading() }
-    )
-    plugins.forEach { plugin ->
-        Text(
-            text = plugin.pluginInfo.getDisplayName(LocalContext.current),
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { action(plugin) }
-                .padding(start = 12.dp, top = 12.dp, bottom = 12.dp)
-                .semantics { role = Role.Button }
-        )
-    }
-}
-
 @KdeThemePreviews
 @Composable
 private fun PluginsScreenPreview() {
     KdeTheme(context = LocalContext.current) {
         PluginsScreenContent(
             pluginsWithButtons = emptyList(),
-            pluginsNeedPermissions = emptyList(),
-            pluginsNeedOptionalPermissions = emptyList(),
             onButtonClick = { /* Do nothing */ },
-            action = { /* Do nothing */ },
             onUnpair = { /* Do nothing */ }
         )
     }

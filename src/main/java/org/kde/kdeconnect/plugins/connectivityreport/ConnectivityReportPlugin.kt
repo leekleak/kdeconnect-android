@@ -86,6 +86,7 @@ object ConnectivityReportPluginInfo : PluginInfo(
     instantiableClass = ConnectivityReportPlugin::class.java,
     displayNameRes = R.string.pref_plugin_connectivity_report,
     descriptionRes = R.string.pref_plugin_connectivity_report_desc,
+    isEnabledByDefault = false,
     supportedPacketTypes = emptyArray(),
     outgoingPacketTypes = arrayOf("kdeconnect.connectivity_report"),
     requiredPermissions = arrayOf(Manifest.permission.READ_PHONE_STATE)

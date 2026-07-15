@@ -13,9 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.PairingHandler
 import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
@@ -32,7 +30,6 @@ fun DeviceScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val scrollState = rememberScrollState()
-    val device = KdeConnect.getInstance().getDevice(deviceId)
 
     HazeScaffold(
         title = uiState.deviceName,
@@ -72,25 +69,7 @@ fun DeviceScreen(
                     if (uiState.isReachable) {
                         PluginsScreen(
                             pluginsWithButtons = uiState.pluginsWithButtons,
-                            pluginsNeedPermissions = uiState.pluginsNeedPermissions,
-                            pluginsNeedOptionalPermissions = uiState.pluginsNeedOptionalPermissions,
                             onButtonClick = { button -> button.onClick(context as android.app.Activity) },
-                            action = { plugin ->
-                                val dialog = if (uiState.pluginsNeedPermissions.contains(plugin)) {
-                                    plugin.pluginInfo.let {
-                                        if (plugin.preferences != null && device != null) {
-                                            it.getPermissionExplanationDialog(plugin.preferences!!, context, device)
-                                        } else {
-                                            it.getPermissionExplanationDialog(context)
-                                        }
-                                    }
-                                } else {
-                                    plugin.pluginInfo.getOptionalPermissionExplanationDialog(context)
-                                }
-                                (context as? FragmentActivity)?.let {
-                                    dialog.show(it.supportFragmentManager, "permission_explanation")
-                                }
-                            },
                             onUnpair = viewModel::unpair
                         )
                     } else {

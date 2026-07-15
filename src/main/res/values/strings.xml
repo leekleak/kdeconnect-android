@@ -22,8 +22,8 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     <string name="pref_plugin_telephony_desc">Send notifications for incoming calls</string>
     <string name="pref_plugin_battery">Battery report</string>
     <string name="pref_plugin_battery_desc">Periodically report battery status</string>
-    <string name="pref_plugin_connectivity_report">Connectivity report</string>
-    <string name="pref_plugin_connectivity_report_desc">Report network signal strength and status</string>
+    <string name="pref_plugin_connectivity_report">Connectivity sync</string>
+    <string name="pref_plugin_connectivity_report_desc">Report network stats</string>
     <string name="pref_plugin_digitizer">Drawing tablet</string>
     <string name="pref_plugin_digitizer_desc">Use your device as a pressure sensitive drawing tablet</string>
     <string name="pref_plugin_sftp">Filesystem access</string>
@@ -42,7 +42,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     <string name="pref_plugin_mpris_desc">Provides a remote control for your media player</string>
     <string name="pref_plugin_runcommand">Run Command</string>
     <string name="pref_plugin_runcommand_desc">Trigger remote commands from your phone or tablet</string>
-    <string name="pref_plugin_contacts">Contacts Sync</string>
+    <string name="pref_plugin_contacts">Contacts sync</string>
     <string name="pref_plugin_contacts_desc">Share all of device\'s contacts</string>
     <string name="pref_plugin_ping">Ping</string>
     <string name="pref_plugin_ping_desc">Send and receive pings</string>
@@ -390,8 +390,8 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     <string name="addcommand_explanation">There are no commands registered</string>
     <string name="addcommand_explanation2">You can add new commands in the KDE Connect System Settings</string>
     <string name="add_command_description">You can add commands on the desktop</string>
-    <string name="pref_plugin_mprisreceiver">Media Player Control</string>
-    <string name="pref_plugin_mprisreceiver_desc">Control your phone\'s media player remotely</string>
+    <string name="pref_plugin_mprisreceiver">Media player sync</string>
+    <string name="pref_plugin_mprisreceiver_desc">Control media player remotely</string>
 
     <string name="notification_channel_default">Other notifications</string>
     <string name="notification_channel_persistent">Persistent indicator</string>

@@ -38,6 +38,7 @@ fun PluginSettingsScreen(
     val contacts = uiState.plugins.find { it.key == "ContactsPlugin" }
     val clipboard = uiState.plugins.find { it.key == "ClipboardPlugin" }
     val multimedia = uiState.plugins.find { it.key == "MprisReceiverPlugin" }
+    val connectivity = uiState.plugins.find { it.key == "ConnectivityReportPlugin" }
     HazeScaffold(
         title = uiState.deviceName,
         backButton = true,
@@ -63,15 +64,6 @@ fun PluginSettingsScreen(
                 )
             }
         }
-        multimedia?.let { plugin ->
-            SwitchPreference(
-                title = plugin.name,
-                summary = plugin.description,
-                icon = painterResource(R.drawable.media_link),
-                value = plugin.isEnabled,
-                onValueChanged = { viewModel.setPluginEnabled(context, plugin.key, it) }
-            )
-        }
         CategoryTitleTextSmall(stringResource(R.string.synchronization))
         clipboard?.let { plugin ->
             SwitchPreference(
@@ -87,6 +79,24 @@ fun PluginSettingsScreen(
                 title = plugin.name,
                 summary = plugin.description,
                 icon = painterResource(R.drawable.contacts),
+                value = plugin.isEnabled,
+                onValueChanged = { viewModel.setPluginEnabled(context, plugin.key, it) }
+            )
+        }
+        multimedia?.let { plugin ->
+            SwitchPreference(
+                title = plugin.name,
+                summary = plugin.description,
+                icon = painterResource(R.drawable.media_link),
+                value = plugin.isEnabled,
+                onValueChanged = { viewModel.setPluginEnabled(context, plugin.key, it) }
+            )
+        }
+        connectivity?.let { plugin ->
+            SwitchPreference(
+                title = plugin.name,
+                summary = plugin.description,
+                icon = painterResource(R.drawable.query_stats),
                 value = plugin.isEnabled,
                 onValueChanged = { viewModel.setPluginEnabled(context, plugin.key, it) }
             )
