@@ -36,9 +36,7 @@ class BatteryPluginTest {
             }
             every { onPluginsChanged() } returns Unit
         }
-        batteryPlugin = BatteryPlugin().apply {
-            setContext(context, device)
-        }
+        batteryPlugin = BatteryPlugin(context, device)
     }
 
     @After

@@ -25,13 +25,11 @@ import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
 import org.kde.kdeconnect.helpers.NotificationHelper
-import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.plugins.mpris.MprisPlugin.MprisPlayer
 import org.kde.kdeconnect.plugins.notifications.NotificationReceiver
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin
@@ -41,7 +39,6 @@ import org.kde.kdeconnect.plugins.systemvolume.SystemVolumeProvider.ProviderStat
 import org.kde.kdeconnect_tp.R
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.koin.core.context.GlobalContext
 
 /**
  * Controls the mpris media control notification

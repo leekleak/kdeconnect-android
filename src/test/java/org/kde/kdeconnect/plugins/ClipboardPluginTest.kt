@@ -43,9 +43,7 @@ class ClipboardPluginTest {
             }
         }
 
-        clipboardPlugin = ClipboardPlugin().apply {
-            setContext(context, device)
-        }
+        clipboardPlugin = ClipboardPlugin(context, device)
     }
 
     @After

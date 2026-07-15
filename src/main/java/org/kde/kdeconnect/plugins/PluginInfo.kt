@@ -76,10 +76,6 @@ open class PluginInfo(
         return arePermissionsGranted(context, optionalPermissions)
     }
 
-    open fun checkOptionalPermissions(preferences: SharedPreferences, context: Context): Boolean {
-        return checkOptionalPermissions(context)
-    }
-
     /**
      * Shows the permissionExplanationDialog if required permissions are not granted.
      */

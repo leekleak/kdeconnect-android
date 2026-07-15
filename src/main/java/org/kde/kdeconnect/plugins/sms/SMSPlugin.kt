@@ -54,12 +54,15 @@ import org.kde.kdeconnect.plugins.sms.SMSPlugin.Companion.PACKET_TYPE_SMS_REQUES
 import org.kde.kdeconnect.plugins.sms.SMSPlugin.Companion.PACKET_TYPE_SMS_REQUEST_CONVERSATIONS
 import org.kde.kdeconnect_tp.BuildConfig
 import org.kde.kdeconnect_tp.R
-import org.koin.core.context.GlobalContext
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
 @SuppressLint("InlinedApi")
-class SMSPlugin(context: Context, device: Device) : Plugin(context, device) {
+class SMSPlugin(
+    context: Context,
+    device: Device,
+    val telephonySettings: TelephonySettingsDataStore
+) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = SMSPluginInfo
 
     private val receiver: BroadcastReceiver = object : BroadcastReceiver() {
@@ -305,8 +308,7 @@ class SMSPlugin(context: Context, device: Device) : Plugin(context, device) {
                 }
                 val attachedFiles: List<SMSHelper.Attachment> = jsonArrayToAttachmentsList(np.getJSONArray("attachments"))
 
-                val telephonyDataStore = GlobalContext.get().get<TelephonySettingsDataStore>()
-                sendMessage(context, textMessage, attachedFiles, addressList.toMutableList(), subID.toInt(), telephonyDataStore)
+                sendMessage(context, textMessage, attachedFiles, addressList.toMutableList(), subID.toInt(), telephonySettings)
 
                 true
             }
@@ -371,7 +373,6 @@ class SMSPlugin(context: Context, device: Device) : Plugin(context, device) {
     }
 
     private fun isNumberBlocked(number: String?): Boolean {
-        val telephonySettings = org.koin.core.context.GlobalContext.get().get<TelephonySettingsDataStore>()
         val blockedNumbers = telephonySettings.getBlockedNumbersBlockingBlocking()
 
         return blockedNumbers.any { s -> PhoneNumberUtils.compare(number, s) }

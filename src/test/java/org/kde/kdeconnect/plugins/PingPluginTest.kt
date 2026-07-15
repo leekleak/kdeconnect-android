@@ -18,7 +18,6 @@ import org.kde.kdeconnect.plugins.ping.PingPlugin
 class PingPluginTest {
     // Mocks the necessary components to test the PingPlugin
     private fun executeWithMocks(test: (device: Device, plugin: PingPlugin, notificationManager: NotificationManager) -> Unit) {
-        val plugin = PingPlugin()
         val notificationManager = mockk<NotificationManager> {
             every { notify(any(), any()) } returns Unit
         }
@@ -38,7 +37,7 @@ class PingPluginTest {
             mockkStatic(NotificationCompat.Builder::class) {
                 mockkConstructor(NotificationCompat.Builder::class)
                 every { anyConstructed<NotificationCompat.Builder>().build() } returns mockk()
-                plugin.setContext(context, device)
+                val plugin = PingPlugin(context, device)
                 test(device, plugin, notificationManager)
             }
         }

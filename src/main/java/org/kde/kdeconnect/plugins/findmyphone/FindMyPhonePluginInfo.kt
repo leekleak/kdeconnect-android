@@ -6,7 +6,8 @@ import android.os.Build
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect_tp.R
-import org.koin.core.context.GlobalContext
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 object FindMyPhonePluginInfo : PluginInfo(
     instantiableClass = FindMyPhonePlugin::class.java,
@@ -14,9 +15,11 @@ object FindMyPhonePluginInfo : PluginInfo(
     descriptionRes = R.string.findmyphone_description,
     supportedPacketTypes = arrayOf(FindMyPhonePlugin.PACKET_TYPE_FINDMYPHONE_REQUEST),
     outgoingPacketTypes = emptyArray(),
-) {
+), KoinComponent {
+
+    val deviceHelper: DeviceHelper by inject()
+
     override fun getDisplayName(context: Context): String {
-        val deviceHelper: DeviceHelper = GlobalContext.get().get()
         return when (deviceHelper.deviceType) {
             org.kde.kdeconnect.DeviceType.TV -> context.getString(R.string.findmyphone_title_tv)
             org.kde.kdeconnect.DeviceType.TABLET -> context.getString(R.string.findmyphone_title_tablet)

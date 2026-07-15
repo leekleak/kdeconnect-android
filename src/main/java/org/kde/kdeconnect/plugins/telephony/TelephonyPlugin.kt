@@ -17,19 +17,22 @@ import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.core.content.ContextCompat
 import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.helpers.ContactsHelper
 import org.kde.kdeconnect.NetworkPacket
-import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
+import org.kde.kdeconnect.helpers.ContactsHelper
+import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin.Companion.PACKET_TYPE_TELEPHONY
 import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin.Companion.PACKET_TYPE_TELEPHONY_REQUEST_MUTE
 import org.kde.kdeconnect_tp.R
-import org.koin.core.context.GlobalContext
 import java.util.Timer
 import java.util.TimerTask
 
-class TelephonyPlugin(context: Context, device: Device) : Plugin(context, device) {
+class TelephonyPlugin(
+    context: Context,
+    device: Device,
+    val telephonySettings: TelephonySettingsDataStore
+) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = TelephonyPluginInfo
     private var lastState = TelephonyManager.CALL_STATE_IDLE
     private var lastPacket: NetworkPacket? = null
@@ -173,7 +176,6 @@ class TelephonyPlugin(context: Context, device: Device) : Plugin(context, device
     }
 
     private fun isNumberBlocked(number: String?): Boolean {
-        val telephonySettings = GlobalContext.get().get<TelephonySettingsDataStore>()
         val blockedNumbers = telephonySettings.getBlockedNumbersBlockingBlocking()
 
         return blockedNumbers.any { s -> PhoneNumberUtils.compare(number, s) }

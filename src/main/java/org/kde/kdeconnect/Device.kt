@@ -575,9 +575,7 @@ class Device : PacketReceiver, KoinComponent {
             loadedPlugins[pluginKey] = plugin
             pluginsWithoutPermissions.remove(pluginKey)
             
-            val optionalPermissionsGranted = plugin.preferences?.let {
-                plugin.pluginInfo.checkOptionalPermissions(it, context)
-            } ?: plugin.pluginInfo.checkOptionalPermissions(context)
+            val optionalPermissionsGranted = plugin.pluginInfo.checkOptionalPermissions(context)
             
             if (optionalPermissionsGranted) {
                 Log.d("KDE/addPlugin", "Optional Permissions OK $pluginKey")
