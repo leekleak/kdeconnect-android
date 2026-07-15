@@ -8,10 +8,11 @@ package org.kde.kdeconnect.helpers
 import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
+import org.kde.kdeconnect_tp.R
 
 object AppsHelper {
     @JvmStatic
-    fun appNameLookup(context: Context, packageName: String): String? {
+    fun appNameLookup(context: Context, packageName: String): String {
         return try {
             val manager = context.packageManager
             val info = manager.getApplicationInfo(packageName, 0)
@@ -19,7 +20,7 @@ object AppsHelper {
             manager.getApplicationLabel(info).toString()
         } catch (e: PackageManager.NameNotFoundException) {
             Log.e("AppsHelper", "Could not resolve name $packageName", e)
-            null
+            context.getString(R.string.unknown_app)
         }
     }
 }

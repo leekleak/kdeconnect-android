@@ -10,9 +10,9 @@ import android.media.session.MediaController
 import android.media.session.PlaybackState
 import org.apache.commons.lang3.StringUtils
 
-internal class MprisReceiverPlayer(
+class MprisReceiverPlayer(
     val controller: MediaController,
-    val name: String?,
+    val name: String,
 ) {
 
     fun isPlaying(): Boolean {

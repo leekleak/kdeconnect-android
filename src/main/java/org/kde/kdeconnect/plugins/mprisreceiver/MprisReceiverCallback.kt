@@ -14,7 +14,7 @@ import android.util.Pair
 import java.io.ByteArrayOutputStream
 import androidx.core.net.toUri
 
-internal class MprisReceiverCallback : MediaController.Callback {
+class MprisReceiverCallback : MediaController.Callback {
     private val plugin: MprisReceiverPlugin
     private val player: MprisReceiverPlayer
 
