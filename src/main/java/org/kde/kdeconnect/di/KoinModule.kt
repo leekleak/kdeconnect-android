@@ -20,6 +20,7 @@ import coil3.request.crossfade
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.helpers.AppIconFetcher
+import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.plugins.digitizer.DigitizerScreen
 import org.kde.kdeconnect.plugins.digitizer.DigitizerViewModel
 import org.kde.kdeconnect.plugins.mousepad.MousePadScreen
@@ -180,6 +181,7 @@ val aboutModule = module {
 val settingsModule = module {
     single<TelephonySettingsDataStore>()
     single<SettingsDataStore>()
+    single<DeviceHelper> { DeviceHelper(get()) }
     single<NotificationSettingsDataStore>()
     single<SftpSettingsDataStore>()
     single<ConnectionsSettingsDataStore>()

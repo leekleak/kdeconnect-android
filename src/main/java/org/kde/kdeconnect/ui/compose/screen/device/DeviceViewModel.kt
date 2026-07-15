@@ -18,7 +18,7 @@ import org.kde.kdeconnect.BackgroundService
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.PairingHandler
-import org.kde.kdeconnect.helpers.DeviceHelper.getBatterySubtitle
+import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.plugins.Plugin
 import org.koin.core.annotation.InjectedParam
 import kotlin.time.Duration.Companion.milliseconds
@@ -35,7 +35,11 @@ data class DeviceUiState(
     val isRefreshing: Boolean = false
 )
 
-class DeviceViewModel(application: Application, @InjectedParam private val deviceId: String) : AndroidViewModel(application) {
+class DeviceViewModel(
+    application: Application,
+    private val deviceHelper: DeviceHelper,
+    @InjectedParam private val deviceId: String
+) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(DeviceUiState())
     val uiState: StateFlow<DeviceUiState> = _uiState.asStateFlow()
@@ -96,7 +100,7 @@ class DeviceViewModel(application: Application, @InjectedParam private val devic
                 pluginsWithButtons = pluginsWithButtons,
                 pluginsNeedPermissions = pluginsNeedPermissions,
                 pluginsNeedOptionalPermissions = pluginsNeedOptionalPermissions,
-                batterySubtitle = getBatterySubtitle(getApplication<Application>().applicationContext, device),
+                batterySubtitle = deviceHelper.getBatterySubtitle(getApplication<Application>().applicationContext, device),
             )
         }
     }

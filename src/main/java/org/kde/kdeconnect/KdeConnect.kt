@@ -26,6 +26,7 @@ import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect.di.appModule
 import org.kde.kdeconnect.ui.ThemeUtil
+import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import org.kde.kdeconnect_tp.BuildConfig
@@ -42,6 +43,8 @@ import java.util.concurrent.ConcurrentHashMap
  * It provides a ConnectionReceiver that the BackgroundService uses to ping this class every time a new DeviceLink is created.
  */
 class KdeConnect : Application() {
+    private val deviceHelper: DeviceHelper by inject()
+
     fun interface DeviceListChangedCallback {
         fun onDeviceListChanged()
     }
@@ -60,7 +63,7 @@ class KdeConnect : Application() {
         }
         Log.d("KdeConnect/Application", "onCreate")
         ThemeUtil.setUserPreferredTheme(this)
-        DeviceHelper.initializeDeviceId()
+        deviceHelper.initializeDeviceId()
         RsaHelper.initialiseRsaKeys(this)
         SslHelper.initialiseCertificate(this)
         PluginFactory.initPluginInfo(this)

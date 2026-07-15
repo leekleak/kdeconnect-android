@@ -68,6 +68,7 @@ private const val STORAGE_LOCATION_CONFIGURED = 2020
 class MainActivity : AppCompatActivity(), AndroidScopeComponent {
     override val scope: Scope by activityRetainedScope()
     val settingsDataStore: SettingsDataStore by inject()
+    private val deviceHelper: DeviceHelper by inject()
 
     private val mNavigator: Navigator by inject()
 
@@ -105,7 +106,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        DeviceHelper.initializeDeviceId()
+        deviceHelper.initializeDeviceId()
 
         setContent {
             val imageLoader: ImageLoader = koinInject()

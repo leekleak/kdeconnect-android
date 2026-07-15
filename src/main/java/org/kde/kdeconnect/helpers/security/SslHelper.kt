@@ -18,11 +18,13 @@ import org.bouncycastle.asn1.x500.style.IETFUtils
 import org.bouncycastle.cert.X509v3CertificateBuilder
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
-import org.kde.kdeconnect.helpers.DeviceHelper.getDeviceId
+import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.RandomHelper
 import org.kde.kdeconnect.helpers.security.RsaHelper.getPrivateKey
 import org.kde.kdeconnect.helpers.security.RsaHelper.getPublicKey
 import org.kde.kdeconnect.helpers.TrustedDevices
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.io.ByteArrayInputStream
 import java.math.BigInteger
 import java.net.Socket
@@ -45,7 +47,8 @@ import javax.net.ssl.TrustManager
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 
-object SslHelper {
+object SslHelper : KoinComponent {
+    private val deviceHelper: DeviceHelper by inject()
     lateinit var certificate: Certificate //my device's certificate
     private val factory: CertificateFactory = CertificateFactory.getInstance("X.509")
 
@@ -63,7 +66,7 @@ object SslHelper {
 
         Log.i(LOG_TAG, "Key algorithm: " + publicKey.algorithm)
 
-        val deviceId = getDeviceId()
+        val deviceId = deviceHelper.getDeviceId()
 
         var needsToGenerateCertificate = false
         val settings = PreferenceManager.getDefaultSharedPreferences(context)

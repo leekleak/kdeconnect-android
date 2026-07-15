@@ -47,7 +47,7 @@ class PingPluginTest {
     @Test
     fun startPlugin() {
         executeWithMocks { device, plugin, notificationManager ->
-            val entries = plugin.getUiMenuEntries()
+            val entries = plugin.getUiButtons()
             entries.single().onClick(mockk())
             verify(exactly = 1) { device.sendPacket(match { np -> np.type == "kdeconnect.ping" && np.payload == null }) }
         }

@@ -29,6 +29,7 @@ import org.kde.kdeconnect.helpers.ThreadHelper;
 import org.kde.kdeconnect.helpers.TrustedDevices;
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper;
 import org.kde.kdeconnect.NetworkPacket;
+import org.koin.java.KoinJavaComponent;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -110,7 +111,8 @@ public class LanLinkProvider extends BaseLinkProvider {
         }
 
         final String deviceId = identityPacket.getString("deviceId");
-        String myId = DeviceHelper.getDeviceId();
+        DeviceHelper deviceHelper = KoinJavaComponent.get(DeviceHelper.class);
+        String myId = deviceHelper.getDeviceId();
         if (deviceId.equals(myId)) {
             //Ignore my own broadcast
             return null;
@@ -169,7 +171,8 @@ public class LanLinkProvider extends BaseLinkProvider {
 
         String targetDeviceId = identityPacket.getStringOrNull("targetDeviceId");
         Integer targetProtocolVersion = identityPacket.getIntOrNull("targetProtocolVersion");
-        if (targetDeviceId != null && !targetDeviceId.equals(DeviceHelper.getDeviceId())) {
+        DeviceHelper deviceHelper = KoinJavaComponent.get(DeviceHelper.class);
+        if (targetDeviceId != null && !targetDeviceId.equals(deviceHelper.getDeviceId())) {
             Log.e("KDE/LanLinkProvider","Received a connection request for a device that isn't me: " + targetDeviceId);
             return;
         }
@@ -245,7 +248,8 @@ public class LanLinkProvider extends BaseLinkProvider {
             socket = SocketFactory.getDefault().createSocket(address, tcpPort);
             configureSocket(socket);
 
-            DeviceInfo myDeviceInfo = DeviceHelper.getDeviceInfo();
+            DeviceHelper deviceHelper = KoinJavaComponent.get(DeviceHelper.class);
+            DeviceInfo myDeviceInfo = deviceHelper.getDeviceInfo();
             NetworkPacket myIdentity = myDeviceInfo.toIdentityPacket();
             myIdentity.set("targetDeviceId", identityPacket.getString("deviceId"));
             myIdentity.set("targetProtocolVersion", identityPacket.getString("protocolVersion"));
@@ -307,8 +311,9 @@ public class LanLinkProvider extends BaseLinkProvider {
                 String mode = clientMode ? "client" : "server";
                 try {
                     NetworkPacket secureIdentityPacket;
+                    DeviceHelper deviceHelper = KoinJavaComponent.get(DeviceHelper.class);
                     if (protocolVersion >= 8) {
-                        DeviceInfo myDeviceInfo = DeviceHelper.getDeviceInfo();
+                        DeviceInfo myDeviceInfo = deviceHelper.getDeviceInfo();
                         NetworkPacket myIdentity = myDeviceInfo.toIdentityPacket();
 
                         OutputStream writer = sslSocket.getOutputStream();
@@ -515,7 +520,8 @@ public class LanLinkProvider extends BaseLinkProvider {
 
         // TODO: In protocol version 8 this packet doesn't need to contain identity info
         //       since it will be exchanged after the socket is encrypted.
-        DeviceInfo myDeviceInfo = DeviceHelper.getDeviceInfo();
+        DeviceHelper deviceHelper = KoinJavaComponent.get(DeviceHelper.class);
+        DeviceInfo myDeviceInfo = deviceHelper.getDeviceInfo();
         NetworkPacket identity = myDeviceInfo.toIdentityPacket();
         identity.set("tcpPort", tcpServer.getLocalPort());
 

@@ -14,25 +14,19 @@ import android.net.wifi.WifiManager
 import android.net.wifi.WifiManager.MulticastLock
 import android.util.Log
 import org.kde.kdeconnect.helpers.DeviceHelper
-import org.kde.kdeconnect.helpers.DeviceHelper.deviceType
-import org.kde.kdeconnect.helpers.DeviceHelper.getDeviceId
-import org.kde.kdeconnect.helpers.DeviceHelper.getDeviceName
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.net.InetAddress
 
-class MdnsDiscovery {
-    private val context: Context
-    private val lanLinkProvider: LanLinkProvider
-    private val mNsdManager: NsdManager
+class MdnsDiscovery(private val context: Context, private val lanLinkProvider: LanLinkProvider) : KoinComponent {
+    private val deviceHelper: DeviceHelper by inject()
+    private val mNsdManager: NsdManager = context.getSystemService(Context.NSD_SERVICE) as NsdManager
     private var registrationListener: RegistrationListener? = null
     private var discoveryListener: DiscoveryListener? = null
     private val multicastLock: MulticastLock
-    private val mNsdResolveQueue: NsdResolveQueue
+    private val mNsdResolveQueue: NsdResolveQueue = NsdResolveQueue(mNsdManager)
 
-    constructor(context: Context, lanLinkProvider: LanLinkProvider) {
-        this.context = context
-        this.lanLinkProvider = lanLinkProvider
-        this.mNsdManager = context.getSystemService(Context.NSD_SERVICE) as NsdManager
-        this.mNsdResolveQueue = NsdResolveQueue(this.mNsdManager)
+    init {
         val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         multicastLock = wifiManager.createMulticastLock("kdeConnectMdnsMulticastLock")
     }
@@ -105,7 +99,7 @@ class MdnsDiscovery {
     fun createNsdServiceInfo(): NsdServiceInfo {
         val serviceInfo = NsdServiceInfo()
 
-        val deviceId = getDeviceId()
+        val deviceId = deviceHelper.getDeviceId()
         // Without resolving the DNS, the service name is the only info we have so it must be sufficient to identify a device.
         // Also, it must be unique, otherwise it will be automatically renamed. For these reasons we use the deviceId.
         serviceInfo.serviceName = deviceId
@@ -115,8 +109,8 @@ class MdnsDiscovery {
         // The following fields aren't really used for anything, since we can't include enough info
         // for it to be useful (namely: we can't include the device certificate).
         // Each field (key + value) needs to be < 255 bytes. All the fields combined need to be < 1300 bytes.
-        val deviceName = getDeviceName()
-        val deviceType = deviceType.toString()
+        val deviceName = deviceHelper.getDeviceName()
+        val deviceType = deviceHelper.deviceType.toString()
         val protocolVersion = DeviceHelper.PROTOCOL_VERSION.toString()
         serviceInfo.setAttribute("id", deviceId)
         serviceInfo.setAttribute("name", deviceName)
@@ -129,7 +123,7 @@ class MdnsDiscovery {
     }
 
     fun createDiscoveryListener() = object : DiscoveryListener {
-        val myId: String = getDeviceId()
+        val myId: String = deviceHelper.getDeviceId()
 
         override fun onDiscoveryStarted(serviceType: String?) {
             Log.i(LOG_TAG, "Service discovery started: $serviceType")

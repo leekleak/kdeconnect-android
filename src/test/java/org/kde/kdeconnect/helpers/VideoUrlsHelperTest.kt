@@ -6,21 +6,38 @@
 package org.kde.kdeconnect.helpers
 
 import io.mockk.every
-import io.mockk.mockkObject
-import io.mockk.unmockkObject
+import io.mockk.mockk
+import org.junit.After
 import org.junit.Assert
+import org.junit.Before
 import org.junit.Test
+import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
+import org.koin.dsl.module
 
 class VideoUrlsHelperTest {
+    private val deviceHelper: DeviceHelper = mockk()
+
+    @Before
+    fun setUp() {
+        startKoin {
+            modules(module {
+                single { deviceHelper }
+            })
+        }
+    }
+
+    @After
+    fun tearDown() {
+        stopKoin()
+    }
 
     @Test
     fun checkYoutubeTvLinksConversion() {
         fun check(isTv: Boolean, input: String, expected: String) {
-            mockkObject(DeviceHelper)
-            every { DeviceHelper.isTv } returns isTv
+            every { deviceHelper.isTv } returns isTv
             val formatted = VideoUrlsHelper.convertToAndFromYoutubeTvLinks(input)
             Assert.assertEquals(expected, formatted)
-            unmockkObject(DeviceHelper)
         }
         val complexTvLink = "https://www.youtube.com/tv?is_account_switch=1&hrld=2&fltor=1#/watch?v=ZN471HiQD3o&t=13"
         val tvLink = "https://www.youtube.com/tv#/watch?v=ZN471HiQD3o&t=13"

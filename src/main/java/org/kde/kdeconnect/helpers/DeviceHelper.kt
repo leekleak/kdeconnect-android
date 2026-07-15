@@ -18,17 +18,9 @@ import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect.plugins.battery.BatteryPlugin
 import org.kde.kdeconnect_tp.R
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import java.util.UUID
 
-object DeviceHelper : KoinComponent {
-    val dataStore: SettingsDataStore by inject()
-    const val PROTOCOL_VERSION = 8
-
-    private val NAME_INVALID_CHARACTERS_REGEX = "[\"',;:.!?()\\[\\]<>]".toRegex()
-    const val MAX_DEVICE_NAME_LENGTH = 32
-
+class DeviceHelper(val dataStore: SettingsDataStore) {
     val isTablet: Boolean by lazy {
         val config = Resources.getSystem().configuration
         //This assumes that the values for the screen sizes are consecutive, so XXLARGE > XLARGE > LARGE
@@ -40,7 +32,6 @@ object DeviceHelper : KoinComponent {
         (uiMode and Configuration.UI_MODE_TYPE_MASK) == Configuration.UI_MODE_TYPE_TELEVISION
     }
 
-    @JvmStatic
     val deviceType: DeviceType by lazy {
         if (isTv) {
             DeviceType.TV
@@ -51,7 +42,6 @@ object DeviceHelper : KoinComponent {
         }
     }
 
-    @JvmStatic
     fun getDeviceName(): String = dataStore.getDeviceNameBlocking()
 
     fun initializeDeviceId() {
@@ -65,12 +55,10 @@ object DeviceHelper : KoinComponent {
         }
     }
 
-    @JvmStatic
     fun getDeviceId(): String {
         return dataStore.getDeviceIdBlocking()
     }
 
-    @JvmStatic
     fun getDeviceInfo(): DeviceInfo {
         return DeviceInfo(
             getDeviceId(),
@@ -82,13 +70,6 @@ object DeviceHelper : KoinComponent {
             PluginFactory.outgoingCapabilities
         )
     }
-
-    @JvmStatic
-    fun filterInvalidCharactersFromDeviceNameAndLimitLength(input: String): String = filterInvalidCharactersFromDeviceName(input).trim().take(MAX_DEVICE_NAME_LENGTH)
-
-    @JvmStatic
-    fun filterInvalidCharactersFromDeviceName(input: String): String = input.replace(NAME_INVALID_CHARACTERS_REGEX, "")
-
 
     fun getBatterySubtitle(context: Context, device: Device): String? {
         val batteryPlugin = device.getPlugin(BatteryPlugin::class.java)
@@ -102,5 +83,20 @@ object DeviceHelper : KoinComponent {
         }
 
         return context.getString(resId, info.currentCharge)
+    }
+
+    companion object {
+        const val PROTOCOL_VERSION = 8
+
+        private val NAME_INVALID_CHARACTERS_REGEX = "[\"',;:.!?()\\[\\]<>]".toRegex()
+        const val MAX_DEVICE_NAME_LENGTH = 32
+
+        @JvmStatic
+        fun filterInvalidCharactersFromDeviceNameAndLimitLength(input: String): String =
+            filterInvalidCharactersFromDeviceName(input).trim().take(MAX_DEVICE_NAME_LENGTH)
+
+        @JvmStatic
+        fun filterInvalidCharactersFromDeviceName(input: String): String =
+            input.replace(NAME_INVALID_CHARACTERS_REGEX, "")
     }
 }

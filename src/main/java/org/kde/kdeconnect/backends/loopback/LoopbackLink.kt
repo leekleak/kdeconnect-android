@@ -11,14 +11,16 @@ import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceInfo
-import org.kde.kdeconnect.helpers.DeviceHelper.getDeviceInfo
+import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.NetworkPacket
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
-class LoopbackLink : BaseLink {
-    constructor(context: Context, linkProvider: BaseLinkProvider) : super(context, linkProvider)
+class LoopbackLink(context: Context, linkProvider: BaseLinkProvider) : BaseLink(context, linkProvider), KoinComponent {
+    private val deviceHelper: DeviceHelper by inject()
 
     override fun getName(): String = "LoopbackLink"
-    override fun getDeviceInfo(): DeviceInfo = getDeviceInfo()
+    override fun getDeviceInfo(): DeviceInfo = deviceHelper.getDeviceInfo()
 
     @WorkerThread
     override fun sendPacket(packet: NetworkPacket, callback: Device.SendPacketStatusCallback, sendPayloadFromSameThread: Boolean): Boolean {

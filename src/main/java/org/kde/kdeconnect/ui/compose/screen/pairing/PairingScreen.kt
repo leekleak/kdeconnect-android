@@ -337,7 +337,8 @@ private fun DeviceCard(
                     fontFamily = font
                 )
                 if (deviceReal != null) {
-                    val batteryString = DeviceHelper.getBatterySubtitle(context, deviceReal)
+                    val deviceHelper: DeviceHelper = koinInject()
+                    val batteryString = deviceHelper.getBatterySubtitle(context, deviceReal)
                     if (batteryString != null) {
                         Text(
                             text = batteryString,

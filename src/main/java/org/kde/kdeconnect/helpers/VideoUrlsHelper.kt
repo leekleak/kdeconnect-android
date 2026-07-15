@@ -5,10 +5,13 @@
 */
 package org.kde.kdeconnect.helpers
 
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.net.MalformedURLException
 import java.net.URL
 
-object VideoUrlsHelper {
+object VideoUrlsHelper : KoinComponent {
+    private val deviceHelper: DeviceHelper by inject()
     private const val SECONDS_IN_MINUTE = 60
     private const val MINUTES_IN_HOUR = 60
     private const val SECONDS_IN_HOUR = SECONDS_IN_MINUTE * MINUTES_IN_HOUR
@@ -76,7 +79,7 @@ object VideoUrlsHelper {
 
     fun convertToAndFromYoutubeTvLinks(url : String): String {
         if (url.contains("youtube.com/watch") || url.contains("youtube.com/tv")) {
-            val wantTvLinks = DeviceHelper.isTv
+            val wantTvLinks = deviceHelper.isTv
             val isTvLink = url.contains("youtube\\.com/tv.*#/watch".toRegex())
             if (wantTvLinks && !isTvLink) {
                 return url.replace("youtube.com/watch", "youtube.com/tv#/watch")
