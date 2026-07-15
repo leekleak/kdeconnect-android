@@ -31,24 +31,58 @@ import androidx.fragment.app.DialogFragment
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap
 import org.json.JSONArray
 import org.json.JSONObject
+import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
 import org.kde.kdeconnect.helpers.AppsHelper.appNameLookup
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
+import org.kde.kdeconnect.plugins.PluginInfo
+import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION
+import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION_ACTION
+import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION_REPLY
+import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION_REQUEST
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.StartActivityAlertDialogFragment
 import org.kde.kdeconnect_tp.R
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import java.io.ByteArrayOutputStream
 import java.security.MessageDigest
 import java.util.Locale
 
-@LoadablePlugin
-class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener, KoinComponent {
+object NotificationsPluginInfo: PluginInfo(
+    instantiableClass = NotificationsPlugin::class.java,
+    displayNameRes = R.string.pref_plugin_notifications,
+    descriptionRes = R.string.pref_plugin_notifications_desc,
+    supportedPacketTypes = arrayOf(
+        PACKET_TYPE_NOTIFICATION_REQUEST,
+        PACKET_TYPE_NOTIFICATION_REPLY,
+        PACKET_TYPE_NOTIFICATION_ACTION
+    ),
+    outgoingPacketTypes = arrayOf(PACKET_TYPE_NOTIFICATION),
+) {
+    override fun checkRequiredPermissions(context: Context): Boolean {
+        return NotificationReceiver.hasReadNotificationsPermission(context)
+    }
+
+    override fun getPermissionExplanationDialog(context: Context): DialogFragment {
+        return StartActivityAlertDialogFragment.Builder()
+            .setTitle(R.string.pref_plugin_notifications)
+            .setMessage(R.string.no_permissions)
+            .setPositiveButton(R.string.open_settings)
+            .setNegativeButton(R.string.cancel)
+            .setIntentAction("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS")
+            .setStartForResult(true)
+            .setRequestCode(MainActivity.RESULT_NEEDS_RELOAD)
+            .create()
+    }
+}
+
+class NotificationsPlugin(
+    context: Context,
+    device: Device,
+    private val dataStore: NotificationSettingsDataStore
+) : Plugin(context, device), NotificationReceiver.NotificationListener {
+    override val pluginInfo: PluginInfo = NotificationsPluginInfo
     private lateinit var appDatabase: AppDatabase
-    private val dataStore: NotificationSettingsDataStore by inject()
     private val currentNotifications = mutableSetOf<String>()
     // Here we will map every notification to it's icon(hash)
     private val notificationsIcons = mutableMapOf<String, String>()
@@ -59,16 +93,6 @@ class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener,
     private lateinit var keyguardManager: KeyguardManager
     private lateinit var mainHandler: Handler
     private val postedNotificationsLock = Any()
-
-    override val displayName: String
-        get() = context.getString(R.string.pref_plugin_notifications)
-
-    override val description: String
-        get() = context.getString(R.string.pref_plugin_notifications_desc)
-
-    override fun checkRequiredPermissions(): Boolean {
-        return NotificationReceiver.hasReadNotificationsPermission(context)
-    }
 
     override fun onCreate(): Boolean {
         appDatabase = AppDatabase.getInstance(context)
@@ -525,32 +549,14 @@ class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener,
         return true
     }
 
-    override val permissionExplanationDialog: DialogFragment
-        get() = StartActivityAlertDialogFragment.Builder()
-            .setTitle(R.string.pref_plugin_notifications)
-            .setMessage(R.string.no_permissions)
-            .setPositiveButton(R.string.open_settings)
-            .setNegativeButton(R.string.cancel)
-            .setIntentAction("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS")
-            .setStartForResult(true)
-            .setRequestCode(MainActivity.RESULT_NEEDS_RELOAD)
-            .create()
-
-    override val supportedPacketTypes = arrayOf(
-            PACKET_TYPE_NOTIFICATION_REQUEST,
-            PACKET_TYPE_NOTIFICATION_REPLY,
-            PACKET_TYPE_NOTIFICATION_ACTION
-        )
-
-    override val outgoingPacketTypes = arrayOf(PACKET_TYPE_NOTIFICATION)
 
 
     companion object {
-        private const val PACKET_TYPE_NOTIFICATION = "kdeconnect.notification"
-        private const val PACKET_TYPE_NOTIFICATION_REQUEST = "kdeconnect.notification.request"
-        private const val PACKET_TYPE_NOTIFICATION_REPLY = "kdeconnect.notification.reply"
-        private const val PACKET_TYPE_NOTIFICATION_ACTION = "kdeconnect.notification.action"
-        private const val NOTIFICATION_SYNC_DELAY_MS = 50L
+        const val PACKET_TYPE_NOTIFICATION = "kdeconnect.notification"
+        const val PACKET_TYPE_NOTIFICATION_REQUEST = "kdeconnect.notification.request"
+        const val PACKET_TYPE_NOTIFICATION_REPLY = "kdeconnect.notification.reply"
+        const val PACKET_TYPE_NOTIFICATION_ACTION = "kdeconnect.notification.action"
+        const val NOTIFICATION_SYNC_DELAY_MS = 50L
 
         private const val TAG = "KDE/NotificationsPlugin"
 

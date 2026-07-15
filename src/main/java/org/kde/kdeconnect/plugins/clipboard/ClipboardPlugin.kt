@@ -15,19 +15,25 @@ import android.os.Build
 import android.widget.Toast
 import androidx.annotation.VisibleForTesting
 import androidx.core.content.ContextCompat
+import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
+import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.clipboard.ClipboardListener.ClipboardObserver
+import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin.Companion.PACKET_TYPE_CLIPBOARD
+import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin.Companion.PACKET_TYPE_CLIPBOARD_CONNECT
 import org.kde.kdeconnect_tp.R
 
-@LoadablePlugin
-class ClipboardPlugin : Plugin() {
-    override val displayName: String
-        get() = context.resources.getString(R.string.pref_plugin_clipboard)
+class ClipboardPlugin(context: Context, device: Device) : Plugin(context, device) {
+    override val pluginInfo: PluginInfo = ClipboardPluginInfo
 
-    override val description: String
-        get() = context.resources.getString(R.string.pref_plugin_clipboard_desc)
+    override fun getUiButtons(): List<PluginUiButton> {
+        return listOf(PluginUiButton(
+            context.getString(R.string.send_clipboard),
+            R.drawable.ic_baseline_content_paste_24,
+            ButtonCategory.SEND,
+        ){ _: Activity? -> userInitiatedSendClipboard() })
+    }
 
     override fun onPacketReceived(np: NetworkPacket): Boolean {
         val content = np.getString("content")
@@ -84,18 +90,6 @@ class ClipboardPlugin : Plugin() {
         ClipboardListener.instance(context).removeObserver(observer)
     }
 
-    override val supportedPacketTypes: Array<String> = arrayOf(PACKET_TYPE_CLIPBOARD, PACKET_TYPE_CLIPBOARD_CONNECT)
-
-    override val outgoingPacketTypes: Array<String> = arrayOf(PACKET_TYPE_CLIPBOARD, PACKET_TYPE_CLIPBOARD_CONNECT)
-
-    override fun getUiButtons(): List<PluginUiButton> {
-        return listOf(PluginUiButton(
-            context.getString(R.string.send_clipboard),
-            R.drawable.ic_baseline_content_paste_24,
-            ButtonCategory.SEND,
-        ){ _: Activity? -> userInitiatedSendClipboard() })
-    }
-
     private fun userInitiatedSendClipboard() {
         if (isDeviceInitialized) {
             val clipboardManager = ContextCompat.getSystemService<ClipboardManager>(this.context, ClipboardManager::class.java)
@@ -119,7 +113,7 @@ class ClipboardPlugin : Plugin() {
          * "content": "password"
          * }
          */
-        private const val PACKET_TYPE_CLIPBOARD = "kdeconnect.clipboard"
+        const val PACKET_TYPE_CLIPBOARD = "kdeconnect.clipboard"
 
         /**
          * Packet containing clipboard contents and a timestamp that the contents were last updated, sent
@@ -136,7 +130,7 @@ class ClipboardPlugin : Plugin() {
          * "content": "password"
          * }
          */
-        private const val PACKET_TYPE_CLIPBOARD_CONNECT = "kdeconnect.clipboard.connect"
+        const val PACKET_TYPE_CLIPBOARD_CONNECT = "kdeconnect.clipboard.connect"
 
         fun canSyncAutomatically(context: Context): Boolean {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
@@ -148,3 +142,11 @@ class ClipboardPlugin : Plugin() {
 
     }
 }
+
+object ClipboardPluginInfo: PluginInfo(
+    displayNameRes = R.string.pref_plugin_clipboard,
+    descriptionRes = R.string.pref_plugin_clipboard_desc,
+    supportedPacketTypes = arrayOf(PACKET_TYPE_CLIPBOARD, PACKET_TYPE_CLIPBOARD_CONNECT),
+    outgoingPacketTypes = arrayOf(PACKET_TYPE_CLIPBOARD, PACKET_TYPE_CLIPBOARD_CONNECT),
+    instantiableClass = ClipboardPlugin::class.java
+)

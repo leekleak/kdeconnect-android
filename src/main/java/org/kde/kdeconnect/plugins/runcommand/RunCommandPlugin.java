@@ -9,7 +9,7 @@ package org.kde.kdeconnect.plugins.runcommand;
 
 import static org.kde.kdeconnect.plugins.runcommand.RunCommandWidgetProviderKt.forceRefreshWidgets;
 
-import android.content.Intent;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.util.Log;
@@ -24,9 +24,10 @@ import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.kde.kdeconnect.Device;
 import org.kde.kdeconnect.NetworkPacket;
 import org.kde.kdeconnect.plugins.Plugin;
-import org.kde.kdeconnect.plugins.PluginFactory;
+import org.kde.kdeconnect.plugins.PluginInfo;
 import org.kde.kdeconnect.ui.navigation.Navigator;
 import org.kde.kdeconnect.ui.navigation.RunCommandKey;
 import org.kde.kdeconnect_tp.R;
@@ -41,7 +42,6 @@ import java.util.stream.Collectors;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 
-@PluginFactory.LoadablePlugin
 public class RunCommandPlugin extends Plugin {
 
     private final static String PACKET_TYPE_RUNCOMMAND = "kdeconnect.runcommand";
@@ -56,6 +56,16 @@ public class RunCommandPlugin extends Plugin {
 
     private SharedPreferences sharedPreferences;
     private boolean canAddCommand;
+
+    public RunCommandPlugin(Context context, Device device) {
+        super(context, device);
+    }
+
+    @NonNull
+    @Override
+    public PluginInfo getPluginInfo() {
+        return RunCommandPluginInfo.INSTANCE;
+    }
 
     public void addCommandsUpdatedCallback(CommandsChangedCallback newCallback) {
         callbacks.add(newCallback);
@@ -108,20 +118,10 @@ public class RunCommandPlugin extends Plugin {
     }
 
     @Override
-    public @NonNull String getDisplayName() {
-        return context.getResources().getString(R.string.pref_plugin_runcommand);
-    }
-
-    @Override
-    public @NonNull String getDescription() {
-        return context.getResources().getString(R.string.pref_plugin_runcommand_desc);
-    }
-
-    @Override
     public @NotNull List<@NotNull PluginUiButton> getUiButtons() {
         return List.of(new PluginUiButton(context.getString(R.string.pref_plugin_runcommand), R.drawable.run_command_plugin_icon_24dp, parentActivity -> {
             Navigator navigator = ((org.kde.kdeconnect.ui.MainActivity) parentActivity).getScope().get(kotlin.jvm.JvmClassMappingKt.getKotlinClass(Navigator.class), null, null);
-            navigator.goTo(new RunCommandKey(getDevice().getDeviceId()));
+            navigator.goTo(new RunCommandKey(device.getDeviceId()));
             return Unit.INSTANCE;
         }));
     }
@@ -165,7 +165,7 @@ public class RunCommandPlugin extends Plugin {
                     }
 
                     sharedPreferences.edit()
-                            .putString(KEY_COMMANDS_PREFERENCE + getDevice().getDeviceId(), array.toString())
+                            .putString(KEY_COMMANDS_PREFERENCE + device.getDeviceId(), array.toString())
                             .apply();
                 }
 
@@ -179,7 +179,7 @@ public class RunCommandPlugin extends Plugin {
                 aCallback.update();
             }
 
-            getDevice().onPluginsChanged();
+            device.onPluginsChanged();
 
             canAddCommand = np.getBoolean("canAddCommand", false);
 
@@ -216,28 +216,18 @@ public class RunCommandPlugin extends Plugin {
         return false;
     }
 
-    @Override
-    public @NonNull String[] getSupportedPacketTypes() {
-        return new String[]{PACKET_TYPE_RUNCOMMAND, PACKET_TYPE_RUNCOMMAND_OUTPUT};
-    }
-
-    @Override
-    public @NonNull String[] getOutgoingPacketTypes() {
-        return new String[]{PACKET_TYPE_RUNCOMMAND_REQUEST};
-    }
-
     public void runCommand(String cmdKey) {
         Log.d("RunCommand", "Sending " + cmdKey);
         NetworkPacket np = new NetworkPacket(PACKET_TYPE_RUNCOMMAND_REQUEST);
         np.set("key", cmdKey);
-        getDevice().sendPacket(np);
+        device.sendPacket(np);
         commandRunning.setValue(true);
     }
 
     private void requestCommandList() {
         NetworkPacket np = new NetworkPacket(PACKET_TYPE_RUNCOMMAND_REQUEST);
         np.set("requestCommandList", true);
-        getDevice().sendPacket(np);
+        device.sendPacket(np);
     }
 
     public boolean canAddCommand() {
@@ -247,12 +237,12 @@ public class RunCommandPlugin extends Plugin {
     void sendSetupPacket() {
         NetworkPacket np = new NetworkPacket(RunCommandPlugin.PACKET_TYPE_RUNCOMMAND_REQUEST);
         np.set("setup", true);
-        getDevice().sendPacket(np);
+        device.sendPacket(np);
     }
 
     void sendStop() {
         NetworkPacket np = new NetworkPacket(PACKET_TYPE_RUNCOMMAND_REQUEST);
         np.set("stop", true);
-        getDevice().sendPacket(np);
+        device.sendPacket(np);
     }
 }

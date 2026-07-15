@@ -42,6 +42,9 @@ import org.kde.kdeconnect.plugins.Plugin.Companion.getPluginKey
 import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect_tp.R
+import org.koin.core.component.KoinComponent
+import org.koin.core.qualifier.named
+import org.koin.core.scope.Scope
 import java.io.IOException
 import java.security.cert.Certificate
 import java.util.Vector
@@ -49,11 +52,13 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.CopyOnWriteArrayList
 
-class Device : PacketReceiver {
+class Device : PacketReceiver, KoinComponent {
 
     data class NetworkPacketWithCallback(val np : NetworkPacket, val callback: SendPacketStatusCallback)
 
     val context: Context
+
+    val koinScope: Scope
 
     @VisibleForTesting
     val deviceInfo: DeviceInfo
@@ -111,6 +116,7 @@ class Device : PacketReceiver {
         this.context = context
         this.deviceInfo = loadFromSettings(context, deviceId)
         this.pairingHandler = PairingHandler(this, createDefaultPairingCallback(), PairingHandler.PairState.Paired)
+        this.koinScope = getKoin().getOrCreateScope(deviceId, named<Device>(), this)
         this.supportedPlugins = Vector(PluginFactory.availablePlugins) // Assume all are supported until we receive capabilities
         Log.i("Device", "Loading trusted device: ${deviceInfo.name}")
     }
@@ -124,6 +130,7 @@ class Device : PacketReceiver {
         this.context = context
         this.deviceInfo = link.deviceInfo
         this.pairingHandler = PairingHandler(this, createDefaultPairingCallback(), PairingHandler.PairState.NotPaired)
+        this.koinScope = getKoin().getOrCreateScope(deviceId, named<Device>(), this)
         this.supportedPlugins = Vector(PluginFactory.availablePlugins) // Assume all are supported until we receive capabilities
         Log.i("Device", "Creating untrusted device: " + deviceInfo.name)
         addLink(link)
@@ -555,7 +562,11 @@ class Device : PacketReceiver {
             return false
         }
 
-        if (!plugin.checkRequiredPermissions()) {
+        val requiredPermissionsGranted = plugin.preferences?.let {
+            plugin.pluginInfo.checkRequiredPermissions(it, context)
+        } ?: plugin.pluginInfo.checkRequiredPermissions(context)
+
+        if (!requiredPermissionsGranted) {
             Log.d("KDE/addPlugin", "No permission $pluginKey")
             pluginsWithoutPermissions[pluginKey] = plugin
             loadedPlugins[pluginKey] = plugin
@@ -563,7 +574,12 @@ class Device : PacketReceiver {
             Log.d("KDE/addPlugin", "Permissions OK $pluginKey")
             loadedPlugins[pluginKey] = plugin
             pluginsWithoutPermissions.remove(pluginKey)
-            if (plugin.checkOptionalPermissions()) {
+            
+            val optionalPermissionsGranted = plugin.preferences?.let {
+                plugin.pluginInfo.checkOptionalPermissions(it, context)
+            } ?: plugin.pluginInfo.checkOptionalPermissions(context)
+            
+            if (optionalPermissionsGranted) {
                 Log.d("KDE/addPlugin", "Optional Permissions OK $pluginKey")
                 pluginsWithoutOptionalPermissions.remove(pluginKey)
             } else {
@@ -658,6 +674,10 @@ class Device : PacketReceiver {
 
     fun disconnect() {
         links.forEach(BaseLink::disconnect)
+    }
+
+    fun close() {
+        koinScope.close()
     }
 
     override fun toString(): String {

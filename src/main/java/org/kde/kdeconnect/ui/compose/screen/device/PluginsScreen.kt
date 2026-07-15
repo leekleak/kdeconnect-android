@@ -35,6 +35,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.mpris.MprisPlugin
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
@@ -199,7 +200,7 @@ private fun PluginsWithoutPermissions(
     )
     plugins.forEach { plugin ->
         Text(
-            text = plugin.displayName,
+            text = plugin.pluginInfo.getDisplayName(LocalContext.current),
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { action(plugin) }
@@ -213,20 +214,8 @@ private fun PluginsWithoutPermissions(
 @Composable
 private fun PluginsScreenPreview() {
     KdeTheme(context = LocalContext.current) {
-        val pluginsWithButtons = listOf(
-            MprisPlugin(),
-            RunCommandPlugin(),
-            PresenterPlugin()
-        )
-
-        pluginsWithButtons.forEach { plugin ->
-            plugin.setContext(
-                context = LocalContext.current,
-                device = null
-            )
-        }
         PluginsScreenContent(
-            pluginsWithButtons = pluginsWithButtons.flatMap { plugin -> plugin.getUiButtons() },
+            pluginsWithButtons = emptyList(),
             pluginsNeedPermissions = emptyList(),
             pluginsNeedOptionalPermissions = emptyList(),
             onButtonClick = { /* Do nothing */ },

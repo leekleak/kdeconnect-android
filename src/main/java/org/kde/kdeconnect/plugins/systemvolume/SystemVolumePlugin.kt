@@ -5,29 +5,36 @@
 */
 package org.kde.kdeconnect.plugins.systemvolume
 
+import android.content.Context
 import android.util.Log
 import androidx.annotation.VisibleForTesting
 import org.json.JSONException
+import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
+import org.kde.kdeconnect.plugins.PluginInfo
+import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin.Companion.PACKET_TYPE_SYSTEMVOLUME
+import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin.Companion.PACKET_TYPE_SYSTEMVOLUME_REQUEST
 import org.kde.kdeconnect_tp.R
 import java.util.concurrent.ConcurrentHashMap
 
-@LoadablePlugin
-class SystemVolumePlugin : Plugin() {
+object SystemVolumePluginInfo : PluginInfo(
+    instantiableClass = SystemVolumePlugin::class.java,
+    displayNameRes = R.string.pref_plugin_systemvolume,
+    descriptionRes = R.string.pref_plugin_systemvolume_desc,
+    supportedPacketTypes = arrayOf(PACKET_TYPE_SYSTEMVOLUME),
+    outgoingPacketTypes = arrayOf(PACKET_TYPE_SYSTEMVOLUME_REQUEST),
+)
+
+class SystemVolumePlugin(context: Context, device: Device) : Plugin(context, device) {
+
+    override val pluginInfo: PluginInfo = SystemVolumePluginInfo
     interface SinkListener {
         fun sinksChanged()
     }
 
     private val sinkMap: ConcurrentHashMap<String, Sink> = ConcurrentHashMap()
     private val listeners: MutableList<SinkListener> = mutableListOf()
-
-    override val displayName: String
-        get() = context.resources.getString(R.string.pref_plugin_systemvolume)
-
-    override val description: String
-        get() = context.resources.getString(R.string.pref_plugin_systemvolume_desc)
 
     override fun onPacketReceived(np: NetworkPacket): Boolean {
         if ("sinkList" in np) {
@@ -88,9 +95,6 @@ class SystemVolumePlugin : Plugin() {
         device.sendPacket(np)
     }
 
-    override val supportedPacketTypes: Array<String> = arrayOf(PACKET_TYPE_SYSTEMVOLUME)
-    override val outgoingPacketTypes: Array<String> = arrayOf(PACKET_TYPE_SYSTEMVOLUME_REQUEST)
-
     val sinks: MutableCollection<Sink>
         get() = sinkMap.values
 
@@ -107,7 +111,7 @@ class SystemVolumePlugin : Plugin() {
     }
 
     companion object {
-        private const val PACKET_TYPE_SYSTEMVOLUME = "kdeconnect.systemvolume"
-        private const val PACKET_TYPE_SYSTEMVOLUME_REQUEST = "kdeconnect.systemvolume.request"
+        const val PACKET_TYPE_SYSTEMVOLUME = "kdeconnect.systemvolume"
+        const val PACKET_TYPE_SYSTEMVOLUME_REQUEST = "kdeconnect.systemvolume.request"
     }
 }

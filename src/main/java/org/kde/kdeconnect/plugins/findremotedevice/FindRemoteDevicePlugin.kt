@@ -5,21 +5,16 @@
  */
 package org.kde.kdeconnect.plugins.findremotedevice
 
+import android.content.Context
+import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.findmyphone.FindMyPhonePlugin
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
+import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect_tp.R
 
-@LoadablePlugin
-class FindRemoteDevicePlugin : Plugin() {
-    override val displayName: String
-        get() = context.resources.getString(R.string.pref_plugin_findremotedevice)
-
-    override val description: String
-        get() = context.resources.getString(R.string.pref_plugin_findremotedevice_desc)
-
-    override fun onPacketReceived(np: NetworkPacket): Boolean = true
+class FindRemoteDevicePlugin(context: Context, device: Device) : Plugin(context, device) {
+    override val pluginInfo: PluginInfo = FindRemoteDevicePluginInfo
 
     override fun getUiButtons(): List<PluginUiButton> = listOf(
         PluginUiButton(
@@ -30,7 +25,13 @@ class FindRemoteDevicePlugin : Plugin() {
             device.sendPacket(NetworkPacket(FindMyPhonePlugin.PACKET_TYPE_FINDMYPHONE_REQUEST))
         })
 
-    override val supportedPacketTypes: Array<String> = emptyArray()
-
-    override val outgoingPacketTypes: Array<String> = arrayOf(FindMyPhonePlugin.PACKET_TYPE_FINDMYPHONE_REQUEST)
+    override fun onPacketReceived(np: NetworkPacket): Boolean = true
 }
+
+object FindRemoteDevicePluginInfo: PluginInfo(
+    instantiableClass = FindRemoteDevicePlugin::class.java,
+    displayNameRes = R.string.pref_plugin_findremotedevice,
+    descriptionRes = R.string.pref_plugin_findremotedevice_desc,
+    supportedPacketTypes = emptyArray(),
+    outgoingPacketTypes = arrayOf(FindMyPhonePlugin.PACKET_TYPE_FINDMYPHONE_REQUEST),
+)

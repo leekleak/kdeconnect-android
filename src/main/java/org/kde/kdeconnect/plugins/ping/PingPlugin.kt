@@ -9,6 +9,7 @@ import android.Manifest
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -19,20 +20,29 @@ import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
+import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
+import org.kde.kdeconnect.plugins.PluginInfo
+import org.kde.kdeconnect.plugins.ping.PingPlugin.Companion.PACKET_TYPE_PING
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect_tp.R
 
-@LoadablePlugin
-class PingPlugin : Plugin() {
-    override val displayName: String
-        get() = context.resources.getString(R.string.pref_plugin_ping)
+class PingPlugin(context: Context, device: Device) : Plugin(context, device) {
+    override val pluginInfo: PluginInfo = PingPluginInfo
 
-    override val description: String
-        get() = context.resources.getString(R.string.pref_plugin_ping_desc)
+    override fun getUiButtons(): List<PluginUiButton> = listOf(
+        PluginUiButton(
+            name = context.getString(R.string.send_ping),
+            iconRes = R.drawable.arrow_upward,
+            category = ButtonCategory.CONTROL
+        ) { _ ->
+            if (isDeviceInitialized) {
+                device.sendPacket(NetworkPacket(PACKET_TYPE_PING))
+            }
+        }
+    )
 
     override fun onPacketReceived(np: NetworkPacket): Boolean {
         if (np.type != PACKET_TYPE_PING) {
@@ -80,24 +90,17 @@ class PingPlugin : Plugin() {
         return true
     }
 
-    override fun getUiButtons(): List<PluginUiButton> = listOf(
-        PluginUiButton(
-            name = context.getString(R.string.send_ping),
-            iconRes = R.drawable.arrow_upward,
-            category = ButtonCategory.CONTROL
-        ) { _ ->
-            if (isDeviceInitialized) {
-                device.sendPacket(NetworkPacket(PACKET_TYPE_PING))
-            }
-        }
-    )
-
-    override val supportedPacketTypes: Array<String> = arrayOf(PACKET_TYPE_PING)
-
-    override val outgoingPacketTypes: Array<String> = arrayOf(PACKET_TYPE_PING)
-
     companion object {
-        private const val PACKET_TYPE_PING = "kdeconnect.ping"
+        const val PACKET_TYPE_PING = "kdeconnect.ping"
         private const val LOG_TAG = "PingPlugin"
     }
+}
+
+object PingPluginInfo : PluginInfo(
+    instantiableClass = PingPlugin::class.java,
+    displayNameRes = R.string.pref_plugin_ping,
+    descriptionRes = R.string.pref_plugin_ping_desc,
+    supportedPacketTypes = arrayOf(PACKET_TYPE_PING),
+    outgoingPacketTypes = arrayOf(PACKET_TYPE_PING),
+) {
 }

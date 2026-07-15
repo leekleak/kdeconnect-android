@@ -9,6 +9,7 @@ import android.Manifest
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -17,21 +18,18 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.scale
+import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
+import org.kde.kdeconnect.plugins.PluginInfo
+import org.kde.kdeconnect.plugins.receivenotifications.ReceiveNotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION
+import org.kde.kdeconnect.plugins.receivenotifications.ReceiveNotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION_REQUEST
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect_tp.R
 
-@LoadablePlugin
-class ReceiveNotificationsPlugin : Plugin() {
-    override val displayName: String
-        get() = context.resources.getString(R.string.pref_plugin_receive_notifications)
-
-    override val description: String
-        get() = context.resources.getString(R.string.pref_plugin_receive_notifications_desc)
-
+class ReceiveNotificationsPlugin(context: Context, device: Device) : Plugin(context, device) {
+    override val pluginInfo: PluginInfo = ReceiveNotificationsPluginInfo
     override fun onCreate(): Boolean {
         // request all existing notifications
         val np = NetworkPacket(PACKET_TYPE_NOTIFICATION_REQUEST)
@@ -93,20 +91,23 @@ class ReceiveNotificationsPlugin : Plugin() {
         return true
     }
 
-    override val supportedPacketTypes: Array<String> = arrayOf(PACKET_TYPE_NOTIFICATION)
+    companion object {
+        const val PACKET_TYPE_NOTIFICATION = "kdeconnect.notification"
+        const val PACKET_TYPE_NOTIFICATION_REQUEST = "kdeconnect.notification.request"
+    }
+}
 
-    override val outgoingPacketTypes: Array<String> = arrayOf(PACKET_TYPE_NOTIFICATION_REQUEST)
-
-    override val requiredPermissions: Array<String> = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+object ReceiveNotificationsPluginInfo : PluginInfo(
+    instantiableClass = ReceiveNotificationsPlugin::class.java,
+    displayNameRes = R.string.pref_plugin_receive_notifications,
+    descriptionRes = R.string.pref_plugin_receive_notifications_desc,
+    requiredPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         arrayOf(Manifest.permission.POST_NOTIFICATIONS)
     } else {
         arrayOf()
-    }
-
+    },
+    supportedPacketTypes = arrayOf(PACKET_TYPE_NOTIFICATION),
+    outgoingPacketTypes = arrayOf(PACKET_TYPE_NOTIFICATION_REQUEST),
+) {
     override val permissionExplanation: Int = R.string.receive_notifications_permission_explanation
-
-    companion object {
-        private const val PACKET_TYPE_NOTIFICATION = "kdeconnect.notification"
-        private const val PACKET_TYPE_NOTIFICATION_REQUEST = "kdeconnect.notification.request"
-    }
 }

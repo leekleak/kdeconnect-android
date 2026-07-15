@@ -6,15 +6,11 @@
 
 package org.kde.kdeconnect.plugins.share;
 
-import android.Manifest;
-import android.app.Activity;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -32,18 +28,17 @@ import androidx.core.graphics.drawable.IconCompat;
 import androidx.core.os.BundleCompat;
 import androidx.preference.PreferenceManager;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.kde.kdeconnect.helpers.FilesHelper;
-import org.kde.kdeconnect.helpers.IntentHelper;
+import org.kde.kdeconnect.Device;
 import org.kde.kdeconnect.NetworkPacket;
-import org.kde.kdeconnect.plugins.Plugin;
-import org.kde.kdeconnect.plugins.PluginFactory;
-import org.kde.kdeconnect.ui.MainActivity;
-import org.kde.kdeconnect.ui.PluginSettingsFragment;
 import org.kde.kdeconnect.async.BackgroundJob;
 import org.kde.kdeconnect.async.BackgroundJobHandler;
+import org.kde.kdeconnect.helpers.FilesHelper;
+import org.kde.kdeconnect.helpers.IntentHelper;
+import org.kde.kdeconnect.plugins.Plugin;
+import org.kde.kdeconnect.plugins.PluginInfo;
+import org.kde.kdeconnect.ui.MainActivity;
 import org.kde.kdeconnect_tp.R;
 
 import java.net.MalformedURLException;
@@ -63,7 +58,6 @@ import kotlin.Unit;
  *     threads by {@link BackgroundJobHandler}.
  * </p>
  */
-@PluginFactory.LoadablePlugin
 public class SharePlugin extends Plugin {
     final static String ACTION_CANCEL_SHARE = "org.kde.kdeconnect.plugins.share.CancelShare";
     final static String CANCEL_SHARE_DEVICE_ID_EXTRA = "deviceId";
@@ -85,10 +79,17 @@ public class SharePlugin extends Plugin {
     public static final String KEY_UNREACHABLE_URL_LIST = "key_unreachable_url_list";
     private SharedPreferences mSharedPrefs;
 
-    public SharePlugin() {
+    public SharePlugin(Context context, Device device) {
+        super(context, device);
         backgroundJobHandler = BackgroundJobHandler.newFixedThreadPoolBackgroundJobHandler(5);
         handler = new Handler(Looper.getMainLooper());
         receiveFileJobCallback = new Callback();
+    }
+
+    @NonNull
+    @Override
+    public PluginInfo getPluginInfo() {
+        return SharePluginInfo.INSTANCE;
     }
 
     @Override
@@ -166,29 +167,10 @@ public class SharePlugin extends Plugin {
     }
 
     @Override
-    protected int getOptionalPermissionExplanation() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            return R.string.share_notifications_explanation;
-        } else {
-            return R.string.share_optional_permission_explanation;
-        }
-    }
-
-    @Override
-    public @NonNull String getDisplayName() {
-        return context.getResources().getString(R.string.pref_plugin_sharereceiver);
-    }
-
-    @Override
-    public @NonNull String getDescription() {
-        return context.getResources().getString(R.string.pref_plugin_sharereceiver_desc);
-    }
-
-    @Override
     public @NotNull List<@NotNull PluginUiButton> getUiButtons() {
         return List.of(new PluginUiButton(context.getString(R.string.send_files), R.drawable.share_plugin_action_24dp, ButtonCategory.SEND, parentActivity -> {
             Intent intent = new Intent(parentActivity, SendFileActivity.class);
-            intent.putExtra("deviceId", getDevice().getDeviceId());
+            intent.putExtra("deviceId", device.getDeviceId());
             parentActivity.startActivity(intent);
             return Unit.INSTANCE;
         }));
@@ -255,7 +237,7 @@ public class SharePlugin extends Plugin {
         if (hasNumberOfFiles && !isOpen && receiveFileJob != null) {
             job = receiveFileJob;
         } else {
-            job = new CompositeReceiveFileJob(getDevice(), receiveFileJobCallback);
+            job = new CompositeReceiveFileJob(device, receiveFileJobCallback);
         }
 
         if (!hasNumberOfFiles) {
@@ -277,7 +259,7 @@ public class SharePlugin extends Plugin {
         CompositeUploadFileJob job;
 
         if (uploadFileJob == null) {
-            job = new CompositeUploadFileJob(getDevice(), this.receiveFileJobCallback);
+            job = new CompositeUploadFileJob(device, this.receiveFileJobCallback);
         } else {
             job = uploadFileJob;
         }
@@ -298,80 +280,55 @@ public class SharePlugin extends Plugin {
     }
 
     public void share(Intent intent) {
-        Bundle extras = intent.getExtras();
-        ArrayList<Uri> streams = streamsFromIntent(intent, extras);
+        ArrayList<Uri> streams = streamsFromIntent(intent);
         if (streams != null && !streams.isEmpty()) {
             sendUriList(streams);
             return;
         }
-        if (extras != null) {
-            String text = extras.getString(Intent.EXTRA_TEXT);
-            if (StringUtils.isNotEmpty(text)) {
-                Log.i("SharePlugin", "Intent contains text to share");
+        String text = intent.getStringExtra(Intent.EXTRA_TEXT);
+        if (StringUtils.isNotEmpty(text)) {
+            Log.i("SharePlugin", "Intent contains text to share");
 
-                //Hack: Detect shared youtube videos, so we can open them in the browser instead of as text
-                String subject = extras.getString(Intent.EXTRA_SUBJECT);
-                if (subject != null && subject.endsWith("YouTube")) {
-                    int index = text.indexOf(": http://youtu.be/");
-                    if (index > 0) {
-                        text = text.substring(index + 2); //Skip ": "
-                    }
+            //Hack: Detect shared youtube videos, so we can open them in the browser instead of as text
+            String subject = intent.getStringExtra(Intent.EXTRA_SUBJECT);
+            if (subject != null && subject.endsWith("YouTube")) {
+                int index = text.indexOf(": http://youtu.be/");
+                if (index > 0) {
+                    text = text.substring(index + 2); //Skip ": "
                 }
-
-                boolean isUrl;
-                try {
-                    new URL(text);
-                    isUrl = true;
-                } catch (MalformedURLException e) {
-                    isUrl = false;
-                }
-                NetworkPacket np = new NetworkPacket(SharePlugin.PACKET_TYPE_SHARE_REQUEST);
-                np.set(isUrl ? "url" : "text", text);
-                device.sendPacket(np);
-                return;
             }
+
+            boolean isUrl;
+            try {
+                new URL(text);
+                isUrl = true;
+            } catch (MalformedURLException e) {
+                isUrl = false;
+            }
+            NetworkPacket np = new NetworkPacket(SharePlugin.PACKET_TYPE_SHARE_REQUEST);
+            np.set(isUrl ? "url" : "text", text);
+            device.sendPacket(np);
+        } else {
+            Log.e("SharePlugin", "There's nothing we know how to share");
         }
-        Log.e("SharePlugin", "There's nothing we know how to share");
     }
 
-    private ArrayList<Uri> streamsFromIntent(Intent intent, Bundle extras) {
-        if (extras == null || !extras.containsKey(Intent.EXTRA_STREAM)) {
-            return null;
-        }
+    private ArrayList<Uri> streamsFromIntent(Intent intent) {
         Log.i("SharePlugin", "Intent contains streams to share");
         ArrayList<Uri> uriList;
         if (Intent.ACTION_SEND_MULTIPLE.equals(intent.getAction())) {
             uriList = IntentCompat.getParcelableArrayListExtra(intent, Intent.EXTRA_STREAM, Uri.class);
         } else {
             uriList = new ArrayList<>();
-            uriList.add(BundleCompat.getParcelable(extras, Intent.EXTRA_STREAM, Uri.class));
+            uriList.add(BundleCompat.getParcelable(intent.getExtras(), Intent.EXTRA_STREAM, Uri.class));
         }
-        uriList.removeAll(Collections.singleton(null));
-        if (uriList.isEmpty()) {
-            Log.w("SharePlugin", "All streams were null");
+        if (uriList != null) {
+            uriList.removeAll(Collections.singleton(null));
+            if (uriList.isEmpty()) {
+                Log.w("SharePlugin", "All streams were null");
+            }
         }
         return uriList;
-    }
-
-    @Override
-    public @NonNull String[] getSupportedPacketTypes() {
-        return new String[]{PACKET_TYPE_SHARE_REQUEST, PACKET_TYPE_SHARE_REQUEST_UPDATE};
-    }
-
-    @Override
-    public @NonNull String[] getOutgoingPacketTypes() {
-        return new String[]{PACKET_TYPE_SHARE_REQUEST};
-    }
-
-    @Override
-    public @NonNull String[] getOptionalPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            return new String[]{Manifest.permission.POST_NOTIFICATIONS};
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            return ArrayUtils.EMPTY_STRING_ARRAY;
-        } else {
-            return new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE};
-        }
     }
 
     private class Callback implements BackgroundJob.Callback<Void> {

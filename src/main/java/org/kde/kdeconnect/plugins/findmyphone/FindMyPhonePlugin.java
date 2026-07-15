@@ -9,6 +9,7 @@ package org.kde.kdeconnect.plugins.findmyphone;
 import android.Manifest;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
@@ -23,23 +24,29 @@ import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
-import org.apache.commons.lang3.ArrayUtils;
+import org.kde.kdeconnect.Device;
+import org.kde.kdeconnect.NetworkPacket;
+import org.kde.kdeconnect.datastore.TelephonySettingsDataStore;
 import org.kde.kdeconnect.helpers.DeviceHelper;
 import org.kde.kdeconnect.helpers.LifecycleHelper;
 import org.kde.kdeconnect.helpers.NotificationHelper;
-import org.kde.kdeconnect.NetworkPacket;
 import org.kde.kdeconnect.plugins.Plugin;
-import org.kde.kdeconnect.plugins.PluginFactory;
-import org.kde.kdeconnect.datastore.TelephonySettingsDataStore;
+import org.kde.kdeconnect.plugins.PluginInfo;
 import org.kde.kdeconnect_tp.R;
-import org.koin.java.KoinJavaComponent;
 
 import java.io.IOException;
 
-@PluginFactory.LoadablePlugin
 public class FindMyPhonePlugin extends Plugin {
+
     public final static String PACKET_TYPE_FINDMYPHONE_REQUEST = "kdeconnect.findmyphone.request";
     public final static String PREFERENCES_NAME = "FindMyPhonePlugin_preferences";
+
+    private final TelephonySettingsDataStore telephonySettingsDataStore;
+
+    public FindMyPhonePlugin(Context context, Device device, DeviceHelper deviceHelper, TelephonySettingsDataStore telephonySettingsDataStore) {
+        super(context, device);
+        this.telephonySettingsDataStore = telephonySettingsDataStore;
+    }
 
     private NotificationManager notificationManager;
     private int notificationId;
@@ -49,23 +56,10 @@ public class FindMyPhonePlugin extends Plugin {
     private PowerManager powerManager;
     private FlashlightManager flashlightManager;
 
+    @NonNull
     @Override
-    public @NonNull String getDisplayName() {
-        DeviceHelper deviceHelper = KoinJavaComponent.get(DeviceHelper.class);
-        switch (deviceHelper.getDeviceType()) {
-            case TV:
-                return context.getString(R.string.findmyphone_title_tv);
-            case TABLET:
-                return context.getString(R.string.findmyphone_title_tablet);
-            case PHONE:
-            default:
-                return context.getString(R.string.findmyphone_title);
-        }
-    }
-
-    @Override
-    public @NonNull String getDescription() {
-        return context.getString(R.string.findmyphone_description);
+    public PluginInfo getPluginInfo() {
+        return FindMyPhonePluginInfo.INSTANCE;
     }
 
     @Override
@@ -76,10 +70,8 @@ public class FindMyPhonePlugin extends Plugin {
         powerManager = ContextCompat.getSystemService(context, PowerManager.class);
         flashlightManager = new FlashlightManager(context);
 
-        TelephonySettingsDataStore dataStore = KoinJavaComponent.get(TelephonySettingsDataStore.class);
-
         Uri ringtone;
-        String ringtoneString = dataStore.getRingtoneUriBlockingBlocking();
+        String ringtoneString = telephonySettingsDataStore.getRingtoneUriBlockingBlocking();
         if (ringtoneString.isEmpty()) {
             ringtone = Settings.System.DEFAULT_RINGTONE_URI;
         } else {
@@ -123,7 +115,7 @@ public class FindMyPhonePlugin extends Plugin {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || LifecycleHelper.isInForeground()) {
             Intent intent = new Intent(context, FindMyPhoneActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.putExtra(FindMyPhoneActivity.EXTRA_DEVICE_ID, getDevice().getDeviceId());
+            intent.putExtra(FindMyPhoneActivity.EXTRA_DEVICE_ID, device.getDeviceId());
             context.startActivity(intent);
         } else {
             if (powerManager.isInteractive()) {
@@ -141,7 +133,7 @@ public class FindMyPhonePlugin extends Plugin {
         Intent intent = new Intent(context, FindMyPhoneReceiver.class);
         intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
         intent.setAction(FindMyPhoneReceiver.ACTION_FOUND_IT);
-        intent.putExtra(FindMyPhoneReceiver.EXTRA_DEVICE_ID, getDevice().getDeviceId());
+        intent.putExtra(FindMyPhoneReceiver.EXTRA_DEVICE_ID, device.getDeviceId());
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
@@ -150,7 +142,7 @@ public class FindMyPhonePlugin extends Plugin {
 
     private void showActivityNotification() {
         Intent intent = new Intent(context, FindMyPhoneActivity.class);
-        intent.putExtra(FindMyPhoneActivity.EXTRA_DEVICE_ID, getDevice().getDeviceId());
+        intent.putExtra(FindMyPhoneActivity.EXTRA_DEVICE_ID, device.getDeviceId());
 
         PendingIntent pi = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         createNotification(pi);
@@ -182,7 +174,7 @@ public class FindMyPhonePlugin extends Plugin {
     }
 
     void startFlashing() {
-        if (isFlashlightEnabledInSettings() && isPermissionGranted(Manifest.permission.CAMERA)) {
+        if (isFlashlightEnabledInSettings() && PluginInfo.isPermissionGranted(context, Manifest.permission.CAMERA)) {
             flashlightManager.startFlashing();
         }
     }
@@ -216,33 +208,7 @@ public class FindMyPhonePlugin extends Plugin {
         return mediaPlayer.isPlaying();
     }
 
-    @Override
-    public @NonNull String[] getSupportedPacketTypes() {
-        return new String[]{PACKET_TYPE_FINDMYPHONE_REQUEST};
-    }
-
-    @Override
-    public @NonNull String[] getOutgoingPacketTypes() {
-        return ArrayUtils.EMPTY_STRING_ARRAY;
-    }
-
-    @NonNull
-    @Override
-    protected String[] getRequiredPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            return new String[]{Manifest.permission.POST_NOTIFICATIONS};
-        } else {
-            return ArrayUtils.EMPTY_STRING_ARRAY;
-        }
-    }
-
-    @Override
-    protected int getPermissionExplanation() {
-        return R.string.findmyphone_notifications_explanation;
-    }
-
     private boolean isFlashlightEnabledInSettings() {
-        TelephonySettingsDataStore dataStore = KoinJavaComponent.get(TelephonySettingsDataStore.class);
-        return dataStore.getFlashlightEnabledBlockingBlocking();
+        return telephonySettingsDataStore.getFlashlightEnabledBlockingBlocking();
     }
 }

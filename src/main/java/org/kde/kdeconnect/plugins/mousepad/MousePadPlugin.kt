@@ -6,30 +6,24 @@
 package org.kde.kdeconnect.plugins.mousepad
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.view.KeyEvent
 import androidx.preference.PreferenceManager
+import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
+import org.kde.kdeconnect.plugins.PluginInfo
+import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE
+import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_REQUEST
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.navigation.MousePadKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 
-@LoadablePlugin
-class MousePadPlugin : Plugin() {
-    var isKeyboardEnabled: Boolean = true
-        private set
-
-    override fun onPacketReceived(np: NetworkPacket): Boolean {
-        this.isKeyboardEnabled = np.getBoolean("state", true)
-        return true
-    }
-
-    override val displayName: String
-        get() = context.getString(R.string.pref_plugin_mousepad)
+class MousePadPlugin(context: Context, device: Device) : Plugin(context, device) {
+    override val pluginInfo: PluginInfo = MousePadPluginSettings
 
     override fun getUiButtons(): List<PluginUiButton> {
         val mouseAndKeyboardInput = PluginUiButton(
@@ -38,7 +32,7 @@ class MousePadPlugin : Plugin() {
             category = ButtonCategory.CONTROL
         ) { parentActivity ->
             val navigator: Navigator = (parentActivity as MainActivity).scope.get(Navigator::class, null, null)
-            navigator.goTo(MousePadKey(device.deviceId))
+            device.let { navigator.goTo(MousePadKey(it.deviceId)) }
         }
         return if (device.deviceType == DeviceType.TV) {
             val tvInput = PluginUiButton(
@@ -60,9 +54,13 @@ class MousePadPlugin : Plugin() {
         }
     }
 
+    var isKeyboardEnabled: Boolean = true
+        private set
 
-    override val description: String
-        get() = context.getString(R.string.pref_plugin_mousepad_desc_nontv)
+    override fun onPacketReceived(np: NetworkPacket): Boolean {
+        this.isKeyboardEnabled = np.getBoolean("state", true)
+        return true
+    }
 
     fun sendMouseDelta(dx: Float, dy: Float) {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
@@ -71,8 +69,8 @@ class MousePadPlugin : Plugin() {
         sendPacket(np)
     }
 
-    fun hasMicPermission(): Boolean {
-        return isPermissionGranted(Manifest.permission.RECORD_AUDIO)
+    fun hasMicPermission(context: Context): Boolean {
+        return PluginInfo.isPermissionGranted(context,Manifest.permission.RECORD_AUDIO)
     }
 
     fun sendLeftClick() {
@@ -172,11 +170,17 @@ class MousePadPlugin : Plugin() {
         device.sendPacket(np)
     }
 
-    override val supportedPacketTypes = arrayOf(PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE)
-    override val outgoingPacketTypes = arrayOf(PACKET_TYPE_MOUSEPAD_REQUEST)
-
     companion object {
         const val PACKET_TYPE_MOUSEPAD_REQUEST: String = "kdeconnect.mousepad.request"
-        private const val PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE = "kdeconnect.mousepad.keyboardstate"
+        const val PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE = "kdeconnect.mousepad.keyboardstate"
     }
 }
+
+
+object MousePadPluginSettings: PluginInfo(
+    instantiableClass = MousePadPlugin::class.java,
+    displayNameRes = R.string.pref_plugin_mousepad,
+    descriptionRes = R.string.pref_plugin_mousepad_desc_nontv,
+    supportedPacketTypes = arrayOf(PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE),
+    outgoingPacketTypes = arrayOf(PACKET_TYPE_MOUSEPAD_REQUEST),
+)

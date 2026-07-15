@@ -60,15 +60,15 @@ class PluginSettingsViewModel(
 
     fun refreshUI() {
         val device = device ?: return
-        val supportedPlugins = device.supportedPlugins
-        val sortedPlugins = PluginFactory.sortPluginList(supportedPlugins)
+        val supportedPlugins = device.supportedPlugins.toList()
+        val sortedPlugins = PluginFactory.sortPluginList(getApplication(), supportedPlugins)
 
         val pluginItems = sortedPlugins.map { pluginKey ->
             val info = PluginFactory.getPluginInfo(pluginKey)
             PluginSettingsItem(
                 key = pluginKey,
-                name = info.displayName,
-                description = info.description,
+                name = info.getDisplayName(getApplication()),
+                description = info.getDescription(getApplication()),
                 isEnabled = device.isPluginEnabled(pluginKey),
             )
         }
@@ -83,13 +83,20 @@ class PluginSettingsViewModel(
 
 
     fun setPluginEnabled(context: Context, pluginKey: String, isEnabled: Boolean) {
-        device?.setPluginEnabled(pluginKey, isEnabled)
+        val device = device ?: return
+        device.setPluginEnabled(pluginKey, isEnabled)
         if (!isEnabled) return
 
-        val missingPermission = device?.pluginsWithoutPermissions?.contains(pluginKey) ?: return
-        val plugin = device?.getPluginIncludingWithoutPermissions(pluginKey) ?: return
+        val missingPermission = device.pluginsWithoutPermissions.containsKey(pluginKey)
+        val plugin = device.getPluginIncludingWithoutPermissions(pluginKey) ?: return
         if (missingPermission) {
-            val dialog = plugin.permissionExplanationDialog
+            val dialog = plugin.pluginInfo.let {
+                if (plugin.preferences != null) {
+                    it.getPermissionExplanationDialog(plugin.preferences!!, context, device)
+                } else {
+                    it.getPermissionExplanationDialog(context)
+                }
+            }
             if (dialog is AlertDialogFragment) {
                 dialog.callback = object : AlertDialogFragment.Callback() {
                     var isPositiveButtonClicked = false
@@ -100,7 +107,7 @@ class PluginSettingsViewModel(
 
                     override fun onDismiss() {
                         if (!isPositiveButtonClicked) {
-                            device?.setPluginEnabled(pluginKey, false)
+                            device.setPluginEnabled(pluginKey, false)
                             refreshUI()
                         }
                     }

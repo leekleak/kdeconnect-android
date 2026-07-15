@@ -8,6 +8,7 @@ package org.kde.kdeconnect.plugins.mpris
 import android.Manifest
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Build
@@ -17,6 +18,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
+import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
 import org.kde.kdeconnect.helpers.NotificationHelper
@@ -28,17 +30,19 @@ import org.kde.kdeconnect.plugins.mpris.AlbumArtCache.initializeDiskCache
 import org.kde.kdeconnect.plugins.mpris.AlbumArtCache.payloadToDiskCache
 import org.kde.kdeconnect.plugins.mpris.AlbumArtCache.registerPlugin
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
+import org.kde.kdeconnect.plugins.PluginInfo
+import org.kde.kdeconnect.plugins.mpris.MprisPlugin.Companion.PACKET_TYPE_MPRIS
+import org.kde.kdeconnect.plugins.mpris.MprisPlugin.Companion.PACKET_TYPE_MPRIS_REQUEST
 import org.kde.kdeconnect_tp.R
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
-import org.koin.core.context.GlobalContext
-import org.koin.java.KoinJavaComponent.inject
 import java.net.MalformedURLException
 import java.util.concurrent.ConcurrentHashMap
 
-@LoadablePlugin
-class MprisPlugin : Plugin(), KoinComponent {
+class MprisPlugin(
+    context: Context,
+    device: Device,
+    private val dataStore: NotificationSettingsDataStore
+) : Plugin(context, device) {
+    override val pluginInfo: PluginInfo = MprisPluginSettings
     inner class MprisPlayer internal constructor() {
         var playerName: String = ""
             internal set
@@ -109,7 +113,7 @@ class MprisPlugin : Plugin(), KoinComponent {
         }
 
         fun getHttpUrl(): String? {
-            return url?.takeIf { it.startsWith("http://") || it.startsWith("https://") }
+            return url.takeIf { it.startsWith("http://") || it.startsWith("https://") }
         }
 
         val isSetVolumeAllowed: Boolean
@@ -186,17 +190,6 @@ class MprisPlugin : Plugin(), KoinComponent {
         }
     }
 
-    private val players = ConcurrentHashMap<String, MprisPlayer>()
-    private val dataStore: NotificationSettingsDataStore by inject()
-    private var supportAlbumArtPayload = false
-    private val playerStatusUpdated = ConcurrentHashMap<String, () -> Unit>()
-    private val playerListUpdated = ConcurrentHashMap<String, () -> Unit>()
-    override val displayName: String
-        get() = context.resources.getString(R.string.pref_plugin_mpris)
-
-    override val description: String
-        get() = context.resources.getString(R.string.pref_plugin_mpris_desc)
-
     override fun getUiButtons(): List<PluginUiButton> = listOf(
         PluginUiButton(
             context.getString(R.string.open_mpris_controls),
@@ -207,6 +200,11 @@ class MprisPlugin : Plugin(), KoinComponent {
             parentActivity.startActivity(intent)
         }
     )
+
+    private val players = ConcurrentHashMap<String, MprisPlayer>()
+    private var supportAlbumArtPayload = false
+    private val playerStatusUpdated = ConcurrentHashMap<String, () -> Unit>()
+    private val playerListUpdated = ConcurrentHashMap<String, () -> Unit>()
 
     override fun onCreate(): Boolean {
         MprisMediaSession.instance.onCreate(context.applicationContext, this, device.deviceId)
@@ -389,9 +387,7 @@ class MprisPlugin : Plugin(), KoinComponent {
         }
     }
 
-    override val supportedPacketTypes: Array<String> = arrayOf(PACKET_TYPE_MPRIS)
 
-    override val outgoingPacketTypes: Array<String> = arrayOf(PACKET_TYPE_MPRIS_REQUEST)
 
     fun setPlayerStatusUpdatedHandler(id: String, callback: () -> Unit) {
         playerStatusUpdated[id] = callback
@@ -491,18 +487,25 @@ class MprisPlugin : Plugin(), KoinComponent {
         return false
     }
 
-    override val optionalPermissions: Array<String> = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        arrayOf(Manifest.permission.POST_NOTIFICATIONS)
-    } else {
-        arrayOf()
-    }
-
-    override val optionalPermissionExplanation: Int = R.string.mpris_notifications_explanation
-
     companion object {
         const val PREFERENCES_NAME: String = "MprisPlugin_preferences"
         const val DEVICE_ID_KEY: String = "deviceId"
-        private const val PACKET_TYPE_MPRIS = "kdeconnect.mpris"
-        private const val PACKET_TYPE_MPRIS_REQUEST = "kdeconnect.mpris.request"
+        const val PACKET_TYPE_MPRIS = "kdeconnect.mpris"
+        const val PACKET_TYPE_MPRIS_REQUEST = "kdeconnect.mpris.request"
     }
+}
+
+object MprisPluginSettings: PluginInfo(
+    instantiableClass = MprisPlugin::class.java,
+    displayNameRes = R.string.pref_plugin_mpris,
+    descriptionRes = R.string.pref_plugin_mpris_desc,
+    optionalPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        arrayOf(Manifest.permission.POST_NOTIFICATIONS)
+    } else {
+        arrayOf()
+    },
+    supportedPacketTypes = arrayOf(PACKET_TYPE_MPRIS),
+    outgoingPacketTypes = arrayOf(PACKET_TYPE_MPRIS_REQUEST),
+) {
+    override val optionalPermissionExplanation: Int = R.string.mpris_notifications_explanation
 }

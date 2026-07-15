@@ -5,14 +5,17 @@
  */
 package org.kde.kdeconnect.plugins.mousereceiver
 
+import android.content.Context
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.DialogFragment
+import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
+import org.kde.kdeconnect.plugins.PluginInfo
+import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_REQUEST
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPlugin
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.StartActivityAlertDialogFragment
@@ -20,22 +23,8 @@ import org.kde.kdeconnect_tp.R
 import kotlin.math.ceil
 import kotlin.math.floor
 
-@LoadablePlugin
-class MouseReceiverPlugin : Plugin() {
-    override fun checkRequiredPermissions(): Boolean {
-        return MouseReceiverService.instance != null
-    }
-
-    override val permissionExplanationDialog: DialogFragment
-        get() = StartActivityAlertDialogFragment.Builder()
-            .setTitle(R.string.mouse_receiver_plugin_description)
-            .setMessage(R.string.mouse_receiver_no_permissions)
-            .setPositiveButton(R.string.open_settings)
-            .setNegativeButton(R.string.cancel)
-            .setIntentAction(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-            .setStartForResult(true)
-            .setRequestCode(MainActivity.RESULT_NEEDS_RELOAD)
-            .create()
+class MouseReceiverPlugin(context: Context, device: Device) : Plugin(context, device) {
+    override val pluginInfo: PluginInfo = MouseReceiverPluginInfo
 
     override fun onPacketReceived(np: NetworkPacket): Boolean {
         if (np.type != PACKET_TYPE_MOUSEPAD_REQUEST) {
@@ -119,17 +108,31 @@ class MouseReceiverPlugin : Plugin() {
     override val minSdk: Int
         get() = Build.VERSION_CODES.N
 
-    override val displayName: String
-        get() = context.getString(R.string.mouse_receiver_plugin_name)
-
-    override val description: String
-        get() = context.getString(R.string.mouse_receiver_plugin_description)
-
-    override val supportedPacketTypes: Array<String> = arrayOf(PACKET_TYPE_MOUSEPAD_REQUEST)
-
-    override val outgoingPacketTypes: Array<String> = emptyArray()
-
     companion object {
         private const val PACKET_TYPE_MOUSEPAD_REQUEST = "kdeconnect.mousepad.request"
+    }
+}
+
+object MouseReceiverPluginInfo : PluginInfo(
+    instantiableClass = MouseReceiverPlugin::class.java,
+    displayNameRes = R.string.mouse_receiver_plugin_name,
+    descriptionRes = R.string.mouse_receiver_plugin_description,
+    supportedPacketTypes = arrayOf(PACKET_TYPE_MOUSEPAD_REQUEST),
+    outgoingPacketTypes = emptyArray(),
+) {
+    override fun checkRequiredPermissions(context: Context): Boolean {
+        return MouseReceiverService.instance != null
+    }
+
+    override fun getPermissionExplanationDialog(context: Context): DialogFragment {
+        return StartActivityAlertDialogFragment.Builder()
+            .setTitle(R.string.mouse_receiver_plugin_description)
+            .setMessage(R.string.mouse_receiver_no_permissions)
+            .setPositiveButton(R.string.open_settings)
+            .setNegativeButton(R.string.cancel)
+            .setIntentAction(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+            .setStartForResult(true)
+            .setRequestCode(MainActivity.RESULT_NEEDS_RELOAD)
+            .create()
     }
 }

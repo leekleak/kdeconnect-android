@@ -58,11 +58,11 @@ class BigscreenActivity : BaseActivity<ActivityBigscreenBinding>() {
         binding.homeButton.setOnClickListener { v: View? -> plugin.sendHome() }
         binding.backButton.setOnClickListener { v: View? -> plugin.sendBack() }
         binding.micButton.setOnClickListener { v: View? ->
-            if (plugin.hasMicPermission()) {
+            if (plugin.hasMicPermission(this)) {
                 activateSTT()
             } else {
                 PermissionsAlertDialogFragment.Builder()
-                    .setTitle(plugin.displayName)
+                    .setTitle(plugin.pluginInfo.getDisplayName(this))
                     .setMessage(R.string.bigscreen_optional_permission_explanation)
                     .setPermissions(arrayOf(Manifest.permission.RECORD_AUDIO))
                     .setRequestCode(MainActivity.RESULT_NEEDS_RELOAD)

@@ -5,21 +5,18 @@
  */
 package org.kde.kdeconnect.plugins.inputdevicesreceiver
 
+import android.content.Context
 import android.hardware.display.DisplayManager
 import android.util.DisplayMetrics
 import android.view.Display
+import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
+import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect_tp.R
 
-@LoadablePlugin
-class InputDevicesReceiverPlugin : Plugin() {
-    override val displayName: String
-        get() = context.resources.getString(R.string.pref_plugin_inputdevicesreceiver)
-
-    override val description: String
-        get() = context.resources.getString(R.string.pref_plugin_inputdevicesreceiver_desc)
+class InputDevicesReceiverPlugin(context: Context, device: Device) : Plugin(context, device) {
+    override val pluginInfo: PluginInfo = InputDevicesReceiverPluginInfo
 
     object Cursor {
         var enterEdge = NONE_EDGE
@@ -74,7 +71,7 @@ class InputDevicesReceiverPlugin : Plugin() {
         // we must hand over control to the other end.
         if (mouseReceiverPlugin == null) {
             val plugin = device.getPluginIncludingWithoutPermissions("MouseReceiverPlugin")
-            plugin?.showPermissionExplanation(device.deviceId)
+            plugin?.pluginInfo?.showPermissionExplanation(context, device.deviceId)
 
             Cursor.x = np.getInt("deltax", Cursor.x)
             Cursor.y = np.getInt("deltay", Cursor.y)
@@ -120,9 +117,6 @@ class InputDevicesReceiverPlugin : Plugin() {
         return true
     }
 
-    override val supportedPacketTypes: Array<String> = arrayOf(PACKET_TYPE_MOUSEPAD_REQUEST, PACKET_TYPE_SHAREINPUTDEVICES_REQUEST)
-    override val outgoingPacketTypes: Array<String> = arrayOf(PACKET_TYPE_SHAREINPUTDEVICES)
-
     companion object {
         // Those are Qt edges but inverted, so TOP_EDGE is actually Qt::BottomEdge.
         private const val TOP_EDGE = 0x00008
@@ -136,3 +130,11 @@ class InputDevicesReceiverPlugin : Plugin() {
         private const val PACKET_TYPE_SHAREINPUTDEVICES_REQUEST = "kdeconnect.shareinputdevices.request"
     }
 }
+
+object InputDevicesReceiverPluginInfo : PluginInfo(
+    instantiableClass = InputDevicesReceiverPlugin::class.java,
+    displayNameRes = R.string.pref_plugin_inputdevicesreceiver,
+    descriptionRes = R.string.pref_plugin_inputdevicesreceiver_desc,
+    supportedPacketTypes = arrayOf("kdeconnect.mousepad.request", "kdeconnect.shareinputdevices.request"),
+    outgoingPacketTypes = arrayOf("kdeconnect.shareinputdevices"),
+)

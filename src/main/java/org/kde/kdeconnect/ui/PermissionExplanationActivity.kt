@@ -25,7 +25,13 @@ class PermissionExplanationActivity : AppCompatActivity() {
             return
         }
 
-        val dialog = plugin.permissionExplanationDialog
+        val dialog = plugin.pluginInfo.let {
+            if (plugin.preferences != null) {
+                it.getPermissionExplanationDialog(plugin.preferences!!, this, device)
+            } else {
+                it.getPermissionExplanationDialog(this)
+            }
+        }
 
         supportFragmentManager.registerFragmentLifecycleCallbacks(object : FragmentManager.FragmentLifecycleCallbacks() {
             override fun onFragmentDestroyed(fm: FragmentManager, f: androidx.fragment.app.Fragment) {

@@ -11,13 +11,16 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
 import androidx.annotation.VisibleForTesting
+import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
+import org.kde.kdeconnect.plugins.PluginInfo
+import org.kde.kdeconnect.plugins.battery.BatteryPlugin.Companion.PACKET_TYPE_BATTERY
 import org.kde.kdeconnect_tp.R
 
-@LoadablePlugin
-class BatteryPlugin : Plugin() {
+class BatteryPlugin(context: Context, device: Device) : Plugin(context, device) {
+    override val pluginInfo: PluginInfo = BatteryPluginInfo
+
     private val batteryInfo = NetworkPacket(PACKET_TYPE_BATTERY)
 
     /**
@@ -32,12 +35,6 @@ class BatteryPlugin : Plugin() {
      */
     var remoteBatteryInfo: DeviceBatteryInfo? = null
         private set
-
-    override val displayName: String
-        get() = context.resources.getString(R.string.pref_plugin_battery)
-
-    override val description: String
-        get() = context.resources.getString(R.string.pref_plugin_battery_desc)
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     internal val receiver: BroadcastReceiver = object : BroadcastReceiver() {
@@ -109,10 +106,6 @@ class BatteryPlugin : Plugin() {
         return true
     }
 
-    override val supportedPacketTypes: Array<String> = arrayOf(PACKET_TYPE_BATTERY)
-
-    override val outgoingPacketTypes: Array<String> = arrayOf(PACKET_TYPE_BATTERY)
-
     companion object {
         const val PACKET_TYPE_BATTERY = "kdeconnect.battery"
 
@@ -125,3 +118,11 @@ class BatteryPlugin : Plugin() {
         }
     }
 }
+
+object BatteryPluginInfo : PluginInfo(
+    displayNameRes = R.string.pref_plugin_battery,
+    descriptionRes = R.string.pref_plugin_battery_desc,
+    supportedPacketTypes = arrayOf(PACKET_TYPE_BATTERY),
+    outgoingPacketTypes = arrayOf(PACKET_TYPE_BATTERY),
+    instantiableClass = BatteryPlugin::class.java
+)

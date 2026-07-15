@@ -6,23 +6,19 @@
 package org.kde.kdeconnect.plugins.connectivityreport
 
 import android.Manifest
+import android.content.Context
 import org.json.JSONException
 import org.json.JSONObject
+import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityListener.Companion.getInstance
 import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityListener.SubscriptionState
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
+import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect_tp.R
 
-@LoadablePlugin
-class ConnectivityReportPlugin : Plugin() {
-
-    override val displayName: String
-        get() = context.resources.getString(R.string.pref_plugin_connectivity_report)
-
-    override val description: String
-        get() = context.resources.getString(R.string.pref_plugin_connectivity_report_desc)
+class ConnectivityReportPlugin(context: Context, device: Device) : Plugin(context, device) {
+    override val pluginInfo: PluginInfo = ConnectivityReportPluginInfo
 
     /**
      * Packet used to report the current connectivity state
@@ -81,13 +77,16 @@ class ConnectivityReportPlugin : Plugin() {
         return false
     }
 
-    override val supportedPacketTypes: Array<String> = emptyArray()
-
-    override val outgoingPacketTypes: Array<String> = arrayOf(PACKET_TYPE_CONNECTIVITY_REPORT)
-
-    override val requiredPermissions: Array<String> = arrayOf(Manifest.permission.READ_PHONE_STATE)
-
     companion object {
         private const val PACKET_TYPE_CONNECTIVITY_REPORT = "kdeconnect.connectivity_report"
     }
 }
+
+object ConnectivityReportPluginInfo : PluginInfo(
+    instantiableClass = ConnectivityReportPlugin::class.java,
+    displayNameRes = R.string.pref_plugin_connectivity_report,
+    descriptionRes = R.string.pref_plugin_connectivity_report_desc,
+    supportedPacketTypes = emptyArray(),
+    outgoingPacketTypes = arrayOf("kdeconnect.connectivity_report"),
+    requiredPermissions = arrayOf(Manifest.permission.READ_PHONE_STATE)
+)

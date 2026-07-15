@@ -20,9 +20,6 @@ open class PluginSettingsFragment : PreferenceFragmentCompat() {
     private lateinit var pluginKey: String
     private lateinit var layouts: IntArray
 
-    @JvmField
-    protected var plugin: Plugin? = null
-
     protected fun setArguments(pluginKey: String, vararg settingsLayouts: Int): Bundle {
         val args = Bundle()
         args.putString(ARG_PLUGIN_KEY, pluginKey)
@@ -39,14 +36,6 @@ open class PluginSettingsFragment : PreferenceFragmentCompat() {
         val pluginKey = arguments.getString(ARG_PLUGIN_KEY)!!
         this.pluginKey = pluginKey
         this.layouts = arguments.getIntArray(ARG_LAYOUT)!!
-
-        val info = PluginFactory.getPluginInfo(pluginKey)
-        try {
-            this.plugin = info.instantiableClass.getDeclaredConstructor().newInstance()
-            this.plugin?.setContext(requireContext(), null)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
 
         super.onCreate(savedInstanceState)
     }
@@ -65,7 +54,7 @@ open class PluginSettingsFragment : PreferenceFragmentCompat() {
         super.onResume()
 
         val info = PluginFactory.getPluginInfo(pluginKey)
-        requireActivity().title = getString(R.string.plugin_settings_with_name, info.displayName)
+        requireActivity().title = getString(R.string.plugin_settings_with_name, info.getDisplayName(requireContext()))
     }
 
     companion object {

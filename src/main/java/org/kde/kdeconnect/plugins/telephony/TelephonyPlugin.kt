@@ -16,18 +16,21 @@ import android.telephony.PhoneNumberUtils
 import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.core.content.ContextCompat
+import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.helpers.ContactsHelper
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
 import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
+import org.kde.kdeconnect.plugins.PluginInfo
+import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin.Companion.PACKET_TYPE_TELEPHONY
+import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin.Companion.PACKET_TYPE_TELEPHONY_REQUEST_MUTE
 import org.kde.kdeconnect_tp.R
 import org.koin.core.context.GlobalContext
 import java.util.Timer
 import java.util.TimerTask
 
-@LoadablePlugin
-class TelephonyPlugin : Plugin() {
+class TelephonyPlugin(context: Context, device: Device) : Plugin(context, device) {
+    override val pluginInfo: PluginInfo = TelephonyPluginInfo
     private var lastState = TelephonyManager.CALL_STATE_IDLE
     private var lastPacket: NetworkPacket? = null
     private var isMuted = false
@@ -54,12 +57,6 @@ class TelephonyPlugin : Plugin() {
             }
         }
     }
-
-    override val displayName: String
-        get() = context.resources.getString(R.string.pref_plugin_telephony)
-
-    override val description: String
-        get() = context.resources.getString(R.string.pref_plugin_telephony_desc)
 
     private fun callBroadcastReceived(state: Int, phoneNumber: String?) {
         if (isNumberBlocked(phoneNumber)) return
@@ -157,10 +154,6 @@ class TelephonyPlugin : Plugin() {
         }
     }
 
-    override val permissionExplanation: Int = R.string.telephony_permission_explanation
-
-    override val optionalPermissionExplanation: Int = R.string.telephony_optional_permission_explanation
-
     override fun onCreate(): Boolean {
         val filter = IntentFilter(TelephonyManager.ACTION_PHONE_STATE_CHANGED)
         filter.priority = 500
@@ -186,14 +179,6 @@ class TelephonyPlugin : Plugin() {
         return blockedNumbers.any { s -> PhoneNumberUtils.compare(number, s) }
     }
 
-    override val supportedPacketTypes: Array<String> = arrayOf(PACKET_TYPE_TELEPHONY_REQUEST_MUTE)
-
-    override val outgoingPacketTypes: Array<String> = arrayOf(PACKET_TYPE_TELEPHONY)
-
-    override val requiredPermissions: Array<String> = arrayOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG)
-
-    override val optionalPermissions: Array<String> = arrayOf(Manifest.permission.READ_CONTACTS)
-
     companion object {
         /**
          * Packet used for simple call events
@@ -214,6 +199,20 @@ class TelephonyPlugin : Plugin() {
          *
          * The body should be empty
          */
-        private const val PACKET_TYPE_TELEPHONY_REQUEST_MUTE = "kdeconnect.telephony.request_mute"
+        const val PACKET_TYPE_TELEPHONY_REQUEST_MUTE = "kdeconnect.telephony.request_mute"
     }
+}
+
+object TelephonyPluginInfo : PluginInfo(
+    instantiableClass = TelephonyPlugin::class.java,
+    displayNameRes = R.string.pref_plugin_telephony,
+    descriptionRes = R.string.pref_plugin_telephony_desc,
+    requiredPermissions = arrayOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG),
+    optionalPermissions = arrayOf(Manifest.permission.READ_CONTACTS),
+    supportedPacketTypes = arrayOf(PACKET_TYPE_TELEPHONY_REQUEST_MUTE),
+    outgoingPacketTypes = arrayOf(PACKET_TYPE_TELEPHONY),
+) {
+    override val permissionExplanation: Int = R.string.telephony_permission_explanation
+
+    override val optionalPermissionExplanation: Int = R.string.telephony_optional_permission_explanation
 }

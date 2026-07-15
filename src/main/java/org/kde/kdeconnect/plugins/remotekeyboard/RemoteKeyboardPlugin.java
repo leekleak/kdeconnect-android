@@ -10,7 +10,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
-import android.provider.Settings;
 import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.KeyEvent;
@@ -18,26 +17,25 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
-import android.view.inputmethod.InputMethodInfo;
-import android.view.inputmethod.InputMethodManager;
 
 import androidx.annotation.NonNull;
 import androidx.core.util.Pair;
-import androidx.fragment.app.DialogFragment;
 
+import org.kde.kdeconnect.Device;
 import org.kde.kdeconnect.NetworkPacket;
 import org.kde.kdeconnect.plugins.Plugin;
-import org.kde.kdeconnect.plugins.PluginFactory;
-import org.kde.kdeconnect.ui.MainActivity;
-import org.kde.kdeconnect.ui.StartActivityAlertDialogFragment;
+import org.kde.kdeconnect.plugins.PluginInfo;
 import org.kde.kdeconnect_tp.R;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.locks.ReentrantLock;
 
-@PluginFactory.LoadablePlugin
 public class RemoteKeyboardPlugin extends Plugin implements SharedPreferences.OnSharedPreferenceChangeListener {
+
+    public RemoteKeyboardPlugin(Context context, Device device) {
+        super(context, device);
+    }
 
     private final static String PACKET_TYPE_MOUSEPAD_REQUEST = "kdeconnect.mousepad.request";
     private final static String PACKET_TYPE_MOUSEPAD_ECHO = "kdeconnect.mousepad.echo";
@@ -105,9 +103,15 @@ public class RemoteKeyboardPlugin extends Plugin implements SharedPreferences.On
         specialKeyMap.put(++i, KeyEvent.KEYCODE_F12);          // 21
     }
 
+    @NonNull
+    @Override
+    public PluginInfo getPluginInfo() {
+        return RemoteKeyboardPluginInfo.INSTANCE;
+    }
+
     @Override
     public boolean onCreate() {
-        Log.d("RemoteKeyboardPlugin", "Creating for device " + getDevice().getName());
+        Log.d("RemoteKeyboardPlugin", "Creating for device " + device.getName());
         acquireInstances();
         try {
             instances.add(this);
@@ -139,27 +143,7 @@ public class RemoteKeyboardPlugin extends Plugin implements SharedPreferences.On
             releaseInstances();
         }
 
-        Log.d("RemoteKeyboardPlugin", "Destroying for device " + getDevice().getName());
-    }
-
-    @Override
-    public @NonNull String getDisplayName() {
-        return context.getString(R.string.pref_plugin_remotekeyboard);
-    }
-
-    @Override
-    public @NonNull String getDescription() {
-        return context.getString(R.string.pref_plugin_remotekeyboard_desc);
-    }
-
-    @Override
-    public @NonNull String[] getSupportedPacketTypes() {
-        return new String[]{PACKET_TYPE_MOUSEPAD_REQUEST};
-    }
-
-    @Override
-    public @NonNull String[] getOutgoingPacketTypes() {
-        return new String[]{PACKET_TYPE_MOUSEPAD_ECHO, PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE};
+        Log.d("RemoteKeyboardPlugin", "Destroying for device " + device.getName());
     }
 
     private boolean isValidSpecialKey(int key) {
@@ -380,7 +364,7 @@ public class RemoteKeyboardPlugin extends Plugin implements SharedPreferences.On
             if (np.has("alt"))
                 reply.set("alt", np.getBoolean("alt"));
             reply.set("isAck", true);
-            getDevice().sendPacket(reply);
+            device.sendPacket(reply);
         }
 
         return true;
@@ -390,32 +374,7 @@ public class RemoteKeyboardPlugin extends Plugin implements SharedPreferences.On
         Log.d("RemoteKeyboardPlugin", "Keyboardstate changed to " + state);
         NetworkPacket np = new NetworkPacket(PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE);
         np.set("state", state);
-        getDevice().sendPacket(np);
-    }
-
-    String getDeviceId() {
-        return getDevice().getDeviceId();
-    }
-
-    @Override
-    public boolean checkRequiredPermissions() {
-        InputMethodManager inputMethodManager = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-        List<InputMethodInfo> inputMethodList = inputMethodManager.getEnabledInputMethodList();
-        return inputMethodList.stream().anyMatch(
-                info -> context.getPackageName().equals(info.getPackageName()));
-    }
-
-    @Override
-    public @NonNull DialogFragment getPermissionExplanationDialog() {
-        return new StartActivityAlertDialogFragment.Builder()
-                .setTitle(R.string.pref_plugin_remotekeyboard)
-                .setMessage(R.string.no_permissions_remotekeyboard)
-                .setPositiveButton(R.string.open_settings)
-                .setNegativeButton(R.string.cancel)
-                .setIntentAction(Settings.ACTION_INPUT_METHOD_SETTINGS)
-                .setStartForResult(true)
-                .setRequestCode(MainActivity.RESULT_NEEDS_RELOAD)
-                .create();
+        device.sendPacket(np);
     }
 
     @Override

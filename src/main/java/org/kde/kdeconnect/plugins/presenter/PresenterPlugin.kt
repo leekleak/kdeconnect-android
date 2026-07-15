@@ -5,29 +5,34 @@
 */
 package org.kde.kdeconnect.plugins.presenter
 
+import android.content.Context
 import android.view.KeyEvent
+import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
+import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.mousepad.MOUSE_PAD_SPECIAL_KEYS
+import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_REQUEST
+import org.kde.kdeconnect.plugins.presenter.PresenterPlugin.Companion.PACKET_TYPE_PRESENTER
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.PresenterKey
 import org.kde.kdeconnect_tp.R
 import org.koin.java.KoinJavaComponent.inject
 
+object PresenterPluginInfo : PluginInfo(
+    instantiableClass = PresenterPlugin::class.java,
+    displayNameRes = R.string.pref_plugin_presenter,
+    descriptionRes = R.string.pref_plugin_presenter_desc,
+    supportedPacketTypes = emptyArray(),
+    outgoingPacketTypes = arrayOf(PACKET_TYPE_MOUSEPAD_REQUEST, PACKET_TYPE_PRESENTER),
+)
 
-@LoadablePlugin
-class PresenterPlugin : Plugin() {
+class PresenterPlugin(context: Context, device: Device) : Plugin(context, device) {
 
-    override val displayName: String
-        get() = context.getString(R.string.pref_plugin_presenter)
-
+    override val pluginInfo: PluginInfo = PresenterPluginInfo
     override val isCompatible: Boolean
         get() = device.deviceType != DeviceType.PHONE && super.isCompatible
-
-    override val description: String
-        get() = context.getString(R.string.pref_plugin_presenter_desc)
 
     override fun getUiButtons(): List<PluginUiButton> = listOf(
         PluginUiButton(
@@ -37,10 +42,6 @@ class PresenterPlugin : Plugin() {
             val navigator: Navigator by inject(Navigator::class.java)
             navigator.goTo(PresenterKey(device.deviceId))
         })
-
-    override val supportedPacketTypes: Array<String> = emptyArray()
-
-    override val outgoingPacketTypes: Array<String> = arrayOf(PACKET_TYPE_MOUSEPAD_REQUEST, PACKET_TYPE_PRESENTER)
 
     fun sendNext() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
@@ -80,7 +81,7 @@ class PresenterPlugin : Plugin() {
     }
 
     companion object {
-        private const val PACKET_TYPE_PRESENTER = "kdeconnect.presenter"
-        private const val PACKET_TYPE_MOUSEPAD_REQUEST = "kdeconnect.mousepad.request"
+        const val PACKET_TYPE_PRESENTER = "kdeconnect.presenter"
+        const val PACKET_TYPE_MOUSEPAD_REQUEST = "kdeconnect.mousepad.request"
     }
 }

@@ -9,65 +9,28 @@
 package org.kde.kdeconnect.plugins.contacts
 
 import android.Manifest
+import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
 import androidx.core.content.edit
 import androidx.fragment.app.DialogFragment
+import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.helpers.ContactsHelper
 import org.kde.kdeconnect.helpers.ContactsHelper.ContactNotFoundException
 import org.kde.kdeconnect.helpers.ContactsHelper.VCardBuilder
 import org.kde.kdeconnect.helpers.ContactsHelper.uID
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
+import org.kde.kdeconnect.plugins.PluginInfo
+import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_REQUEST_ALL_UIDS_TIMESTAMPS
+import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_REQUEST_VCARDS_BY_UIDS
+import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_RESPONSE_UIDS_TIMESTAMPS
+import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_RESPONSE_VCARDS
 import org.kde.kdeconnect.ui.AlertDialogFragment
 import org.kde.kdeconnect_tp.R
 
-@LoadablePlugin
-class ContactsPlugin : Plugin() {
-    override val displayName: String
-        get() = context.resources.getString(R.string.pref_plugin_contacts)
-
-    override val description: String
-        get() = context.resources.getString(R.string.pref_plugin_contacts_desc)
-
-    override val isEnabledByDefault: Boolean = false
-    override val supportedPacketTypes: Array<String> = arrayOf(PACKET_TYPE_CONTACTS_REQUEST_ALL_UIDS_TIMESTAMPS, PACKET_TYPE_CONTACTS_REQUEST_VCARDS_BY_UIDS)
-
-    override val outgoingPacketTypes: Array<String> = arrayOf(PACKET_TYPE_CONTACTS_RESPONSE_UIDS_TIMESTAMPS, PACKET_TYPE_CONTACTS_RESPONSE_VCARDS)
-
-    override val permissionExplanation: Int = R.string.contacts_permission_explanation
-
-    // One day maybe we will also support WRITE_CONTACTS, but not yet
-    override val requiredPermissions: Array<String> = arrayOf(Manifest.permission.READ_CONTACTS)
-
-    override fun checkRequiredPermissions(): Boolean {
-        if (!arePermissionsGranted(requiredPermissions)) {
-            return false
-        }
-        return preferences!!.getBoolean("acceptedToTransferContacts", false)
-    }
-
-    override val permissionExplanationDialog: DialogFragment
-        get() {
-            if (!arePermissionsGranted(requiredPermissions)) {
-                return super.permissionExplanationDialog
-            }
-            return AlertDialogFragment.Builder()
-                .setTitle(displayName)
-                .setMessage(R.string.contacts_per_device_confirmation)
-                .setPositiveButton(R.string.ok)
-                .setNegativeButton(R.string.cancel)
-                .create()
-                .apply {
-                    setCallback(object : AlertDialogFragment.Callback() {
-                        override fun onPositiveButtonClicked(): Boolean {
-                            preferences!!.edit { putBoolean("acceptedToTransferContacts", true) }
-                            device.launchBackgroundReloadPluginsFromSettings()
-                            return true
-                        }
-                    })
-                }
-        }
+class ContactsPlugin(context: Context, device: Device) : Plugin(context, device) {
+    override val pluginInfo = ContactsPluginInfo
 
     /**
      * Add custom fields to the vcard to keep track of KDE Connect-specific fields
@@ -171,7 +134,7 @@ class ContactsPlugin : Plugin() {
         /**
          * Used to request the device send the unique ID of every contact
          */
-        private const val PACKET_TYPE_CONTACTS_REQUEST_ALL_UIDS_TIMESTAMPS: String = "kdeconnect.contacts.request_all_uids_timestamps"
+        const val PACKET_TYPE_CONTACTS_REQUEST_ALL_UIDS_TIMESTAMPS: String = "kdeconnect.contacts.request_all_uids_timestamps"
 
         /**
          * Used to request the names for the contacts corresponding to a list of UIDs
@@ -179,7 +142,7 @@ class ContactsPlugin : Plugin() {
          *
          * It shall contain the key "uids", which will have a list of uIDs (long int, as string)
          */
-        private const val PACKET_TYPE_CONTACTS_REQUEST_VCARDS_BY_UIDS: String = "kdeconnect.contacts.request_vcards_by_uid"
+        const val PACKET_TYPE_CONTACTS_REQUEST_VCARDS_BY_UIDS: String = "kdeconnect.contacts.request_vcards_by_uid"
 
         /**
          * Response indicating the packet contains a list of contact uIDs
@@ -188,7 +151,7 @@ class ContactsPlugin : Plugin() {
          * It shall contain the key "uids", which will mark a list of uIDs (long int, as string)
          * The returned IDs can be used in future requests for more information about the contact
          */
-        private const val PACKET_TYPE_CONTACTS_RESPONSE_UIDS_TIMESTAMPS: String = "kdeconnect.contacts.response_uids_timestamps"
+        const val PACKET_TYPE_CONTACTS_RESPONSE_UIDS_TIMESTAMPS: String = "kdeconnect.contacts.response_uids_timestamps"
 
         /**
          * Response indicating the packet contains a list of contact names
@@ -205,6 +168,47 @@ class ContactsPlugin : Plugin() {
          * '15' : 'Mom'
          * }
          */
-        private const val PACKET_TYPE_CONTACTS_RESPONSE_VCARDS: String = "kdeconnect.contacts.response_vcards"
+        const val PACKET_TYPE_CONTACTS_RESPONSE_VCARDS: String = "kdeconnect.contacts.response_vcards"
+    }
+}
+
+object ContactsPluginInfo: PluginInfo(
+    instantiableClass = ContactsPlugin::class.java,
+    displayNameRes = R.string.pref_plugin_contacts,
+    descriptionRes = R.string.pref_plugin_contacts_desc,
+    isEnabledByDefault = false,
+    supportedPacketTypes = arrayOf(PACKET_TYPE_CONTACTS_REQUEST_ALL_UIDS_TIMESTAMPS, PACKET_TYPE_CONTACTS_REQUEST_VCARDS_BY_UIDS),
+    outgoingPacketTypes = arrayOf(PACKET_TYPE_CONTACTS_RESPONSE_UIDS_TIMESTAMPS, PACKET_TYPE_CONTACTS_RESPONSE_VCARDS),
+    requiredPermissions = arrayOf(Manifest.permission.READ_CONTACTS) // One day maybe we will also support WRITE_CONTACTS, but not yet
+) {
+
+    override val permissionExplanation: Int = R.string.contacts_permission_explanation
+
+    override fun checkRequiredPermissions(preferences: SharedPreferences, context: Context): Boolean {
+        if (!arePermissionsGranted(context, requiredPermissions)) {
+            return false
+        }
+        return preferences.getBoolean("acceptedToTransferContacts", false)
+    }
+
+    override fun getPermissionExplanationDialog(preferences: SharedPreferences, context: Context, device: Device): DialogFragment {
+        if (!arePermissionsGranted(context, requiredPermissions)) {
+            return super.getPermissionExplanationDialog(context)
+        }
+        return AlertDialogFragment.Builder()
+            .setTitle(getDisplayName(context))
+            .setMessage(R.string.contacts_per_device_confirmation)
+            .setPositiveButton(R.string.ok)
+            .setNegativeButton(R.string.cancel)
+            .create()
+            .apply {
+                callback = object : AlertDialogFragment.Callback() {
+                    override fun onPositiveButtonClicked(): Boolean {
+                        preferences.edit { putBoolean("acceptedToTransferContacts", true) }
+                        device.launchBackgroundReloadPluginsFromSettings()
+                        return true
+                    }
+                }
+            }
     }
 }

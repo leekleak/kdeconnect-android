@@ -27,6 +27,7 @@ import com.klinker.android.send_message.Transaction
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.helpers.ContactsHelper
 import org.kde.kdeconnect.helpers.SMSHelper
 import org.kde.kdeconnect.helpers.SMSHelper.MessageLooper.Companion.getLooper
@@ -40,20 +41,27 @@ import org.kde.kdeconnect.helpers.SMSHelper.jsonArrayToAttachmentsList
 import org.kde.kdeconnect.helpers.ThreadHelper.execute
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginFactory.LoadablePlugin
 import org.kde.kdeconnect.plugins.sms.SmsMmsUtils.partIdToMessageAttachmentPacket
 import org.kde.kdeconnect.plugins.sms.SmsMmsUtils.sendMessage
 import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin
 import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
+import org.kde.kdeconnect.plugins.PluginInfo
+import org.kde.kdeconnect.plugins.sms.SMSPlugin.Companion.PACKET_TYPE_SMS_ATTACHMENT_FILE
+import org.kde.kdeconnect.plugins.sms.SMSPlugin.Companion.PACKET_TYPE_SMS_MESSAGE
+import org.kde.kdeconnect.plugins.sms.SMSPlugin.Companion.PACKET_TYPE_SMS_REQUEST
+import org.kde.kdeconnect.plugins.sms.SMSPlugin.Companion.PACKET_TYPE_SMS_REQUEST_ATTACHMENT
+import org.kde.kdeconnect.plugins.sms.SMSPlugin.Companion.PACKET_TYPE_SMS_REQUEST_CONVERSATION
+import org.kde.kdeconnect.plugins.sms.SMSPlugin.Companion.PACKET_TYPE_SMS_REQUEST_CONVERSATIONS
 import org.kde.kdeconnect_tp.BuildConfig
 import org.kde.kdeconnect_tp.R
 import org.koin.core.context.GlobalContext
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
-@LoadablePlugin
 @SuppressLint("InlinedApi")
-class SMSPlugin : Plugin() {
+class SMSPlugin(context: Context, device: Device) : Plugin(context, device) {
+    override val pluginInfo: PluginInfo = SMSPluginInfo
+
     private val receiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val action: String? = intent.action
@@ -219,8 +227,6 @@ class SMSPlugin : Plugin() {
         device.sendPacket(np)
     }
 
-    override val permissionExplanation: Int = R.string.telepathy_permission_explanation
-
     override fun onCreate(): Boolean {
         initialize()
         return true
@@ -266,19 +272,13 @@ class SMSPlugin : Plugin() {
         initialized = false
     }
 
-    override val displayName: String
-        get() = context.resources.getString(R.string.pref_plugin_telepathy)
-
-    override val description: String
-        get() = context.resources.getString(R.string.pref_plugin_telepathy_desc)
-
     override fun onPacketReceived(np: NetworkPacket): Boolean {
         val list = listOf(PACKET_TYPE_SMS_REQUEST_CONVERSATIONS, PACKET_TYPE_SMS_REQUEST_CONVERSATION,
             PACKET_TYPE_SMS_REQUEST, PACKET_TYPE_SMS_REQUEST_ATTACHMENT)
         if (!list.contains(np.type)) return false
-        showPermissionExplanation(device.deviceId) //Todo: Figure out a way to reemit all queries before permission had been granted.
+        pluginInfo.showPermissionExplanation(context, device.deviceId) //Todo: Figure out a way to reemit all queries before permission had been granted.
         if (!initialized) initialize()
-        if (!checkRequiredPermissions()) return false
+        if (!pluginInfo.checkRequiredPermissions(context)) return false
         return when (np.type) {
             PACKET_TYPE_SMS_REQUEST_CONVERSATIONS -> {
                 execute {
@@ -377,22 +377,6 @@ class SMSPlugin : Plugin() {
         return blockedNumbers.any { s -> PhoneNumberUtils.compare(number, s) }
     }
 
-    override val supportedPacketTypes: Array<String> = arrayOf(
-            PACKET_TYPE_SMS_REQUEST,
-            PACKET_TYPE_SMS_REQUEST_CONVERSATIONS,
-            PACKET_TYPE_SMS_REQUEST_CONVERSATION,
-            PACKET_TYPE_SMS_REQUEST_ATTACHMENT
-        )
-
-    override val outgoingPacketTypes: Array<String> = arrayOf(PACKET_TYPE_SMS_MESSAGE, PACKET_TYPE_SMS_ATTACHMENT_FILE)
-
-    override val requiredPermissions: Array<String> = arrayOf(
-            Manifest.permission.SEND_SMS,
-            Manifest.permission.READ_SMS,  // READ_PHONE_STATE should be optional, since we can just query the user, but that
-            // requires a GUI implementation for querying the user!
-            Manifest.permission.READ_PHONE_STATE,
-        )
-
     companion object {
         /**
          * Packet used to indicate a batch of messages has been pushed from the remote device
@@ -450,8 +434,8 @@ class SMSPlugin : Plugin() {
          *     "address": <String> // Address (phone number, email address, etc.) of this object
          * }
          */
-        private const val PACKET_TYPE_SMS_MESSAGE: String = "kdeconnect.sms.messages"
-        private const val SMS_MESSAGE_PACKET_VERSION: Int = 2 // We *send* packets of this version
+        internal const val PACKET_TYPE_SMS_MESSAGE: String = "kdeconnect.sms.messages"
+        internal const val SMS_MESSAGE_PACKET_VERSION: Int = 2 // We *send* packets of this version
 
         /**
          * Packet sent to request a message be sent
@@ -474,14 +458,14 @@ class SMSPlugin : Plugin() {
          *     "mimeType": <String>             // File type (eg: image/jpg, video/mp4 etc.)
          * }
          */
-        private const val PACKET_TYPE_SMS_REQUEST: String = "kdeconnect.sms.request"
+        internal const val PACKET_TYPE_SMS_REQUEST: String = "kdeconnect.sms.request"
 
         /**
          * Packet sent to request the most-recent message in each conversations on the device
          *
          * The request packet shall contain no body
          */
-        private const val PACKET_TYPE_SMS_REQUEST_CONVERSATIONS: String = "kdeconnect.sms.request_conversations"
+        internal const val PACKET_TYPE_SMS_REQUEST_CONVERSATIONS: String = "kdeconnect.sms.request_conversations"
 
         /**
          * Packet sent to request all the messages in a particular conversation
@@ -493,7 +477,7 @@ class SMSPlugin : Plugin() {
          *                               // May return fewer than expected if there are not enough or more than expected if many
          *                               // messages have the same timestamp.
          */
-        private const val PACKET_TYPE_SMS_REQUEST_CONVERSATION: String = "kdeconnect.sms.request_conversation"
+        internal const val PACKET_TYPE_SMS_REQUEST_CONVERSATION: String = "kdeconnect.sms.request_conversation"
 
         /**
          * Packet sent to request an attachment file in a particular message of a conversation
@@ -503,7 +487,7 @@ class SMSPlugin : Plugin() {
          * "part_id": <long>                // Part id of the attachment
          * "unique_identifier": <String>    // This unique_identifier should come from a previous message packet's attachment field
          */
-        private const val PACKET_TYPE_SMS_REQUEST_ATTACHMENT: String = "kdeconnect.sms.request_attachment"
+        internal const val PACKET_TYPE_SMS_REQUEST_ATTACHMENT: String = "kdeconnect.sms.request_attachment"
 
         /**
          * Packet used to send original attachment file from mms database to desktop
@@ -513,7 +497,7 @@ class SMSPlugin : Plugin() {
          * "filename": <String>     // Name of the attachment file in the database
          * "payload":               // Actual attachment file to be transferred
          */
-        private const val PACKET_TYPE_SMS_ATTACHMENT_FILE: String = "kdeconnect.sms.attachment_file"
+        internal const val PACKET_TYPE_SMS_ATTACHMENT_FILE: String = "kdeconnect.sms.attachment_file"
 
         /**
          * Construct a proper packet of [PACKET_TYPE_SMS_MESSAGE] from the passed messages
@@ -542,4 +526,20 @@ class SMSPlugin : Plugin() {
             return reply
         }
     }
+}
+
+object SMSPluginInfo : PluginInfo(
+    instantiableClass = SMSPlugin::class.java,
+    displayNameRes = R.string.pref_plugin_telepathy,
+    descriptionRes = R.string.pref_plugin_telepathy_desc,
+    requiredPermissions = arrayOf(
+        Manifest.permission.SEND_SMS,
+        Manifest.permission.READ_SMS,  // READ_PHONE_STATE should be optional, since we can just query the user, but that
+        // requires a GUI implementation for querying the user!
+        Manifest.permission.READ_PHONE_STATE,
+    ),
+    supportedPacketTypes = arrayOf(PACKET_TYPE_SMS_REQUEST, PACKET_TYPE_SMS_REQUEST_CONVERSATIONS, PACKET_TYPE_SMS_REQUEST_CONVERSATION, PACKET_TYPE_SMS_REQUEST_ATTACHMENT),
+    outgoingPacketTypes = arrayOf(PACKET_TYPE_SMS_MESSAGE, PACKET_TYPE_SMS_ATTACHMENT_FILE),
+) {
+    override val permissionExplanation: Int = R.string.telepathy_permission_explanation
 }

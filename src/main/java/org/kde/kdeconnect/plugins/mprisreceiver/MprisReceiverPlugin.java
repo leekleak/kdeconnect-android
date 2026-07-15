@@ -7,27 +7,25 @@
 package org.kde.kdeconnect.plugins.mprisreceiver;
 
 import android.content.ComponentName;
+import android.content.Context;
 import android.media.session.MediaController;
 import android.media.session.MediaSessionManager;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.Settings;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.DialogFragment;
 
 import org.apache.commons.lang3.StringUtils;
+import org.kde.kdeconnect.Device;
+import org.kde.kdeconnect.NetworkPacket;
 import org.kde.kdeconnect.helpers.AppsHelper;
 import org.kde.kdeconnect.helpers.ThreadHelper;
-import org.kde.kdeconnect.NetworkPacket;
-import org.kde.kdeconnect.plugins.notifications.NotificationReceiver;
 import org.kde.kdeconnect.plugins.Plugin;
-import org.kde.kdeconnect.plugins.PluginFactory;
-import org.kde.kdeconnect.ui.MainActivity;
-import org.kde.kdeconnect.ui.StartActivityAlertDialogFragment;
+import org.kde.kdeconnect.plugins.PluginInfo;
+import org.kde.kdeconnect.plugins.notifications.NotificationReceiver;
 import org.kde.kdeconnect_tp.R;
 
 import java.util.ArrayList;
@@ -37,8 +35,12 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@PluginFactory.LoadablePlugin
 public class MprisReceiverPlugin extends Plugin {
+
+    public MprisReceiverPlugin(Context context, Device device) {
+        super(context, device);
+    }
+
     private final static String PACKET_TYPE_MPRIS = "kdeconnect.mpris";
     private final static String PACKET_TYPE_MPRIS_REQUEST = "kdeconnect.mpris.request";
 
@@ -50,8 +52,10 @@ public class MprisReceiverPlugin extends Plugin {
 
     private MediaSessionChangeListener mediaSessionChangeListener;
 
-    public @NonNull String getDeviceId() {
-        return device.getDeviceId();
+    @NonNull
+    @Override
+    public PluginInfo getPluginInfo() {
+        return MprisReceiverPluginInfo.INSTANCE;
     }
 
     @Override
@@ -93,21 +97,6 @@ public class MprisReceiverPlugin extends Plugin {
         for (MediaController controller : sessions) {
             createPlayer(controller);
         }
-    }
-
-    @Override
-    public @NonNull String getDisplayName() {
-        return context.getResources().getString(R.string.pref_plugin_mprisreceiver);
-    }
-
-    @Override
-    public @NonNull String getDescription() {
-        return context.getResources().getString(R.string.pref_plugin_mprisreceiver_desc);
-    }
-
-    @Override
-    public boolean isEnabledByDefault() {
-        return false;
     }
 
     @Override
@@ -183,16 +172,6 @@ public class MprisReceiverPlugin extends Plugin {
         return true;
     }
 
-    @Override
-    public @NonNull String[] getSupportedPacketTypes() {
-        return new String[]{PACKET_TYPE_MPRIS_REQUEST};
-    }
-
-    @Override
-    public @NonNull String[] getOutgoingPacketTypes() {
-        return new String[]{PACKET_TYPE_MPRIS};
-    }
-
     private final class MediaSessionChangeListener implements MediaSessionManager.OnActiveSessionsChangedListener {
         @Override
         public void onActiveSessionsChanged(@Nullable List<MediaController> controllers) {
@@ -230,7 +209,7 @@ public class MprisReceiverPlugin extends Plugin {
         NetworkPacket np = new NetworkPacket(PACKET_TYPE_MPRIS);
         np.set("playerList", players.keySet());
         np.set("supportAlbumArtPayload", true);
-        getDevice().sendPacket(np);
+        device.sendPacket(np);
     }
 
     void sendAlbumArt(String playerName, @NonNull MprisReceiverCallback cb, @Nullable String requestedUrl) {
@@ -261,7 +240,7 @@ public class MprisReceiverPlugin extends Plugin {
         np.set("player", playerName);
         np.set("transferringAlbumArt", true);
         np.set("albumArtUrl", artUrl);
-        getDevice().sendPacket(np);
+        device.sendPacket(np);
     }
 
     void sendMetadata(MprisReceiverPlayer player) {
@@ -291,24 +270,6 @@ public class MprisReceiverPlugin extends Plugin {
             }
         }
         np.set("albumArtUrl", artUrl);
-        getDevice().sendPacket(np);
-    }
-
-    @Override
-    public boolean checkRequiredPermissions() {
-        return NotificationReceiver.hasReadNotificationsPermission(context);
-    }
-
-    @Override
-    public @NonNull DialogFragment getPermissionExplanationDialog() {
-        return new StartActivityAlertDialogFragment.Builder()
-                .setTitle(R.string.pref_plugin_mpris)
-                .setMessage(R.string.no_permission_mprisreceiver)
-                .setPositiveButton(R.string.open_settings)
-                .setNegativeButton(R.string.cancel)
-                .setIntentAction("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS")
-                .setStartForResult(true)
-                .setRequestCode(MainActivity.RESULT_NEEDS_RELOAD)
-                .create();
+        device.sendPacket(np);
     }
 }
