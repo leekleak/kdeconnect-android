@@ -9,7 +9,6 @@ import android.content.Context
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.fragment.app.DialogFragment
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
@@ -26,6 +25,7 @@ import kotlin.math.floor
 class MouseReceiverPlugin(context: Context, device: Device) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = MouseReceiverPluginInfo
 
+    var permissionDialogShown: Boolean = false
     override fun onPacketReceived(np: NetworkPacket): Boolean {
         if (np.type != PACKET_TYPE_MOUSEPAD_REQUEST) {
             Log.e("MouseReceiverPlugin", "Invalid packet type for MouseReceiverPlugin: ${np.type}")
@@ -34,6 +34,11 @@ class MouseReceiverPlugin(context: Context, device: Device) : Plugin(context, de
 
         if (RemoteKeyboardPlugin.getMousePadPacketType(np) != RemoteKeyboardPlugin.MousePadPacketType.Mouse) {
             return false // This packet will be handled by the remotekeyboard instead, silently ignore
+        }
+
+        if (!pluginInfo.checkRequiredPermissions(context) && !permissionDialogShown) {
+            pluginInfo.showPermissionExplanation(context, deviceId)
+            permissionDialogShown = true
         }
 
         val dx = np.getDouble("dx", 0.toDouble()).let { if (it < 0) floor(it) else ceil(it) }.toInt()
@@ -54,41 +59,42 @@ class MouseReceiverPlugin(context: Context, device: Device) : Plugin(context, de
 
         if (isSingleClick || isDoubleClick || isMiddleClick || isRightClick || isSingleHold || isSingleRelease || isScroll || isForwardClick || isBackClick) {
             // Perform click
-            when {
+            return when {
                 isSingleClick -> {
                     // Log.i("MouseReceiverPlugin", "singleClick")
-                    return MouseReceiverService.click()
+                    MouseReceiverService.click()
                 }
                 isDoubleClick -> { // left & right
                     // Log.i("MouseReceiverPlugin", "doubleClick")
-                    return MouseReceiverService.recentButton()
+                    MouseReceiverService.recentButton()
                 }
                 isMiddleClick -> {
                     // Log.i("MouseReceiverPlugin", "middleClick")
-                    return MouseReceiverService.homeButton()
+                    MouseReceiverService.homeButton()
                 }
                 isRightClick -> {
                     // TODO right-click menu emulation
-                    return MouseReceiverService.backButton()
+                    MouseReceiverService.backButton()
                 }
                 isForwardClick -> {
-                    return MouseReceiverService.recentButton()
+                    MouseReceiverService.recentButton()
                 }
                 isBackClick -> {
-                    return MouseReceiverService.backButton()
+                    MouseReceiverService.backButton()
                 }
                 isSingleHold -> {
                     // For drag'n drop
                     // Log.i("MouseReceiverPlugin", "singleHold")
-                    return MouseReceiverService.longClickSwipe()
+                    MouseReceiverService.longClickSwipe()
                 }
                 isSingleRelease -> {
-                    return MouseReceiverService.instance.stopSwipe()
+                    MouseReceiverService.instance?.stopSwipe() ?: false
                 }
                 isScroll -> {
                     // Log.i("MouseReceiverPlugin", "scroll dx: $dx dy: $dy")
-                    return MouseReceiverService.scroll(dx, dy) // dx is always 0
+                    MouseReceiverService.scroll(dy) // dx is always 0
                 }
+                else -> false
             }
         } else {
             // Mouse Move
@@ -99,7 +105,7 @@ class MouseReceiverPlugin(context: Context, device: Device) : Plugin(context, de
                 return MouseReceiverService.setPos(x, y)
             } else {
                 // To hide the cursor once it crosses the barrier.
-                MouseReceiverService.instance.hide(0)
+                MouseReceiverService.instance?.hide(0)
             }
         }
         return true
