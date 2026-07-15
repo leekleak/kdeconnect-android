@@ -126,7 +126,7 @@ class DeviceViewModel(
     }
 
     fun refreshDevicesAction() {
-        BackgroundService.ForceRefreshConnections(getApplication())
+        BackgroundService.forceRefreshConnections(getApplication())
         _uiState.update { it.copy(isRefreshing = true) }
         viewModelScope.launch {
             kotlinx.coroutines.delay(1500.milliseconds)

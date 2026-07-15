@@ -75,7 +75,7 @@ class PairingHandler(private val device: Device, private val callback: PairingCa
                             return
                         }
                         val currentTimestamp = System.currentTimeMillis() / 1000L
-                        if (abs(pairingTimestamp - currentTimestamp) > allowedTimestampDifferenceSeconds) {
+                        if (abs(pairingTimestamp - currentTimestamp) > ALLOWED_TIMESTAMP_DIFFERENCE_SECONDS) {
                             state = PairState.NotPaired
                             callback.pairingFailed(device.context.getString(R.string.error_clocks_not_match))
                             return
@@ -225,7 +225,7 @@ class PairingHandler(private val device: Device, private val callback: PairingCa
     }
 
     companion object {
-        private const val allowedTimestampDifferenceSeconds = 1_800 // 30 minutes
+        private const val ALLOWED_TIMESTAMP_DIFFERENCE_SECONDS = 1_800 // 30 minutes
 
         // Concatenate in a deterministic order so on both devices the result is the same
         private fun sortedConcat(a: ByteArray, b: ByteArray): ByteArray {

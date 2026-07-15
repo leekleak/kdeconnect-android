@@ -191,7 +191,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
 
     override fun onStart() {
         super.onStart()
-        BackgroundService.Start(applicationContext)
+        BackgroundService.start(applicationContext)
     }
 
     override fun onStop() {

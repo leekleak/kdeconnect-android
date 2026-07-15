@@ -190,7 +190,7 @@ class BluetoothLinkProvider(
                     val myDeviceInfo = deviceHelper.getDeviceInfo()
                     val np = myDeviceInfo.toIdentityPacket()
                     val myCertificate = Base64.encodeToString(SslHelper.certificate.encoded, 0)
-                    val pemEncodedCertificate = "-----BEGIN CERTIFICATE-----\n" + myCertificate + "\n-----END CERTIFICATE-----\n";
+                    val pemEncodedCertificate = "-----BEGIN CERTIFICATE-----\n$myCertificate\n-----END CERTIFICATE-----\n"
 
                     np["certificate"] = pemEncodedCertificate
 
@@ -205,7 +205,7 @@ class BluetoothLinkProvider(
                     var charsRead = 0
                     val buf = CharArray(512)
                     while (sb.lastIndexOf("\n") == -1 && reader.read(buf).also { charsRead = it } != -1) {
-                        sb.append(buf, 0, charsRead)
+                        sb.appendRange(buf, 0, charsRead)
                     }
                     val response = sb.toString()
                     val identityPacket = NetworkPacket.unserialize(response)
@@ -261,7 +261,7 @@ class BluetoothLinkProvider(
                     Log.i("ClientRunnable", "after connectToDevices")
                     try {
                         Thread.sleep(15000)
-                    } catch (ignored: InterruptedException) {
+                    } catch (_: InterruptedException) {
                     }
                 }
                 Log.i("ClientRunnable", "unregisteringReceiver")
@@ -412,7 +412,7 @@ class BluetoothLinkProvider(
                 val myDeviceInfo = deviceHelper.getDeviceInfo()
                 val np2 = myDeviceInfo.toIdentityPacket()
                 val myCertificate = Base64.encodeToString(SslHelper.certificate.encoded, 0)
-                val pemEncodedCertificate = "-----BEGIN CERTIFICATE-----\n" + myCertificate + "\n-----END CERTIFICATE-----\n";
+                val pemEncodedCertificate = "-----BEGIN CERTIFICATE-----\n$myCertificate\n-----END CERTIFICATE-----\n"
 
                 np2["certificate"] = pemEncodedCertificate
                 Log.i("BTLinkProvider/Client", "about to send packet np2")

@@ -15,7 +15,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -24,10 +23,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.bouncycastle.oer.its.EndEntityType.app
 import org.kde.kdeconnect.BackgroundService
-import org.kde.kdeconnect.BackgroundService.Companion.ForceRefreshConnections
-import org.kde.kdeconnect.BackgroundService.Companion.instance
+import org.kde.kdeconnect.BackgroundService.Companion.forceRefreshConnections
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper.Companion.isTrustedNetwork
@@ -103,7 +100,7 @@ class PairingViewModel(application: Application) : AndroidViewModel(application)
     fun onRefresh() {
         _pairingUiState.update { uiState -> uiState.copy(isRefreshing = true) }
 
-        ForceRefreshConnections(context = getApplication())
+        forceRefreshConnections(context = getApplication())
 
         viewModelScope.launch {
             delay(timeMillis = 1500)
@@ -119,7 +116,7 @@ class PairingViewModel(application: Application) : AndroidViewModel(application)
         KdeConnect.getInstance().addDeviceListChangedCallback("PairingViewModel") {
             updateDeviceList(context)
         }
-        ForceRefreshConnections(context)
+        forceRefreshConnections(context)
         updateDeviceList(context)
     }
 

@@ -50,7 +50,7 @@ class ShareActivity : AppCompatActivity() {
     private suspend fun refreshDevicesAction() {
         isRefreshing = true
 
-        BackgroundService.ForceRefreshConnections(context = this)
+        BackgroundService.forceRefreshConnections(context = this)
         delay(1500.milliseconds)
         isRefreshing = false
     }
@@ -179,7 +179,7 @@ class ShareActivity : AppCompatActivity() {
             KdeConnect.getInstance().addDeviceListChangedCallback(key = "ShareActivity") {
                 runOnUiThread { updateDeviceList() }
             }
-            BackgroundService.ForceRefreshConnections(context = this) // force a network re-discover
+            BackgroundService.forceRefreshConnections(context = this) // force a network re-discover
             updateDeviceList()
         }
     }

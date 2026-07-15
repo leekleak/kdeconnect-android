@@ -1,4 +1,4 @@
-package org.kde.kdeconnect.plugins.runcommand
+package org.kde.kdeconnect.plugins
 
 import android.app.Application
 import android.content.Context
@@ -17,6 +17,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.plugins.runcommand.RunCommandPlugin
 
 @RunWith(AndroidJUnit4::class)
 class RunCommandPluginTest {

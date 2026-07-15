@@ -1,4 +1,4 @@
-package org.kde.kdeconnect.plugins.connectivityreport
+package org.kde.kdeconnect.plugins
 
 import android.app.Application
 import android.content.Context
@@ -6,6 +6,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
 import io.mockk.slot
 import io.mockk.unmockkObject
 import io.mockk.verify
@@ -18,6 +19,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityListener
+import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityReportPlugin
 
 @RunWith(AndroidJUnit4::class)
 class ConnectivityReportPluginTest {
@@ -115,7 +118,7 @@ class ConnectivityReportPluginTest {
     fun testRegistersAndUnregistersStateListener() {
         val connectivityListener = mockk<ConnectivityListener>(relaxed = true)
 
-        io.mockk.mockkObject(ConnectivityListener.Companion)
+        mockkObject(ConnectivityListener.Companion)
         every { ConnectivityListener.getInstance(context) } returns connectivityListener
 
         plugin.onCreate()

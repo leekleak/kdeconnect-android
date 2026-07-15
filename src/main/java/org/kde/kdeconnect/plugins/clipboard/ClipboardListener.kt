@@ -40,7 +40,7 @@ class ClipboardListener {
     private constructor(ctx: Context) {
         context = ctx.applicationContext
         Handler(Looper.getMainLooper()).post {
-            cm = ContextCompat.getSystemService<ClipboardManager>(context, ClipboardManager::class.java)!!
+            cm = ContextCompat.getSystemService(context, ClipboardManager::class.java)!!
             cm.addPrimaryClipChangedListener { this.onClipboardChanged() }
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && ClipboardPlugin.canSyncAutomatically(context)) {

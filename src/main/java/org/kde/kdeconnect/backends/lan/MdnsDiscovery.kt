@@ -18,7 +18,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.net.InetAddress
 
-class MdnsDiscovery(private val context: Context, private val lanLinkProvider: LanLinkProvider) : KoinComponent {
+class MdnsDiscovery(context: Context, private val lanLinkProvider: LanLinkProvider) : KoinComponent {
     private val deviceHelper: DeviceHelper by inject()
     private val mNsdManager: NsdManager = context.getSystemService(Context.NSD_SERVICE) as NsdManager
     private var registrationListener: RegistrationListener? = null

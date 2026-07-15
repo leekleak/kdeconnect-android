@@ -5,7 +5,6 @@
 */
 package org.kde.kdeconnect
 
-import android.Manifest
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -13,7 +12,6 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.net.ConnectivityManager
 import android.net.ConnectivityManager.NetworkCallback
@@ -22,7 +20,6 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
 import android.os.IBinder
-import android.provider.Settings
 import android.util.Log
 import androidx.annotation.MainThread
 import androidx.core.app.NotificationCompat
@@ -44,7 +41,6 @@ import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import org.kde.kdeconnect_tp.R
 import org.koin.android.ext.android.inject
-import org.koin.core.component.KoinComponent
 
 /**
  * This class (still) does 3 things:
@@ -152,7 +148,7 @@ class BackgroundService : Service() {
         }
         else {
             stopForeground(true)
-            Start(this)
+            start(this)
         }
     }
 
@@ -286,14 +282,14 @@ class BackgroundService : Service() {
             }
         }
 
-        fun Start(context: Context) {
+        fun start(context: Context) {
             Log.d(LOG_TAG, "Start")
             val intent = Intent(context, BackgroundService::class.java)
             ContextCompat.startForegroundService(context, intent)
         }
 
         @JvmStatic
-        fun ForceRefreshConnections(context: Context) {
+        fun forceRefreshConnections(context: Context) {
             Log.d(LOG_TAG, "ForceRefreshConnections")
             val intent = Intent(context, BackgroundService::class.java)
             intent.putExtra("refresh", true)

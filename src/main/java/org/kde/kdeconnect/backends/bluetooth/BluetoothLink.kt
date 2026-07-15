@@ -44,7 +44,7 @@ class BluetoothLink(
                     while (sb.indexOf("\n") == -1 && continueAccepting) {
                         var charsRead: Int
                         if (reader.read(buf).also { charsRead = it } > 0) {
-                            sb.append(buf, 0, charsRead)
+                            sb.appendRange(buf, 0, charsRead)
                         }
                         if (charsRead < 0) {
                             disconnect()
@@ -129,8 +129,8 @@ class BluetoothLink(
             if (transferUuid != null) {
                 try {
                     connection.getChannelOutputStream(transferUuid).use { payloadStream ->
-                        val BUFFER_LENGTH = 1024
-                        val buffer = ByteArray(BUFFER_LENGTH)
+                        val bufferLength = 1024
+                        val buffer = ByteArray(bufferLength)
                         var bytesRead: Int
                         var progress: Long = 0
                         val stream = np.payload!!.inputStream!!

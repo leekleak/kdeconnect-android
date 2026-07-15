@@ -26,37 +26,6 @@ object DeviceStats {
     private val eventsByDevice: MutableMap<String, PacketStats> = HashMap<String, PacketStats>()
     private var nextCleanup = System.currentTimeMillis() + CLEANUP_INTERVAL_MILLIS
 
-    fun getStatsForDevice(deviceId: String): String {
-        cleanupIfNeeded()
-
-        val packetStats = eventsByDevice[deviceId] ?: return ""
-
-        return buildString {
-            val timeInMillis =
-                minOf((System.currentTimeMillis() - packetStats.createdAtMillis), EVENT_KEEP_WINDOW_MILLIS)
-            val hours = TimeUnit.MILLISECONDS.toHours(timeInMillis)
-            val minutes = TimeUnit.MILLISECONDS.toMinutes(timeInMillis) % 60
-            append("From last ")
-            append(hours)
-            append("h ")
-            append(minutes)
-            append("m\n\n")
-
-            packetStats.summaries.stream().sorted { o1, o2 ->
-                o2.total compareTo o1.total // Sort them by total number of events
-            }.forEach { count ->
-                append(count.packetType.removePrefix("kdeconnect."))
-                append("\n• ")
-                append(count.received)
-                append(" received\n• ")
-                append(count.sentSuccessful + count.sentFailed)
-                append(" sent (")
-                append(count.sentFailed)
-                append(" failed)\n")
-            }
-        }
-    }
-
     @SuppressLint("NewApi") // We use core library desugar
     fun countReceived(deviceId: String, packetType: String) {
         synchronized(DeviceStats::class.java) {

@@ -7,7 +7,7 @@
 package org.kde.kdeconnect.backends.lan;
 
 import static org.kde.kdeconnect.helpers.NetworkHelperKt.isPrivateAddress;
-import static main.java.org.kde.kdeconnect.helpers.BoundedLineReaderKt.readLineBounded;
+import static org.kde.kdeconnect.helpers.BoundedLineReaderKt.readLineBounded;
 
 import android.content.Context;
 import android.net.Network;

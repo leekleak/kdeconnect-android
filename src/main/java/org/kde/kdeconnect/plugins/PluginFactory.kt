@@ -5,17 +5,9 @@
 */
 package org.kde.kdeconnect.plugins
 
-import android.Manifest
 import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
 import android.util.Log
-import androidx.annotation.StringRes
-import androidx.core.content.ContextCompat
-import androidx.fragment.app.DialogFragment
 import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.plugins.Plugin.Companion.getPluginKey
 import org.kde.kdeconnect.plugins.battery.BatteryPluginInfo
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPluginInfo
 import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityReportPluginInfo
@@ -39,12 +31,6 @@ import org.kde.kdeconnect.plugins.share.SharePluginInfo
 import org.kde.kdeconnect.plugins.sms.SMSPluginInfo
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePluginInfo
 import org.kde.kdeconnect.plugins.telephony.TelephonyPluginInfo
-import org.kde.kdeconnect.ui.AlertDialogFragment
-import org.kde.kdeconnect.ui.MainActivity
-import org.kde.kdeconnect.ui.PermissionExplanationActivity
-import org.kde.kdeconnect.ui.PermissionsAlertDialogFragment
-import org.kde.kdeconnect_tp.R
-import org.koin.core.Koin
 
 object PluginFactory {
 

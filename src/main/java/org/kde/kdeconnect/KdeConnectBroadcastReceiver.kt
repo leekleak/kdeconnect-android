@@ -21,13 +21,13 @@ class KdeConnectBroadcastReceiver : BroadcastReceiver() {
         when (action) {
             Intent.ACTION_MY_PACKAGE_REPLACED -> {
                 Log.i("KdeConnect", "MyUpdateReceiver")
-                BackgroundService.Start(context)
+                BackgroundService.start(context)
             }
 
             Intent.ACTION_BOOT_COMPLETED -> {
                 Log.i("KdeConnect", "KdeConnectBroadcastReceiver")
                 try {
-                    BackgroundService.Start(context)
+                    BackgroundService.start(context)
                 } catch (e: IllegalStateException) { // To catch ForegroundServiceStartNotAllowedException
                     Log.w("BroadcastReceiver", "Couldn't start the foreground service.", e)
                 }
@@ -35,11 +35,11 @@ class KdeConnectBroadcastReceiver : BroadcastReceiver() {
 
             WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION, WifiManager.WIFI_STATE_CHANGED_ACTION, ConnectivityManager.CONNECTIVITY_ACTION -> {
                 Log.i("KdeConnect", "Connection state changed, trying to connect")
-                BackgroundService.ForceRefreshConnections(context)
+                BackgroundService.forceRefreshConnections(context)
             }
 
             Intent.ACTION_SCREEN_ON -> try {
-                BackgroundService.ForceRefreshConnections(context)
+                BackgroundService.forceRefreshConnections(context)
             } catch (e: IllegalStateException) { // To catch ForegroundServiceStartNotAllowedException
                 Log.w("BroadcastReceiver", "Couldn't start the foreground service.", e)
             }

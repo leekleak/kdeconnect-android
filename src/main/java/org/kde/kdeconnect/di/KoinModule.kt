@@ -19,52 +19,51 @@ import coil3.ImageLoader
 import coil3.request.crossfade
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
+import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.datastore.ConnectionsSettingsDataStore
+import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
+import org.kde.kdeconnect.datastore.SettingsDataStore
+import org.kde.kdeconnect.datastore.SftpSettingsDataStore
+import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 import org.kde.kdeconnect.helpers.AppIconFetcher
 import org.kde.kdeconnect.helpers.DeviceHelper
-import org.kde.kdeconnect.plugins.findmyphone.FindMyPhonePlugin
-import org.kde.kdeconnect.plugins.mprisreceiver.MprisReceiverPlugin
-import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPlugin
-import org.kde.kdeconnect.plugins.runcommand.RunCommandPlugin
-import org.kde.kdeconnect.plugins.share.SharePlugin
+import org.kde.kdeconnect.plugins.battery.BatteryPlugin
+import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin
+import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityReportPlugin
+import org.kde.kdeconnect.plugins.contacts.ContactsPlugin
 import org.kde.kdeconnect.plugins.digitizer.DigitizerPlugin
 import org.kde.kdeconnect.plugins.digitizer.DigitizerScreen
 import org.kde.kdeconnect.plugins.digitizer.DigitizerViewModel
+import org.kde.kdeconnect.plugins.findmyphone.FindMyPhonePlugin
+import org.kde.kdeconnect.plugins.findremotedevice.FindRemoteDevicePlugin
+import org.kde.kdeconnect.plugins.inputdevicesreceiver.InputDevicesReceiverPlugin
 import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin
 import org.kde.kdeconnect.plugins.mousepad.MousePadScreen
 import org.kde.kdeconnect.plugins.mousepad.MousePadSettingsScreen
 import org.kde.kdeconnect.plugins.mousepad.MousePadSettingsViewModel
 import org.kde.kdeconnect.plugins.mousepad.MousePadViewModel
+import org.kde.kdeconnect.plugins.mousereceiver.MouseReceiverPlugin
+import org.kde.kdeconnect.plugins.mpris.MprisPlugin
+import org.kde.kdeconnect.plugins.mprisreceiver.MprisReceiverPlugin
+import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin
+import org.kde.kdeconnect.plugins.ping.PingPlugin
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
 import org.kde.kdeconnect.plugins.presenter.PresenterSettingsScreen
 import org.kde.kdeconnect.plugins.presenter.PresenterSettingsViewModel
+import org.kde.kdeconnect.plugins.receivenotifications.ReceiveNotificationsPlugin
+import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPlugin
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardSettingsScreen
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardSettingsViewModel
+import org.kde.kdeconnect.plugins.runcommand.RunCommandPlugin
 import org.kde.kdeconnect.plugins.runcommand.RunCommandScreen
 import org.kde.kdeconnect.plugins.runcommand.RunCommandViewModel
+import org.kde.kdeconnect.plugins.sftp.SftpPlugin
+import org.kde.kdeconnect.plugins.share.SharePlugin
 import org.kde.kdeconnect.plugins.share.ShareSettingsScreen
 import org.kde.kdeconnect.plugins.share.ShareSettingsViewModel
-import org.kde.kdeconnect.plugins.PluginFactory
-import org.kde.kdeconnect.plugins.sftp.SftpPlugin
-import org.kde.kdeconnect.plugins.battery.BatteryPlugin
-import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin
-import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityReportPlugin
-import org.kde.kdeconnect.plugins.contacts.ContactsPlugin
-import org.kde.kdeconnect.plugins.findremotedevice.FindRemoteDevicePlugin
-import org.kde.kdeconnect.plugins.inputdevicesreceiver.InputDevicesReceiverPlugin
-import org.kde.kdeconnect.plugins.mousereceiver.MouseReceiverPlugin
-import org.kde.kdeconnect.plugins.mpris.MprisPlugin
-import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin
-import org.kde.kdeconnect.plugins.ping.PingPlugin
-import org.kde.kdeconnect.plugins.receivenotifications.ReceiveNotificationsPlugin
 import org.kde.kdeconnect.plugins.sms.SMSPlugin
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin
 import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin
-import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
-import org.kde.kdeconnect.datastore.SettingsDataStore
-import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
-import org.kde.kdeconnect.datastore.SftpSettingsDataStore
-import org.kde.kdeconnect.datastore.ConnectionsSettingsDataStore
 import org.kde.kdeconnect.ui.about.getApplicationAboutData
 import org.kde.kdeconnect.ui.compose.screen.about.AboutScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceScreen
@@ -314,9 +313,9 @@ val appModule = module {
         scoped { RemoteKeyboardPlugin(get(), get()) }
         scoped { RunCommandPlugin(get(), get()) }
         scoped { SharePlugin(get(), get()) }
-        scoped { SMSPlugin(get(), get()) }
+        scoped { SMSPlugin(get(), get(), get()) }
         scoped { SystemVolumePlugin(get(), get()) }
-        scoped { TelephonyPlugin(get(), get()) }
+        scoped { TelephonyPlugin(get(), get(), get()) }
         scoped { DigitizerPlugin(get(), get()) }
     }
 }
