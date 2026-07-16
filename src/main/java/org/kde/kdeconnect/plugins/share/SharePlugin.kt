@@ -163,7 +163,7 @@ class SharePlugin(context: Context, device: Device) : Plugin(context, device) {
         try {
             if (np.type == PACKET_TYPE_SHARE_REQUEST_UPDATE) {
                 receiveFileJob?.let {
-                    if (it.isRunning()) {
+                    if (it.isRunning) {
                         it.updateTotals(
                             np.getInt(KEY_NUMBER_OF_FILES), np.getLong(
                                 KEY_TOTAL_PAYLOAD_SIZE
