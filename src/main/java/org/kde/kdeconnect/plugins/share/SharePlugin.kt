@@ -111,7 +111,7 @@ class SharePlugin(context: Context, device: Device) : Plugin(context, device) {
             )
             .setCategories(
                 (if (isNewShortcut) mutableSetOf("org.kde.kdeconnect.category.SHARE_TARGET") else
-                    shortcutToUpdate.categories!!)
+                    shortcutToUpdate.categories ?: emptySet())
             )
             .setLocusId(
                 if (isNewShortcut)
@@ -163,7 +163,7 @@ class SharePlugin(context: Context, device: Device) : Plugin(context, device) {
         try {
             if (np.type == PACKET_TYPE_SHARE_REQUEST_UPDATE) {
                 receiveFileJob?.let {
-                    if (it.isRunning) {
+                    if (it.isRunning.get()) {
                         it.updateTotals(
                             np.getInt(KEY_NUMBER_OF_FILES), np.getLong(
                                 KEY_TOTAL_PAYLOAD_SIZE
@@ -226,7 +226,7 @@ class SharePlugin(context: Context, device: Device) : Plugin(context, device) {
         val job = if (hasNumberOfFiles && !isOpen && receiveFileJob != null) {
             receiveFileJob!!
         } else {
-            CompositeReceiveFileJob(device, receiveFileJobCallback)
+            CompositeReceiveFileJob(device, context, receiveFileJobCallback)
         }
 
         if (!hasNumberOfFiles) {
@@ -245,7 +245,7 @@ class SharePlugin(context: Context, device: Device) : Plugin(context, device) {
     }
 
     fun sendUriList(uriList: List<Uri>) {
-        val job = uploadFileJob ?: CompositeUploadFileJob(device, this.receiveFileJobCallback)
+        val job = uploadFileJob ?: CompositeUploadFileJob(device, context, receiveFileJobCallback)
 
         //Read all the data early, as we only have permissions to do it while the activity is alive
         for (uri in uriList) {

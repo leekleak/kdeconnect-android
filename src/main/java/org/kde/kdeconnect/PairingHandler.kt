@@ -5,6 +5,7 @@
  */
 package org.kde.kdeconnect
 
+import android.content.Context
 import android.util.Log
 import androidx.annotation.VisibleForTesting
 import kotlinx.coroutines.CoroutineScope
@@ -22,7 +23,12 @@ import java.util.Formatter
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.seconds
 
-class PairingHandler(private val device: Device, private val callback: PairingCallback, var state: PairState) {
+class PairingHandler(
+    private val device: Device,
+    private val context: Context,
+    private val callback: PairingCallback,
+    var state: PairState
+) {
     enum class PairState {
         NotPaired,
         Requested,
@@ -77,7 +83,7 @@ class PairingHandler(private val device: Device, private val callback: PairingCa
                         val currentTimestamp = System.currentTimeMillis() / 1000L
                         if (abs(pairingTimestamp - currentTimestamp) > ALLOWED_TIMESTAMP_DIFFERENCE_SECONDS) {
                             state = PairState.NotPaired
-                            callback.pairingFailed(device.context.getString(R.string.error_clocks_not_match))
+                            callback.pairingFailed(context.getString(R.string.error_clocks_not_match))
                             return
                         }
                     }
@@ -88,7 +94,7 @@ class PairingHandler(private val device: Device, private val callback: PairingCa
                         delay(25.seconds)
                         Log.w("PairingHandler", "Unpairing (timeout after we started pairing)")
                         this@PairingHandler.state = PairState.NotPaired
-                        callback.pairingFailed(device.context.getString(R.string.error_timed_out))
+                        callback.pairingFailed(context.getString(R.string.error_timed_out))
                     } // Time to show notification, waiting for user to accept (peer will timeout in 30 seconds)
 
                     callback.incomingPairRequest()
@@ -102,7 +108,7 @@ class PairingHandler(private val device: Device, private val callback: PairingCa
                 // RequestedByPeer: They stared pairing, then cancelled
                 PairState.Requested, PairState.RequestedByPeer -> {
                     state = PairState.NotPaired
-                    callback.pairingFailed(device.context.getString(R.string.error_canceled_by_other_peer))
+                    callback.pairingFailed(context.getString(R.string.error_canceled_by_other_peer))
                 }
 
                 PairState.Paired -> {
@@ -130,7 +136,7 @@ class PairingHandler(private val device: Device, private val callback: PairingCa
 
         if (state == PairState.Paired) {
             Log.w("PairingHandler", "requestPairing was called on an already paired device")
-            callback.pairingFailed(device.context.getString(R.string.error_already_paired))
+            callback.pairingFailed(context.getString(R.string.error_already_paired))
             return
         }
 
@@ -141,7 +147,7 @@ class PairingHandler(private val device: Device, private val callback: PairingCa
         }
 
         if (!device.isReachable) {
-            callback.pairingFailed(device.context.getString(R.string.error_not_reachable))
+            callback.pairingFailed(context.getString(R.string.error_not_reachable))
             return
         }
 
@@ -151,7 +157,7 @@ class PairingHandler(private val device: Device, private val callback: PairingCa
             delay(30.seconds)
             Log.w("PairingHandler", "Unpairing (timeout after receiving pair request)")
             this@PairingHandler.state = PairState.NotPaired
-            callback.pairingFailed(device.context.getString(R.string.error_timed_out))
+            callback.pairingFailed(context.getString(R.string.error_timed_out))
         } // Time to wait for the other to accept
 
         val statusCallback: Device.SendPacketStatusCallback = object : Device.SendPacketStatusCallback() {
@@ -161,7 +167,7 @@ class PairingHandler(private val device: Device, private val callback: PairingCa
                 cancelTimer()
                 Log.e("PairingHandler", "Exception sending pairing request", e)
                 this@PairingHandler.state = PairState.NotPaired
-                callback.pairingFailed(device.context.getString(R.string.runcommand_notreachable))
+                callback.pairingFailed(context.getString(R.string.runcommand_notreachable))
             }
         }
         val np = NetworkPacket(NetworkPacket.PACKET_TYPE_PAIR)
@@ -181,7 +187,7 @@ class PairingHandler(private val device: Device, private val callback: PairingCa
             override fun onFailure(e: Throwable) {
                 Log.e("PairingHandler", "Exception sending accept pairing packet", e)
                 this@PairingHandler.state = PairState.NotPaired
-                callback.pairingFailed(device.context.getString(R.string.error_not_reachable))
+                callback.pairingFailed(context.getString(R.string.error_not_reachable))
             }
         }
         val np = NetworkPacket(NetworkPacket.PACKET_TYPE_PAIR)
@@ -195,7 +201,7 @@ class PairingHandler(private val device: Device, private val callback: PairingCa
         val np = NetworkPacket(NetworkPacket.PACKET_TYPE_PAIR)
         np["pair"] = false
         device.sendPacket(np)
-        callback.pairingFailed(device.context.getString(R.string.error_canceled_by_user))
+        callback.pairingFailed(context.getString(R.string.error_canceled_by_user))
     }
 
     @VisibleForTesting

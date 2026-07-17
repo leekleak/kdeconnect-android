@@ -14,12 +14,14 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
-import androidx.annotation.GuardedBy
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.preference.PreferenceManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import org.apache.commons.io.IOUtils
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
@@ -36,6 +38,12 @@ import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.attribute.FileTime
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.AtomicLong
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * A type of [BackgroundJob] that reads Files from another device.
@@ -57,91 +65,72 @@ import java.nio.file.attribute.FileTime
  * 
  * @see CompositeUploadFileJob
  */
-class CompositeReceiveFileJob(private val device: Device, callBack: Callback<Void?>) : BackgroundJob<Device, Void?>(device, callBack) {
-    private val receiveNotification: ReceiveNotification = ReceiveNotification(device, id)
+@OptIn(ExperimentalAtomicApi::class)
+class CompositeReceiveFileJob(private val device: Device, private val context: Context, callBack: Callback<Void?>)
+    : BackgroundJob<Device, Void?>(device, callBack) {
+    private val receiveNotification: ReceiveNotification = ReceiveNotification(device, context, id)
     private var currentNetworkPacket: NetworkPacket? = null
     private var currentFileName: String? = null
     private var currentFileNum: Int = 0
-    private var totalReceived: Long
-    private var lastProgressTimeMillis: Long
-    private var prevProgressPercentage: Long
+    private var totalReceived: Long = 0
+    private var lastProgressTimeMillis: Long = 0
+    private var prevProgressPercentage: Long = 0
 
-    private val lock: Any = Any() //Use to protect concurrent access to the variables below
 
-    @GuardedBy("lock")
-    private val networkPacketList: MutableList<NetworkPacket> = ArrayList()
+    private val networkPacketList: CopyOnWriteArrayList<NetworkPacket> = CopyOnWriteArrayList()
 
-    @GuardedBy("lock")
-    private var totalNumFiles: Int
+    private val totalNumFiles: AtomicInt = AtomicInt(0)
 
-    @GuardedBy("lock")
-    private var totalPayloadSize: Long
-    var isRunning: Boolean = false
-        private set
+    private val totalPayloadSize: AtomicLong = AtomicLong(0)
+    val isRunning: AtomicBoolean = AtomicBoolean(false)
 
-    init {
-        totalNumFiles = 0
-        totalPayloadSize = 0
-        totalReceived = 0
-        lastProgressTimeMillis = 0
-        prevProgressPercentage = 0
+
+    fun updateTotals(numberOfFiles: Int, payloadSize: Long) {
+        totalNumFiles.store(numberOfFiles)
+        totalPayloadSize.store(payloadSize)
+        receiveNotification.setTitle(
+            context.resources
+                .getQuantityString(
+                    R.plurals.incoming_file_title,
+                    totalNumFiles.load(),
+                    totalNumFiles.load(),
+                    device.name
+                )
+        )
     }
 
-    fun updateTotals(numberOfFiles: Int, totalPayloadSize: Long) {
-        synchronized(lock) {
-            this.totalNumFiles = numberOfFiles
-            this.totalPayloadSize = totalPayloadSize
-            receiveNotification.setTitle(
-                this.device.context.resources
+    fun addNetworkPacket(networkPacket: NetworkPacket) {
+        if (!networkPacketList.contains(networkPacket)) {
+            networkPacketList.add(networkPacket)
+
+            totalNumFiles.store(networkPacket.getInt(SharePlugin.KEY_NUMBER_OF_FILES, 1))
+            totalPayloadSize.store(networkPacket.getLong(SharePlugin.KEY_TOTAL_PAYLOAD_SIZE))
+
+                receiveNotification.setTitle(
+                context.resources
                     .getQuantityString(
                         R.plurals.incoming_file_title,
-                        totalNumFiles,
-                        totalNumFiles,
-                        this.device.name
+                        totalNumFiles.load(),
+                        totalNumFiles.load(),
+                        device.name
                     )
             )
         }
     }
 
-    fun addNetworkPacket(networkPacket: NetworkPacket) {
-        synchronized(lock) {
-            if (!networkPacketList.contains(networkPacket)) {
-                networkPacketList.add(networkPacket)
-
-                totalNumFiles = networkPacket.getInt(SharePlugin.KEY_NUMBER_OF_FILES, 1)
-                totalPayloadSize = networkPacket.getLong(SharePlugin.KEY_TOTAL_PAYLOAD_SIZE)
-
-                receiveNotification.setTitle(
-                    this.device.context.resources
-                        .getQuantityString(
-                            R.plurals.incoming_file_title,
-                            totalNumFiles,
-                            totalNumFiles,
-                            this.device.name
-                        )
-                )
-            }
-        }
-    }
-
-    override fun run() {
-        var done: Boolean
+    override suspend fun run() {
+        var done: Boolean = networkPacketList.isEmpty()
         var outputStream: OutputStream? = null
-
-        synchronized(lock) {
-            done = networkPacketList.isEmpty()
-        }
 
         try {
             var fileDocument: DocumentFile? = null
 
-            isRunning = true
+            isRunning.set(true)
 
             while (!done && !isCancelled) {
-                synchronized(lock) {
-                    currentNetworkPacket = networkPacketList[0]
-                }
-                currentFileName = currentNetworkPacket!!.getString(
+                val networkPacket = networkPacketList[0]
+                currentNetworkPacket = networkPacket
+                currentFileName = networkPacket.getString(
                     "filename",
                     System.currentTimeMillis().toString()
                 )
@@ -151,27 +140,24 @@ class CompositeReceiveFileJob(private val device: Device, callBack: Callback<Voi
 
                 fileDocument = getDocumentFileFor(
                     currentFileName!!,
-                    currentNetworkPacket!!.getBoolean("open", false)
+                    networkPacket.getBoolean("open", false)
                 )
 
-                if (currentNetworkPacket!!.hasPayload()) {
+                if (networkPacket.hasPayload()) {
                     outputStream = BufferedOutputStream(
-                        this.device.context.contentResolver
-                            .openOutputStream(fileDocument.uri)
+                        context.contentResolver.openOutputStream(fileDocument.uri)
                     )
-                    val inputStream = currentNetworkPacket!!.payload!!.inputStream
+                    val inputStream = networkPacket.payload?.inputStream ?: break
 
-                    val received = receiveFile(inputStream!!, outputStream)
+                    val received = receiveFile(inputStream, outputStream)
 
-                    currentNetworkPacket!!.payload!!.close()
+                    networkPacket.payload?.close()
 
-                    try {
-                        outputStream.close()
-                    } catch (_: IOException) {
-                    }
+                    withContext(Dispatchers.IO) { outputStream.close() }
+
                     outputStream = null
 
-                    if (received != currentNetworkPacket!!.payloadSize) {
+                    if (received != networkPacket.payloadSize) {
                         fileDocument.delete()
 
                         if (!isCancelled) {
@@ -186,55 +172,43 @@ class CompositeReceiveFileJob(private val device: Device, callBack: Callback<Voi
                     publishFile(fileDocument, 0)
                 }
 
-                if (currentNetworkPacket!!.has("lastModified")) {
+                if (networkPacket.has("lastModified")) {
                     try {
-                        val lastModified = currentNetworkPacket!!.getLong("lastModified")
-                        Files.setLastModifiedTime(
-                            Paths.get(fileDocument.uri.path),
-                            FileTime.fromMillis(lastModified)
-                        )
+                        val lastModified = networkPacket.getLong("lastModified")
+                        withContext(Dispatchers.IO) {
+                            Files.setLastModifiedTime(
+                                Paths.get(fileDocument.uri.path),
+                                FileTime.fromMillis(lastModified)
+                            )
+                        }
                     } catch (e: Exception) {
                         Log.e("SharePlugin", "Can't set date on file")
                         e.printStackTrace()
                     }
                 }
 
-                val listIsEmpty: Boolean
-
-                synchronized(lock) {
-                    networkPacketList.removeAt(0)
-                    listIsEmpty = networkPacketList.isEmpty()
-                }
+                networkPacketList.removeAt(0)
+                val listIsEmpty: Boolean = networkPacketList.isEmpty()
 
                 if (listIsEmpty && !isCancelled) {
-                    try {
-                        Thread.sleep(1000)
-                    } catch (_: InterruptedException) {
-                    }
+                    delay(1000.milliseconds)
 
-                    synchronized(lock) {
-                        if (currentFileNum < totalNumFiles && networkPacketList.isEmpty()) {
-                            throw RuntimeException("Failed to receive " + (totalNumFiles - currentFileNum + 1) + " files")
-                        }
+                    if (currentFileNum < totalNumFiles.load() && networkPacketList.isEmpty()) {
+                        throw RuntimeException("Failed to receive " + (totalNumFiles.load() - currentFileNum + 1) + " files")
                     }
                 }
 
-                synchronized(lock) {
-                    done = networkPacketList.isEmpty()
-                }
+                done = networkPacketList.isEmpty()
             }
 
-            isRunning = false
+            isRunning.set(false)
 
             if (isCancelled) {
                 receiveNotification.cancel()
                 return
             }
 
-            val numFiles: Int
-            synchronized(lock) {
-                numFiles = totalNumFiles
-            }
+            val numFiles: Int = totalNumFiles.load()
 
             if (numFiles == 1 && currentNetworkPacket!!.getBoolean(
                     "open",
@@ -246,12 +220,12 @@ class CompositeReceiveFileJob(private val device: Device, callBack: Callback<Voi
             } else {
                 //Update the notification and allow to open the file from it
                 receiveNotification.setFinished(
-                    this.device.context.resources.getQuantityString(
-                        R.plurals.received_files_title, numFiles, this.device.name, numFiles
+                    context.resources.getQuantityString(
+                        R.plurals.received_files_title, numFiles, device.name, numFiles
                     )
                 )
 
-                if (totalNumFiles == 1 && fileDocument != null) {
+                if (numFiles == 1 && fileDocument != null) {
                     receiveNotification.setURI(
                         fileDocument.uri,
                         fileDocument.type,
@@ -263,25 +237,22 @@ class CompositeReceiveFileJob(private val device: Device, callBack: Callback<Voi
             }
             reportResult(null)
         } catch (_: ActivityNotFoundException) {
-            receiveNotification.setFinished(this.device.context.getString(R.string.no_app_for_opening))
+            receiveNotification.setFinished(context.getString(R.string.no_app_for_opening))
             receiveNotification.show()
         } catch (e: Exception) {
-            isRunning = false
+            isRunning.set(false)
 
             Log.e("Shareplugin", "Error receiving file", e)
 
-            val failedFiles: Int
-            synchronized(lock) {
-                failedFiles = (totalNumFiles - currentFileNum + 1)
-            }
+            val failedFiles: Int = (totalNumFiles.load() - currentFileNum + 1)
 
             receiveNotification.setFailed(
-                this.device.context.resources.getQuantityString(
+                context.resources.getQuantityString(
                     R.plurals.received_files_fail_title,
                     failedFiles,
-                    this.device.name,
+                    device.name,
                     failedFiles,
-                    totalNumFiles
+                    totalNumFiles.load()
                 )
             )
             receiveNotification.show()
@@ -301,7 +272,7 @@ class CompositeReceiveFileJob(private val device: Device, callBack: Callback<Voi
         val destinationFolderDocument: DocumentFile
 
         // If the file should be opened immediately store it in the standard location to avoid the FileProvider trouble (See ReceiveNotification::setURI)
-        if (open || !PreferenceManager.getDefaultSharedPreferences(this.device.context)
+        if (open || !PreferenceManager.getDefaultSharedPreferences(context)
                 .getBoolean("share_destination_custom", false)
         ) {
             val defaultPath =
@@ -309,13 +280,13 @@ class CompositeReceiveFileJob(private val device: Device, callBack: Callback<Voi
                     .absolutePath
             destinationFolderDocument = DocumentFile.fromFile(File(defaultPath))
         } else {
-            destinationFolderDocument = getDestinationDirectory(this.device.context)
+            destinationFolderDocument = getDestinationDirectory(context)
         }
 
         val filenameToUse = findValidNonExistingFileName(destinationFolderDocument, filename)
 
         val fileDocument: DocumentFile = destinationFolderDocument.createFile("*/*", filenameToUse) ?:
-            throw RuntimeException(device.context.getString(R.string.cannot_create_file, filenameToUse))
+            throw RuntimeException(context.getString(R.string.cannot_create_file, filenameToUse))
 
         return fileDocument
     }
@@ -361,10 +332,7 @@ class CompositeReceiveFileJob(private val device: Device, callBack: Callback<Voi
 
             output.write(data, 0, count)
 
-            val progressPercentage: Long
-            synchronized(lock) {
-                progressPercentage = (totalReceived * 100 / totalPayloadSize)
-            }
+            val progressPercentage: Long = (totalReceived * 100 / totalPayloadSize.load())
             val curTimeMillis = System.currentTimeMillis()
 
             if (progressPercentage != prevProgressPercentage &&
@@ -388,23 +356,21 @@ class CompositeReceiveFileJob(private val device: Device, callBack: Callback<Voi
     }
 
     private fun setProgress(progress: Int) {
-        synchronized(lock) {
-            receiveNotification.setProgress(
-                progress, this.device.context.resources
-                    .getQuantityString(
-                        R.plurals.incoming_files_text,
-                        totalNumFiles,
-                        currentFileName,
-                        currentFileNum,
-                        totalNumFiles
-                    )
-            )
-        }
+        receiveNotification.setProgress(
+            progress, context.resources
+                .getQuantityString(
+                    R.plurals.incoming_files_text,
+                    totalNumFiles.load(),
+                    currentFileName,
+                    currentFileNum,
+                    totalNumFiles.load()
+                )
+        )
         receiveNotification.show()
     }
 
     private fun publishFile(fileDocument: DocumentFile, size: Long) {
-        if (!PreferenceManager.getDefaultSharedPreferences(this.device.context)
+        if (!PreferenceManager.getDefaultSharedPreferences(context)
                 .getBoolean("share_destination_custom", false)
         ) {
             Log.i("SharePlugin", "Adding to downloads")
@@ -417,16 +383,13 @@ class CompositeReceiveFileJob(private val device: Device, callBack: Callback<Voi
 
                 contentValues.put(MediaStore.Downloads.RELATIVE_PATH, fileDocument.uri.path)
 
-                val database = this.device.context.contentResolver
+                val database = context.contentResolver
                 database.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
             } else {
-                val manager = ContextCompat.getSystemService<DownloadManager?>(
-                    this.device.context,
-                    DownloadManager::class.java
-                )
+                val manager = ContextCompat.getSystemService(context, DownloadManager::class.java)
                 manager?.addCompletedDownload(
                     fileDocument.uri.lastPathSegment,
-                    this.device.name,
+                    device.name,
                     true,
                     fileDocument.type,
                     fileDocument.uri.path,
@@ -437,7 +400,7 @@ class CompositeReceiveFileJob(private val device: Device, callBack: Callback<Voi
         } else {
             //Make sure it is added to the Android Gallery anyway
             Log.i("SharePlugin", "Adding to gallery")
-            indexFile(this.device.context, fileDocument.uri)
+            indexFile(context, fileDocument.uri)
         }
     }
 
@@ -447,7 +410,7 @@ class CompositeReceiveFileJob(private val device: Device, callBack: Callback<Voi
 
         val file = File(fileDocument.uri.path ?: return)
         val contentUri = FileProvider.getUriForFile(
-            this.device.context,
+            context,
             "org.kde.kdeconnect_tp.fileprovider",
             file
         )
@@ -459,6 +422,6 @@ class CompositeReceiveFileJob(private val device: Device, callBack: Callback<Voi
             intent.setClassName("org.kde.itinerary", "org.kde.itinerary.Activity")
         }
 
-        this.device.context.startActivity(intent)
+        context.startActivity(intent)
     }
 }

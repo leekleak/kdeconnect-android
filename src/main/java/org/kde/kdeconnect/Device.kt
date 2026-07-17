@@ -11,7 +11,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Drawable
-import android.os.Build
 import android.util.Log
 import androidx.annotation.AnyThread
 import androidx.annotation.DrawableRes
@@ -28,15 +27,15 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.apache.commons.collections4.MultiValuedMap
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap
-import org.kde.kdeconnect.backends.BaseLink
-import org.kde.kdeconnect.backends.BaseLink.PacketReceiver
 import org.kde.kdeconnect.DeviceInfo.Companion.loadFromSettings
 import org.kde.kdeconnect.DeviceStats.countReceived
 import org.kde.kdeconnect.DeviceStats.countSent
+import org.kde.kdeconnect.PairingHandler.PairingCallback
+import org.kde.kdeconnect.backends.BaseLink
+import org.kde.kdeconnect.backends.BaseLink.PacketReceiver
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.helpers.TrustedDevices
-import org.kde.kdeconnect.PairingHandler.PairingCallback
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.Plugin.Companion.getPluginKey
 import org.kde.kdeconnect.plugins.PluginFactory
@@ -56,11 +55,10 @@ class Device : PacketReceiver, KoinComponent {
 
     data class NetworkPacketWithCallback(val np : NetworkPacket, val callback: SendPacketStatusCallback)
 
-    val context: Context
+    private val context: Context
 
     val koinScope: Scope
 
-    @VisibleForTesting
     val deviceInfo: DeviceInfo
 
     /**
@@ -115,7 +113,7 @@ class Device : PacketReceiver, KoinComponent {
     internal constructor(context: Context, deviceId: String) {
         this.context = context
         this.deviceInfo = loadFromSettings(context, deviceId)
-        this.pairingHandler = PairingHandler(this, createDefaultPairingCallback(), PairingHandler.PairState.Paired)
+        this.pairingHandler = PairingHandler(this, context, createDefaultPairingCallback(), PairingHandler.PairState.Paired)
         this.koinScope = getKoin().getOrCreateScope(deviceId, named<Device>(), this)
         this.supportedPlugins = Vector(PluginFactory.availablePlugins) // Assume all are supported until we receive capabilities
         Log.i("Device", "Loading trusted device: ${deviceInfo.name}")
@@ -129,7 +127,7 @@ class Device : PacketReceiver, KoinComponent {
     internal constructor(context: Context, link: BaseLink) {
         this.context = context
         this.deviceInfo = link.deviceInfo
-        this.pairingHandler = PairingHandler(this, createDefaultPairingCallback(), PairingHandler.PairState.NotPaired)
+        this.pairingHandler = PairingHandler(this, context, createDefaultPairingCallback(), PairingHandler.PairState.NotPaired)
         this.koinScope = getKoin().getOrCreateScope(deviceId, named<Device>(), this)
         this.supportedPlugins = Vector(PluginFactory.availablePlugins) // Assume all are supported until we receive capabilities
         Log.i("Device", "Creating untrusted device: " + deviceInfo.name)
