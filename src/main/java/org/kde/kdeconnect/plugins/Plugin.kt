@@ -7,21 +7,12 @@ package org.kde.kdeconnect.plugins
 
 import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
-import android.content.pm.PackageManager
 import android.os.Build
 import androidx.annotation.CallSuper
 import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
-import androidx.core.content.ContextCompat
-import androidx.fragment.app.DialogFragment
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
-import org.kde.kdeconnect.ui.AlertDialogFragment
-import org.kde.kdeconnect.ui.MainActivity
-import org.kde.kdeconnect.ui.PermissionsAlertDialogFragment
-import org.kde.kdeconnect_tp.R
 
 abstract class Plugin(
     @JvmField protected val context: Context,
@@ -29,8 +20,6 @@ abstract class Plugin(
 ) {
 
     abstract val pluginInfo: PluginInfo
-    protected val isDeviceInitialized: Boolean
-        get() = device != null
 
     val preferences: SharedPreferences? by lazy {
         context.getSharedPreferences(sharedPreferencesName, Context.MODE_PRIVATE)
@@ -47,7 +36,6 @@ abstract class Plugin(
         val category: ButtonCategory = ButtonCategory.CONTROL,
         val onClick: (parentActivity: Activity) -> Unit,
     )
-    data class PluginUiMenuEntry(val name: String, val onClick: (parentActivity: Activity) -> Unit)
 
     /**
      * Return entries to display as buttons in the Device main view

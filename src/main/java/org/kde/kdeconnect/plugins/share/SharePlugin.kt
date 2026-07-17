@@ -145,8 +145,8 @@ class SharePlugin(context: Context, device: Device) : Plugin(context, device) {
         }
     }
 
-    override fun getUiButtons(): MutableList<PluginUiButton> {
-        return mutableListOf(
+    override fun getUiButtons(): List<PluginUiButton> {
+        return listOf(
             PluginUiButton(
                 context.getString(R.string.send_files),
                 R.drawable.share_plugin_action_24dp,

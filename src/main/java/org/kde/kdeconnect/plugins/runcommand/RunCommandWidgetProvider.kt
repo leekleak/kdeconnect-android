@@ -58,7 +58,7 @@ class RunCommandWidgetProvider : AppWidgetProvider() {
             val targetCommand = intent.getStringExtra(TARGET_COMMAND)
             val targetDevice = intent.getStringExtra(TARGET_DEVICE)
             val plugin = KdeConnect.getInstance().getDevicePlugin(targetDevice, RunCommandPlugin::class.java)
-            if (plugin != null) {
+            if (plugin != null && targetCommand != null) {
                 try {
                     plugin.runCommand(targetCommand)
                 } catch (ex: Exception) {

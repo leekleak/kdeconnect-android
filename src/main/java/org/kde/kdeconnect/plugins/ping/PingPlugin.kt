@@ -38,9 +38,7 @@ class PingPlugin(context: Context, device: Device) : Plugin(context, device) {
             iconRes = R.drawable.arrow_upward,
             category = ButtonCategory.CONTROL
         ) { _ ->
-            if (isDeviceInitialized) {
-                device.sendPacket(NetworkPacket(PACKET_TYPE_PING))
-            }
+            device.sendPacket(NetworkPacket(PACKET_TYPE_PING))
         }
     )
 
@@ -102,5 +100,4 @@ object PingPluginInfo : PluginInfo(
     descriptionRes = R.string.pref_plugin_ping_desc,
     supportedPacketTypes = arrayOf(PACKET_TYPE_PING),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_PING),
-) {
-}
+)

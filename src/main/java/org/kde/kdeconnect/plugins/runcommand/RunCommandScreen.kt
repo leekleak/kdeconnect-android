@@ -57,7 +57,6 @@ fun RunCommandScreen(
     val commandList = viewModel.commandList
     var showDialog by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val outputList = remember { plugin.output }
 
     DisposableEffect(plugin) {
         val callback = RunCommandPlugin.CommandsChangedCallback {
@@ -121,7 +120,7 @@ fun RunCommandScreen(
         }
 
         CategoryTitleTextSmall(stringResource(R.string.terminal))
-        OutputCard(outputList, plugin)
+        OutputCard(plugin.output, plugin)
 
         CategoryTitleTextSmall(stringResource(R.string.commands))
         if (!commandList.isEmpty()) {

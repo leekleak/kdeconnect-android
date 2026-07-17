@@ -7,7 +7,6 @@ package org.kde.kdeconnect.plugins.clipboard
 
 import android.Manifest
 import android.app.Activity
-import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.pm.PackageManager
@@ -91,15 +90,12 @@ class ClipboardPlugin(context: Context, device: Device) : Plugin(context, device
     }
 
     private fun userInitiatedSendClipboard() {
-        if (isDeviceInitialized) {
-            val clipboardManager = ContextCompat.getSystemService<ClipboardManager>(this.context, ClipboardManager::class.java)
-            val item: ClipData.Item
-            if (clipboardManager!!.hasPrimaryClip()) {
-                item = clipboardManager.primaryClip!!.getItemAt(0)
-                val content = item.coerceToText(this.context).toString()
-                this.propagateClipboard(content)
-                Toast.makeText(this.context, R.string.pref_plugin_clipboard_sent, Toast.LENGTH_SHORT).show()
-            }
+        val clipboardManager = ContextCompat.getSystemService<ClipboardManager>(this.context, ClipboardManager::class.java)
+        if (clipboardManager!!.hasPrimaryClip()) {
+            val item = clipboardManager.primaryClip!!.getItemAt(0)
+            val content = item.coerceToText(this.context).toString()
+            this.propagateClipboard(content)
+            Toast.makeText(this.context, R.string.pref_plugin_clipboard_sent, Toast.LENGTH_SHORT).show()
         }
     }
 
