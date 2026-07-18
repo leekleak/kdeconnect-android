@@ -10,6 +10,7 @@ import android.view.KeyEvent
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.helpers.SPECIAL_KEY_ENCODING_MAP
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.helpers.SPECIAL_KEY_MAP
@@ -45,25 +46,25 @@ class PresenterPlugin(context: Context, device: Device) : Plugin(context, device
 
     fun sendNext() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = SPECIAL_KEY_MAP.get(KeyEvent.KEYCODE_PAGE_DOWN)
+        np["specialKey"] = SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_PAGE_DOWN]!!
         device.sendPacket(np)
     }
 
     fun sendPrevious() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = SPECIAL_KEY_MAP.get(KeyEvent.KEYCODE_PAGE_UP)
+        np["specialKey"] = SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_PAGE_UP]!!
         device.sendPacket(np)
     }
 
     fun sendFullscreen() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = SPECIAL_KEY_MAP.get(KeyEvent.KEYCODE_F5)
+        np["specialKey"] = SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_F5]!!
         device.sendPacket(np)
     }
 
     fun sendEsc() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = SPECIAL_KEY_MAP.get(KeyEvent.KEYCODE_ESCAPE)
+        np["specialKey"] = SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_ESCAPE]!!
         device.sendPacket(np)
     }
 

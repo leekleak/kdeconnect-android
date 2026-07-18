@@ -14,12 +14,12 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.AndroidViewModel
 import androidx.core.content.edit
+import androidx.lifecycle.AndroidViewModel
 import androidx.preference.PreferenceManager
 import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.NetworkPacket
-import org.kde.kdeconnect.helpers.SPECIAL_KEY_MAP
+import org.kde.kdeconnect.helpers.SPECIAL_KEY_ENCODING_MAP
 import org.kde.kdeconnect_tp.R
 import org.koin.core.annotation.InjectedParam
 import kotlin.math.pow
@@ -244,7 +244,7 @@ class MousePadViewModel(
             modifier = true
         }
 
-        val specialKey = SPECIAL_KEY_MAP.get(event.keyCode, -1)
+        val specialKey = SPECIAL_KEY_ENCODING_MAP[event.keyCode] ?: -1
 
         if (specialKey != -1) {
             np["specialKey"] = specialKey

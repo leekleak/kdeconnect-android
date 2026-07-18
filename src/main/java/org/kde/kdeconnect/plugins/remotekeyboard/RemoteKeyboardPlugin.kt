@@ -54,7 +54,7 @@ class RemoteKeyboardPlugin(context: Context, device: Device) : Plugin(context, d
     }
 
     private fun isValidSpecialKey(key: Int): Boolean {
-        return (SPECIAL_KEY_MAP.get(key, 0) > 0)
+        return ((SPECIAL_KEY_MAP[key] ?: 0) > 0)
     }
 
     private fun getCharPos(extractedText: ExtractedText?, forward: Boolean): Int {
@@ -87,7 +87,7 @@ class RemoteKeyboardPlugin(context: Context, device: Device) : Plugin(context, d
     }
 
     private fun handleSpecialKey(key: Int, shift: Boolean, ctrl: Boolean): Boolean {
-        val keyEvent: Int = SPECIAL_KEY_MAP.get(key, 0)
+        val keyEvent: Int = SPECIAL_KEY_MAP[key] ?: 0
         if (keyEvent == 0) return false
         val inputConn = RemoteKeyboardService.instance?.currentInputConnection ?: return false
 
