@@ -13,6 +13,7 @@ import androidx.preference.PreferenceManager
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.helpers.SPECIAL_KEY_MAP
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE
@@ -119,44 +120,44 @@ class MousePadPlugin(context: Context, device: Device) : Plugin(context, device)
 
     fun sendLeft() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = MOUSE_PAD_SPECIAL_KEYS.get(KeyEvent.KEYCODE_DPAD_LEFT)
+        np["specialKey"] = SPECIAL_KEY_MAP.get(KeyEvent.KEYCODE_DPAD_LEFT)
         sendPacket(np)
     }
 
     fun sendRight() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = MOUSE_PAD_SPECIAL_KEYS.get(KeyEvent.KEYCODE_DPAD_RIGHT)
+        np["specialKey"] = SPECIAL_KEY_MAP.get(KeyEvent.KEYCODE_DPAD_RIGHT)
         sendPacket(np)
     }
 
     fun sendUp() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = MOUSE_PAD_SPECIAL_KEYS.get(KeyEvent.KEYCODE_DPAD_UP)
+        np["specialKey"] = SPECIAL_KEY_MAP.get(KeyEvent.KEYCODE_DPAD_UP)
         sendPacket(np)
     }
 
     fun sendDown() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = MOUSE_PAD_SPECIAL_KEYS.get(KeyEvent.KEYCODE_DPAD_DOWN)
+        np["specialKey"] = SPECIAL_KEY_MAP.get(KeyEvent.KEYCODE_DPAD_DOWN)
         sendPacket(np)
     }
 
     fun sendSelect() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = MOUSE_PAD_SPECIAL_KEYS.get(KeyEvent.KEYCODE_ENTER)
+        np["specialKey"] = SPECIAL_KEY_MAP.get(KeyEvent.KEYCODE_ENTER)
         sendPacket(np)
     }
 
     fun sendHome() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
         np["alt"] = true
-        np["specialKey"] = MOUSE_PAD_SPECIAL_KEYS.get(KeyEvent.KEYCODE_F4)
+        np["specialKey"] = SPECIAL_KEY_MAP.get(KeyEvent.KEYCODE_F4)
         device.sendPacket(np)
     }
 
     fun sendBack() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = MOUSE_PAD_SPECIAL_KEYS.get(KeyEvent.KEYCODE_ESCAPE)
+        np["specialKey"] = SPECIAL_KEY_MAP.get(KeyEvent.KEYCODE_ESCAPE)
         device.sendPacket(np)
     }
 
@@ -171,8 +172,8 @@ class MousePadPlugin(context: Context, device: Device) : Plugin(context, device)
     }
 
     companion object {
-        const val PACKET_TYPE_MOUSEPAD_REQUEST: String = "kdeconnect.mousepad.request"
-        const val PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE = "kdeconnect.mousepad.keyboardstate"
+        internal const val PACKET_TYPE_MOUSEPAD_REQUEST: String = "kdeconnect.mousepad.request"
+        internal const val PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE = "kdeconnect.mousepad.keyboardstate"
     }
 }
 

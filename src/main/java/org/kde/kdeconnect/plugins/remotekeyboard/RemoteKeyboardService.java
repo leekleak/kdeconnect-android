@@ -156,7 +156,7 @@ public class RemoteKeyboardService
                 break;
             }
             case 2: { // "keyboard"
-                InputMethodManager imm = ContextCompat.getSystemService(this, InputMethodManager.class);
+                InputMethodManager imm = ContextCompat.<InputMethodManager>getSystemService(this, InputMethodManager.class);
                 imm.showInputMethodPicker();
                 break;
             }

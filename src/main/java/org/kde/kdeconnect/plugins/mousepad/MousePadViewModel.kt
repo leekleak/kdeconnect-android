@@ -19,6 +19,7 @@ import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.helpers.SPECIAL_KEY_MAP
 import org.kde.kdeconnect_tp.R
 import org.koin.core.annotation.InjectedParam
 import kotlin.math.pow
@@ -243,7 +244,7 @@ class MousePadViewModel(
             modifier = true
         }
 
-        val specialKey = MOUSE_PAD_SPECIAL_KEYS.get(event.keyCode, -1)
+        val specialKey = SPECIAL_KEY_MAP.get(event.keyCode, -1)
 
         if (specialKey != -1) {
             np["specialKey"] = specialKey

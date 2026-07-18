@@ -1,9 +1,9 @@
-package org.kde.kdeconnect.plugins.mousepad
+package org.kde.kdeconnect.helpers
 
 import android.util.SparseIntArray
 import android.view.KeyEvent
 
-val MOUSE_PAD_SPECIAL_KEYS = SparseIntArray().apply {
+val SPECIAL_KEY_MAP = SparseIntArray().apply {
     var i = 0
     put(KeyEvent.KEYCODE_DEL, ++i) // 1
     put(KeyEvent.KEYCODE_TAB, ++i) // 2
