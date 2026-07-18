@@ -6,10 +6,7 @@
 package org.kde.kdeconnect.plugins.remotekeyboard
 
 import android.content.Context
-import android.content.SharedPreferences
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.SystemClock
-import android.preference.PreferenceManager
 import android.util.Log
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
@@ -20,11 +17,9 @@ import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.helpers.SPECIAL_KEY_MAP
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect_tp.R
 import java.util.concurrent.locks.ReentrantLock
 
-class RemoteKeyboardPlugin(context: Context, device: Device) : Plugin(context, device),
-    OnSharedPreferenceChangeListener {
+class RemoteKeyboardPlugin(context: Context, device: Device) : Plugin(context, device) {
     override val pluginInfo: RemoteKeyboardPluginInfo = RemoteKeyboardPluginInfo
 
     override fun onCreate(): Boolean {
@@ -37,16 +32,8 @@ class RemoteKeyboardPlugin(context: Context, device: Device) : Plugin(context, d
         }
         if (RemoteKeyboardService.instance != null) RemoteKeyboardService.instance?.handler?.post { RemoteKeyboardService.instance?.updateInputView() }
 
-        PreferenceManager.getDefaultSharedPreferences(context)
-            .registerOnSharedPreferenceChangeListener(this)
-
-        val editingOnly = PreferenceManager.getDefaultSharedPreferences(context).getBoolean(
-            context.getString(
-                R.string.remotekeyboard_editing_only
-            ), true
-        )
         val visible = RemoteKeyboardService.instance != null && RemoteKeyboardService.instance?.visible == true
-        notifyKeyboardState(!editingOnly || visible)
+        notifyKeyboardState(visible)
 
         return true
     }
@@ -307,10 +294,7 @@ class RemoteKeyboardPlugin(context: Context, device: Device) : Plugin(context, d
             return false
         }
 
-        if (RemoteKeyboardService.instance?.visible == false &&
-            PreferenceManager.getDefaultSharedPreferences(context)
-                .getBoolean(context.getString(R.string.remotekeyboard_editing_only), true)
-        ) {
+        if (RemoteKeyboardService.instance?.visible == false) {
             Log.i("RemoteKeyboardPlugin", "Remote keyboard is currently not visible, dropping key")
             return false
         }
@@ -339,18 +323,6 @@ class RemoteKeyboardPlugin(context: Context, device: Device) : Plugin(context, d
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE)
         np["state"] = state
         device.sendPacket(np)
-    }
-
-    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, p1: String?) {
-        if (p1 == context.getString(R.string.remotekeyboard_editing_only)) {
-            val editingOnly = sharedPreferences.getBoolean(
-                context.getString(R.string.remotekeyboard_editing_only),
-                true
-            )
-            val visible =
-                RemoteKeyboardService.instance != null && RemoteKeyboardService.instance?.visible == true
-            notifyKeyboardState(!editingOnly || visible)
-        }
     }
 
     companion object {

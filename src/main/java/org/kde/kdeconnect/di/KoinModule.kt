@@ -52,8 +52,6 @@ import org.kde.kdeconnect.plugins.presenter.PresenterSettingsScreen
 import org.kde.kdeconnect.plugins.presenter.PresenterSettingsViewModel
 import org.kde.kdeconnect.plugins.receivenotifications.ReceiveNotificationsPlugin
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPlugin
-import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardSettingsScreen
-import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardSettingsViewModel
 import org.kde.kdeconnect.plugins.runcommand.RunCommandPlugin
 import org.kde.kdeconnect.plugins.runcommand.RunCommandScreen
 import org.kde.kdeconnect.plugins.runcommand.RunCommandViewModel
@@ -99,7 +97,6 @@ import org.kde.kdeconnect.ui.navigation.PairingKey
 import org.kde.kdeconnect.ui.navigation.PluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.PresenterKey
 import org.kde.kdeconnect.ui.navigation.PresenterPluginSettingsKey
-import org.kde.kdeconnect.ui.navigation.RemoteKeyboardPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.RunCommandKey
 import org.kde.kdeconnect.ui.navigation.SettingsKey
 import org.kde.kdeconnect.ui.navigation.SftpPluginSettingsKey
@@ -239,7 +236,6 @@ val pluginSettingsModule = module {
     viewModel<TelephonySettingsViewModel>()
     viewModel<ShareSettingsViewModel>()
     viewModel<PresenterSettingsViewModel>()
-    viewModel<RemoteKeyboardSettingsViewModel>()
     viewModel<NotificationSettingsViewModel>()
     navigation<PluginSettingsKey> { key ->
         PluginSettingsScreen(key.deviceId)
@@ -249,7 +245,6 @@ val pluginSettingsModule = module {
     navigation<TelephonyPluginSettingsKey> { TelephonySettingsScreen() }
     navigation<SharePluginSettingsKey> { ShareSettingsScreen() }
     navigation<PresenterPluginSettingsKey> { PresenterSettingsScreen() }
-    navigation<RemoteKeyboardPluginSettingsKey> { RemoteKeyboardSettingsScreen() }
     navigation<NotificationSettingsKey> { NotificationSettings() }
 }
 

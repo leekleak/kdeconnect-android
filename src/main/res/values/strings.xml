@@ -64,7 +64,6 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     <string name="no_permissions_remotekeyboard">To receive keypresses you need to activate the KDE Connect Remote Keyboard</string>
     <string name="send_ping">Send ping</string>
     <string name="open_mpris_controls">Multimedia control</string>
-    <string name="remotekeyboard_editing_only" translatable="false">remotekeyboard_editing_only</string>
     <string name="remotekeyboard_editing_only_title" translatable="true">Handle remote keys only when editing</string>
     <string name="remotekeyboard_not_connected" translatable="true">There is no active remote keyboard connection, establish one in kdeconnect</string>
     <string name="remotekeyboard_connected" translatable="true">Remote keyboard connection is active</string>
@@ -669,6 +668,9 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
   <string name="commands">Commands</string>
   <string name="send_text">Send text</string>
     <string name="unknown_app">Unknown app</string>
+    <string name="hide">Hide</string>
+  <string name="select_keyboard">Select Keyboard</string>
+  <string name="check_connection">Check Connection</string>
 
 
 </resources>

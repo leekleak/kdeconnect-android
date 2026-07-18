@@ -58,6 +58,4 @@ data object SharePluginSettingsKey : KdeConnectKey
 @Serializable
 data object PresenterPluginSettingsKey : KdeConnectKey
 @Serializable
-data object RemoteKeyboardPluginSettingsKey : KdeConnectKey
-@Serializable
 data object NotificationSettingsKey : KdeConnectKey
