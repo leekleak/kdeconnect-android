@@ -8,7 +8,6 @@
 package org.kde.kdeconnect.plugins.sms
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -28,6 +27,8 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 import org.kde.kdeconnect.helpers.ContactsHelper
 import org.kde.kdeconnect.helpers.SMSHelper
 import org.kde.kdeconnect.helpers.SMSHelper.MessageLooper.Companion.getLooper
@@ -39,12 +40,7 @@ import org.kde.kdeconnect.helpers.SMSHelper.getNewestMessageTimestamp
 import org.kde.kdeconnect.helpers.SMSHelper.jsonArrayToAddressList
 import org.kde.kdeconnect.helpers.SMSHelper.jsonArrayToAttachmentsList
 import org.kde.kdeconnect.helpers.ThreadHelper.execute
-import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.sms.SmsMmsUtils.partIdToMessageAttachmentPacket
-import org.kde.kdeconnect.plugins.sms.SmsMmsUtils.sendMessage
-import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin
-import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.sms.SMSPlugin.Companion.PACKET_TYPE_SMS_ATTACHMENT_FILE
 import org.kde.kdeconnect.plugins.sms.SMSPlugin.Companion.PACKET_TYPE_SMS_MESSAGE
@@ -52,12 +48,14 @@ import org.kde.kdeconnect.plugins.sms.SMSPlugin.Companion.PACKET_TYPE_SMS_REQUES
 import org.kde.kdeconnect.plugins.sms.SMSPlugin.Companion.PACKET_TYPE_SMS_REQUEST_ATTACHMENT
 import org.kde.kdeconnect.plugins.sms.SMSPlugin.Companion.PACKET_TYPE_SMS_REQUEST_CONVERSATION
 import org.kde.kdeconnect.plugins.sms.SMSPlugin.Companion.PACKET_TYPE_SMS_REQUEST_CONVERSATIONS
+import org.kde.kdeconnect.plugins.sms.SmsMmsUtils.partIdToMessageAttachmentPacket
+import org.kde.kdeconnect.plugins.sms.SmsMmsUtils.sendMessage
+import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin
 import org.kde.kdeconnect_tp.BuildConfig
 import org.kde.kdeconnect_tp.R
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
-@SuppressLint("InlinedApi")
 class SMSPlugin(
     context: Context,
     device: Device,

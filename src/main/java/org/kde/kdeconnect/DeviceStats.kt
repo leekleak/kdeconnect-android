@@ -5,12 +5,8 @@
 */
 package org.kde.kdeconnect
 
-import android.annotation.SuppressLint
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.annotation.VisibleForTesting
-import java.util.concurrent.TimeUnit
 
 object DeviceStats {
     /**
@@ -26,7 +22,6 @@ object DeviceStats {
     private val eventsByDevice: MutableMap<String, PacketStats> = HashMap<String, PacketStats>()
     private var nextCleanup = System.currentTimeMillis() + CLEANUP_INTERVAL_MILLIS
 
-    @SuppressLint("NewApi") // We use core library desugar
     fun countReceived(deviceId: String, packetType: String) {
         synchronized(DeviceStats::class.java) {
             eventsByDevice
@@ -38,7 +33,6 @@ object DeviceStats {
         cleanupIfNeeded()
     }
 
-    @SuppressLint("NewApi") // We use core library desugar
     fun countSent(deviceId: String, packetType: String, success: Boolean) {
         if (success) {
             synchronized(DeviceStats::class.java) {
@@ -109,7 +103,6 @@ object DeviceStats {
             var total: Int = 0
         )
 
-        @get:SuppressLint("NewApi") // We use core library desugar
         val summaries: Collection<Summary>
             get() {
                 val countsByType: MutableMap<String, Summary> = HashMap()

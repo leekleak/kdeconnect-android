@@ -37,7 +37,6 @@ import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.text.Charsets.UTF_8
 
-@SuppressLint("InlinedApi")
 object SMSHelper {
     private const val THUMBNAIL_HEIGHT = 100
     private const val THUMBNAIL_WIDTH = 100
@@ -104,7 +103,6 @@ object SMSHelper {
      * @param getMessagesOlderStartTime If true, get messages with timestamps before the startTimestamp. If false, get newer messages
      * @return Some messages in the requested conversation
      */
-    @SuppressLint("NewApi")
     fun getMessagesInRange(
         context: Context,
         threadID: ThreadID?,
@@ -339,7 +337,6 @@ object SMSHelper {
      * @param numberToGet Number of things to get from the result. Pass null to get all
      * @return Returns List<Message> of all messages in the return set, either in the order of sortOrder or in an unspecified order
     </Message> */
-    @SuppressLint("NewApi")
     private fun getMessages(
         uri: Uri,
         context: Context,

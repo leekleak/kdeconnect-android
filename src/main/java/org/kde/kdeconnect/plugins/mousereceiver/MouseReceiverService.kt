@@ -9,7 +9,6 @@ package org.kde.kdeconnect.plugins.mousereceiver
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
 import android.accessibilityservice.GestureDescription.StrokeDescription
-import android.annotation.SuppressLint
 import android.graphics.Path
 import android.graphics.PixelFormat
 import android.os.Build
@@ -30,7 +29,6 @@ import java.lang.ref.WeakReference
 import kotlin.math.abs
 import kotlin.math.sign
 
-@SuppressLint("AccessibilityPolicy")
 class MouseReceiverService : AccessibilityService() {
     private lateinit var cursorView: View
     private lateinit var cursorLayout: WindowManager.LayoutParams

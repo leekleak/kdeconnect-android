@@ -23,7 +23,6 @@ import androidx.core.content.ContextCompat
 /**
  * Registers a listener for changes in connectivity for the device.
  */
-@SuppressLint("MissingPermission")
 class ConnectivityListener(context: Context) {
 
     val context : Context = context.applicationContext

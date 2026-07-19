@@ -115,7 +115,6 @@ public class TelephonyHelper {
      * @param subscriptionId Subscription ID for which to get the preferred APN. Ignored for devices older than Lollypop
      * @return Null if the preferred APN can't be found or doesn't support MMS, otherwise an ApnSetting object
      */
-    @SuppressLint("InlinedApi")
     public static ApnSetting getPreferredApn(Context context, int subscriptionId) {
 
         String[] APN_PROJECTION = {

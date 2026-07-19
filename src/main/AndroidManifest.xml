@@ -213,8 +213,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
             android:excludeFromRecents="true"
             android:label="@string/pref_plugin_runcommand"
             android:launchMode="singleTask"
-            android:noHistory="true"
-            android:screenOrientation="user"/>
+            android:noHistory="true" />
 
         <service
             android:name="org.kde.kdeconnect.plugins.runcommand.CommandsRemoteViewsService"

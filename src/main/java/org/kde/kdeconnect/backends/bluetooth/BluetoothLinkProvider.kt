@@ -278,7 +278,7 @@ class BluetoothLinkProvider(
          * list of available UUIDs associated with Bluetooth devices
          * that are bluetooth-paired-but-not-yet-kde-paired
          */
-        @SuppressLint("MissingPermission")
+
         private fun discoverDeviceServices() {
             Log.i("ClientRunnable", "connectToDevices called")
             val pairedDevices = bluetoothAdapter!!.bondedDevices
