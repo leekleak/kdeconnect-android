@@ -48,7 +48,7 @@ fun FindMyPhoneScreen(
     }
 
     HazeScaffold(
-        title = stringResource(R.string.findmyphone_title),
+        title = stringResource(R.string.findmydevice_title),
         scrollState = null
     ) {
         val font = remember { googleSans(weight = 600f) }

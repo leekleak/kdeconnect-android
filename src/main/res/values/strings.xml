@@ -353,6 +353,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     <string name="pref_plugin_telepathy_desc">Send text messages from your desktop</string>
     <string name="pref_plugin_telepathy_mms">Send MMS</string>
     <string name="pref_plugin_telepathy_mms_desc">To be able to send MMS from KDE Connect you need to set it as the default SMS app.</string>
+    <string name="findmydevice_title">Find my device</string>
     <string name="findmyphone_title">Find my phone</string>
     <string name="findmyphone_title_tablet">Find my tablet</string>
     <string name="findmyphone_title_tv">Find my TV</string>

@@ -63,7 +63,7 @@ class SMSPlugin(
     device: Device,
     val telephonySettings: TelephonySettingsDataStore
 ) : Plugin(context, device) {
-    override val pluginInfo: PluginInfo = SMSPluginInfo
+    override val pluginInfo: SMSPluginInfo = SMSPluginInfo
 
     private val receiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -248,7 +248,7 @@ class SMSPlugin(
             context.registerReceiver(
                 messagesUpdateReceiver,
                 refreshFilter,
-                ContextCompat.RECEIVER_EXPORTED
+                Context.RECEIVER_EXPORTED
             )
 
             context.contentResolver.registerContentObserver(

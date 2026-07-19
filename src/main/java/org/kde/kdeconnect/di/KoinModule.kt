@@ -294,7 +294,7 @@ val appModule = module {
         scoped { ClipboardPlugin(get(), get()) }
         scoped { ConnectivityReportPlugin(get(), get()) }
         scoped { ContactsPlugin(get(), get()) }
-        scoped { FindMyPhonePlugin(get(), get(), get(), get()) }
+        scoped { FindMyPhonePlugin(get(), get(), get()) }
         scoped { FindRemoteDevicePlugin(get(), get()) }
         scoped { InputDevicesReceiverPlugin(get(), get()) }
         scoped { MousePadPlugin(get(), get()) }
