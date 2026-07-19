@@ -7,7 +7,6 @@ package org.kde.kdeconnect.plugins.sftp.saf
 
 import android.content.Context
 import android.net.Uri
-import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract
 import android.util.Log

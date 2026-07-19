@@ -2,7 +2,6 @@ package org.kde.kdeconnect.helpers
 
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.drawable.Drawable
 import coil3.ImageLoader
 import coil3.asImage
 import coil3.decode.DataSource

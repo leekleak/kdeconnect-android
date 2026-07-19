@@ -1,6 +1,5 @@
 package org.kde.kdeconnect.helpers
 
-import android.content.Context
 import org.kde.kdeconnect.DeviceHost
 import org.kde.kdeconnect.datastore.ConnectionsSettingsDataStore
 import org.koin.core.component.KoinComponent

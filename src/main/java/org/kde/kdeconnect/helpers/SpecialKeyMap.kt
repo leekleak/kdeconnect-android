@@ -1,6 +1,5 @@
 package org.kde.kdeconnect.helpers
 
-import android.util.SparseIntArray
 import android.view.KeyEvent
 
 // Values 2 to and 17-20 are unused

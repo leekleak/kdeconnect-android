@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import java.io.File
+import androidx.core.net.toUri
 
 data class ShareSettingsUiState(
     val customDestinationEnabled: Boolean = false,
@@ -50,7 +51,7 @@ class ShareSettingsViewModel(
         val notificationEnabled = prefs.getBoolean(PREFERENCE_NOTIFICATION, true)
 
         val summary = if (customEnabled && folderUri != null) {
-            Uri.parse(folderUri).path ?: folderUri
+            folderUri.toUri().path ?: folderUri
         } else {
             getDefaultDestinationDirectory().absolutePath
         }

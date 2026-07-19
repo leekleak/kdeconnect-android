@@ -1,9 +1,7 @@
 package org.kde.kdeconnect.ui.compose.screen.settings.advanced.filesystem
 
 import android.app.Application
-import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel

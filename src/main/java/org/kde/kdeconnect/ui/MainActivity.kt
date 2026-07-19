@@ -172,10 +172,6 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-    }
-
     private fun onPairResultFromNotification(deviceId: String?, pairStatus: String): String? {
         // TODO: Reimplement this
         assert(deviceId != null)

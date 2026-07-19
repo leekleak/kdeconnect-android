@@ -8,9 +8,7 @@ package org.kde.kdeconnect.plugins.clipboard
 
 import android.app.PendingIntent
 import android.content.Intent
-import android.os.Build
 import android.service.quicksettings.TileService
-import androidx.annotation.RequiresApi
 import androidx.core.service.quicksettings.PendingIntentActivityWrapper
 import androidx.core.service.quicksettings.TileServiceCompat
 import org.kde.kdeconnect.KdeConnect

@@ -1,14 +1,11 @@
 package org.kde.kdeconnect.plugins.findmyphone
 
 import android.Manifest
-import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import android.provider.Settings
 import androidx.fragment.app.DialogFragment
-import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.plugins.PluginInfo
-import org.kde.kdeconnect.ui.AlertDialogFragment
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.StartActivityAlertDialogFragment
 import org.kde.kdeconnect_tp.R

@@ -7,13 +7,8 @@ package org.kde.kdeconnect.ui
 
 import android.content.Context
 import android.os.Bundle
-import androidx.fragment.app.FragmentActivity
 import androidx.preference.PreferenceFragmentCompat
-import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.KdeConnect.Companion.getInstance
-import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginFactory
-import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import org.kde.kdeconnect_tp.R
 
 open class PluginSettingsFragment : PreferenceFragmentCompat() {

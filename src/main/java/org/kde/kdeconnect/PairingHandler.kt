@@ -122,7 +122,7 @@ class PairingHandler(
     fun verificationKey(): String? {
         return if (device.protocolVersion >= 8) {
             if (state != PairState.Requested && state != PairState.RequestedByPeer) {
-                return null
+                null
             } else {
                 getVerificationKey(SslHelper.certificate, device.certificate, pairingTimestamp)
             }
