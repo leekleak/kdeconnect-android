@@ -60,7 +60,7 @@ class DeviceViewModel(
             viewModelScope.launch { refreshUI() }
         }
 
-        override fun pairingFailed(error: String) {
+        override fun pairingFailed(error: Int) {
             viewModelScope.launch { refreshUI() }
         }
 

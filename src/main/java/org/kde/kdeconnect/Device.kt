@@ -113,7 +113,7 @@ class Device : PacketReceiver, KoinComponent {
     internal constructor(context: Context, deviceId: String) {
         this.context = context
         this.deviceInfo = loadFromSettings(context, deviceId)
-        this.pairingHandler = PairingHandler(this, context, createDefaultPairingCallback(), PairingHandler.PairState.Paired)
+        this.pairingHandler = PairingHandler(this, createDefaultPairingCallback(), PairingHandler.PairState.Paired)
         this.koinScope = getKoin().getOrCreateScope(deviceId, named<Device>(), this)
         this.supportedPlugins = Vector(PluginFactory.availablePlugins) // Assume all are supported until we receive capabilities
         Log.i("Device", "Loading trusted device: ${deviceInfo.name}")
@@ -127,7 +127,7 @@ class Device : PacketReceiver, KoinComponent {
     internal constructor(context: Context, link: BaseLink) {
         this.context = context
         this.deviceInfo = link.deviceInfo
-        this.pairingHandler = PairingHandler(this, context, createDefaultPairingCallback(), PairingHandler.PairState.NotPaired)
+        this.pairingHandler = PairingHandler(this, createDefaultPairingCallback(), PairingHandler.PairState.NotPaired)
         this.koinScope = getKoin().getOrCreateScope(deviceId, named<Device>(), this)
         this.supportedPlugins = Vector(PluginFactory.availablePlugins) // Assume all are supported until we receive capabilities
         Log.i("Device", "Creating untrusted device: " + deviceInfo.name)
@@ -226,7 +226,7 @@ class Device : PacketReceiver, KoinComponent {
                 }
             }
 
-            override fun pairingFailed(error: String) {
+            override fun pairingFailed(error: Int) {
                 hidePairingNotification()
                 pairingCallbacks.forEach { it.pairingFailed(error) }
             }

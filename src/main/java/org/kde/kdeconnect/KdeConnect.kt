@@ -167,7 +167,7 @@ class KdeConnect : Application() {
             onDeviceListChanged()
         }
 
-        override fun pairingFailed(error: String) {
+        override fun pairingFailed(error: Int) {
             onDeviceListChanged()
         }
 
