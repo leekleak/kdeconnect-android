@@ -11,7 +11,7 @@ object SharePluginInfo : PluginInfo(
     descriptionRes = R.string.pref_plugin_sharereceiver_desc,
     supportedPacketTypes = arrayOf("kdeconnect.share.request", "kdeconnect.share.request.update"),
     outgoingPacketTypes = arrayOf("kdeconnect.share.request"),
-    optionalPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    requiredPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         arrayOf(Manifest.permission.POST_NOTIFICATIONS)
     } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
         emptyArray()

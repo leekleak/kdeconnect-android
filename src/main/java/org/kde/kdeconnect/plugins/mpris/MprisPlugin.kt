@@ -499,7 +499,7 @@ object MprisPluginSettings: PluginInfo(
     instantiableClass = MprisPlugin::class.java,
     displayNameRes = R.string.pref_plugin_mpris,
     descriptionRes = R.string.pref_plugin_mpris_desc,
-    optionalPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    requiredPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         arrayOf(Manifest.permission.POST_NOTIFICATIONS)
     } else {
         arrayOf()

@@ -30,7 +30,6 @@ data class DeviceUiState(
     val verificationKey: String? = null,
     val pluginsWithButtons: List<Plugin.PluginUiButton> = emptyList(),
     val pluginsNeedPermissions: List<Plugin> = emptyList(),
-    val pluginsNeedOptionalPermissions: List<Plugin> = emptyList(),
     val batterySubtitle: String? = null,
     val isRefreshing: Boolean = false
 )
@@ -47,82 +46,43 @@ class DeviceViewModel(
     private val device: Device?
         get() = KdeConnect.getInstance().getDevice(deviceId)
 
-    private val pluginsChangedListener = Device.PluginsChangedListener {
-        viewModelScope.launch { refreshUI() }
-    }
-
-    private val pairingCallback = object : PairingHandler.PairingCallback {
-        override fun incomingPairRequest() {
-            viewModelScope.launch { refreshUI() }
-        }
-
-        override fun pairingSuccessful() {
-            viewModelScope.launch { refreshUI() }
-        }
-
-        override fun pairingFailed(error: Int) {
-            viewModelScope.launch { refreshUI() }
-        }
-
-        override fun unpaired(device: Device) {
-            viewModelScope.launch { refreshUI() }
-        }
-    }
-
     init {
-        device?.apply {
-            addPairingCallback(pairingCallback)
-            addPluginsChangedListener(pluginsChangedListener)
-        }
-        refreshUI()
-    }
+        viewModelScope.launch {
+            device?.let { device ->
+                device.state.collect { deviceState ->
+                    val pluginsWithButtons = deviceState.loadedPlugins.values.flatMap { it.getUiButtons() }
+                    val pluginsNeedPermissions = deviceState.pluginsWithoutPermissions.values.filter { device.isPluginEnabled(it.pluginKey) }
 
-    override fun onCleared() {
-        device?.apply {
-            removePairingCallback(pairingCallback)
-            removePluginsChangedListener(pluginsChangedListener)
-        }
-    }
-
-    fun refreshUI() {
-        val device = device ?: return
-        
-        val pluginsWithButtons = device.loadedPlugins.values.flatMap { it.getUiButtons() }
-        val pluginsNeedPermissions = device.pluginsWithoutPermissions.values.filter { device.isPluginEnabled(it.pluginKey) }
-        val pluginsNeedOptionalPermissions = device.pluginsWithoutOptionalPermissions.values.filter { device.isPluginEnabled(it.pluginKey) }
-
-        _uiState.update { state ->
-            state.copy(
-                deviceName = device.name,
-                pairStatus = device.pairStatus,
-                isReachable = device.isReachable,
-                verificationKey = device.verificationKey,
-                pluginsWithButtons = pluginsWithButtons,
-                pluginsNeedPermissions = pluginsNeedPermissions,
-                pluginsNeedOptionalPermissions = pluginsNeedOptionalPermissions,
-                batterySubtitle = deviceHelper.getBatterySubtitle(getApplication<Application>().applicationContext, device),
-            )
+                    _uiState.update { state ->
+                        state.copy(
+                            deviceName = deviceState.deviceInfo.name,
+                            pairStatus = deviceState.pairStatus,
+                            isReachable = deviceState.isReachable,
+                            verificationKey = deviceState.verificationKey,
+                            pluginsWithButtons = pluginsWithButtons,
+                            pluginsNeedPermissions = pluginsNeedPermissions,
+                            batterySubtitle = deviceHelper.getBatterySubtitle(getApplication<Application>().applicationContext, device),
+                        )
+                    }
+                }
+            }
         }
     }
 
     fun requestPairing() {
         device?.requestPairing()
-        refreshUI()
     }
 
     fun acceptPairing() {
         device?.acceptPairing()
-        refreshUI()
     }
 
     fun cancelPairing() {
         device?.cancelPairing()
-        refreshUI()
     }
 
     fun unpair() {
         device?.unpair()
-        refreshUI()
     }
 
     fun refreshDevicesAction() {

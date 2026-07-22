@@ -12,7 +12,12 @@ import android.os.StrictMode.ThreadPolicy
 import android.os.StrictMode.VmPolicy
 import android.util.Log
 import androidx.annotation.WorkerThread
-import org.kde.kdeconnect.PairingHandler.PairingCallback
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.snapshots.SnapshotStateMap
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLinkProvider.ConnectionReceiver
 import org.kde.kdeconnect.di.appModule
@@ -44,11 +49,21 @@ import java.util.concurrent.ConcurrentHashMap
 class KdeConnect : Application() {
     private val deviceHelper: DeviceHelper by inject()
 
+    val jobScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     fun interface DeviceListChangedCallback {
         fun onDeviceListChanged()
     }
 
-    val devices: ConcurrentHashMap<String, Device> = ConcurrentHashMap()
+    val devices: SnapshotStateMap<String, Device> = SnapshotStateMap()
+
+    init {
+        jobScope.launch {
+            snapshotFlow { devices }.collect {
+                onDeviceListChanged()
+            }
+        }
+    }
 
     private val deviceListChangedCallbacks = ConcurrentHashMap<String, DeviceListChangedCallback>()
 
@@ -147,7 +162,6 @@ class KdeConnect : Application() {
                         throw CertificateException("Certificate already expired: "+x509Cert.notAfter)
                     }
                     devices[it] = device
-                    device.addPairingCallback(devicePairingCallback)
                 } catch (e: CertificateException) {
                     Log.w(
                         "KdeConnect",
@@ -156,27 +170,6 @@ class KdeConnect : Application() {
                     TrustedDevices.removeTrustedDevice(this, it)
                 }
             }
-    }
-
-    private val devicePairingCallback: PairingCallback = object : PairingCallback {
-        override fun incomingPairRequest() {
-            onDeviceListChanged()
-        }
-
-        override fun pairingSuccessful() {
-            onDeviceListChanged()
-        }
-
-        override fun pairingFailed(error: Int) {
-            onDeviceListChanged()
-        }
-
-        override fun unpaired(device: Device) {
-            onDeviceListChanged()
-            if (!device.isReachable) {
-                scheduleForDeletion(device)
-            }
-        }
     }
 
     val connectionListener: ConnectionReceiver = object : ConnectionReceiver {
@@ -188,7 +181,6 @@ class KdeConnect : Application() {
             } else {
                 device = Device(this@KdeConnect, link)
                 devices[link.deviceId] = device
-                device.addPairingCallback(devicePairingCallback)
             }
             onDeviceListChanged()
         }
@@ -243,7 +235,6 @@ class KdeConnect : Application() {
                 return@execute
             }
             Log.i("KdeConnect", "Deleting unpaired and unreachable device: $device")
-            device.removePairingCallback(devicePairingCallback)
             devices.remove(device.deviceId)
         }
     }

@@ -107,10 +107,12 @@ class DeviceTest {
     @Throws(CertificateException::class)
     fun testDeviceInfoToIdentityPacket() {
         val deviceId = "testDevice"
-        val deviceInfo = loadFromSettings(context, deviceId)
-        deviceInfo.protocolVersion = DeviceHelper.PROTOCOL_VERSION
-        deviceInfo.incomingCapabilities = hashSetOf("kdeconnect.plugin1State", "kdeconnect.plugin2State")
-        deviceInfo.outgoingCapabilities = hashSetOf("kdeconnect.plugin1State.request", "kdeconnect.plugin2State.request")
+        val deviceInfo = loadFromSettings(context, deviceId).copy(
+            protocolVersion = DeviceHelper.PROTOCOL_VERSION,
+            incomingCapabilities = hashSetOf("kdeconnect.plugin1State", "kdeconnect.plugin2State"),
+            outgoingCapabilities = hashSetOf("kdeconnect.plugin1State.request", "kdeconnect.plugin2State.request")
+        )
+
 
         val networkPacket = deviceInfo.toIdentityPacket()
         Assert.assertEquals(deviceInfo.id, networkPacket.getString("deviceId"))
@@ -247,7 +249,6 @@ class DeviceTest {
     fun testUnpair() {
         val pairingCallback = mockk<PairingCallback>(relaxed = true)
         val device = Device(context, "testDevice")
-        device.addPairingCallback(pairingCallback)
 
         device.unpair()
 

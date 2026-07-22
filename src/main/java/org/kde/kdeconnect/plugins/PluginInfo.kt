@@ -9,7 +9,6 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.plugins.Plugin.Companion.getPluginKey
-import org.kde.kdeconnect.ui.AlertDialogFragment
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.PermissionExplanationActivity
 import org.kde.kdeconnect.ui.PermissionsAlertDialogFragment
@@ -21,7 +20,6 @@ open class PluginInfo(
     @StringRes val descriptionRes: Int,
     val isEnabledByDefault: Boolean = true,
     val requiredPermissions: Array<String> = emptyArray(),
-    val optionalPermissions: Array<String> = emptyArray(),
     supportedPacketTypes: Array<String> = emptyArray(),
     outgoingPacketTypes: Array<String> = emptyArray(),
 ) {
@@ -47,10 +45,6 @@ open class PluginInfo(
     open fun getPermissionExplanationDialog(context: Context): DialogFragment
             = requestPermissionDialog(context, requiredPermissions, permissionExplanation)
 
-    open fun getOptionalPermissionExplanationDialog(context: Context): AlertDialogFragment
-            = requestPermissionDialog(context, optionalPermissions, optionalPermissionExplanation)
-
-
     /**
      * Returns the string to display before asking for the required permissions for the plugin.
      */
@@ -70,10 +64,6 @@ open class PluginInfo(
 
     open fun checkRequiredPermissions(context: Context): Boolean {
         return arePermissionsGranted(context, requiredPermissions)
-    }
-
-    open fun checkOptionalPermissions(context: Context): Boolean {
-        return arePermissionsGranted(context, optionalPermissions)
     }
 
     /**

@@ -24,11 +24,11 @@ import androidx.core.content.edit
 data class DeviceInfo(
     @JvmField val id: String,
     @JvmField val certificate: Certificate,
-    @JvmField var name: String,
-    @JvmField var type: DeviceType,
-    @JvmField var protocolVersion: Int = 0,
-    @JvmField var incomingCapabilities: Set<String>? = null,
-    @JvmField var outgoingCapabilities: Set<String>? = null,
+    @JvmField val name: String,
+    @JvmField val type: DeviceType,
+    @JvmField val protocolVersion: Int = 0,
+    @JvmField val incomingCapabilities: Set<String>? = null,
+    @JvmField val outgoingCapabilities: Set<String>? = null,
 ) {
 
     /**

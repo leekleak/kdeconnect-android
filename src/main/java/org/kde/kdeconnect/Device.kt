@@ -23,7 +23,14 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.apache.commons.collections4.MultiValuedMap
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap
@@ -47,19 +54,39 @@ import org.koin.core.scope.Scope
 import java.io.IOException
 import java.security.cert.Certificate
 import java.util.Vector
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.CopyOnWriteArrayList
 
 class Device : PacketReceiver, KoinComponent {
 
     data class NetworkPacketWithCallback(val np : NetworkPacket, val callback: SendPacketStatusCallback)
+    val jobScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    private fun launchPairStateSync() {
+        jobScope.launch {
+            combine(pairingHandler.state, pairingHandler.verificationKey) { a, b ->
+                a to b
+            }.collect { (pairStatus, verificationKey) ->
+                updateState { it.copy(pairStatus = pairStatus, verificationKey = verificationKey) }
+            }
+        }
+    }
+
+    private val _state: MutableStateFlow<DeviceState>
+    val state: StateFlow<DeviceState>
+    private fun updateState(transform: (DeviceState) -> DeviceState) = _state.update(transform)
+
+    val deviceId: String get() = state.value.deviceInfo.id
+    val certificate: Certificate get() = state.value.deviceInfo.certificate
+    val deviceInfo: DeviceInfo get() = state.value.deviceInfo
+    val loadedPlugins: Map<String, Plugin> get() = state.value.loadedPlugins
+    val supportedPlugins: List<String> get() = state.value.supportedPlugins
+    val pluginsWithoutPermissions: Map<String, Plugin> get() = state.value.pluginsWithoutPermissions
+    val isReachable: Boolean get() = state.value.isReachable
+    val verificationKey: String? get() = state.value.verificationKey
 
     private val context: Context
 
     val koinScope: Scope
-
-    val deviceInfo: DeviceInfo
 
     /**
      * The notification ID for the pairing notification.
@@ -74,33 +101,10 @@ class Device : PacketReceiver, KoinComponent {
     private val links = CopyOnWriteArrayList<BaseLink>()
 
     /**
-     * Plugins that have matching capabilities.
-     */
-    var supportedPlugins: List<String>
-        private set
-
-    /**
-     * Plugins that have been instantiated successfully. A subset of supportedPlugins.
-     */
-    val loadedPlugins: ConcurrentMap<String, Plugin> = ConcurrentHashMap()
-
-    /**
-     * Plugins that have not been instantiated because of missing permissions.
-     * The supportedPlugins that aren't in loadedPlugins will be here.
-     */
-    val pluginsWithoutPermissions: ConcurrentMap<String, Plugin> = ConcurrentHashMap()
-
-    /**
-     * Subset of loadedPlugins that, despite being able to run, will have some limitation because of missing permissions.
-     */
-    val pluginsWithoutOptionalPermissions: ConcurrentMap<String, Plugin> = ConcurrentHashMap()
-
-    /**
      * Same as loadedPlugins but indexed by incoming packet type
      */
     private var pluginsByIncomingInterface: MultiValuedMap<String, String> = ArrayListValuedHashMap()
 
-    private val pairingCallbacks = CopyOnWriteArrayList<PairingCallback>()
     private val pluginsChangedListeners = CopyOnWriteArrayList<PluginsChangedListener>()
 
     private val sendChannel = Channel<NetworkPacketWithCallback>(Channel.UNLIMITED)
@@ -112,10 +116,21 @@ class Device : PacketReceiver, KoinComponent {
      */
     internal constructor(context: Context, deviceId: String) {
         this.context = context
-        this.deviceInfo = loadFromSettings(context, deviceId)
+        val deviceInfo = loadFromSettings(context, deviceId)
+        val supportedPlugins = Vector(PluginFactory.availablePlugins) // Assume all are supported until we receive capabilities
+        this._state = MutableStateFlow(DeviceState(
+            deviceInfo = deviceInfo,
+            pairStatus = PairingHandler.PairState.Paired,
+            isReachable = false,
+            verificationKey = null,
+            loadedPlugins = emptyMap(),
+            pluginsWithoutPermissions = emptyMap(),
+            supportedPlugins = supportedPlugins
+        ))
+        this.state = _state.asStateFlow()
         this.pairingHandler = PairingHandler(this, createDefaultPairingCallback(), PairingHandler.PairState.Paired)
         this.koinScope = getKoin().getOrCreateScope(deviceId, named<Device>(), this)
-        this.supportedPlugins = Vector(PluginFactory.availablePlugins) // Assume all are supported until we receive capabilities
+        launchPairStateSync()
         Log.i("Device", "Loading trusted device: ${deviceInfo.name}")
     }
 
@@ -126,10 +141,21 @@ class Device : PacketReceiver, KoinComponent {
      */
     internal constructor(context: Context, link: BaseLink) {
         this.context = context
-        this.deviceInfo = link.deviceInfo
+        val deviceInfo = link.deviceInfo
+        val supportedPlugins = Vector(PluginFactory.availablePlugins) // Assume all are supported until we receive capabilities
+        this._state = MutableStateFlow(DeviceState(
+            deviceInfo = deviceInfo,
+            pairStatus = PairingHandler.PairState.NotPaired,
+            isReachable = false,
+            verificationKey = null,
+            loadedPlugins = emptyMap(),
+            pluginsWithoutPermissions = emptyMap(),
+            supportedPlugins = supportedPlugins
+        ))
+        this.state = _state.asStateFlow()
         this.pairingHandler = PairingHandler(this, createDefaultPairingCallback(), PairingHandler.PairState.NotPaired)
-        this.koinScope = getKoin().getOrCreateScope(deviceId, named<Device>(), this)
-        this.supportedPlugins = Vector(PluginFactory.availablePlugins) // Assume all are supported until we receive capabilities
+        this.koinScope = getKoin().getOrCreateScope(deviceInfo.id, named<Device>(), this)
+        launchPairStateSync()
         Log.i("Device", "Creating untrusted device: " + deviceInfo.name)
         addLink(link)
     }
@@ -160,30 +186,16 @@ class Device : PacketReceiver, KoinComponent {
     val protocolVersion: Int
         get() = deviceInfo.protocolVersion
 
-    val deviceId: String
-        get() = deviceInfo.id
-
-    val certificate: Certificate
-        get() = deviceInfo.certificate
-
-    val verificationKey: String?
-        get() = pairingHandler.verificationKey()
-
     // Returns 0 if the version matches, < 0 if it is older or > 0 if it is newer
     fun compareProtocolVersion(): Int =
         deviceInfo.protocolVersion - DeviceHelper.PROTOCOL_VERSION
 
     val isPaired: Boolean
-        get() = pairingHandler.state == PairingHandler.PairState.Paired
+        get() = state.value.pairStatus == PairingHandler.PairState.Paired
 
-    val pairStatus : PairingHandler.PairState
-        get() = pairingHandler.state
-
-    fun addPairingCallback(callback: PairingCallback) = pairingCallbacks.add(callback)
-
-    fun removePairingCallback(callback: PairingCallback) = pairingCallbacks.remove(callback)
-
-    fun requestPairing() = pairingHandler.requestPairing()
+    fun requestPairing() {
+        pairingHandler.requestPairing()
+    }
 
     fun unpair() = pairingHandler.unpair()
 
@@ -203,7 +215,6 @@ class Device : PacketReceiver, KoinComponent {
         return object : PairingCallback {
             override fun incomingPairRequest() {
                 displayPairingNotification()
-                pairingCallbacks.forEach(PairingCallback::incomingPairRequest)
             }
 
             override fun pairingSuccessful() {
@@ -219,8 +230,6 @@ class Device : PacketReceiver, KoinComponent {
 
                 try {
                     reloadPluginsFromSettings()
-
-                    pairingCallbacks.forEach(PairingCallback::pairingSuccessful)
                 } catch (e: Exception) {
                     Log.e("Device", "Exception in pairingSuccessful. Not unpairing because saving the trusted device succeeded", e)
                 }
@@ -228,7 +237,6 @@ class Device : PacketReceiver, KoinComponent {
 
             override fun pairingFailed(error: Int) {
                 hidePairingNotification()
-                pairingCallbacks.forEach { it.pairingFailed(error) }
             }
 
             override fun unpaired(device: Device) {
@@ -239,8 +247,6 @@ class Device : PacketReceiver, KoinComponent {
                 notifyPluginsOfDeviceUnpaired(context, deviceInfo.id)
 
                 reloadPluginsFromSettings()
-
-                pairingCallbacks.forEach { it.unpaired(this@Device) }
             }
         }
     }
@@ -311,9 +317,6 @@ class Device : PacketReceiver, KoinComponent {
         notificationManager.cancel(notificationId)
     }
 
-    val isReachable: Boolean
-        get() = links.isNotEmpty()
-
     fun addLink(link: BaseLink) {
         synchronized(sendChannel) {
             if (sendCoroutine == null) {
@@ -334,6 +337,8 @@ class Device : PacketReceiver, KoinComponent {
 
         link.addPacketReceiver(this)
 
+        updateState { it.copy(isReachable = true) }
+
         val hasChanges = updateDeviceInfo(link.deviceInfo)
 
         if (hasChanges || links.size == 1) {
@@ -352,6 +357,7 @@ class Device : PacketReceiver, KoinComponent {
             "removeLink: ${link.linkProvider.name} -> $name active links: ${links.size}"
         )
         if (links.isEmpty()) {
+            updateState { it.copy(isReachable = false) }
             reloadPluginsFromSettings()
             synchronized(sendChannel) {
                 sendCoroutine?.cancel(CancellationException("Device disconnected"))
@@ -362,20 +368,24 @@ class Device : PacketReceiver, KoinComponent {
 
     fun updateDeviceInfo(newDeviceInfo: DeviceInfo): Boolean {
         var hasChanges = false
-        if (deviceInfo.name != newDeviceInfo.name || deviceInfo.type != newDeviceInfo.type || deviceInfo.protocolVersion != newDeviceInfo.protocolVersion) {
+        val currentInfo = deviceInfo
+
+        var updatedInfo = currentInfo
+        if (currentInfo.name != newDeviceInfo.name || currentInfo.type != newDeviceInfo.type || currentInfo.protocolVersion != newDeviceInfo.protocolVersion) {
             hasChanges = true
-            deviceInfo.name = newDeviceInfo.name
-            deviceInfo.type = newDeviceInfo.type
-            deviceInfo.protocolVersion = newDeviceInfo.protocolVersion
-            if (isPaired) {
-                deviceInfo.saveInSettings(context)
-            }
+            updatedInfo = updatedInfo.copy(
+                name = newDeviceInfo.name,
+                type = newDeviceInfo.type,
+                protocolVersion = newDeviceInfo.protocolVersion
+            )
         }
 
-        val oldIncomingCapabilities = deviceInfo.incomingCapabilities
-        val oldOutgoingCapabilities = deviceInfo.outgoingCapabilities
+        val oldIncomingCapabilities = currentInfo.incomingCapabilities
+        val oldOutgoingCapabilities = currentInfo.outgoingCapabilities
         val newIncomingCapabilities = newDeviceInfo.incomingCapabilities
         val newOutgoingCapabilities = newDeviceInfo.outgoingCapabilities
+        var updatedSupportedPlugins: List<String>? = null
+
         if (
             !newIncomingCapabilities.isNullOrEmpty() &&
             !newOutgoingCapabilities.isNullOrEmpty() &&
@@ -386,14 +396,26 @@ class Device : PacketReceiver, KoinComponent {
         ) {
             hasChanges = true
             Log.i("updateDeviceInfo", "Updating supported plugins according to new capabilities")
-            deviceInfo.outgoingCapabilities = newOutgoingCapabilities
-            deviceInfo.incomingCapabilities = newIncomingCapabilities
-            supportedPlugins = Vector(
-                PluginFactory.pluginsForCapabilities(
-                    newIncomingCapabilities,
-                    newOutgoingCapabilities
-                )
+            updatedInfo = updatedInfo.copy(
+                outgoingCapabilities = newOutgoingCapabilities,
+                incomingCapabilities = newIncomingCapabilities
             )
+            updatedSupportedPlugins = PluginFactory.pluginsForCapabilities(
+                newIncomingCapabilities,
+                newOutgoingCapabilities
+            ).toList()
+        }
+
+        if (hasChanges) {
+            updateState { state ->
+                state.copy(
+                    deviceInfo = updatedInfo,
+                    supportedPlugins = updatedSupportedPlugins ?: state.supportedPlugins
+                )
+            }
+            if (isPaired) {
+                updatedInfo.saveInSettings(context)
+            }
         }
 
         return hasChanges
@@ -547,68 +569,6 @@ class Device : PacketReceiver, KoinComponent {
         return loadedPlugins[pluginKey] ?: pluginsWithoutPermissions[pluginKey]
     }
 
-    // Helper function for reloadPluginsFromSettings(), do not call from elsewhere
-    private fun addPlugin(pluginKey: String): Boolean {
-        val isNewPlugin = !loadedPlugins.containsKey(pluginKey)
-
-        val plugin = loadedPlugins[pluginKey]
-            ?: PluginFactory.instantiatePluginForDevice(context, pluginKey, this)
-                ?: return false
-
-        if (!plugin.isCompatible) {
-            Log.d("KDE/addPlugin", "Minimum requirements (e.g. API level) not fulfilled $pluginKey")
-            return false
-        }
-
-        val requiredPermissionsGranted = plugin.preferences?.let {
-            plugin.pluginInfo.checkRequiredPermissions(it, context)
-        } ?: plugin.pluginInfo.checkRequiredPermissions(context)
-
-        if (!requiredPermissionsGranted) {
-            Log.d("KDE/addPlugin", "No permission $pluginKey")
-            pluginsWithoutPermissions[pluginKey] = plugin
-            loadedPlugins[pluginKey] = plugin
-        } else {
-            Log.d("KDE/addPlugin", "Permissions OK $pluginKey")
-            loadedPlugins[pluginKey] = plugin
-            pluginsWithoutPermissions.remove(pluginKey)
-            
-            val optionalPermissionsGranted = plugin.pluginInfo.checkOptionalPermissions(context)
-            
-            if (optionalPermissionsGranted) {
-                Log.d("KDE/addPlugin", "Optional Permissions OK $pluginKey")
-                pluginsWithoutOptionalPermissions.remove(pluginKey)
-            } else {
-                Log.d("KDE/addPlugin", "No optional permission $pluginKey")
-                pluginsWithoutOptionalPermissions[pluginKey] = plugin
-            }
-        }
-
-        if (!isNewPlugin) {
-            return true
-        }
-
-        return runCatching {
-            plugin.onCreate()
-        }.onFailure {
-            Log.e("KDE/addPlugin", "plugin failed to load $pluginKey", it)
-        }.getOrDefault(false)
-    }
-
-    // Helper function for reloadPluginsFromSettings(), do not call from elsewhere
-    private fun removePlugin(pluginKey: String): Boolean {
-        val plugin = loadedPlugins.remove(pluginKey) ?: return false
-
-        try {
-            plugin.onDestroy()
-            // Log.e("removePlugin","removed " + pluginKey);
-        } catch (e: Exception) {
-            Log.e("KDE/removePlugin", "Exception calling onDestroy for plugin $pluginKey", e)
-        }
-
-        return true
-    }
-
     fun setPluginEnabled(pluginKey: String, value: Boolean) {
         TrustedDevices.getDeviceSettings(context, deviceId).edit { putBoolean(pluginKey, value) }
         reloadPluginsFromSettings()
@@ -643,19 +603,58 @@ class Device : PacketReceiver, KoinComponent {
         Log.i("Device", "${deviceInfo.name}: reloading plugins")
         val newPluginsByIncomingInterface: MultiValuedMap<String, String> = ArrayListValuedHashMap()
 
+        val oldLoadedPlugins = loadedPlugins
+        val newLoadedPlugins = mutableMapOf<String, Plugin>()
+        val newPluginsWithoutPermissions = mutableMapOf<String, Plugin>()
+
         supportedPlugins.forEach { pluginKey ->
             val pluginInfo = PluginFactory.getPluginInfo(pluginKey)
 
             val pluginEnabled = isPaired && this.isReachable && isPluginEnabled(pluginKey)
 
-            if (pluginEnabled && addPlugin(pluginKey)) {
-                pluginInfo.supportedPacketTypes.forEach { packetType ->
-                    newPluginsByIncomingInterface.put(packetType, pluginKey)
+            if (pluginEnabled) {
+                val isNewPlugin = !oldLoadedPlugins.containsKey(pluginKey)
+                val plugin = oldLoadedPlugins[pluginKey]
+                    ?: PluginFactory.instantiatePluginForDevice(context, pluginKey, this)
+
+                if (plugin != null && plugin.isCompatible) {
+                    val requiredPermissionsGranted = plugin.preferences?.let {
+                        plugin.pluginInfo.checkRequiredPermissions(it, context)
+                    } ?: plugin.pluginInfo.checkRequiredPermissions(context)
+
+                    newLoadedPlugins[pluginKey] = plugin
+                    if (!requiredPermissionsGranted) {
+                        newPluginsWithoutPermissions[pluginKey] = plugin
+                    }
+
+                    if (isNewPlugin) {
+                        runCatching { plugin.onCreate() }.onFailure {
+                            Log.e("KDE/addPlugin", "plugin failed to load $pluginKey", it)
+                        }
+                    }
+
+                    pluginInfo.supportedPacketTypes.forEach { packetType ->
+                        newPluginsByIncomingInterface.put(packetType, pluginKey)
+                    }
                 }
-            } else {
-                removePlugin(pluginKey)
             }
         }
+
+        // Handle onDestroy for plugins that are no longer loaded
+        oldLoadedPlugins.forEach { (pluginKey, plugin) ->
+            if (!newLoadedPlugins.containsKey(pluginKey)) {
+                try {
+                    plugin.onDestroy()
+                } catch (e: Exception) {
+                    Log.e("KDE/removePlugin", "Exception calling onDestroy for plugin $pluginKey", e)
+                }
+            }
+        }
+
+        updateState { it.copy(
+            loadedPlugins = newLoadedPlugins,
+            pluginsWithoutPermissions = newPluginsWithoutPermissions,
+        ) }
 
         pluginsByIncomingInterface = newPluginsByIncomingInterface
 
@@ -673,6 +672,7 @@ class Device : PacketReceiver, KoinComponent {
     }
 
     fun close() {
+        jobScope.cancel()
         koinScope.close()
     }
 
@@ -691,3 +691,13 @@ class Device : PacketReceiver, KoinComponent {
         return deviceId.hashCode()
     }
 }
+
+data class DeviceState(
+    val deviceInfo: DeviceInfo,
+    val pairStatus: PairingHandler.PairState,
+    val isReachable: Boolean,
+    val verificationKey: String?,
+    val loadedPlugins: Map<String, Plugin>,
+    val pluginsWithoutPermissions: Map<String, Plugin>,
+    val supportedPlugins: List<String>,
+)

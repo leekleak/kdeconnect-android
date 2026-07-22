@@ -209,8 +209,7 @@ object TelephonyPluginInfo : PluginInfo(
     instantiableClass = TelephonyPlugin::class.java,
     displayNameRes = R.string.pref_plugin_telephony,
     descriptionRes = R.string.pref_plugin_telephony_desc,
-    requiredPermissions = arrayOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG),
-    optionalPermissions = arrayOf(Manifest.permission.READ_CONTACTS),
+    requiredPermissions = arrayOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_CONTACTS),
     supportedPacketTypes = arrayOf(PACKET_TYPE_TELEPHONY_REQUEST_MUTE),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_TELEPHONY),
 ) {
