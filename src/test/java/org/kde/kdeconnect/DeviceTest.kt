@@ -11,9 +11,11 @@ import android.preference.PreferenceManager
 import androidx.core.content.ContextCompat
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
-import io.mockk.verify
+import io.mockk.unmockkObject
+import kotlinx.coroutines.Dispatchers
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
@@ -29,7 +31,10 @@ import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.security.RsaHelper
 import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.helpers.TrustedDevices
-import org.kde.kdeconnect.PairingHandler.PairingCallback
+import org.kde.kdeconnect.plugins.PluginFactory
+import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
+import org.koin.dsl.module
 import java.security.cert.CertificateException
 
 class DeviceTest {
@@ -96,10 +101,37 @@ class DeviceTest {
         every { ContextCompat.getSystemService(context, NotificationManager::class.java) } returns mockk(relaxed = true)
 
         mockkStatic(android.util.Log::class)
+        every { android.util.Log.i(any<String>(), any<String>()) } returns 0
+        every { android.util.Log.e(any<String>(), any<String>()) } returns 0
+        every { android.util.Log.e(any<String>(), any<String>(), any<Throwable>()) } returns 0
+        every { android.util.Log.d(any<String>(), any<String>()) } returns 0
+        every { android.util.Log.w(any<String>(), any<String>()) } returns 0
+        every { android.util.Log.w(any<String>(), any<Throwable>()) } returns 0
+        every { android.util.Log.v(any<String>(), any<String>()) } returns 0
+
+        mockkStatic(Dispatchers::class)
+        every { Dispatchers.IO } returns Dispatchers.Unconfined
+
+        mockkObject(PluginFactory)
+        every { PluginFactory.instantiatePluginForDevice(any(), any()) } returns null
+
+        startKoin {
+            modules(module {
+                single { mockk<DeviceHelper>(relaxed = true) }
+                factory { (deviceId: String, link: org.kde.kdeconnect.backends.BaseLink?) ->
+                    Device(context, deviceId, link)
+                }
+            })
+        }
+
+        val certificateBytes = java.util.Base64.getMimeDecoder().decode(encodedCertificate)
+        SslHelper.certificate = SslHelper.parseCertificate(certificateBytes)
     }
 
     @After
     fun tearDown() {
+        stopKoin()
+        unmockkObject(PluginFactory)
         unmockkAll()
     }
 
@@ -220,7 +252,7 @@ class DeviceTest {
         every { link.deviceId } returns deviceId
         every { link.deviceInfo } returns deviceInfo
         every { link.addPacketReceiver(any()) } returns Unit
-        val device = Device(context, link)
+        val device = Device(context, null, link)
 
         Assert.assertNotNull(device)
         Assert.assertEquals(device.deviceId, deviceId)
@@ -247,15 +279,12 @@ class DeviceTest {
     @Test
     @Throws(CertificateException::class)
     fun testUnpair() {
-        val pairingCallback = mockk<PairingCallback>(relaxed = true)
         val device = Device(context, "testDevice")
 
         device.unpair()
 
-        Assert.assertFalse(device.isPaired)
+        Assert.assertEquals(PairingHandler.PairState.NotPaired, device.pairingHandler.state.value)
 
         Assert.assertFalse(TrustedDevices.isTrustedDevice(context, device.deviceId))
-
-        verify(exactly = 1) { pairingCallback.unpaired(device) }
     }
 }

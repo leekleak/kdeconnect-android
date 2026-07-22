@@ -35,6 +35,7 @@ class ConnectivityReportPluginTest {
         context = ApplicationProvider.getApplicationContext<Application>()
 
         device = mockk {
+            every { deviceId } returns "some_id"
             val packetSlot = slot<NetworkPacket>()
             every { sendPacket(capture(packetSlot)) } answers {
                 packet = packetSlot.captured

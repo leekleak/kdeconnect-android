@@ -4,6 +4,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import io.mockk.every
 import io.mockk.mockk
@@ -27,9 +28,12 @@ class PingPluginTest {
             every { getString(any()) } returns "STRING"
         }
         val device = mockk<Device> {
+            every { deviceId } returns "some_id"
             every { name } returns "Test Device"
             every { sendPacket(any()) } returns Unit
         }
+        mockkStatic(Log::class)
+        every { Log.e(any(), any()) } returns 0
         mockkStatic(PendingIntent::class) {
             every<PendingIntent> {
                 PendingIntent.getActivity(any<Context>(), any(), any(), any())

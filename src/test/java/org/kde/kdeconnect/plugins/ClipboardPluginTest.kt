@@ -37,6 +37,7 @@ class ClipboardPluginTest {
         every { ClipboardListener.instance(context) } returns clipboardListener
 
         device = mockk {
+            every { deviceId } returns "some_id"
             every { sendPacket(any()) } answers {
                 packet = arg<NetworkPacket>(0)
             }

@@ -30,6 +30,7 @@ class SystemVolumePluginTest {
     fun setup() {
         context = ApplicationProvider.getApplicationContext<Application>()
         device = mockk {
+            every { deviceId } returns "some_id"
             every { sendPacket(any()) } answers {
                 val sentPacket = arg<NetworkPacket>(0)
                 packet = sentPacket
