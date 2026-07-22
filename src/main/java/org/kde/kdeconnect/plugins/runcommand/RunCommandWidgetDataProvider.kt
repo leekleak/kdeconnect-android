@@ -15,8 +15,9 @@ import android.view.View
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 import android.widget.RemoteViewsService.RemoteViewsFactory
-import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect_tp.R
+import org.koin.core.context.GlobalContext
 
 internal class RunCommandWidgetDataProvider(private val context: Context, val intent: Intent?) : RemoteViewsFactory {
 
@@ -39,7 +40,8 @@ internal class RunCommandWidgetDataProvider(private val context: Context, val in
     override fun onDestroy() {}
 
     private fun getPlugin(): RunCommandPlugin? {
-        return KdeConnect.getInstance().getDevicePlugin(deviceId, RunCommandPlugin::class.java)
+        val deviceManager: DeviceManager = GlobalContext.get().get()
+        return deviceManager.getDevicePlugin(deviceId, RunCommandPlugin::class.java)
     }
 
     override fun getCount(): Int {

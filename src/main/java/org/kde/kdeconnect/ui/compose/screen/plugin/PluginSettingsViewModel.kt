@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect.ui.AlertDialogFragment
@@ -35,6 +36,7 @@ data class PluginSettingsItem(
 
 class PluginSettingsViewModel(
     private val application: KdeConnect,
+    private val deviceManager: DeviceManager,
     @InjectedParam private val deviceId: String
 ) : ViewModel() {
 
@@ -42,7 +44,7 @@ class PluginSettingsViewModel(
     val uiState: StateFlow<PluginSettingsUiState> = _uiState.asStateFlow()
 
     private val device: Device?
-        get() = application.getDevice(deviceId)
+        get() = deviceManager.getDevice(deviceId)
 
     private val pluginsChangedListener = Device.PluginsChangedListener {
         viewModelScope.launch { refreshUI() }

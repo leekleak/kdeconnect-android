@@ -7,16 +7,18 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts.GetMultipleContents
 import androidx.appcompat.app.AppCompatActivity
-import org.kde.kdeconnect.KdeConnect.Companion.getInstance
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect_tp.R
+import org.koin.android.ext.android.inject
 
 class SendFileActivity : AppCompatActivity() {
+    private val deviceManager: DeviceManager by inject()
     private var mDeviceId: String? = null
     private val getResult = registerForActivityResult(GetMultipleContents()) { uris: List<Uri> ->
         if (uris.isEmpty()) {
             Log.w("SendFileActivity", "No files to send?")
         } else {
-            val plugin = getInstance().getDevicePlugin(mDeviceId, SharePlugin::class.java)
+            val plugin = deviceManager.getDevicePlugin(mDeviceId, SharePlugin::class.java)
             plugin?.sendUriList(uris)
             finish()
         }

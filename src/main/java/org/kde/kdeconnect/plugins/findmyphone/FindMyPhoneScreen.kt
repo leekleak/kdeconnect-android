@@ -20,18 +20,20 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.googleSans
 import org.kde.kdeconnect_tp.R
+import org.koin.compose.koinInject
 
 @Composable
 fun FindMyPhoneScreen(
     deviceId: String,
     onFinish: () -> Unit
 ) {
+    val deviceManager = koinInject<DeviceManager>()
     DisposableEffect(deviceId) {
-        val plugin = KdeConnect.getInstance().getDevicePlugin(deviceId, FindMyPhonePlugin::class.java)
+        val plugin = deviceManager.getDevicePlugin(deviceId, FindMyPhonePlugin::class.java)
         plugin?.let {
             it.startPlaying()
             it.startFlashing()
@@ -39,7 +41,7 @@ fun FindMyPhoneScreen(
         }
 
         onDispose {
-            val stopPlugin = KdeConnect.getInstance().getDevicePlugin(deviceId, FindMyPhonePlugin::class.java)
+            val stopPlugin = deviceManager.getDevicePlugin(deviceId, FindMyPhonePlugin::class.java)
             stopPlugin?.let {
                 it.stopPlaying()
                 it.stopFlashing()

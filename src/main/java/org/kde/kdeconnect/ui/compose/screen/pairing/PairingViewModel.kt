@@ -26,12 +26,15 @@ import kotlinx.coroutines.launch
 import org.kde.kdeconnect.BackgroundService
 import org.kde.kdeconnect.BackgroundService.Companion.forceRefreshConnections
 import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper.Companion.isTrustedNetwork
 import org.kde.kdeconnect.ui.compose.extensions.device.toUiModel
 import org.kde.kdeconnect.ui.compose.model.device.DeviceUiModel
 
-class PairingViewModel(application: Application) : AndroidViewModel(application) {
+class PairingViewModel(
+    application: Application,
+    private val deviceManager: DeviceManager
+) : AndroidViewModel(application) {
     private val _pairingUiState = MutableStateFlow(
         value = PairingUiState(
             isWifiAvailable = false,
@@ -113,7 +116,7 @@ class PairingViewModel(application: Application) : AndroidViewModel(application)
 
     // called when the screen becomes visible
     fun onStart(context: Context) {
-        KdeConnect.getInstance().addDeviceListChangedCallback("PairingViewModel") {
+        deviceManager.addDeviceListChangedCallback("PairingViewModel") {
             updateDeviceList(context)
         }
         forceRefreshConnections(context)
@@ -122,7 +125,7 @@ class PairingViewModel(application: Application) : AndroidViewModel(application)
 
     // called when the screen goes away
     fun onStop() {
-        KdeConnect.getInstance().removeDeviceListChangedCallback("PairingViewModel")
+        deviceManager.removeDeviceListChangedCallback("PairingViewModel")
         connectivityJob?.cancel()
     }
 
@@ -142,7 +145,7 @@ class PairingViewModel(application: Application) : AndroidViewModel(application)
         }
 
         try {
-            val allDevices = KdeConnect.getInstance().devices.values
+            val allDevices = deviceManager.devices.values
                 .filter { it.isReachable || it.isPaired }
             buildUiState(devices = allDevices)
         } finally {

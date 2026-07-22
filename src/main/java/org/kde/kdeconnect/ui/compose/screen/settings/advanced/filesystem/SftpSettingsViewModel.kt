@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONException
-import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.SftpSettingsDataStore
 import org.kde.kdeconnect.plugins.sftp.SftpPlugin
 import org.kde.kdeconnect_tp.R
@@ -24,7 +24,8 @@ data class SftpSettingsUiState(
 
 class SftpSettingsViewModel(
     application: Application,
-    private val dataStore: SftpSettingsDataStore
+    private val dataStore: SftpSettingsDataStore,
+    private val deviceManager: DeviceManager
 ) : AndroidViewModel(application) {
 
     val uiState: StateFlow<SftpSettingsUiState> = dataStore.storageInfoListJson
@@ -57,7 +58,7 @@ class SftpSettingsViewModel(
 
         viewModelScope.launch {
             dataStore.setStorageInfoListJson(jsonArray.toString())
-            KdeConnect.getInstance().devices.values.forEach { it.launchBackgroundReloadPluginsFromSettings() }
+            deviceManager.devices.values.forEach { it.launchBackgroundReloadPluginsFromSettings() }
         }
     }
 

@@ -3,9 +3,12 @@ package org.kde.kdeconnect.ui
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentManager
-import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.DeviceManager
+import org.koin.android.ext.android.inject
 
 class PermissionExplanationActivity : AppCompatActivity() {
+    private val deviceManager: DeviceManager by inject()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -17,7 +20,7 @@ class PermissionExplanationActivity : AppCompatActivity() {
             return
         }
 
-        val device = KdeConnect.getInstance().getDevice(deviceId)
+        val device = deviceManager.getDevice(deviceId)
         val plugin = device?.getPluginIncludingWithoutPermissions(pluginKey)
 
         if (plugin == null) {

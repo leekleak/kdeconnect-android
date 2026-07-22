@@ -15,7 +15,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import androidx.preference.PreferenceManager
-import org.kde.kdeconnect.KdeConnect.Companion.getInstance
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.ui.PermissionsAlertDialogFragment
 import org.kde.kdeconnect.base.BaseActivity
 import org.kde.kdeconnect.extensions.viewBinding
@@ -23,8 +23,10 @@ import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import org.kde.kdeconnect_tp.R
 import org.kde.kdeconnect_tp.databinding.ActivityBigscreenBinding
+import org.koin.android.ext.android.inject
 
 class BigscreenActivity : BaseActivity<ActivityBigscreenBinding>() {
+    private val deviceManager: DeviceManager by inject()
 
     override val binding : ActivityBigscreenBinding by viewBinding(ActivityBigscreenBinding::inflate)
 
@@ -42,7 +44,7 @@ class BigscreenActivity : BaseActivity<ActivityBigscreenBinding>() {
             binding.micButton.visibility = View.INVISIBLE
         }
 
-        val plugin = getInstance().getDevicePlugin(deviceId, MousePadPlugin::class.java)
+        val plugin = deviceManager.getDevicePlugin(deviceId, MousePadPlugin::class.java)
         if (plugin == null) {
             finish()
             return
@@ -120,7 +122,7 @@ class BigscreenActivity : BaseActivity<ActivityBigscreenBinding>() {
             val firstResult = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.first()
             if (firstResult != null) {
                 val deviceId = intent.getStringExtra("deviceId")
-                val plugin = getInstance().getDevicePlugin(deviceId,MousePadPlugin::class.java)
+                val plugin = deviceManager.getDevicePlugin(deviceId, MousePadPlugin::class.java)
                 if (plugin == null) {
                     finish()
                     return

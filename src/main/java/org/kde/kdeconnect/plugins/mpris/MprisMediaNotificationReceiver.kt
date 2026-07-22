@@ -9,8 +9,9 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.extensions.getParcelableCompat
+import org.koin.core.context.GlobalContext
 
 /**
  * Called when the mpris media notification's buttons are pressed
@@ -27,7 +28,8 @@ class MprisMediaNotificationReceiver : BroadcastReceiver() {
             // Get the correct device, the mpris plugin and the mpris player
 
             val deviceId = intent.getStringExtra(EXTRA_DEVICE_ID)
-            val plugin = KdeConnect.getInstance().getDevicePlugin(deviceId, MprisPlugin::class.java) ?: return
+            val deviceManager: DeviceManager = GlobalContext.get().get()
+            val plugin = deviceManager.getDevicePlugin(deviceId, MprisPlugin::class.java) ?: return
             val player = plugin.getPlayerStatus(intent.getStringExtra(EXTRA_MPRIS_PLAYER))
                 ?: return
 

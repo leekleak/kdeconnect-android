@@ -9,7 +9,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import org.kde.kdeconnect.KdeConnect.Companion.getInstance
+import org.kde.kdeconnect.DeviceManager
+import org.koin.core.context.GlobalContext
 
 class ShareBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent) {
@@ -36,7 +37,8 @@ class ShareBroadcastReceiver : BroadcastReceiver() {
         val jobId = intent.getLongExtra(SharePlugin.CANCEL_SHARE_BACKGROUND_JOB_ID_EXTRA, -1)
         val deviceId = intent.getStringExtra(SharePlugin.CANCEL_SHARE_DEVICE_ID_EXTRA)
 
-        val plugin = getInstance().getDevicePlugin(deviceId, SharePlugin::class.java) ?: return
+        val deviceManager: DeviceManager = GlobalContext.get().get()
+        val plugin = deviceManager.getDevicePlugin(deviceId, SharePlugin::class.java) ?: return
         plugin.cancelJob(jobId)
     }
 }

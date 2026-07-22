@@ -9,7 +9,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.DeviceManager
+import org.koin.core.context.GlobalContext
 
 class FindMyPhoneReceiver : BroadcastReceiver() {
     companion object {
@@ -30,7 +31,8 @@ class FindMyPhoneReceiver : BroadcastReceiver() {
             return
         }
         val deviceId = intent.getStringExtra(EXTRA_DEVICE_ID)
-        val plugin = KdeConnect.getInstance().getDevicePlugin(deviceId, FindMyPhonePlugin::class.java) ?: return
+        val deviceManager = GlobalContext.get().get<DeviceManager>()
+        val plugin = deviceManager.getDevicePlugin(deviceId, FindMyPhonePlugin::class.java) ?: return
         plugin.stopPlaying()
         plugin.stopFlashing()
     }

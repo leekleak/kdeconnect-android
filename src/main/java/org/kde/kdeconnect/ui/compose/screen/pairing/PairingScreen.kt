@@ -55,7 +55,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
@@ -288,6 +288,7 @@ private fun DeviceCard(
     device: DeviceUiModel,
     onClick: (String) -> Unit
 ) {
+    val deviceManager = koinInject<DeviceManager>()
     val context = LocalContext.current
     val width = 2.dp.px
     val dashLength = 8.dp.px
@@ -330,7 +331,7 @@ private fun DeviceCard(
                 )
             }
             Column(Modifier.weight(1f)) {
-                val deviceReal = remember { KdeConnect.getInstance().getDevice(device.id) }
+                val deviceReal = remember { deviceManager.getDevice(device.id) }
                 Text(
                     fontSize = 42.sp,
                     text = device.name,

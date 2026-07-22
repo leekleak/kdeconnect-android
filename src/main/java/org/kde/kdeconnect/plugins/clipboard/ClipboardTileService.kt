@@ -11,16 +11,19 @@ import android.content.Intent
 import android.service.quicksettings.TileService
 import androidx.core.service.quicksettings.PendingIntentActivityWrapper
 import androidx.core.service.quicksettings.TileServiceCompat
-import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.DeviceManager
+import org.koin.android.ext.android.inject
 
 class ClipboardTileService : TileService() {
+    private val deviceManager: DeviceManager by inject()
+
     override fun onClick() {
         super.onClick()
 
         TileServiceCompat.startActivityAndCollapse(this, PendingIntentActivityWrapper(
             this, 0, Intent(this, ClipboardFloatingActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-                val ids = KdeConnect.getInstance().devices.values
+                val ids = deviceManager.devices.values
                     .asSequence()
                     .filter { it.isReachable && it.isPaired }
                     .map { it.deviceId }

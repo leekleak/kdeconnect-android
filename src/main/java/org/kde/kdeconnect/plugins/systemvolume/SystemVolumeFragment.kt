@@ -11,7 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
-import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.base.BaseFragment
 import org.kde.kdeconnect.extensions.setupBottomPadding
 import org.kde.kdeconnect.helpers.calculateNewVolume
@@ -21,10 +21,12 @@ import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin.SinkListener
 import org.kde.kdeconnect_tp.R
 import org.kde.kdeconnect_tp.databinding.ListItemSystemvolumeBinding
 import org.kde.kdeconnect_tp.databinding.SystemVolumeFragmentBinding
+import org.koin.android.ext.android.inject
 
 class SystemVolumeFragment : BaseFragment<SystemVolumeFragmentBinding>(),
     Sink.UpdateListener, SinkListener, VolumeKeyListener {
 
+    private val deviceManager: DeviceManager by inject()
     private lateinit var plugin: SystemVolumePlugin
     private lateinit var recyclerAdapter: RecyclerSinkAdapter
     private var tracking = false
@@ -71,7 +73,7 @@ class SystemVolumeFragment : BaseFragment<SystemVolumeFragmentBinding>(),
     }
 
     private fun connectToPlugin(deviceId: String?) {
-        val plugin = KdeConnect.getInstance().getDevicePlugin(
+        val plugin = deviceManager.getDevicePlugin(
             deviceId,
             SystemVolumePlugin::class.java
         )
@@ -84,7 +86,7 @@ class SystemVolumeFragment : BaseFragment<SystemVolumeFragmentBinding>(),
     }
 
     private fun disconnectFromPlugin(deviceId: String?) {
-        val plugin = KdeConnect.getInstance().getDevicePlugin(
+        val plugin = deviceManager.getDevicePlugin(
             deviceId,
             SystemVolumePlugin::class.java
         )

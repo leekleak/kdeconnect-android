@@ -27,7 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.plugins.mpris.MprisPlugin.MprisPlayer
@@ -54,6 +54,7 @@ class MprisMediaSession : NotificationReceiver.NotificationListener, KoinCompone
     private var spotifyRunning = false
 
     private val dataStore: NotificationSettingsDataStore by inject()
+    private val deviceManager: DeviceManager by inject()
     private var job: Job? = null
 
     // Holds the device and player displayed in the notification
@@ -169,7 +170,7 @@ class MprisMediaSession : NotificationReceiver.NotificationListener, KoinCompone
 
     private fun findPlayer(): Pair<Device, MprisPlayer>? {
         val currentDevice = if (notificationDeviceId != null && mprisDevices.contains(notificationDeviceId)) {
-            KdeConnect.getInstance().getDevice(notificationDeviceId)
+            deviceManager.getDevice(notificationDeviceId)
         } else {
             null
         }
@@ -184,7 +185,7 @@ class MprisMediaSession : NotificationReceiver.NotificationListener, KoinCompone
         }
 
         // Try a different player from another device
-        for (otherDevice in KdeConnect.getInstance().devices.values) {
+        for (otherDevice in deviceManager.devices.values) {
             val player = getPlayerFromDevice(otherDevice, null)
             if (player != null) {
                 return Pair(otherDevice, player)
@@ -220,7 +221,7 @@ class MprisMediaSession : NotificationReceiver.NotificationListener, KoinCompone
     }
 
     private fun updateRemoteDeviceVolumeControl() {
-        val plugin = KdeConnect.getInstance().getDevicePlugin(notificationDeviceId, SystemVolumePlugin::class.java)
+        val plugin = deviceManager.getDevicePlugin(notificationDeviceId, SystemVolumePlugin::class.java)
             ?: return
         val systemVolumeProvider = SystemVolumeProvider.getInstance()
         systemVolumeProvider.setPlugin(plugin)
@@ -249,7 +250,7 @@ class MprisMediaSession : NotificationReceiver.NotificationListener, KoinCompone
         // Make sure our information is up-to-date
         val currentPlayer = updateCurrentPlayer()
 
-        val device = KdeConnect.getInstance().getDevice(notificationDeviceId)
+        val device = deviceManager.getDevice(notificationDeviceId)
         if (device == null) {
             closeMediaNotification()
             return

@@ -13,10 +13,13 @@ import android.os.Vibrator
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import org.kde.kdeconnect.KdeConnect.Companion.getInstance
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect_tp.R
+import org.koin.android.ext.android.inject
 
 class RunCommandUrlActivity : AppCompatActivity() {
+    private val deviceManager: DeviceManager by inject()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -34,7 +37,7 @@ class RunCommandUrlActivity : AppCompatActivity() {
                     }
                 }
 
-                val device = getInstance().getDevice(deviceId)
+                val device = deviceManager.getDevice(deviceId)
 
                 if (device == null) {
                     error(R.string.runcommand_nosuchdevice)

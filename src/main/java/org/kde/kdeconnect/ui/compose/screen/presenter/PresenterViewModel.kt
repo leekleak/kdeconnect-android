@@ -6,14 +6,14 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import androidx.lifecycle.AndroidViewModel
-import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
 import org.kde.kdeconnect_tp.R
 import org.koin.core.annotation.InjectedParam
 
-class PresenterViewModel(application: Application, @InjectedParam private val deviceId: String) : AndroidViewModel(application), SensorEventListener {
+class PresenterViewModel(application: Application, deviceManager: DeviceManager, @InjectedParam private val deviceId: String) : AndroidViewModel(application), SensorEventListener {
 
-    val plugin: PresenterPlugin? = KdeConnect.getInstance().getDevicePlugin(deviceId, PresenterPlugin::class.java)
+    val plugin: PresenterPlugin? = deviceManager.getDevicePlugin(deviceId, PresenterPlugin::class.java)
 
     private var sensitivity = 0.03f
     var volumeKeys = true

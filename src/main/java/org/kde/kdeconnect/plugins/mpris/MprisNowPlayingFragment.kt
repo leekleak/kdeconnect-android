@@ -31,12 +31,13 @@ import org.kde.kdeconnect.helpers.DEFAULT_MAX_VOLUME
 import org.kde.kdeconnect.helpers.DEFAULT_VOLUME_STEP
 import org.kde.kdeconnect.helpers.VideoUrlsHelper
 import org.kde.kdeconnect.helpers.calculateNewVolume
-import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.plugins.mpris.MprisPlugin.MprisPlayer
 import org.kde.kdeconnect.ui.compose.screen.settings.advanced.notifications.NotificationSettingsViewModel.Companion.MPRIS_TIME_DEFAULT
 import org.kde.kdeconnect_tp.R
 import org.kde.kdeconnect_tp.databinding.MprisControlBinding
 import org.kde.kdeconnect_tp.databinding.MprisNowPlayingBinding
+import org.koin.android.ext.android.inject
 import java.net.MalformedURLException
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -44,6 +45,7 @@ import kotlin.time.Duration.Companion.milliseconds
 private typealias MprisPlayerCallback = (MprisPlayer) -> Unit
 
 class MprisNowPlayingFragment : Fragment(), VolumeKeyListener {
+    private val deviceManager: DeviceManager by inject()
     private val positionSeekUpdateHandler = Handler()
     private lateinit var mprisControlBinding: MprisControlBinding
     private lateinit var activityMprisBinding: MprisNowPlayingBinding
@@ -151,7 +153,7 @@ class MprisNowPlayingFragment : Fragment(), VolumeKeyListener {
     }
 
     private fun disconnectFromPlugin() {
-        val plugin = KdeConnect.getInstance().getDevicePlugin(deviceId, MprisPlugin::class.java) ?: return
+        val plugin = deviceManager.getDevicePlugin(deviceId, MprisPlugin::class.java) ?: return
         plugin.apply {
             removePlayerListUpdatedHandler("activity")
             removePlayerStatusUpdatedHandler("activity")
@@ -159,7 +161,7 @@ class MprisNowPlayingFragment : Fragment(), VolumeKeyListener {
     }
 
     private fun connectToPlugin() {
-        val plugin = KdeConnect.getInstance().getDevicePlugin(deviceId, MprisPlugin::class.java)
+        val plugin = deviceManager.getDevicePlugin(deviceId, MprisPlugin::class.java)
         if (plugin == null) {
             if (isAdded) {
                 requireActivity().finish()

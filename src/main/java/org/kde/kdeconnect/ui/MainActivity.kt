@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
 import org.apache.commons.lang3.ArrayUtils
 import org.kde.kdeconnect.BackgroundService
 import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.plugins.mousepad.MousePadViewModel
@@ -69,6 +69,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
     override val scope: Scope by activityRetainedScope()
     val settingsDataStore: SettingsDataStore by inject()
     private val deviceHelper: DeviceHelper by inject()
+    private val deviceManager: DeviceManager by inject()
 
     private val mNavigator: Navigator by inject()
 
@@ -88,10 +89,10 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
 
                 if (volumeKeysEnabled) {
                     if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN && action == KeyEvent.ACTION_UP) {
-                        KdeConnect.getInstance().getDevicePlugin(currentKey.deviceId, PresenterPlugin::class.java)?.sendPrevious()
+                        deviceManager.getDevicePlugin(currentKey.deviceId, PresenterPlugin::class.java)?.sendPrevious()
                         return true
                     } else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP && action == KeyEvent.ACTION_UP) {
-                        KdeConnect.getInstance().getDevicePlugin(currentKey.deviceId, PresenterPlugin::class.java)?.sendNext()
+                        deviceManager.getDevicePlugin(currentKey.deviceId, PresenterPlugin::class.java)?.sendNext()
                         return true
                     }
                     if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
@@ -176,7 +177,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
         // TODO: Reimplement this
         assert(deviceId != null)
         if (pairStatus != PAIRING_PENDING) {
-            val device = KdeConnect.getInstance().getDevice(deviceId) ?: return null
+            val device = deviceManager.getDevice(deviceId) ?: return null
             when (pairStatus) {
                 PAIRING_ACCEPTED -> device.acceptPairing()
                 PAIRING_REJECTED -> device.cancelPairing()
@@ -191,7 +192,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
     }
 
     override fun onStop() {
-        KdeConnect.getInstance().removeDeviceListChangedCallback(this::class.simpleName!!)
+        deviceManager.removeDeviceListChangedCallback(this::class.simpleName!!)
         super.onStop()
     }
 
@@ -209,7 +210,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
         when (requestCode) {
             RESULT_NEEDS_RELOAD -> {
                 CoroutineScope(Dispatchers.IO).launch {
-                    KdeConnect.getInstance().devices.values.forEach(Device::reloadPluginsFromSettings)
+                    deviceManager.devices.values.forEach(Device::reloadPluginsFromSettings)
                 }
             }
             STORAGE_LOCATION_CONFIGURED if resultCode == RESULT_OK && data != null -> {
@@ -243,7 +244,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
             }
 
             CoroutineScope(Dispatchers.IO).launch {
-                KdeConnect.getInstance().devices.values.forEach(Device::reloadPluginsFromSettings)
+                deviceManager.devices.values.forEach(Device::reloadPluginsFromSettings)
             }
         }
     }

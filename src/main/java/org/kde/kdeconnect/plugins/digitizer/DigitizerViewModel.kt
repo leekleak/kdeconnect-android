@@ -2,15 +2,16 @@ package org.kde.kdeconnect.plugins.digitizer
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.DeviceManager
 import org.koin.core.annotation.InjectedParam
 
 class DigitizerViewModel(
     application: Application,
+    deviceManager: DeviceManager,
     @InjectedParam val deviceId: String
 ) : AndroidViewModel(application) {
 
-    val plugin: DigitizerPlugin? = KdeConnect.getInstance().getDevicePlugin(deviceId, DigitizerPlugin::class.java)
+    val plugin: DigitizerPlugin? = deviceManager.getDevicePlugin(deviceId, DigitizerPlugin::class.java)
 
     fun startSession(width: Int, height: Int, xdpi: Float, ydpi: Float) {
         plugin?.startSession(

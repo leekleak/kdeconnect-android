@@ -21,15 +21,17 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.BackgroundService
 import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.compose.extensions.device.toUiModel
 import org.kde.kdeconnect.ui.compose.model.device.DeviceUiModel
 import org.kde.kdeconnect.ui.compose.screen.share.ShareScreen
 import org.kde.kdeconnect_tp.R
+import org.koin.android.ext.android.inject
 import kotlin.time.Duration.Companion.milliseconds
 
 class ShareActivity : AppCompatActivity() {
+    private val deviceManager: DeviceManager by inject()
 
     private var isRefreshing by mutableStateOf(value = false)
     private var uiDevices by mutableStateOf<List<DeviceUiModel>>(value = emptyList())
@@ -50,7 +52,7 @@ class ShareActivity : AppCompatActivity() {
             finish()
             return
         }
-        val devices = KdeConnect.getInstance().devices.values.filter { it.isReachable }
+        val devices = deviceManager.devices.values.filter { it.isReachable }
         this.intentHasUrl = doesIntentContainUrl(intent)
         this.uiDevices = devices
             .filter { device -> device.isPaired && (intentHasUrl || device.isReachable) }
@@ -61,7 +63,7 @@ class ShareActivity : AppCompatActivity() {
         device: Device,
         intent: Intent
     ) {
-        val plugin: SharePlugin? = KdeConnect.getInstance().getDevicePlugin(device.deviceId, SharePlugin::class.java)
+        val plugin: SharePlugin? = deviceManager.getDevicePlugin(device.deviceId, SharePlugin::class.java)
         plugin?.share(intent)
         finish()
     }
@@ -85,7 +87,7 @@ class ShareActivity : AppCompatActivity() {
                     intentHasUrl = intentHasUrl,
                     isRefreshing = isRefreshing,
                     onDeviceClick = { deviceId ->
-                        val device = KdeConnect.getInstance().getDevice(id = deviceId) ?: return@ShareScreen
+                        val device = deviceManager.getDevice(id = deviceId) ?: return@ShareScreen
                         deviceClicked(device = device, intent = intent)
                     },
                     onRefresh = {
@@ -108,12 +110,12 @@ class ShareActivity : AppCompatActivity() {
         }
 
         if (deviceId != null) {
-            val plugin: SharePlugin? = KdeConnect.getInstance().getDevicePlugin(deviceId, SharePlugin::class.java)
+            val plugin: SharePlugin? = deviceManager.getDevicePlugin(deviceId, SharePlugin::class.java)
             plugin?.share(intent)
             finish()
         } else {
             Toast.makeText(this, R.string.could_not_find_device, Toast.LENGTH_LONG).show()
-            KdeConnect.getInstance().addDeviceListChangedCallback(key = "ShareActivity") {
+            deviceManager.addDeviceListChangedCallback(key = "ShareActivity") {
                 runOnUiThread { updateDeviceList() }
             }
             BackgroundService.forceRefreshConnections(context = this) // force a network re-discover
@@ -122,7 +124,7 @@ class ShareActivity : AppCompatActivity() {
     }
 
     override fun onStop() {
-        KdeConnect.getInstance().removeDeviceListChangedCallback(key = "ShareActivity")
+        deviceManager.removeDeviceListChangedCallback(key = "ShareActivity")
         super.onStop()
     }
 }

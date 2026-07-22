@@ -17,7 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.preference.PreferenceManager
-import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.helpers.SPECIAL_KEY_ENCODING_MAP
 import org.kde.kdeconnect_tp.R
@@ -26,10 +26,11 @@ import kotlin.math.pow
 
 class MousePadViewModel(
     application: Application,
+    deviceManager: DeviceManager,
     @InjectedParam val deviceId: String
 ) : AndroidViewModel(application), SensorEventListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
-    val plugin: MousePadPlugin? = KdeConnect.getInstance().getDevicePlugin(deviceId, MousePadPlugin::class.java)
+    val plugin: MousePadPlugin? = deviceManager.getDevicePlugin(deviceId, MousePadPlugin::class.java)
     private val sensorManager = application.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
     private val prefs = PreferenceManager.getDefaultSharedPreferences(application)
 

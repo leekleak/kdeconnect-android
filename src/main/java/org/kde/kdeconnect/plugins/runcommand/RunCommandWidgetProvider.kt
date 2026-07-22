@@ -17,9 +17,10 @@ import android.util.Log
 import android.widget.RemoteViews
 import androidx.core.net.toUri
 import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect_tp.BuildConfig
 import org.kde.kdeconnect_tp.R
+import org.koin.core.context.GlobalContext
 
 const val RUN_COMMAND_ACTION = "RUN_COMMAND_ACTION"
 const val TARGET_COMMAND = "TARGET_COMMAND"
@@ -41,13 +42,15 @@ class RunCommandWidgetProvider : AppWidgetProvider() {
 
     override fun onEnabled(context: Context) {
         super.onEnabled(context)
-        KdeConnect.getInstance().addDeviceListChangedCallback("RunCommandWidget") {
+        val deviceManager: DeviceManager = GlobalContext.get().get()
+        deviceManager.addDeviceListChangedCallback("RunCommandWidget") {
             forceRefreshWidgets(context)
         }
     }
 
     override fun onDisabled(context: Context) {
-        KdeConnect.getInstance().removeDeviceListChangedCallback("RunCommandWidget")
+        val deviceManager: DeviceManager = GlobalContext.get().get()
+        deviceManager.removeDeviceListChangedCallback("RunCommandWidget")
         super.onDisabled(context)
     }
 
@@ -57,7 +60,8 @@ class RunCommandWidgetProvider : AppWidgetProvider() {
         if (intent.action == RUN_COMMAND_ACTION) {
             val targetCommand = intent.getStringExtra(TARGET_COMMAND)
             val targetDevice = intent.getStringExtra(TARGET_DEVICE)
-            val plugin = KdeConnect.getInstance().getDevicePlugin(targetDevice, RunCommandPlugin::class.java)
+            val deviceManager: DeviceManager = GlobalContext.get().get()
+            val plugin = deviceManager.getDevicePlugin(targetDevice, RunCommandPlugin::class.java)
             if (plugin != null && targetCommand != null) {
                 try {
                     plugin.runCommand(targetCommand)
@@ -109,7 +113,8 @@ internal fun updateAppWidget(
 
     // Determine which device provided these commands
     val deviceId = loadWidgetDeviceIdPref(context, appWidgetId)
-    val device: Device? = if (deviceId != null) KdeConnect.getInstance().getDevice(deviceId) else null
+    val deviceManager: DeviceManager = GlobalContext.get().get()
+    val device: Device? = if (deviceId != null) deviceManager.getDevice(deviceId) else null
 
     val views = RemoteViews(BuildConfig.APPLICATION_ID, R.layout.widget_remotecommandplugin)
     assignTitleIntent(context, appWidgetId, views)

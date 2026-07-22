@@ -13,18 +13,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONException
 import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect_tp.R
 import org.koin.core.annotation.InjectedParam
 
 class RunCommandViewModel(
     application: Application,
+    deviceManager: DeviceManager,
     @InjectedParam val deviceId: String
 ) : AndroidViewModel(application) {
 
     val commandList = mutableStateListOf<CommandEntry>()
-    val plugin: RunCommandPlugin? = KdeConnect.getInstance().getDevicePlugin(deviceId, RunCommandPlugin::class.java)
-    val device: Device? = KdeConnect.getInstance().getDevice(deviceId)
+    val plugin: RunCommandPlugin? = deviceManager.getDevicePlugin(deviceId, RunCommandPlugin::class.java)
+    val device: Device? = deviceManager.getDevice(deviceId)
 
     init {
         updateList()

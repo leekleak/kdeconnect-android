@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.BackgroundService
 import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.PairingHandler
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.plugins.Plugin
@@ -37,6 +37,7 @@ data class DeviceUiState(
 class DeviceViewModel(
     application: Application,
     private val deviceHelper: DeviceHelper,
+    private val deviceManager: DeviceManager,
     @InjectedParam private val deviceId: String
 ) : AndroidViewModel(application) {
 
@@ -44,7 +45,7 @@ class DeviceViewModel(
     val uiState: StateFlow<DeviceUiState> = _uiState.asStateFlow()
 
     private val device: Device?
-        get() = KdeConnect.getInstance().getDevice(deviceId)
+        get() = deviceManager.getDevice(deviceId)
 
     init {
         viewModelScope.launch {
@@ -61,7 +62,7 @@ class DeviceViewModel(
                             verificationKey = deviceState.verificationKey,
                             pluginsWithButtons = pluginsWithButtons,
                             pluginsNeedPermissions = pluginsNeedPermissions,
-                            batterySubtitle = deviceHelper.getBatterySubtitle(getApplication<Application>().applicationContext, device),
+                            batterySubtitle = deviceHelper.getBatterySubtitle(application, device),
                         )
                     }
                 }

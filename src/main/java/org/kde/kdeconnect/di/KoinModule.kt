@@ -20,6 +20,7 @@ import coil3.request.crossfade
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.datastore.ConnectionsSettingsDataStore
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
@@ -205,6 +206,7 @@ val settingsModule = module {
     single<TelephonySettingsDataStore>()
     single<SettingsDataStore>()
     single<DeviceHelper> { DeviceHelper(get()) }
+    single<DeviceManager> { DeviceManager(get()) }
     single<NotificationSettingsDataStore>()
     single<SftpSettingsDataStore>()
     single<ConnectionsSettingsDataStore>()

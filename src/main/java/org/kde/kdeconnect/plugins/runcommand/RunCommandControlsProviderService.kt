@@ -28,8 +28,9 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.ui.MainActivity
+import org.koin.android.ext.android.inject
 import org.kde.kdeconnect_tp.R
 import java.util.concurrent.Flow
 import java.util.function.Consumer
@@ -38,6 +39,7 @@ private class CommandEntryWithDevice(o: JSONObject, val device: Device) : Comman
 
 @RequiresApi(Build.VERSION_CODES.R)
 class RunCommandControlsProviderService : ControlsProviderService() {
+    private val deviceManager: DeviceManager by inject()
     private val updateFlow = MutableSharedFlow<Control>(replay = 10, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     private lateinit var sharedPreferences: SharedPreferences
 
@@ -81,7 +83,7 @@ class RunCommandControlsProviderService : ControlsProviderService() {
             val commandEntry = getCommandByControlId(controlId)
             if (commandEntry != null) {
                 val deviceId = controlId.split(":")[0]
-                val plugin = KdeConnect.getInstance().getDevicePlugin(deviceId ,RunCommandPlugin::class.java)
+                val plugin = deviceManager.getDevicePlugin(deviceId, RunCommandPlugin::class.java)
                 if (plugin != null) {
                     plugin.runCommand(commandEntry.key)
                     consumer.accept(ControlAction.RESPONSE_OK)
@@ -122,7 +124,7 @@ class RunCommandControlsProviderService : ControlsProviderService() {
     private fun getAllCommandsList(): List<CommandEntryWithDevice> {
         val commandList = mutableListOf<CommandEntryWithDevice>()
 
-        for (device in KdeConnect.getInstance().devices.values) {
+        for (device in deviceManager.devices.values) {
             if (!device.isReachable) {
                 commandList.addAll(getSavedCommandsList(device))
                 continue
@@ -148,7 +150,7 @@ class RunCommandControlsProviderService : ControlsProviderService() {
     private fun getCommandByControlId(controlId: String): CommandEntryWithDevice? {
         val controlIdParts = controlId.split(":")
 
-        val device = KdeConnect.getInstance().getDevice(controlIdParts[0])
+        val device = deviceManager.getDevice(controlIdParts[0])
 
         if (device == null || !device.isPaired) return null
 

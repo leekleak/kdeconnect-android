@@ -50,7 +50,7 @@ import org.koin.android.ext.android.inject
  * It can be started by the KdeConnectBroadcastReceiver on some events or when the MainActivity is launched.
  */
 class BackgroundService : Service() {
-    private lateinit var applicationInstance: KdeConnect
+    private val deviceManager: DeviceManager by inject()
 
     private val linkProviders = mutableListOf<BaseLinkProvider>()
     private val settingsDataStore: SettingsDataStore by inject()
@@ -102,10 +102,9 @@ class BackgroundService : Service() {
     override fun onCreate() {
         super.onCreate()
         Log.d("KdeConnect/BgService", "onCreate")
-        this.applicationInstance = KdeConnect.getInstance()
         instance = this
 
-        KdeConnect.getInstance().addDeviceListChangedCallback("BackgroundService", this::updateForegroundNotification)
+        deviceManager.addDeviceListChangedCallback("BackgroundService", this::updateForegroundNotification)
 
         // Register screen on listener
         val filter = IntentFilter(Intent.ACTION_SCREEN_ON)
@@ -135,7 +134,7 @@ class BackgroundService : Service() {
         })
 
         registerLinkProviders()
-        addConnectionListener(applicationInstance.connectionListener) // Link Providers need to be already registered
+        addConnectionListener(deviceManager.connectionListener) // Link Providers need to be already registered
         for (linkProvider in linkProviders) {
             linkProvider.onStart()
         }
@@ -157,7 +156,7 @@ class BackgroundService : Service() {
 
         val connectedDevices = mutableListOf<String>()
         val connectedDeviceIds = mutableListOf<String>()
-        for (device in applicationInstance.devices.values) {
+        for (device in deviceManager.devices.values) {
             if (device.isReachable && device.isPaired) {
                 connectedDeviceIds.add(device.deviceId)
                 connectedDevices.add(device.name)
@@ -197,7 +196,7 @@ class BackgroundService : Service() {
 
             if (connectedDeviceIds.size == 1) {
                 val deviceId = connectedDeviceIds[0]
-                val device = KdeConnect.getInstance().getDevice(deviceId)
+                val device = deviceManager.getDevice(deviceId)
                 if (device != null) {
                     // Adding two action buttons only when there is a single device connected.
                     // Setting up Send File Intent.
@@ -227,7 +226,7 @@ class BackgroundService : Service() {
         for (linkProvider in linkProviders) {
             linkProvider.onStop()
         }
-        KdeConnect.getInstance().removeDeviceListChangedCallback("BackgroundService")
+        deviceManager.removeDeviceListChangedCallback("BackgroundService")
         super.onDestroy()
     }
 
