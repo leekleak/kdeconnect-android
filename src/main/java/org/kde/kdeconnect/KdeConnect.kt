@@ -31,14 +31,17 @@ import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.ui.ThemeUtil
 import org.kde.kdeconnect_tp.BuildConfig
+import org.koin.android.ext.android.get
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
+import org.koin.core.parameter.parametersOf
 import org.slf4j.impl.HandroidLoggerAdapter
 import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
 import java.util.Date
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.coroutines.EmptyCoroutineContext.get
 
 
 /*
@@ -152,7 +155,7 @@ class KdeConnect : Application() {
             .onEach { Log.d("KdeConnect", "Loading device $it") }
             .forEach {
                 try {
-                    val device = Device(applicationContext, it)
+                    val device: Device = get { parametersOf(it, null) }
                     val now = Date()
                     val x509Cert = device.certificate as X509Certificate
                     if(now < x509Cert.notBefore) {
@@ -175,11 +178,11 @@ class KdeConnect : Application() {
     val connectionListener: ConnectionReceiver = object : ConnectionReceiver {
         @WorkerThread
         override fun onConnectionReceived(link: BaseLink) {
-            var device = devices[link.deviceId]
+            var device: Device? = devices[link.deviceId]
             if (device != null) {
                 device.addLink(link)
             } else {
-                device = Device(this@KdeConnect, link)
+                device = get { parametersOf(link.deviceId, link) }
                 devices[link.deviceId] = device
             }
             onDeviceListChanged()

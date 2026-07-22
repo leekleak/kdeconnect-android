@@ -27,6 +27,7 @@ import org.kde.kdeconnect.datastore.SftpSettingsDataStore
 import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 import org.kde.kdeconnect.helpers.AppIconFetcher
 import org.kde.kdeconnect.helpers.DeviceHelper
+import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect.plugins.battery.BatteryPlugin
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin
 import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityReportPlugin
@@ -109,6 +110,7 @@ import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.dsl.module
 import org.koin.dsl.navigation3.navigation
 import org.koin.plugin.module.dsl.create
+import org.koin.plugin.module.dsl.factory
 import org.koin.plugin.module.dsl.single
 import org.koin.plugin.module.dsl.viewModel
 
@@ -287,6 +289,8 @@ val appModule = module {
 
     single<Navigator>()
     single<ImageLoader> { create(::buildImageLoader) }
+
+    factory<Device>()
 
     scope<Device> {
         scoped { SftpPlugin(get(), get(), get()) }

@@ -33,6 +33,9 @@ import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePluginInfo
 import org.kde.kdeconnect.plugins.telephony.TelephonyPluginInfo
 
 object PluginFactory {
+    fun sortPluginList(context: Context, plugins: List<String>): List<String> {
+        return plugins.sortedBy { getPluginInfo(it).getDisplayName(context) }
+    }
 
     private val pluginInfo: Map<String, PluginInfo> = mapOf(
         TelephonyPluginInfo.pluginKey to TelephonyPluginInfo,
@@ -53,22 +56,12 @@ object PluginFactory {
         SftpPluginInfo.pluginKey to SftpPluginInfo,
         SMSPluginInfo.pluginKey to SMSPluginInfo,
         SystemVolumePluginInfo.pluginKey to SystemVolumePluginInfo,
-
-        // Java plugins
         FindMyPhonePluginInfo.pluginKey to FindMyPhonePluginInfo,
         MprisReceiverPluginInfo.pluginKey to MprisReceiverPluginInfo,
         RemoteKeyboardPluginInfo.pluginKey to RemoteKeyboardPluginInfo,
         RunCommandPluginInfo.pluginKey to RunCommandPluginInfo,
         SharePluginInfo.pluginKey to SharePluginInfo,
     )
-
-    private fun instantiatePlugin(context: Context, device: Device, clazz: Class<out Plugin>): Plugin {
-        return try {
-            clazz.getDeclaredConstructor(Context::class.java, Device::class.java).newInstance(context, device)
-        } catch (_: Exception) {
-            clazz.getDeclaredConstructor().newInstance()
-        }
-    }
 
     val availablePlugins: Set<String>
         get() = pluginInfo.keys
@@ -77,23 +70,11 @@ object PluginFactory {
     val outgoingCapabilities: Set<String>
         get() = pluginInfo.values.flatMap { plugin -> plugin.outgoingPacketTypes }.toSet()
 
-    @JvmStatic
     fun getPluginInfo(pluginKey: String): PluginInfo = pluginInfo[pluginKey]!!
 
-    @JvmStatic
-    fun sortPluginList(context: Context, plugins: List<String>): List<String> {
-        return plugins.sortedBy { pluginInfo[it]?.getDisplayName(context) }
-    }
-
-    fun instantiatePluginForDevice(context: Context, pluginKey: String, device: Device): Plugin? {
-        try {
-            val clazz = pluginInfo[pluginKey]?.instantiableClass ?: return null
-            val plugin = device.koinScope.getOrNull(clazz.kotlin) ?: instantiatePlugin(context, device, clazz)
-            return plugin
-        } catch (e: Exception) {
-            Log.e("PluginFactory", "Could not instantiate plugin: $pluginKey", e)
-            return null
-        }
+    fun instantiatePluginForDevice(pluginKey: String, device: Device): Plugin? {
+        val clazz = pluginInfo[pluginKey]?.instantiableClass ?: return null
+        return device.scope.get(clazz.kotlin)
     }
 
     fun pluginsForCapabilities(incoming: Set<String>, outgoing: Set<String>): Set<String> {
