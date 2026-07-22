@@ -20,6 +20,7 @@ import coil3.request.crossfade
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.datastore.ConnectionsSettingsDataStore
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
 import org.kde.kdeconnect.datastore.SettingsDataStore
@@ -27,7 +28,6 @@ import org.kde.kdeconnect.datastore.SftpSettingsDataStore
 import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 import org.kde.kdeconnect.helpers.AppIconFetcher
 import org.kde.kdeconnect.helpers.DeviceHelper
-import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect.plugins.battery.BatteryPlugin
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin
 import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityReportPlugin
@@ -285,6 +285,7 @@ fun buildImageLoader(context: Context): ImageLoader =
         .build()
 
 val appModule = module {
+    single<KdeConnect> { get<Context>() as KdeConnect }
     includes(pairingModule, deviceModule, pluginSettingsModule, presenterModule, mousePadModule, runCommandModule, digitizerModule, settingsModule, aboutModule)
 
     single<Navigator>()

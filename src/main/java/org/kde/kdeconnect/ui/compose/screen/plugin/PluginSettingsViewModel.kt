@@ -6,10 +6,9 @@
 
 package org.kde.kdeconnect.ui.compose.screen.plugin
 
-import android.app.Application
 import android.content.Context
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,15 +34,15 @@ data class PluginSettingsItem(
 )
 
 class PluginSettingsViewModel(
-    application: Application,
+    private val application: KdeConnect,
     @InjectedParam private val deviceId: String
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PluginSettingsUiState())
     val uiState: StateFlow<PluginSettingsUiState> = _uiState.asStateFlow()
 
     private val device: Device?
-        get() = KdeConnect.getInstance().getDevice(deviceId)
+        get() = application.getDevice(deviceId)
 
     private val pluginsChangedListener = Device.PluginsChangedListener {
         viewModelScope.launch { refreshUI() }
@@ -61,14 +60,14 @@ class PluginSettingsViewModel(
     fun refreshUI() {
         val device = device ?: return
         val supportedPlugins = device.supportedPlugins.toList()
-        val sortedPlugins = PluginFactory.sortPluginList(getApplication(), supportedPlugins)
+        val sortedPlugins = PluginFactory.sortPluginList(application, supportedPlugins)
 
         val pluginItems = sortedPlugins.map { pluginKey ->
             val info = PluginFactory.getPluginInfo(pluginKey)
             PluginSettingsItem(
                 key = pluginKey,
-                name = info.getDisplayName(getApplication()),
-                description = info.getDescription(getApplication()),
+                name = info.getDisplayName(application),
+                description = info.getDescription(application),
                 isEnabled = device.isPluginEnabled(pluginKey),
             )
         }
