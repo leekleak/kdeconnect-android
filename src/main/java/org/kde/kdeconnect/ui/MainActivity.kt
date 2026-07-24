@@ -34,7 +34,6 @@ import coil3.compose.setSingletonImageLoaderFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.apache.commons.lang3.ArrayUtils
 import org.kde.kdeconnect.BackgroundService
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
@@ -222,13 +221,13 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
     }
 
     fun isPermissionGranted(permissions: Array<String>, grantResults: IntArray, permission : String) : Boolean {
-        val index = ArrayUtils.indexOf(permissions, permission)
-        return index != ArrayUtils.INDEX_NOT_FOUND && grantResults[index] == PackageManager.PERMISSION_GRANTED
+        val index = permissions.indexOf(permission)
+        return index != -1 && grantResults[index] == PackageManager.PERMISSION_GRANTED
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        val permissionsGranted = ArrayUtils.contains(grantResults, PackageManager.PERMISSION_GRANTED)
+        val permissionsGranted = grantResults.contains(PackageManager.PERMISSION_GRANTED)
         if (permissionsGranted) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && isPermissionGranted(permissions, grantResults, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
                 val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)

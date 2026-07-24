@@ -23,7 +23,6 @@ import com.google.android.mms.pdu_alt.MultimediaMessagePdu
 import com.google.android.mms.pdu_alt.PduPersister
 import com.google.android.mms.util_alt.PduCache
 import com.google.android.mms.util_alt.PduCacheEntry
-import org.apache.commons.io.IOUtils
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -726,7 +725,7 @@ object SMSHelper {
             context.contentResolver.openInputStream(partURI).use { stream ->
                 if (stream != null) {
                     // The stream is buffered internally, so buffering it separately is unnecessary.
-                    body = IOUtils.toString(stream, UTF_8)
+                    body = stream.readBytes().toString(UTF_8)
                 }
             }
         } catch (e: IOException) {

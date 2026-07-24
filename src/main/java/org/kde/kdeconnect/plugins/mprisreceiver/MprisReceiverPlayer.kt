@@ -8,7 +8,6 @@ package org.kde.kdeconnect.plugins.mprisreceiver
 import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.PlaybackState
-import org.apache.commons.lang3.StringUtils
 
 class MprisReceiverPlayer(
     val controller: MediaController,
@@ -64,20 +63,20 @@ class MprisReceiverPlayer(
     val artist: String
         get() {
             val metadata = controller.metadata ?: return ""
-            return StringUtils.firstNonEmpty<String?>(
+            return listOfNotNull(
                 metadata.getString(MediaMetadata.METADATA_KEY_ARTIST),
                 metadata.getString(MediaMetadata.METADATA_KEY_AUTHOR),
                 metadata.getString(MediaMetadata.METADATA_KEY_WRITER)
-            ) ?: ""
+            ).firstOrNull { it.isNotEmpty() } ?: ""
         }
 
     val title: String
         get() {
             val metadata = controller.metadata ?: return ""
-            return StringUtils.firstNonEmpty<String?>(
+            return listOfNotNull(
                 metadata.getString(MediaMetadata.METADATA_KEY_TITLE),
                 metadata.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE)
-            ) ?: ""
+            ).firstOrNull { it.isNotEmpty() } ?: ""
         }
 
     fun previous() {
