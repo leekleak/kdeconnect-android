@@ -12,7 +12,6 @@ import android.provider.DocumentsContract
 import android.util.Log
 import java.io.FileNotFoundException
 import java.io.IOException
-import java.lang.reflect.Method
 import java.net.URI
 import java.nio.channels.FileChannel
 import java.nio.channels.SeekableByteChannel
@@ -580,13 +579,5 @@ class SafFileSystemProvider(
 
     companion object {
         private const val TAG = "SafFileSystemProvider"
-
-        private val convertMaybeLegacyFileChannelFromLibraryFunction: Method by lazy {
-            val clazz = Class.forName("j$.nio.channels.DesugarChannels")
-            clazz.getDeclaredMethod(
-                "convertMaybeLegacyFileChannelFromLibrary",
-                FileChannel::class.java
-            )
-        }
     }
 }

@@ -52,9 +52,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-
-        // Flag to enable support for the new language APIs
-        isCoreLibraryDesugaringEnabled = true
     }
 
     androidResources {
@@ -127,11 +124,6 @@ androidComponents {
 dependencies {
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.datastore.preferences)
-    // It has a bug that causes a crash when using PosixFilePermission and minSdk < 26.
-    // It has been used in SSHD Core.
-    // We have taken a workaround to fix it.
-    // See `FixPosixFilePermissionClassVisitorFactory` for more details.
-    coreLibraryDesugaring(libs.android.desugarJdkLibsNio)
 
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui.tooling.preview)
