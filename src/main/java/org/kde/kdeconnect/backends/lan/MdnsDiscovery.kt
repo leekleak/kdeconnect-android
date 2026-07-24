@@ -16,7 +16,6 @@ import android.util.Log
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.net.InetAddress
 
 class MdnsDiscovery(context: Context, private val lanLinkProvider: LanLinkProvider) : KoinComponent {
     private val deviceHelper: DeviceHelper by inject()
@@ -185,7 +184,7 @@ class MdnsDiscovery(context: Context, private val lanLinkProvider: LanLinkProvid
             // TODO: In protocol version 8 we should be able to call "identityPacketReceived"
             //       here, since we already have all the info we need to start a connection
             //       and the remaining identity info will be exchanged later.
-            lanLinkProvider.sendUdpIdentityPacket(mutableListOf<InetAddress?>(remoteAddress), null)
+            lanLinkProvider.sendUdpIdentityPacket(mutableListOf(remoteAddress), null)
         }
     }
 

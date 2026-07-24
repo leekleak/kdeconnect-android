@@ -40,7 +40,9 @@ import org.kde.kdeconnect.plugins.share.SendFileActivity
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import org.kde.kdeconnect_tp.R
+import org.koin.android.ext.android.get
 import org.koin.android.ext.android.inject
+import org.koin.core.parameter.parametersOf
 
 /**
  * This class (still) does 3 things:
@@ -69,7 +71,7 @@ class BackgroundService : Service() {
     }
 
     private fun registerLinkProviders() {
-        linkProviders.add(LanLinkProvider(this))
+        linkProviders.add(get<LanLinkProvider> { parametersOf(this) })
         //linkProviders.add(LoopbackLinkProvider(this))
         linkProviders.add(BluetoothLinkProvider(this, settingsDataStore))
     }

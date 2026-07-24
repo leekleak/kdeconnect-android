@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.backends.lan.LanLinkProvider
 import org.kde.kdeconnect.datastore.ConnectionsSettingsDataStore
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
 import org.kde.kdeconnect.datastore.SettingsDataStore
@@ -294,6 +295,8 @@ val appModule = module {
     single<ImageLoader> { create(::buildImageLoader) }
 
     factory<Device>()
+
+    factory { (context: Context) -> LanLinkProvider(context, get()) }
 
     scope<Device> {
         scoped { SftpPlugin(get(), get(), get()) }
