@@ -6,9 +6,6 @@
 
 package org.kde.kdeconnect.helpers
 
-import android.os.Looper
-import android.util.Log
-import org.kde.kdeconnect_tp.BuildConfig
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -17,21 +14,6 @@ object ThreadHelper {
     private val executor: ExecutorService = Executors.newCachedThreadPool()
 
     @JvmStatic
+    @Deprecated("Should use Kotlin Coroutines where possible")
     fun execute(command: Runnable) = executor.execute(command)
-
-    fun assertMainThread() {
-        if (BuildConfig.DEBUG) {
-            if (Thread.currentThread() == Looper.getMainLooper().thread) {
-                Log.w("ThreadHelper", "This function must be called from the Main thread.", Exception("assertMainThread"))
-            }
-        }
-    }
-
-    fun assertNotMainThread() {
-        if (BuildConfig.DEBUG) {
-            if (Thread.currentThread() != Looper.getMainLooper().thread) {
-                Log.w("ThreadHelper", "This function must NOT be called from the Main thread.", Exception("assertNotMainThread"))
-            }
-        }
-    }
 }
