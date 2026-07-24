@@ -41,7 +41,6 @@ slf4j-handroid = "2.0.13"
 sshdCore = "2.19.0"
 swiperefreshlayout = "1.2.0"
 uiToolingPreview = "1.11.4"
-univocityParsers = "2.9.1"
 haze = "1.7.2"
 foundation = "1.11.4"
 
@@ -96,7 +95,6 @@ apache-sshd-sftp = { module = "org.apache.sshd:sshd-sftp", version.ref = "sshdCo
 apache-sshd-scp = { module = "org.apache.sshd:sshd-scp", version.ref = "sshdCore" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
-univocity-parsers = { module = "com.univocity:univocity-parsers", version.ref = "univocityParsers" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 slf4j-handroid = { module = "com.gitlab.mvysny.slf4j:slf4j-handroid", version.ref = "slf4j-handroid" }

@@ -187,8 +187,6 @@ dependencies {
 
     implementation(libs.commons.io)
 
-    implementation(libs.univocity.parsers)
-
     // Kotlin
     implementation(libs.kotlin.stdlib.jdk8)
     implementation(libs.kotlinx.coroutines.core)
