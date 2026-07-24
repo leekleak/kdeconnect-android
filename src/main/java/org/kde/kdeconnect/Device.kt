@@ -32,8 +32,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.apache.commons.collections4.MultiValuedMap
-import org.apache.commons.collections4.multimap.ArrayListValuedHashMap
 import org.kde.kdeconnect.DeviceInfo.Companion.loadFromSettings
 import org.kde.kdeconnect.DeviceStats.countReceived
 import org.kde.kdeconnect.DeviceStats.countSent
@@ -109,7 +107,7 @@ class Device(
     /**
      * Same as loadedPlugins but indexed by incoming packet type
      */
-    private var pluginsByIncomingInterface: MultiValuedMap<String, String> = ArrayListValuedHashMap()
+    private var pluginsByIncomingInterface: Map<String, List<String>> = emptyMap()
 
     private val pluginsChangedListeners = CopyOnWriteArrayList<PluginsChangedListener>()
 
@@ -398,7 +396,7 @@ class Device(
         }
 
         // pluginsByIncomingInterface may not be built yet
-        if (pluginsByIncomingInterface.isEmpty) {
+        if (pluginsByIncomingInterface.isEmpty()) {
             reloadPluginsFromSettings()
         }
 
@@ -419,7 +417,7 @@ class Device(
 
     private fun notifyPluginPacketReceived(np: NetworkPacket) {
         val targetPlugins = pluginsByIncomingInterface[np.type] // Returns an empty collection if the key doesn't exist
-        if (targetPlugins.isEmpty()) {
+        if (targetPlugins == null) {
             Log.w("Device", "Ignoring packet with type ${np.type} because no plugin can handle it")
 
             // If there is a payload close it to not leak sockets
@@ -568,7 +566,7 @@ class Device(
     @WorkerThread
     fun reloadPluginsFromSettings() {
         Log.i("Device", "${deviceInfo.name}: reloading plugins")
-        val newPluginsByIncomingInterface: MultiValuedMap<String, String> = ArrayListValuedHashMap()
+        val newPluginsByIncomingInterface: MutableMap<String, MutableList<String>> = mutableMapOf()
 
         val oldLoadedPlugins = loadedPlugins
         val newLoadedPlugins = mutableMapOf<String, Plugin>()
@@ -601,7 +599,7 @@ class Device(
                     }
 
                     pluginInfo.supportedPacketTypes.forEach { packetType ->
-                        newPluginsByIncomingInterface.put(packetType, pluginKey)
+                        newPluginsByIncomingInterface.getOrPut(packetType){mutableListOf()}.add(pluginKey)
                     }
                 }
             }

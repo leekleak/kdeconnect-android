@@ -28,7 +28,6 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.createBitmap
 import androidx.fragment.app.DialogFragment
-import org.apache.commons.collections4.multimap.ArrayListValuedHashMap
 import org.json.JSONArray
 import org.json.JSONObject
 import org.kde.kdeconnect.Device
@@ -88,7 +87,7 @@ class NotificationsPlugin(
     private val notificationsIcons = mutableMapOf<String, String>()
     private val postedNotifications = mutableSetOf<String>()
     private val pendingIntents = mutableMapOf<String, RepliableNotification>()
-    private val pendingActions = ArrayListValuedHashMap<String, Notification.Action>()
+    private val pendingActions = HashMap<String, MutableList<Notification.Action>>()
     private var serviceReady = false
     private lateinit var keyguardManager: KeyguardManager
     private lateinit var mainHandler: Handler
@@ -378,7 +377,7 @@ class NotificationsPlugin(
             jsonArray.put(title.toString())
 
             // A list is automatically created if it doesn't already exist.
-            pendingActions.put(key, action)
+            pendingActions.getOrPut(key) {mutableListOf()}.add(action)
         }
 
         return jsonArray
@@ -516,7 +515,7 @@ class NotificationsPlugin(
             val title = np.getString("action")
             var intent: PendingIntent? = null
 
-            for (a in pendingActions.get(key)) {
+            for (a in pendingActions[key] ?: emptyList()) {
                 if (a.title == title) {
                     intent = a.actionIntent
                     break

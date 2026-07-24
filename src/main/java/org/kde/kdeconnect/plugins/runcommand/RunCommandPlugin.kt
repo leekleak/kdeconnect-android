@@ -15,7 +15,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.preference.PreferenceManager
-import org.apache.commons.collections4.iterators.IteratorIterable
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -79,7 +78,7 @@ class RunCommandPlugin(context: Context, device: Device) : Plugin(context, devic
             try {
                 commandItems.clear()
                 val obj = JSONObject(np.getString("commandList"))
-                for (s in IteratorIterable(obj.keys())) {
+                for (s in obj.keys()) {
                     val o = obj.getJSONObject(s)
                     o.put("key", s)
                     commandList.add(o)
