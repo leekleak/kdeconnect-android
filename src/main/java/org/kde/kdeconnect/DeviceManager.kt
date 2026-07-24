@@ -37,7 +37,7 @@ class DeviceManager(
 
     init {
         jobScope.launch {
-            snapshotFlow { devices }.collect {
+            snapshotFlow { devices.toMap() }.collect {
                 onDeviceListChanged()
             }
         }
@@ -103,7 +103,6 @@ class DeviceManager(
                 device = get { parametersOf(link.deviceId, link) }
                 devices[link.deviceId] = device
             }
-            onDeviceListChanged()
         }
 
         @WorkerThread
@@ -115,10 +114,10 @@ class DeviceManager(
                 if (!device.isReachable) {
                     devices.remove(device.deviceId)
                 }
+                device.close()
             } else {
                 Log.d("DeviceManager/onConnectionLost", "Removing connection to unknown device")
             }
-            onDeviceListChanged()
         }
 
         @WorkerThread
@@ -128,10 +127,7 @@ class DeviceManager(
                 Log.e("DeviceManager", "onDeviceInfoUpdated for an unknown device")
                 return
             }
-            val hasChanges = device.updateDeviceInfo(deviceInfo)
-            if (hasChanges) {
-                onDeviceListChanged()
-            }
+            device.updateDeviceInfo(deviceInfo)
         }
     }
 }
