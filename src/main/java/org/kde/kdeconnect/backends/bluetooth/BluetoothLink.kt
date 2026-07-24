@@ -30,8 +30,8 @@ class BluetoothLink(
     val input: InputStream,
     val output: OutputStream,
     val remoteAddress: BluetoothDevice,
-    val theDeviceInfo: DeviceInfo,
-    val linkProvider: BluetoothLinkProvider
+    override val deviceInfo: DeviceInfo,
+    override val linkProvider: BluetoothLinkProvider
 ) : BaseLink(context, linkProvider) {
     private var continueAccepting = true
     private val receivingThread = Thread(object : Runnable {
@@ -89,13 +89,7 @@ class BluetoothLink(
         receivingThread.start()
     }
 
-    override fun getName(): String {
-        return "BluetoothLink"
-    }
-
-    override fun getDeviceInfo(): DeviceInfo {
-        return theDeviceInfo
-    }
+    override val name: String = "BluetoothLink"
 
     override fun disconnect() {
         continueAccepting = false

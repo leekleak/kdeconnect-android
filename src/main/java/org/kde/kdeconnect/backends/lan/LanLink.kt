@@ -39,7 +39,7 @@ import kotlin.text.Charsets.UTF_8
 
 class LanLink @WorkerThread constructor(
     context: Context,
-    private var deviceInfo: DeviceInfo,
+    override var deviceInfo: DeviceInfo,
     linkProvider: BaseLinkProvider,
     socket: SSLSocket
 ) : BaseLink(context, linkProvider) {
@@ -51,6 +51,7 @@ class LanLink @WorkerThread constructor(
 
     @Volatile
     private var socket: SSLSocket? = null
+    override val name: String = "LanLink"
 
     override fun disconnect() {
         Log.i("LanLink/Disconnect", "socket:" + socket.hashCode())
@@ -118,12 +119,6 @@ class LanLink @WorkerThread constructor(
     init {
         reset(socket, deviceInfo)
     }
-
-    override fun getName(): String {
-        return "LanLink"
-    }
-
-    override fun getDeviceInfo(): DeviceInfo = deviceInfo
 
     @WorkerThread
     override fun sendPacket(

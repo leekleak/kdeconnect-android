@@ -440,7 +440,7 @@ class LanLinkProvider(private val context: Context, private val deviceHelper: De
     private fun addOrUpdateLink(socket: SSLSocket, deviceInfo: DeviceInfo) {
         var link = visibleDevices[deviceInfo.id]
         if (link != null) {
-            if (link.getDeviceInfo().certificate != deviceInfo.certificate) {
+            if (link.deviceInfo.certificate != deviceInfo.certificate) {
                 Log.e(
                     "LanLinkProvider",
                     "LanLink was asked to replace a socket but the certificate doesn't match, aborting"

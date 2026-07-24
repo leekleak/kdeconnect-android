@@ -19,15 +19,15 @@ import org.koin.core.component.inject
 class LoopbackLink(context: Context, linkProvider: BaseLinkProvider) : BaseLink(context, linkProvider), KoinComponent {
     private val deviceHelper: DeviceHelper by inject()
 
-    override fun getName(): String = "LoopbackLink"
-    override fun getDeviceInfo(): DeviceInfo = deviceHelper.getDeviceInfo()
+    override val name: String = "LoopbackLink"
+    override val deviceInfo: DeviceInfo = deviceHelper.getDeviceInfo()
 
     @WorkerThread
-    override fun sendPacket(packet: NetworkPacket, callback: Device.SendPacketStatusCallback, sendPayloadFromSameThread: Boolean): Boolean {
-        packetReceived(packet)
-        if (packet.hasPayload()) {
+    override fun sendPacket(np: NetworkPacket, callback: Device.SendPacketStatusCallback, sendPayloadFromSameThread: Boolean): Boolean {
+        packetReceived(np)
+        if (np.hasPayload()) {
             callback.onPayloadProgressChanged(0)
-            packet.payload = packet.payload // this triggers logic in the setter
+            np.payload = np.payload // this triggers logic in the setter
             callback.onPayloadProgressChanged(100)
         }
         callback.onSuccess()
