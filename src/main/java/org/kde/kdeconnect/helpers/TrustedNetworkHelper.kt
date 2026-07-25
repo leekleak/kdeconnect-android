@@ -14,12 +14,11 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.datastore.ConnectionsSettingsDataStore
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
-class TrustedNetworkHelper(private val context: Context) : KoinComponent {
-
-    private val dataStore: ConnectionsSettingsDataStore by inject()
+class TrustedNetworkHelper(
+    private val context: Context,
+    private val dataStore: ConnectionsSettingsDataStore
+) {
 
     var trustedNetworks: List<String>
         get() {
@@ -77,8 +76,5 @@ class TrustedNetworkHelper(private val context: Context) : KoinComponent {
     companion object {
         private const val NETWORK_SSID_DELIMITER = "\u0000"
         private const val NOT_AVAILABLE_SSID_RESULT = "<unknown ssid>"
-
-        @JvmStatic
-        fun isTrustedNetwork(context: Context): Boolean = TrustedNetworkHelper(context).isTrustedNetwork
     }
 }

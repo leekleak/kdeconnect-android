@@ -1,7 +1,6 @@
 package org.kde.kdeconnect.ui.compose.screen.settings.advanced.connections
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,11 +22,9 @@ data class ConnectionsSettingsUiState(
 )
 
 class ConnectionsSettingsViewModel(
-    application: Application,
     private val connectionsDataStore: ConnectionsSettingsDataStore,
-) : AndroidViewModel(application) {
-    private val helper = TrustedNetworkHelper(application)
-
+    private val trustedNetworkHelper: TrustedNetworkHelper,
+) : ViewModel() {
     private val _updateTrigger = MutableStateFlow(0)
 
     val uiState: StateFlow<ConnectionsSettingsUiState> = combine(
@@ -42,8 +39,8 @@ class ConnectionsSettingsViewModel(
         ConnectionsSettingsUiState(
             trustedNetworks = trustedNetworks,
             allNetworksAllowed = allNetworksAllowed,
-            currentSSID = helper.currentSSID,
-            hasLocationPermission = helper.hasPermissions,
+            currentSSID = trustedNetworkHelper.currentSSID,
+            hasLocationPermission = trustedNetworkHelper.hasPermissions,
             customDevices = customDevices
         )
     }.stateIn(

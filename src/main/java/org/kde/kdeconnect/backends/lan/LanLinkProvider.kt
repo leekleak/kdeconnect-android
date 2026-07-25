@@ -54,7 +54,11 @@ import kotlin.text.Charsets.UTF_8
  * 
  * @see .identityPacketReceived
  */
-class LanLinkProvider(private val context: Context, private val deviceHelper: DeviceHelper) : BaseLinkProvider() {
+class LanLinkProvider(
+    private val context: Context,
+    private val deviceHelper: DeviceHelper,
+    private val trustedNetworkHelper: TrustedNetworkHelper
+) : BaseLinkProvider() {
 
     val visibleDevices: HashMap<String?, LanLink?> = HashMap() // Links by device id
 
@@ -109,7 +113,7 @@ class LanLinkProvider(private val context: Context, private val deviceHelper: De
         }
 
         val deviceTrusted = TrustedDevices.isTrustedDevice(context, deviceId)
-        if (!deviceTrusted && !TrustedNetworkHelper.isTrustedNetwork(context)) {
+        if (!deviceTrusted && !trustedNetworkHelper.isTrustedNetwork) {
             Log.i(
                 "KDE/LanLinkProvider",
                 "Ignoring identity packet because the device is not trusted and I'm not on a trusted network."
@@ -556,7 +560,7 @@ class LanLinkProvider(private val context: Context, private val deviceHelper: De
     private fun broadcastUdpIdentityPacket(network: Network?) {
         scope?.launch {
             val hostList: MutableList<DeviceHost> = getCustomDeviceList()
-            if (TrustedNetworkHelper.isTrustedNetwork(context)) {
+            if (trustedNetworkHelper.isTrustedNetwork) {
                 hostList.add(DeviceHost.BROADCAST) //Default: broadcast.
             } else {
                 Log.i("LanLinkProvider", "Current network isn't trusted, not broadcasting")
@@ -645,7 +649,7 @@ class LanLinkProvider(private val context: Context, private val deviceHelper: De
 
             synchronized(mdnsDiscovery) {
                 mdnsDiscovery.startDiscovering()
-                if (TrustedNetworkHelper.isTrustedNetwork(context)) {
+                if (trustedNetworkHelper.isTrustedNetwork) {
                     mdnsDiscovery.startAnnouncing()
                 }
             }

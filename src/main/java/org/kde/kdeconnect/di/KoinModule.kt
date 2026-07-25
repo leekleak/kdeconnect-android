@@ -7,7 +7,6 @@ import android.content.Intent
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
@@ -31,6 +30,7 @@ import org.kde.kdeconnect.datastore.SftpSettingsDataStore
 import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 import org.kde.kdeconnect.helpers.AppIconFetcher
 import org.kde.kdeconnect.helpers.DeviceHelper
+import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 import org.kde.kdeconnect.plugins.battery.BatteryPlugin
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin
 import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityReportPlugin
@@ -127,7 +127,7 @@ val pairingModule = module {
         PairingScreen(
             uiState = state,
             onClick = { deviceId -> navigator.goTo(DeviceKey(deviceId, true)) },
-            onRefresh = { viewModel.onRefresh() }
+            onRefresh = { viewModel.onRefresh(get()) }
         )
     }
 }
@@ -290,9 +290,11 @@ val appModule = module {
     single<Navigator>()
     single<ImageLoader> { create(::buildImageLoader) }
 
+    single<TrustedNetworkHelper>()
+
     factory<Device>()
 
-    factory { (context: Context) -> LanLinkProvider(context, get()) }
+    factory { (context: Context) -> LanLinkProvider(context, get(), get()) }
 
     scope<Device> {
         scoped { SftpPlugin(get(), get(), get()) }

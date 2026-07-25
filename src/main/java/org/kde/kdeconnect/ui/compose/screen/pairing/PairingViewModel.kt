@@ -6,9 +6,8 @@
 
 package org.kde.kdeconnect.ui.compose.screen.pairing
 
-import android.app.Application
 import android.content.Context
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -22,15 +21,15 @@ import org.kde.kdeconnect.BackgroundServiceData
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.DeviceState
 import org.kde.kdeconnect.PairingHandler
-import org.kde.kdeconnect.helpers.TrustedNetworkHelper.Companion.isTrustedNetwork
+import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 import org.kde.kdeconnect.ui.compose.extensions.device.toUiModel
 import org.kde.kdeconnect.ui.compose.model.device.DeviceUiModel
 
 class PairingViewModel(
-    application: Application,
     private val deviceManager: DeviceManager,
     private val backgroundServiceData: BackgroundServiceData,
-) : AndroidViewModel(application) {
+    private val trustedNetworkHelper: TrustedNetworkHelper,
+) : ViewModel() {
     private val _pairingUiState = MutableStateFlow(
         value = PairingUiState(
             isWifiAvailable = false,
@@ -45,8 +44,13 @@ class PairingViewModel(
 
     init {
         viewModelScope.launch {
-            backgroundServiceData.isConnectedToNonCellularNetwork.collect {
-                updateConnectivityInfoHeader(it, application)
+            backgroundServiceData.isConnectedToNonCellularNetwork.collect { isConnectedToNonCellularNetwork ->
+                _pairingUiState.update {
+                    it.copy(
+                        isWifiAvailable = isConnectedToNonCellularNetwork,
+                        isTrustedNetwork = trustedNetworkHelper.isTrustedNetwork
+                    )
+                }
             }
         }
         viewModelScope.launch {
@@ -54,18 +58,6 @@ class PairingViewModel(
                 val devices = map.values.filter { it.isReachable || it.pairStatus == PairingHandler.PairState.Paired }
                 buildUiState(devices)
             }
-        }
-    }
-
-    fun updateConnectivity(
-        isWifiAvailable: Boolean,
-        isTrustedNetwork: Boolean
-    ) {
-        _pairingUiState.update {
-            it.copy(
-                isWifiAvailable = isWifiAvailable,
-                isTrustedNetwork = isTrustedNetwork
-            )
         }
     }
 
@@ -102,21 +94,14 @@ class PairingViewModel(
             }
         }
 
-    fun onRefresh() {
+    fun onRefresh(context: Context) {
         _pairingUiState.update { uiState -> uiState.copy(isRefreshing = true) }
 
-        forceRefreshConnections(context = getApplication())
+        forceRefreshConnections(context)
 
         viewModelScope.launch {
             delay(timeMillis = 1500)
             _pairingUiState.update { uiState -> uiState.copy(isRefreshing = false) }
         }
-    }
-
-    private fun updateConnectivityInfoHeader(isConnectedToNonCellularNetwork: Boolean, context: Context) {
-        updateConnectivity(
-            isWifiAvailable = isConnectedToNonCellularNetwork,
-            isTrustedNetwork = isTrustedNetwork(context)
-        )
     }
 }
