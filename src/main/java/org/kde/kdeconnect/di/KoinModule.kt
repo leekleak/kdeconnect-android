@@ -19,6 +19,7 @@ import coil3.ImageLoader
 import coil3.request.crossfade
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
+import org.kde.kdeconnect.BackgroundServiceData
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.KdeConnect
@@ -123,12 +124,6 @@ val pairingModule = module {
         val viewModel: PairingViewModel = koinViewModel()
         val state by viewModel.pairingUiState.collectAsStateWithLifecycle()
         val navigator = koinInject<Navigator>()
-        val context = LocalContext.current
-
-        DisposableEffect(Unit) {
-            viewModel.onStart(context)
-            onDispose { viewModel.onStop() }
-        }
         PairingScreen(
             uiState = state,
             onClick = { deviceId -> navigator.goTo(DeviceKey(deviceId, true)) },
@@ -289,6 +284,7 @@ fun buildImageLoader(context: Context): ImageLoader =
 
 val appModule = module {
     single<KdeConnect> { get<Context>() as KdeConnect }
+    single<BackgroundServiceData>()
     includes(pairingModule, deviceModule, pluginSettingsModule, presenterModule, mousePadModule, runCommandModule, digitizerModule, settingsModule, aboutModule)
 
     single<Navigator>()

@@ -536,6 +536,7 @@ object SMSPluginInfo : PluginInfo(
         Manifest.permission.READ_SMS,  // READ_PHONE_STATE should be optional, since we can just query the user, but that
         // requires a GUI implementation for querying the user!
         Manifest.permission.READ_PHONE_STATE,
+        Manifest.permission.READ_PHONE_NUMBERS,
     ),
     supportedPacketTypes = arrayOf(PACKET_TYPE_SMS_REQUEST, PACKET_TYPE_SMS_REQUEST_CONVERSATIONS, PACKET_TYPE_SMS_REQUEST_CONVERSATION, PACKET_TYPE_SMS_REQUEST_ATTACHMENT),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_SMS_MESSAGE, PACKET_TYPE_SMS_ATTACHMENT_FILE),

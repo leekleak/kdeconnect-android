@@ -48,7 +48,6 @@ class KdeConnect : Application() {
         SslHelper.initialiseCertificate(this)
         NotificationHelper.initializeChannels(this)
         LifecycleHelper.initializeObserver()
-        deviceManager.loadRememberedDevicesFromSettings()
 
         if (BuildConfig.DEBUG && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             StrictMode.setVmPolicy(

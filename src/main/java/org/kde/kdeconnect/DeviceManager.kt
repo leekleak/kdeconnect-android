@@ -7,7 +7,13 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLinkProvider.ConnectionReceiver
@@ -33,6 +39,21 @@ class DeviceManager(
 
     val devices: SnapshotStateMap<String, Device> = SnapshotStateMap()
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val allDeviceStatesMap: Flow<Map<String, DeviceState>> =
+        snapshotFlow { devices.toMap() }
+            .flatMapLatest { deviceMap ->
+                if (deviceMap.isEmpty()) {
+                    flowOf(emptyMap())
+                } else {
+                    combine(
+                        deviceMap.entries.map { (id, device) ->
+                            device.state.map { id to it }
+                        }
+                    ) { pairs -> pairs.toMap() }
+                }
+            }
+
     private val deviceListChangedCallbacks = ConcurrentHashMap<String, DeviceListChangedCallback>()
 
     init {
@@ -41,6 +62,7 @@ class DeviceManager(
                 onDeviceListChanged()
             }
         }
+        loadRememberedDevicesFromSettings()
     }
 
     fun addDeviceListChangedCallback(key: String, callback: DeviceListChangedCallback) {
@@ -68,7 +90,7 @@ class DeviceManager(
         return device?.getPlugin(pluginClass)
     }
 
-    fun loadRememberedDevicesFromSettings() {
+    private fun loadRememberedDevicesFromSettings() {
         val trustedDevices = TrustedDevices.getAllTrustedDevices(context)
         trustedDevices.asSequence()
             .onEach { Log.d("DeviceManager", "Loading device $it") }

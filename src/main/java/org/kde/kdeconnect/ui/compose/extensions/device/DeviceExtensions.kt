@@ -7,6 +7,8 @@
 package org.kde.kdeconnect.ui.compose.extensions.device
 
 import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.DeviceState
+import org.kde.kdeconnect.PairingHandler
 import org.kde.kdeconnect.ui.compose.model.device.DeviceUiModel
 import org.kde.kdeconnect_tp.R
 
@@ -17,4 +19,13 @@ fun Device.toUiModel() = DeviceUiModel(
     summaryRes = if (compareProtocolVersion() > 0) R.string.protocol_version_newer else 0,
     isReachable = isReachable,
     isPaired = isPaired
+)
+
+fun DeviceState.toUiModel() = DeviceUiModel(
+    id = deviceInfo.id,
+    icon = deviceInfo.type.toDrawableId(),
+    name = deviceInfo.name,
+    summaryRes = 0,
+    isReachable = isReachable,
+    isPaired = pairStatus == PairingHandler.PairState.Paired
 )

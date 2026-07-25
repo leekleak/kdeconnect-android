@@ -120,11 +120,11 @@ fun PairingScreen(
                     itemsIndexed(
                         items = uiState.remembered,
                         key = { _, rememberedDevice -> rememberedDevice.id }) { _, rememberedDevice ->
+                        Spacer(Modifier.height(4.dp))
                         DeviceCard (
                             device = rememberedDevice,
                             onClick = { onClickInternal(it) }
                         )
-                        Spacer(Modifier.height(8.dp))
                     }
                 }
             }
@@ -147,7 +147,8 @@ fun PairingScreen(
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = paddingValues,
-                state = lazyListState
+                state = lazyListState,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // Explanations
                 item {
@@ -163,12 +164,10 @@ fun PairingScreen(
                         EmptyPlaceholder()
                     }
                 } else {
-                    item {
-                        Spacer(modifier = Modifier.height(4.dp))
-                    }
                     itemsIndexed(
                         items = uiState.connected,
                         key = { _, connectedDevice -> connectedDevice.id }) { _, connectedDevice ->
+                        Spacer(Modifier.height(4.dp))
                         DeviceCard (
                             device = connectedDevice,
                             onClick = { onClickInternal(it) }
@@ -181,12 +180,10 @@ fun PairingScreen(
                     item {
                         SectionHeader(title = stringResource(id = R.string.category_not_paired_devices))
                     }
-                    item {
-                        Spacer(modifier = Modifier.height(4.dp))
-                    }
                     itemsIndexed(
                         items = uiState.available,
                         key = { _, availableDevice -> availableDevice.id }) { _, availableDevice ->
+                        Spacer(Modifier.height(4.dp))
                         DeviceCard (
                             device = availableDevice,
                             onClick = { onClickInternal(it) }
@@ -219,12 +216,7 @@ private fun PairingExplanations(uiState: PairingUiState) {
         val someDevicesReachable = uiState.available.isNotEmpty() || uiState.connected.isNotEmpty()
 
         if (someDevicesReachable || uiState.isWifiAvailable) {
-            if (!uiState.hasNotificationsPermission) {
-                PairingExplanationRow(
-                    text = stringResource(R.string.no_notifications),
-                    icon = R.drawable.ic_warning,
-                )
-            } else if (uiState.isTrustedNetwork) {
+            if (uiState.isTrustedNetwork) {
                 PairingExplanationRow(text = stringResource(R.string.pairing_description))
             } else {
                 PairingExplanationRow(
@@ -372,7 +364,6 @@ private fun PreviewCompose() {
         PairingScreen(
             uiState = PairingUiState(
                 isWifiAvailable = true,
-                hasNotificationsPermission = true,
                 isTrustedNetwork = true,
                 hasDuplicateNames = true,
                 connected = emptyList(),

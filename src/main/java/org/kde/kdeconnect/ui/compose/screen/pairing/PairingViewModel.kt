@@ -6,39 +6,34 @@
 
 package org.kde.kdeconnect.ui.compose.screen.pairing
 
-import android.Manifest
 import android.app.Application
 import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.kde.kdeconnect.BackgroundService
 import org.kde.kdeconnect.BackgroundService.Companion.forceRefreshConnections
-import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.BackgroundServiceData
 import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.DeviceState
+import org.kde.kdeconnect.PairingHandler
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper.Companion.isTrustedNetwork
 import org.kde.kdeconnect.ui.compose.extensions.device.toUiModel
 import org.kde.kdeconnect.ui.compose.model.device.DeviceUiModel
 
 class PairingViewModel(
     application: Application,
-    private val deviceManager: DeviceManager
+    private val deviceManager: DeviceManager,
+    private val backgroundServiceData: BackgroundServiceData,
 ) : AndroidViewModel(application) {
     private val _pairingUiState = MutableStateFlow(
         value = PairingUiState(
             isWifiAvailable = false,
-            hasNotificationsPermission = false,
             isTrustedNetwork = false,
             hasDuplicateNames = false,
             connected = emptyList(),
@@ -48,29 +43,35 @@ class PairingViewModel(
     )
     val pairingUiState: StateFlow<PairingUiState> = _pairingUiState.asStateFlow()
 
-    private var allDevices: List<Device> = emptyList()
-
-    fun getDeviceById(deviceId: String): Device? =
-        allDevices.find { device -> device.deviceId == deviceId }
+    init {
+        viewModelScope.launch {
+            backgroundServiceData.isConnectedToNonCellularNetwork.collect {
+                updateConnectivityInfoHeader(it, application)
+            }
+        }
+        viewModelScope.launch {
+            deviceManager.allDeviceStatesMap.collect { map ->
+                val devices = map.values.filter { it.isReachable || it.pairStatus == PairingHandler.PairState.Paired }
+                buildUiState(devices)
+            }
+        }
+    }
 
     fun updateConnectivity(
         isWifiAvailable: Boolean,
-        hasNotificationsPermission: Boolean,
         isTrustedNetwork: Boolean
     ) {
         _pairingUiState.update {
             it.copy(
                 isWifiAvailable = isWifiAvailable,
-                hasNotificationsPermission = hasNotificationsPermission,
                 isTrustedNetwork = isTrustedNetwork
             )
         }
     }
 
-    fun buildUiState(devices: Collection<Device>) =
+    fun buildUiState(devices: List<DeviceState>) =
         viewModelScope.launch(context = Dispatchers.Default) {
             val deviceList = devices.toList()
-            this@PairingViewModel.allDevices = deviceList
 
             val connected = mutableListOf<DeviceUiModel>()
             val available = mutableListOf<DeviceUiModel>()
@@ -79,13 +80,14 @@ class PairingViewModel(
             var hasDuplicateNames = false
 
             for (device in deviceList) {
-                if (device.isReachable || device.isPaired) {
-                    if (!names.add(device.name)) hasDuplicateNames = true
+                val paired = device.pairStatus == PairingHandler.PairState.Paired
+                if (device.isReachable || paired) {
+                    if (!names.add(device.deviceInfo.name)) hasDuplicateNames = true
                     val uiModel = device.toUiModel()
                     when {
-                        device.isReachable && device.isPaired -> connected.add(uiModel)
-                        device.isReachable && !device.isPaired -> available.add(uiModel)
-                        !device.isReachable && device.isPaired -> remembered.add(uiModel)
+                        device.isReachable && paired -> connected.add(uiModel)
+                        device.isReachable && !paired -> available.add(uiModel)
+                        else -> remembered.add(uiModel)
                     }
                 }
             }
@@ -111,58 +113,9 @@ class PairingViewModel(
         }
     }
 
-    private var listRefreshCalledThisFrame = false
-    private var connectivityJob: Job? = null
-
-    // called when the screen becomes visible
-    fun onStart(context: Context) {
-        deviceManager.addDeviceListChangedCallback("PairingViewModel") {
-            updateDeviceList(context)
-        }
-        forceRefreshConnections(context)
-        updateDeviceList(context)
-    }
-
-    // called when the screen goes away
-    fun onStop() {
-        deviceManager.removeDeviceListChangedCallback("PairingViewModel")
-        connectivityJob?.cancel()
-    }
-
-    private fun updateDeviceList(context: Context) {
-        if (listRefreshCalledThisFrame) return
-        listRefreshCalledThisFrame = true
-
-        val service = BackgroundService.instance
-        if (service == null) {
-            updateConnectivityInfoHeader(isConnectedToNonCellularNetwork = true, context)
-        } else {
-            connectivityJob?.cancel()
-            connectivityJob = viewModelScope.launch {
-                service.isConnectedToNonCellularNetwork.asFlow()
-                    .collect { updateConnectivityInfoHeader(it, context) }
-            }
-        }
-
-        try {
-            val allDevices = deviceManager.devices.values
-                .filter { it.isReachable || it.isPaired }
-            buildUiState(devices = allDevices)
-        } finally {
-            listRefreshCalledThisFrame = false
-        }
-    }
-
     private fun updateConnectivityInfoHeader(isConnectedToNonCellularNetwork: Boolean, context: Context) {
-        val hasNotificationsPermission =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
-                        PackageManager.PERMISSION_GRANTED
-            } else true
-
         updateConnectivity(
             isWifiAvailable = isConnectedToNonCellularNetwork,
-            hasNotificationsPermission = hasNotificationsPermission,
             isTrustedNetwork = isTrustedNetwork(context)
         )
     }

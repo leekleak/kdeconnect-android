@@ -25,8 +25,6 @@ import androidx.annotation.MainThread
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.backends.BaseLinkProvider.ConnectionReceiver
 import org.kde.kdeconnect.backends.bluetooth.BluetoothLinkProvider
@@ -52,15 +50,11 @@ import org.koin.core.parameter.parametersOf
  * It can be started by the KdeConnectBroadcastReceiver on some events or when the MainActivity is launched.
  */
 class BackgroundService : Service() {
+    private val data: BackgroundServiceData by inject()
     private val deviceManager: DeviceManager by inject()
 
     private val linkProviders = mutableListOf<BaseLinkProvider>()
     private val settingsDataStore: SettingsDataStore by inject()
-
-    private val connectedToNonCellularNetwork = MutableLiveData<Boolean>()
-    /** Indicates whether device is connected over wifi / usb / bluetooth / (anything other than cellular) */
-    val isConnectedToNonCellularNetwork: LiveData<Boolean>
-        get() = connectedToNonCellularNetwork
 
     fun updateForegroundNotification() {
         if (NotificationHelper.isPersistentNotificationEnabled(this)) {
@@ -125,13 +119,13 @@ class BackgroundService : Service() {
 
             override fun onAvailable(network: Network) {
                 Log.i("BackgroundService", "Valid network available")
-                connectedToNonCellularNetwork.postValue(true)
+                data.setConnected(true)
                 onNetworkChange(network)
             }
 
             override fun onLost(network: Network) {
                 Log.i("BackgroundService", "Valid network lost")
-                connectedToNonCellularNetwork.postValue(false)
+                data.setConnected(true)
             }
         })
 
