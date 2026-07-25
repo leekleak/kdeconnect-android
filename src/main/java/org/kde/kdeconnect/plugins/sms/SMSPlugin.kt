@@ -202,7 +202,7 @@ class SMSPlugin(
             }
         }
 
-        val phoneNumber: String? = messages[0].originatingAddress
+        val phoneNumber: String = messages[0].originatingAddress ?: return
 
         if (isNumberBlocked(phoneNumber)) return
 

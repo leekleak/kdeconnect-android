@@ -6,6 +6,10 @@
 package org.kde.kdeconnect.plugins.telephony
 
 import android.Manifest
+import android.Manifest.permission.READ_CALL_LOG
+import android.Manifest.permission.READ_CONTACTS
+import android.Manifest.permission.READ_PHONE_NUMBERS
+import android.Manifest.permission.READ_PHONE_STATE
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -55,18 +59,20 @@ class TelephonyPlugin(
 
                 if (intState != lastState) {
                     lastState = intState
-                    callBroadcastReceived(intState, number)
+                    if (number != null) {
+                        callBroadcastReceived(intState, number)
+                    }
                 }
             }
         }
     }
 
-    private fun callBroadcastReceived(state: Int, phoneNumber: String?) {
+    private fun callBroadcastReceived(state: Int, phoneNumber: String) {
         if (isNumberBlocked(phoneNumber)) return
 
         val np = NetworkPacket(PACKET_TYPE_TELEPHONY)
 
-        val permissionCheck = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CONTACTS)
+        val permissionCheck = ContextCompat.checkSelfPermission(context, READ_CONTACTS)
 
         if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
             val contactInfo = ContactsHelper.phoneNumberLookup(context, phoneNumber)
@@ -209,7 +215,7 @@ object TelephonyPluginInfo : PluginInfo(
     instantiableClass = TelephonyPlugin::class.java,
     displayNameRes = R.string.pref_plugin_telephony,
     descriptionRes = R.string.pref_plugin_telephony_desc,
-    requiredPermissions = arrayOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_CONTACTS),
+    requiredPermissions = arrayOf(READ_PHONE_STATE, READ_CALL_LOG, READ_CONTACTS, READ_PHONE_NUMBERS),
     supportedPacketTypes = arrayOf(PACKET_TYPE_TELEPHONY_REQUEST_MUTE),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_TELEPHONY),
 ) {

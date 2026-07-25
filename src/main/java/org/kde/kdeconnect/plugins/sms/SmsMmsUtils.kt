@@ -71,7 +71,7 @@ object SmsMmsUtils {
                 // the FromAddress (below) since the default value there is null.
                 // The only more-correct thing we could do here is query the user (maybe in a
                 // persistent configuration) for their phone number(s).
-                sendingPhoneNumber = LocalPhoneNumber(null, subscriptionID)
+                sendingPhoneNumber = LocalPhoneNumber("dummy", subscriptionID)
                 Log.w(SENDING_MESSAGE, ("We do not know *any* phone numbers for this device. "
                         + "Attempting to send a message without knowing the local phone number is likely "
                         + "to result in strange behavior, such as the message being sent to yourself, "
