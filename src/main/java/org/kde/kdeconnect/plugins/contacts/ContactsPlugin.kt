@@ -18,7 +18,7 @@ import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.helpers.ContactsHelper
 import org.kde.kdeconnect.helpers.ContactsHelper.ContactNotFoundException
 import org.kde.kdeconnect.helpers.ContactsHelper.VCardBuilder
-import org.kde.kdeconnect.helpers.ContactsHelper.uID
+import org.kde.kdeconnect.helpers.ContactsHelper.UID
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
@@ -47,13 +47,14 @@ class ContactsPlugin(context: Context, device: Device) : Plugin(context, device)
      * @return The same VCard as was passed in, but now with KDE Connect-specific fields
      */
     @Throws(ContactNotFoundException::class)
-    private fun addVCardMetadata(vcard: VCardBuilder, uID: uID): VCardBuilder {
+    private fun addVCardMetadata(vcard: VCardBuilder, uID: UID): VCardBuilder {
         // Append the device ID line
         // Unclear if the deviceID forms a valid name per the vcard spec. Worry about that later..
         vcard.appendLine("X-KDECONNECT-ID-DEV-${device.deviceId}", uID.toString())
 
-        val timestamp: Long = ContactsHelper.getContactTimestamp(context, uID)
-        vcard.appendLine("REV", timestamp.toString())
+        ContactsHelper.getContactTimestamp(context, uID)?.let { timestamp ->
+            vcard.appendLine("REV", timestamp.toString())
+        }
 
         return vcard
     }
@@ -68,11 +69,11 @@ class ContactsPlugin(context: Context, device: Device) : Plugin(context, device)
      * @return true if successfully handled, false otherwise
      */
     private fun handleRequestAllUIDsTimestamps(np: NetworkPacket): Boolean {
-        val uIDsToTimestamps: Map<uID, Long> = ContactsHelper.getAllContactTimestamps(context)
+        val uIDsToTimestamps: Map<UID, Long?> = ContactsHelper.getAllContactTimestamps(context)
         val reply = NetworkPacket(PACKET_TYPE_CONTACTS_RESPONSE_UIDS_TIMESTAMPS).apply {
             val uIDsAsString = mutableListOf<String>()
-            for ((contactID: uID, timestamp: Long) in uIDsToTimestamps) {
-                set(contactID.toString(), timestamp.toString())
+            for ((contactID: UID, timestamp: Long?) in uIDsToTimestamps) {
+                if (timestamp != null) set(contactID.toString(), timestamp.toString())
                 uIDsAsString.add(contactID.toString())
             }
             set(PACKET_UIDS_KEY, uIDsAsString)
@@ -89,18 +90,18 @@ class ContactsPlugin(context: Context, device: Device) : Plugin(context, device)
             return false
         }
 
-        val storedUIDs: List<uID>? = np.getStringList("uids")?.distinct()?.map { uID(it) }
+        val storedUIDs: List<UID>? = np.getStringList("uids")?.distinct()?.map { UID(it) }
         if (storedUIDs == null) {
             Log.e("ContactsPlugin", "handleRequestNamesByUIDs received a malformed packet with no uids")
             return false
         }
 
-        val uIDsToVCards: Map<uID, VCardBuilder> = ContactsHelper.getVCardsForContactIDs(context, storedUIDs)
+        val uIDsToVCards: Map<UID, VCardBuilder> = ContactsHelper.getVCardsForContactIDs(context, storedUIDs)
 
         val reply = NetworkPacket(PACKET_TYPE_CONTACTS_RESPONSE_VCARDS).apply {
             // ContactsHelper.getVCardsForContactIDs(..) is allowed to reply without some of the requested uIDs if they were not in the database, so update our list
             val uIDsAsStrings = mutableListOf<String>()
-            for ((uID: uID, vcard: VCardBuilder) in uIDsToVCards) {
+            for ((uID: UID, vcard: VCardBuilder) in uIDsToVCards) {
                 try {
                     val vcardWithMetadata = addVCardMetadata(vcard, uID)
                     // Store this as a valid uID
