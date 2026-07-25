@@ -32,6 +32,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -57,6 +58,7 @@ fun RunCommandScreen(
     val commandList = viewModel.commandList
     var showDialog by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     DisposableEffect(plugin) {
         val callback = RunCommandPlugin.CommandsChangedCallback {
@@ -131,7 +133,7 @@ fun RunCommandScreen(
                     summary = command.command,
                     onClick = { plugin.runCommand(command.key) },
                     onLongClick = {
-                        viewModel.copyCommandToClipboard(command, clipboardManager)
+                        viewModel.copyCommandToClipboard(context, command, clipboardManager)
                     }
                 )
             }

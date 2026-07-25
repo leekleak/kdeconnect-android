@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.integerArrayResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
@@ -93,7 +94,7 @@ private fun FindMyComponent(
     Preference(
         title = stringResource(R.string.select_ringtone),
         icon = painterResource(R.drawable.notification_sound),
-        summary = uiState.ringtoneTitle,
+        summary = viewModel.getRingtoneTitle(LocalContext.current),
         onClick = {
             val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
                 putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION)

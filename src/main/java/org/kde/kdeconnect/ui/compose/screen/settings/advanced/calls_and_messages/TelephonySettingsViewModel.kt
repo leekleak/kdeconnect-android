@@ -1,10 +1,10 @@
 package org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages
 
-import android.app.Application
+import android.content.Context
 import android.media.RingtoneManager
 import android.provider.Settings
 import androidx.core.net.toUri
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,14 +19,12 @@ data class TelephonySettingsUiState(
     val longTextAsMms: Boolean = false,
     val convertToMmsAfter: Int = 3,
     val ringtoneUri: String = "",
-    val ringtoneTitle: String = "",
     val flashlightEnabled: Boolean = false
 )
 
 class TelephonySettingsViewModel(
-    application: Application,
     private val dataStore: TelephonySettingsDataStore
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
     val uiState: StateFlow<TelephonySettingsUiState> = combine(
         dataStore.blockedNumbers,
@@ -44,18 +42,13 @@ class TelephonySettingsViewModel(
         val flashlightEnabled = params[5] as Boolean
 
         val ringtoneUri = ringtoneUriString.ifEmpty { Settings.System.DEFAULT_RINGTONE_URI.toString() }
-        val ringtoneTitle = try {
-            RingtoneManager.getRingtone(getApplication(), ringtoneUri.toUri()).getTitle(getApplication())
-        } catch (_: Exception) {
-            ringtoneUri
-        }
+
         TelephonySettingsUiState(
             blockedNumbers = blockedNumbers,
             groupMessageAsMms = groupMessageAsMms,
             longTextAsMms = longTextAsMms,
             convertToMmsAfter = convertToMmsAfter,
             ringtoneUri = ringtoneUri,
-            ringtoneTitle = ringtoneTitle,
             flashlightEnabled = flashlightEnabled
         )
     }.stateIn(
@@ -64,6 +57,13 @@ class TelephonySettingsViewModel(
         initialValue = TelephonySettingsUiState()
     )
 
+    fun getRingtoneTitle(context: Context): String {
+        return try {
+            RingtoneManager.getRingtone(context, uiState.value.ringtoneUri.toUri()).getTitle(context)
+        } catch (_: Exception) {
+            uiState.value.ringtoneUri
+        }
+    }
     fun blockNumber(number: String) {
         viewModelScope.launch {
             dataStore.updateBlockedNumbers(uiState.value.blockedNumbers.plus(number))

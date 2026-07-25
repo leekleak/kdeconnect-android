@@ -1,13 +1,13 @@
 package org.kde.kdeconnect.plugins.runcommand
 
-import android.app.Application
 import android.content.ClipData
+import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.toClipEntry
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,10 +18,9 @@ import org.kde.kdeconnect_tp.R
 import org.koin.core.annotation.InjectedParam
 
 class RunCommandViewModel(
-    application: Application,
     deviceManager: DeviceManager,
     @InjectedParam val deviceId: String
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
     val commandList = mutableStateListOf<CommandEntry>()
     val plugin: RunCommandPlugin? = deviceManager.getDevicePlugin(deviceId, RunCommandPlugin::class.java)
@@ -46,6 +45,7 @@ class RunCommandViewModel(
     }
 
     fun copyCommandToClipboard(
+        context: Context,
         command: CommandEntry,
         clipboardManager: Clipboard
     ) {
@@ -57,7 +57,7 @@ class RunCommandViewModel(
             clipboardManager.setClipEntry(clipData.toClipEntry())
         }
         Toast.makeText(
-            getApplication(),
+            context,
             R.string.clipboard_toast,
             Toast.LENGTH_SHORT
         ).show()

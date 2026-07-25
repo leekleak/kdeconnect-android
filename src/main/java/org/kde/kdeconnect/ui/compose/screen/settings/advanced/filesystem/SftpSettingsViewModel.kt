@@ -1,10 +1,13 @@
 package org.kde.kdeconnect.ui.compose.screen.settings.advanced.filesystem
 
 import android.app.Application
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,10 +26,9 @@ data class SftpSettingsUiState(
 )
 
 class SftpSettingsViewModel(
-    application: Application,
     private val dataStore: SftpSettingsDataStore,
     private val deviceManager: DeviceManager
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
     val uiState: StateFlow<SftpSettingsUiState> = dataStore.storageInfoListJson
         .map { jsonString ->
@@ -53,7 +55,7 @@ class SftpSettingsViewModel(
             for (storageInfo in storageInfoList) {
                 jsonArray.put(storageInfo.toJSON())
             }
-        } catch (ignored: JSONException) {
+        } catch (_: JSONException) {
         }
 
         viewModelScope.launch {
@@ -62,8 +64,8 @@ class SftpSettingsViewModel(
         }
     }
 
-    fun addStorage(storageInfo: SftpPlugin.StorageInfo, takeFlags: Int) {
-        getApplication<Application>().contentResolver.takePersistableUriPermission(storageInfo.uri, takeFlags)
+    fun addStorage(context: Context, storageInfo: SftpPlugin.StorageInfo, takeFlags: Int) {
+        context.contentResolver.takePersistableUriPermission(storageInfo.uri, takeFlags)
         val newList = uiState.value.storageInfoList + storageInfo
         saveSettings(newList)
     }
@@ -79,11 +81,11 @@ class SftpSettingsViewModel(
         saveSettings(newList)
     }
 
-    fun deleteStorages(uris: Set<Uri>) {
+    fun deleteStorages(context: Context, uris: Set<Uri>) {
         val newList = uiState.value.storageInfoList.filter { storageInfo ->
             if (uris.contains(storageInfo.uri)) {
                 try {
-                    getApplication<Application>().contentResolver.releasePersistableUriPermission(
+                    context.contentResolver.releasePersistableUriPermission(
                         storageInfo.uri,
                         Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                     )
@@ -98,23 +100,23 @@ class SftpSettingsViewModel(
         saveSettings(newList)
     }
 
-    fun isDisplayNameAllowed(displayName: String, excludeUri: Uri? = null): String? {
+    fun isDisplayNameAllowed(context: Context, displayName: String, excludeUri: Uri? = null): String? {
         if (displayName.isBlank()) {
-            return getApplication<Application>().getString(R.string.sftp_storage_preference_display_name_cannot_be_empty)
+            return context.getString(R.string.sftp_storage_preference_display_name_cannot_be_empty)
         }
         val alreadyUsed = uiState.value.storageInfoList.any {
             it.displayName == displayName && it.uri != excludeUri
         }
         if (alreadyUsed) {
-            return getApplication<Application>().getString(R.string.sftp_storage_preference_display_name_already_used)
+            return context.getString(R.string.sftp_storage_preference_display_name_already_used)
         }
         return null
     }
 
-    fun isUriAllowed(uri: Uri): String? {
+    fun isUriAllowed(context: Context, uri: Uri): String? {
         val alreadyConfigured = uiState.value.storageInfoList.any { it.uri == uri }
         if (alreadyConfigured) {
-            return getApplication<Application>().getString(R.string.sftp_storage_preference_storage_location_already_configured)
+            return context.getString(R.string.sftp_storage_preference_storage_location_already_configured)
         }
         return null
     }

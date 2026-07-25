@@ -24,6 +24,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -43,15 +44,17 @@ fun SftpSettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var storageToEdit by remember { mutableStateOf<SftpPlugin.StorageInfo?>(null) }
+    val context = LocalContext.current
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree()
     ) { uri ->
         if (uri != null) {
-            val error = viewModel.isUriAllowed(uri)
+            val error = viewModel.isUriAllowed(context, uri)
             if (error == null) {
                 val displayName = StorageHelper.getDisplayName(uri)
                 viewModel.addStorage(
+                    context,
                     SftpPlugin.StorageInfo(displayName, uri),
                     Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                 )
@@ -103,10 +106,10 @@ fun SftpSettingsScreen(
                 storageToEdit = null
             },
             onDelete = {
-                viewModel.deleteStorages(setOf(storage.uri))
+                viewModel.deleteStorages(context, setOf(storage.uri))
                 storageToEdit = null
             },
-            isNameAllowed = { name -> viewModel.isDisplayNameAllowed(name, storage.uri) }
+            isNameAllowed = { name -> viewModel.isDisplayNameAllowed(context, name, storage.uri) }
         )
     }
 }
