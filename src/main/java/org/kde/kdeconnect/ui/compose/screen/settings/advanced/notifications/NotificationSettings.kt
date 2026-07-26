@@ -99,8 +99,8 @@ private fun NotificationBlacklistComponent(
     val textFieldState = rememberTextFieldState(uiState.searchQuery)
     val haptic = LocalHapticFeedback.current
     var showPrivacyDialogForAppPackageName by remember { mutableStateOf<String?>(null) }
-    val showPrivacyDialogForApp = uiState.enabledApps.find { it.packageName == showPrivacyDialogForAppPackageName }
-        ?: uiState.disabledApps.find { it.packageName == showPrivacyDialogForAppPackageName }
+    val showPrivacyDialogForApp = uiState.blacklistedApps.find { it.packageName == showPrivacyDialogForAppPackageName }
+        ?: uiState.whitelistedApps.find { it.packageName == showPrivacyDialogForAppPackageName }
 
     LaunchedEffect(textFieldState.text) {
         viewModel.setSearchQuery(textFieldState.text.toString())
@@ -119,7 +119,7 @@ private fun NotificationBlacklistComponent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(horizontalArrangement = Arrangement.spacedBy((-16).dp)) {
-                        uiState.enabledApps.take(3).forEach { app ->
+                        uiState.blacklistedApps.take(3).forEach { app ->
                             AnimatedVisibility(
                                 visible = !addApps,
                                 enter = fadeIn(tween()) + scaleIn(),
@@ -148,7 +148,7 @@ private fun NotificationBlacklistComponent(
         AnimatedVisibility(visible = addApps) {
             Column {
                 AppSelector(
-                    apps = uiState.enabledApps,
+                    apps = uiState.blacklistedApps,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(92.dp),
@@ -156,7 +156,7 @@ private fun NotificationBlacklistComponent(
                         showPrivacyDialogForAppPackageName = packageName
                     }
                 ) { packageName ->
-                    viewModel.setAppEnabled(packageName, false)
+                    viewModel.setAppBlacklisted(packageName, false)
                 }
                 Box(
                     Modifier
@@ -186,12 +186,12 @@ private fun NotificationBlacklistComponent(
                     }
                 }
                 AppSelector(
-                    apps = uiState.disabledApps,
+                    apps = uiState.whitelistedApps,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(92.dp)
                 ) { packageName ->
-                    viewModel.setAppEnabled(packageName, true)
+                    viewModel.setAppBlacklisted(packageName, true)
                 }
                 SearchField(textFieldState)
             }

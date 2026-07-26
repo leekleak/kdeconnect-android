@@ -49,6 +49,7 @@ import org.kde.kdeconnect.plugins.mousepad.MousePadViewModel
 import org.kde.kdeconnect.plugins.mousereceiver.MouseReceiverPlugin
 import org.kde.kdeconnect.plugins.mpris.MprisPlugin
 import org.kde.kdeconnect.plugins.mprisreceiver.MprisReceiverPlugin
+import org.kde.kdeconnect.plugins.notifications.AppDatabase
 import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin
 import org.kde.kdeconnect.plugins.ping.PingPlugin
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
@@ -291,6 +292,7 @@ val appModule = module {
     single<ImageLoader> { create(::buildImageLoader) }
 
     single<TrustedNetworkHelper>()
+    single<AppDatabase>()
 
     factory<Device>()
 
@@ -309,7 +311,7 @@ val appModule = module {
         scoped { MouseReceiverPlugin(get(), get()) }
         scoped { MprisPlugin(get(), get(), get()) }
         scoped { MprisReceiverPlugin(get(), get()) }
-        scoped { NotificationsPlugin(get(), get(), get()) }
+        scoped { NotificationsPlugin(get(), get(), get(), get()) }
         scoped { PingPlugin(get(), get()) }
         scoped { PresenterPlugin(get(), get()) }
         scoped { ReceiveNotificationsPlugin(get(), get()) }

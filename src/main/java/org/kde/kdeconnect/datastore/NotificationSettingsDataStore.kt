@@ -30,15 +30,10 @@ class NotificationSettingsDataStore(private val context: Context) {
         .map { it[KEY_MPRIS_KEEP_WATCHING_ENABLED] ?: true }
         .distinctUntilChanged()
 
-    val allNotificationsEnabled: Flow<Boolean> = context.dataStore.data
-        .map { it[KEY_ALL_NOTIFICATIONS_ENABLED] ?: true }
-        .distinctUntilChanged()
-
     // Blocking getters for legacy interop
     fun isScreenOffNotificationEnabledBlocking(): Boolean = runBlocking { screenOffNotification.first() }
     fun isMprisNotificationEnabledBlocking(): Boolean = runBlocking { mprisNotificationEnabled.first() }
     fun isMprisKeepWatchingEnabledBlocking(): Boolean = runBlocking { mprisKeepWatchingEnabled.first() }
-    fun areAllNotificationsEnabledBlocking(): Boolean = runBlocking { allNotificationsEnabled.first() }
 
     suspend fun setScreenOffNotification(enabled: Boolean) {
         context.dataStore.edit { it[KEY_SCREEN_OFF_NOTIFICATION] = enabled }
@@ -52,14 +47,9 @@ class NotificationSettingsDataStore(private val context: Context) {
         context.dataStore.edit { it[KEY_MPRIS_KEEP_WATCHING_ENABLED] = enabled }
     }
 
-    suspend fun setAllNotificationsEnabled(enabled: Boolean) {
-        context.dataStore.edit { it[KEY_ALL_NOTIFICATIONS_ENABLED] = enabled }
-    }
-
     companion object {
         private val KEY_SCREEN_OFF_NOTIFICATION = booleanPreferencesKey("pref_notification_screen_off")
         private val KEY_MPRIS_NOTIFICATION_ENABLED = booleanPreferencesKey("mpris_notification_enabled")
         private val KEY_MPRIS_KEEP_WATCHING_ENABLED = booleanPreferencesKey("mpris_keepwatching_enabled")
-        private val KEY_ALL_NOTIFICATIONS_ENABLED = booleanPreferencesKey("all_enabled")
     }
 }

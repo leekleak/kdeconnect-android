@@ -20,7 +20,6 @@ import android.graphics.drawable.Icon
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.os.Message
 import android.service.notification.StatusBarNotification
 import android.text.SpannableString
 import android.text.TextUtils
@@ -28,6 +27,11 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.createBitmap
 import androidx.fragment.app.DialogFragment
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import org.kde.kdeconnect.Device
@@ -78,10 +82,10 @@ object NotificationsPluginInfo: PluginInfo(
 class NotificationsPlugin(
     context: Context,
     device: Device,
-    private val dataStore: NotificationSettingsDataStore
+    private val dataStore: NotificationSettingsDataStore,
+    private val appDatabase: AppDatabase,
 ) : Plugin(context, device), NotificationReceiver.NotificationListener {
     override val pluginInfo: PluginInfo = NotificationsPluginInfo
-    private lateinit var appDatabase: AppDatabase
     private val currentNotifications = mutableSetOf<String>()
     // Here we will map every notification to it's icon(hash)
     private val notificationsIcons = mutableMapOf<String, String>()
@@ -89,12 +93,12 @@ class NotificationsPlugin(
     private val pendingIntents = mutableMapOf<String, RepliableNotification>()
     private val pendingActions = HashMap<String, MutableList<Notification.Action>>()
     private var serviceReady = false
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private lateinit var keyguardManager: KeyguardManager
     private lateinit var mainHandler: Handler
     private val postedNotificationsLock = Any()
 
     override fun onCreate(): Boolean {
-        appDatabase = AppDatabase.getInstance(context)
         keyguardManager = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
         mainHandler = Handler(Looper.getMainLooper())
         NotificationReceiver.RunCommand(context) { service ->
@@ -109,6 +113,7 @@ class NotificationsPlugin(
         notificationsIcons.clear()
         pendingIntents.clear()
         pendingActions.clear()
+        scope.cancel()
 
         synchronized(postedNotificationsLock) {
             mainHandler.removeCallbacksAndMessages(null)
@@ -139,17 +144,19 @@ class NotificationsPlugin(
 
         pendingActions.remove(id)
 
-        if (!appDatabase.isEnabled(statusBarNotification.packageName)) {
-            currentNotifications.remove(id)
-            return
-        }
+        scope.launch {
+            if (!appDatabase.isBlacklisted(statusBarNotification.packageName)) {
+                currentNotifications.remove(id)
+                return@launch
+            }
 
-        val np = NetworkPacket(PACKET_TYPE_NOTIFICATION)
-        np["id"] = id
-        np["isCancel"] = true
-        device.sendPacket(np)
-        currentNotifications.remove(id)
-        notificationsIcons.remove(id)
+            val np = NetworkPacket(PACKET_TYPE_NOTIFICATION)
+            np["id"] = id
+            np["isCancel"] = true
+            device.sendPacket(np)
+            currentNotifications.remove(id)
+            notificationsIcons.remove(id)
+        }
     }
 
     override fun onNotificationPosted(statusBarNotification: StatusBarNotification) {
@@ -161,27 +168,13 @@ class NotificationsPlugin(
         val sendOnlyIfLocked = dataStore.isScreenOffNotificationEnabledBlocking()
         val isLocked = keyguardManager.isKeyguardLocked
         if (!sendOnlyIfLocked || isLocked) {
-            sendNotificationWithDelay(statusBarNotification)
+            sendNotification(statusBarNotification)
         }
     }
 
-    private fun sendNotificationWithDelay(statusBarNotification: StatusBarNotification) {
-        val key = getNotificationKeyCompat(statusBarNotification)
-        synchronized(postedNotificationsLock) {
-            cancelDelayedNotification(key)
-            if (!postedNotifications.contains(key)) {
-                return
-            }
-            val delayedNotification = Message.obtain(mainHandler, Runnable {
-                synchronized(postedNotificationsLock) {
-                    if (!postedNotifications.contains(key)) {
-                        return@Runnable
-                    }
-                }
-                sendNotification(statusBarNotification, false)
-            })
-            delayedNotification.obj = key
-            mainHandler.sendMessageDelayed(delayedNotification, NOTIFICATION_SYNC_DELAY_MS)
+    private fun sendNotification(statusBarNotification: StatusBarNotification) {
+        scope.launch {
+            sendNotification(statusBarNotification, false)
         }
     }
 
@@ -191,7 +184,7 @@ class NotificationsPlugin(
 
     // isPreexisting is true for notifications that we are sending in response to a request command
     // and that we want to send with the "silent" flag set
-    private fun sendNotification(
+    private suspend fun sendNotification(
         statusBarNotification: StatusBarNotification,
         isPreexisting: Boolean
     ) {
@@ -207,7 +200,7 @@ class NotificationsPlugin(
         }
 
         val packageName = statusBarNotification.packageName
-        if (!appDatabase.isEnabled(packageName)) {
+        if (!appDatabase.isBlacklisted(packageName)) {
             // Notification excluded by the user
             return
         }
@@ -505,7 +498,9 @@ class NotificationsPlugin(
             return // Can happen only on API 23 and lower
         }
         for (notification in notifications) {
-            sendNotification(notification, true)
+            scope.launch {
+                sendNotification(notification, true)
+            }
         }
     }
 

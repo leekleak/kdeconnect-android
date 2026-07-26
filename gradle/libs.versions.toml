@@ -1,6 +1,6 @@
 [versions]
 activityCompose = "1.13.0"
-androidGradlePlugin = "9.3.0"
+androidGradlePlugin = "9.3.1"
 androidSmsmms = "kdeconnect-1-21-0"
 appcompat = "1.7.1"
 bcpkixJdk15on = "1.70"
@@ -39,6 +39,7 @@ slf4j = "2.0.18"
 slf4j-handroid = "2.0.13"
 sshdCore = "2.19.0"
 swiperefreshlayout = "1.2.0"
+room = "2.8.4"
 uiToolingPreview = "1.11.4"
 haze = "1.7.2"
 foundation = "1.11.4"
@@ -64,6 +65,9 @@ androidx-media = { module = "androidx.media:media", version.ref = "media" }
 androidx-preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "preferenceKtx" }
 androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
 androidx-swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefreshlayout" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 bcpkix-jdk15on = { module = "org.bouncycastle:bcpkix-jdk15on", version.ref = "bcpkixJdk15on" }
 classindexksp = { module = "com.github.albertvaka:classindexksp", version.ref = "classindexksp" }
 commons-io = { module = "commons-io:commons-io", version.ref = "commonsIo" }

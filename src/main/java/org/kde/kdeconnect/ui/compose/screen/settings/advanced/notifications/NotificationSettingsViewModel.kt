@@ -28,7 +28,7 @@ import org.koin.core.annotation.KoinViewModel
 data class AppInfo(
     val packageName: String,
     val name: String,
-    val isEnabled: Boolean,
+    val blacklisted: Boolean,
     val blockContents: Boolean,
     val blockImages: Boolean
 )
@@ -36,9 +36,8 @@ data class AppInfo(
 data class NotificationSettingsUiState(
     val screenOffNotification: Boolean = false,
     val searchQuery: String = "",
-    val allEnabled: Boolean = true,
-    val enabledApps: List<AppInfo> = emptyList(),
-    val disabledApps: List<AppInfo> = emptyList(),
+    val blacklistedApps: List<AppInfo> = emptyList(),
+    val whitelistedApps: List<AppInfo> = emptyList(),
     val notificationEnabled: Boolean = true,
     val keepWatchingEnabled: Boolean = true
 )
@@ -47,8 +46,8 @@ data class NotificationSettingsUiState(
 class NotificationSettingsViewModel(
     application: Application,
     private val dataStore: NotificationSettingsDataStore,
+    private val appDatabase: AppDatabase,
 ) : AndroidViewModel(application) {
-    private val appDatabase = AppDatabase.getInstance(application)
 
     private val _searchQuery = MutableStateFlow("")
     private val _allApps = MutableStateFlow<List<AppInfo>>(emptyList())
@@ -57,27 +56,19 @@ class NotificationSettingsViewModel(
         dataStore.screenOffNotification,
         dataStore.mprisNotificationEnabled,
         dataStore.mprisKeepWatchingEnabled,
-        dataStore.allNotificationsEnabled,
         _searchQuery,
         _allApps
-    ) { params: Array<Any> ->
-        val screenOff = params[0] as Boolean
-        val mprisEnabled = params[1] as Boolean
-        val keepWatching = params[2] as Boolean
-        val allEnabled = params[3] as Boolean
-        val query = params[4] as String
-        val apps = params[5] as List<AppInfo>
+    ) { screenOff, mprisEnabled, keepWatching, query, apps ->
 
         val filtered = if (query.isEmpty()) apps else apps.filter { it.name.contains(query, ignoreCase = true) }
-        val (enabled, disabled) = filtered.partition { it.isEnabled }
+        val (blacklisted, whitelisted) = filtered.partition { it.blacklisted }
         NotificationSettingsUiState(
             screenOffNotification = screenOff,
             notificationEnabled = mprisEnabled,
             keepWatchingEnabled = keepWatching,
-            allEnabled = allEnabled,
             searchQuery = query,
-            enabledApps = enabled,
-            disabledApps = disabled
+            blacklistedApps = blacklisted,
+            whitelistedApps = whitelisted
         )
     }.stateIn(
         scope = viewModelScope,
@@ -131,11 +122,11 @@ class NotificationSettingsViewModel(
         }
     }
 
-    private fun createAppInfo(pm: PackageManager, info: ApplicationInfo): AppInfo {
+    private suspend fun createAppInfo(pm: PackageManager, info: ApplicationInfo): AppInfo {
         return AppInfo(
             packageName = info.packageName,
             name = info.loadLabel(pm).toString(),
-            isEnabled = appDatabase.isEnabled(info.packageName),
+            blacklisted = appDatabase.isBlacklisted(info.packageName),
             blockContents = appDatabase.getPrivacy(info.packageName, AppDatabase.PrivacyOptions.BLOCK_CONTENTS),
             blockImages = appDatabase.getPrivacy(info.packageName, AppDatabase.PrivacyOptions.BLOCK_IMAGES)
         )
@@ -165,20 +156,19 @@ class NotificationSettingsViewModel(
 
     fun setAllEnabled(enabled: Boolean) {
         viewModelScope.launch {
-            dataStore.setAllNotificationsEnabled(enabled)
             withContext(Dispatchers.IO) {
-                appDatabase.allEnabled = enabled
+                appDatabase.setAllEnabled(enabled)
             }
-            _allApps.update { it.map { app -> app.copy(isEnabled = enabled) } }
+            _allApps.update { it.map { app -> app.copy(blacklisted = enabled) } }
         }
     }
 
-    fun setAppEnabled(packageName: String, enabled: Boolean) {
+    fun setAppBlacklisted(packageName: String, blacklisted: Boolean) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                appDatabase.setEnabled(packageName, enabled)
+                appDatabase.setBlacklisted(packageName, blacklisted)
             }
-            _allApps.update { apps -> apps.map { if (it.packageName == packageName) it.copy(isEnabled = enabled) else it } }
+            _allApps.update { apps -> apps.map { if (it.packageName == packageName) it.copy(blacklisted = blacklisted) else it } }
         }
     }
 

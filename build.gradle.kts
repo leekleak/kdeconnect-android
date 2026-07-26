@@ -167,6 +167,10 @@ dependencies {
 
     implementation(libs.bcpkix.jdk15on) //For SSL certificate generation
 
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
     ksp(libs.classindexksp)
 
     // The android-smsmms library is the only way I know to handle MMS in Android
