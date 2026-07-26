@@ -13,6 +13,8 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -81,44 +83,43 @@ class NotificationSettingsViewModel(
     }
 
     private fun loadApps() {
-        viewModelScope.launch {
-            val apps = withContext(Dispatchers.IO) {
-                val packageManager = getApplication<Application>().packageManager
-                val installedApps = packageManager.getInstalledApplications(0)
-                val allPackageNames = mutableSetOf<String>()
-                val result = mutableListOf<AppInfo>()
+        viewModelScope.launch(Dispatchers.IO) {
+            val packageManager = getApplication<Application>().packageManager
+            val installedApps = packageManager.getInstalledApplications(0)
+            val notificationApps = installedApps.filter { canPostNotifications(packageManager, it) }
+            val allPackageNames = mutableSetOf<String>()
 
-                for (appInfo in installedApps) {
-                    if (canPostNotifications(packageManager, appInfo)) {
-                        result.add(createAppInfo(packageManager, appInfo))
-                        allPackageNames.add(appInfo.packageName)
-                    }
+            val result = notificationApps.map { applicationInfo ->
+                async {
+                    allPackageNames.add(applicationInfo.packageName)
+                    createAppInfo(packageManager, applicationInfo)
                 }
+            }.awaitAll()
+            _allApps.value = result.sortedBy { it.name.lowercase() }
 
-                // Work profiles
-                try {
-                    val context = getApplication<Application>()
-                    val currentUser = Process.myUserHandle()
-                    val launcher = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
-                    val um = context.getSystemService(Context.USER_SERVICE) as UserManager
-                    for (userProfile in um.userProfiles) {
-                        if (userProfile == currentUser) continue
-                        for (app in launcher.getActivityList(null, userProfile)) {
-                            val appInfo = app.applicationInfo
-                            if (allPackageNames.contains(appInfo.packageName)) continue
-                            if (canPostNotifications(packageManager, appInfo)) {
-                                result.add(createAppInfo(packageManager, appInfo))
-                                allPackageNames.add(appInfo.packageName)
-                            }
+            // Work profiles
+            val workResult = mutableListOf<AppInfo>() // Todo: Check if this should be kept as I'm unsure if normal apps actually have access to other users
+            try {
+                val context = getApplication<Application>()
+                val currentUser = Process.myUserHandle()
+                val launcher = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+                val um = context.getSystemService(Context.USER_SERVICE) as UserManager
+                for (userProfile in um.userProfiles) {
+                    if (userProfile == currentUser) continue
+                    for (app in launcher.getActivityList(null, userProfile)) {
+                        val appInfo = app.applicationInfo
+                        if (allPackageNames.contains(appInfo.packageName)) continue
+                        if (canPostNotifications(packageManager, appInfo)) {
+                            workResult.add(createAppInfo(packageManager, appInfo))
+                            allPackageNames.add(appInfo.packageName)
                         }
                     }
-                } catch (e: Exception) {
-                    Log.e("NotificationFilterVM", "Failed to get apps from work profile", e)
                 }
-
-                result.sortedBy { it.name.lowercase() }
+            } catch (e: Exception) {
+                Log.e("NotificationFilterVM", "Failed to get apps from work profile", e)
             }
-            _allApps.value = apps
+
+            _allApps.value.union(workResult).sortedBy { it.name.lowercase() }
         }
     }
 
