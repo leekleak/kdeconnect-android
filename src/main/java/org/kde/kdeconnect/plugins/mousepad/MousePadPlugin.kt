@@ -7,7 +7,6 @@ package org.kde.kdeconnect.plugins.mousepad
 
 import android.Manifest
 import android.content.Context
-import android.content.Intent
 import android.view.KeyEvent
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceType
@@ -19,6 +18,7 @@ import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE
 import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_REQUEST
 import org.kde.kdeconnect.ui.MainActivity
+import org.kde.kdeconnect.ui.navigation.BigscreenKey
 import org.kde.kdeconnect.ui.navigation.MousePadKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
@@ -44,9 +44,8 @@ class MousePadPlugin(
                 context.getString(R.string.open_mousepad_tv),
                 R.drawable.tv_remote
             ) { parentActivity ->
-                val intent = Intent(parentActivity, BigscreenActivity::class.java)
-                intent.putExtra("deviceId", device.deviceId)
-                parentActivity.startActivity(intent)
+                val navigator: Navigator = (parentActivity as MainActivity).scope.get(Navigator::class, null, null)
+                navigator.goTo(BigscreenKey(device.deviceId))
             }
             if (dataStore.isHideMouseInputBlocking()) {
                 listOf(tvInput)

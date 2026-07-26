@@ -42,6 +42,8 @@ import org.kde.kdeconnect.plugins.digitizer.DigitizerViewModel
 import org.kde.kdeconnect.plugins.findmyphone.FindMyPhonePlugin
 import org.kde.kdeconnect.plugins.findremotedevice.FindRemoteDevicePlugin
 import org.kde.kdeconnect.plugins.inputdevicesreceiver.InputDevicesReceiverPlugin
+import org.kde.kdeconnect.plugins.mousepad.BigscreenScreen
+import org.kde.kdeconnect.plugins.mousepad.BigscreenViewModel
 import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin
 import org.kde.kdeconnect.plugins.mousepad.MousePadScreen
 import org.kde.kdeconnect.plugins.mousepad.MousePadSettingsScreen
@@ -91,6 +93,7 @@ import org.kde.kdeconnect.ui.compose.screen.settings.advanced.filesystem.SftpSet
 import org.kde.kdeconnect.ui.compose.screen.settings.advanced.notifications.NotificationSettings
 import org.kde.kdeconnect.ui.compose.screen.settings.advanced.notifications.NotificationSettingsViewModel
 import org.kde.kdeconnect.ui.navigation.AboutKey
+import org.kde.kdeconnect.ui.navigation.BigscreenKey
 import org.kde.kdeconnect.ui.navigation.ConnectionsSettingsKey
 import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.DigitizerKey
@@ -260,8 +263,12 @@ val presenterModule = module {
 
 val mousePadModule = module {
     viewModel<MousePadViewModel>()
+    viewModel<BigscreenViewModel>()
     navigation<MousePadKey> { key ->
         MousePadScreen(deviceId = key.deviceId)
+    }
+    navigation<BigscreenKey> { key ->
+        BigscreenScreen(deviceId = key.deviceId)
     }
 }
 
