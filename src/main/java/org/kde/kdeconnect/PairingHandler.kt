@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.bouncycastle.util.Arrays
@@ -58,7 +59,7 @@ class PairingHandler(
 
     private val pairingJob = SupervisorJob()
     private val pairingScope = CoroutineScope(Dispatchers.IO + pairingJob)
-    private var pairingTimestamp = 0L
+    private val pairingTimestamp = MutableStateFlow(0L)
 
     fun packetReceived(np: NetworkPacket) {
         cancelTimer()
@@ -84,14 +85,14 @@ class PairingHandler(
                     }
 
                     if (device.protocolVersion >= 8) {
-                        pairingTimestamp = np.getLong("timestamp", -1L)
-                        if (pairingTimestamp == -1L) {
+                        pairingTimestamp.value = np.getLong("timestamp", -1L)
+                        if (pairingTimestamp.value == -1L) {
                             updateState(PairState.NotPaired)
                             callback.unpaired(device)
                             return
                         }
                         val currentTimestamp = System.currentTimeMillis() / 1000L
-                        if (abs(pairingTimestamp - currentTimestamp) > ALLOWED_TIMESTAMP_DIFFERENCE_SECONDS) {
+                        if (abs(pairingTimestamp.value - currentTimestamp) > ALLOWED_TIMESTAMP_DIFFERENCE_SECONDS) {
                             updateState(PairState.NotPaired)
                             callback.pairingFailed(R.string.error_clocks_not_match)
                             return
@@ -129,12 +130,14 @@ class PairingHandler(
         }
     }
 
-    val verificationKey: Flow<String?> = state.map {
+    val verificationKey: Flow<String?> = combine(state, pairingTimestamp) { a, b ->
+        a to b
+    }.map { (state, timestamp) ->
         if (device.protocolVersion >= 8) {
-            if (state.value != PairState.Requested && state.value != PairState.RequestedByPeer) {
+            if (state != PairState.Requested && state != PairState.RequestedByPeer) {
                 null
             } else {
-                getVerificationKey(SslHelper.certificate, device.certificate, pairingTimestamp)
+                getVerificationKey(SslHelper.certificate, device.certificate, timestamp)
             }
         } else {
             getVerificationKeyV7(SslHelper.certificate, device.certificate)
@@ -182,8 +185,8 @@ class PairingHandler(
         }
         val np = NetworkPacket(NetworkPacket.PACKET_TYPE_PAIR)
         np["pair"] = true
-        pairingTimestamp = System.currentTimeMillis() / 1000L
-        np["timestamp"] = pairingTimestamp
+        pairingTimestamp.value = System.currentTimeMillis() / 1000L
+        np["timestamp"] = pairingTimestamp.value
         device.sendPacket(np, statusCallback)
     }
 
