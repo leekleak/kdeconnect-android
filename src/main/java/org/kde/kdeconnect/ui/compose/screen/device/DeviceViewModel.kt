@@ -20,17 +20,19 @@ import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.PairingHandler
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.plugins.Plugin
+import org.kde.kdeconnect.plugins.battery.DeviceBatteryInfo
+import org.kde.kdeconnect.ui.compose.extensions.device.toUiModel
+import org.kde.kdeconnect.ui.compose.model.device.DeviceUiModel
 import org.koin.core.annotation.InjectedParam
 import kotlin.time.Duration.Companion.milliseconds
 
 data class DeviceUiState(
-    val deviceName: String = "",
+    val deviceUiModel: DeviceUiModel = DeviceUiModel(),
     val pairStatus: PairingHandler.PairState = PairingHandler.PairState.NotPaired,
-    val isReachable: Boolean = false,
     val verificationKey: String? = null,
     val pluginsWithButtons: List<Plugin.PluginUiButton> = emptyList(),
     val pluginsNeedPermissions: List<Plugin> = emptyList(),
-    val batterySubtitle: String? = null,
+    val batteryInfo: DeviceBatteryInfo? = null,
     val isRefreshing: Boolean = false
 )
 
@@ -56,13 +58,12 @@ class DeviceViewModel(
 
                     _uiState.update { state ->
                         state.copy(
-                            deviceName = deviceState.deviceInfo.name,
+                            deviceUiModel = device.toUiModel(),
                             pairStatus = deviceState.pairStatus,
-                            isReachable = deviceState.isReachable,
                             verificationKey = deviceState.verificationKey,
                             pluginsWithButtons = pluginsWithButtons,
                             pluginsNeedPermissions = pluginsNeedPermissions,
-                            batterySubtitle = deviceHelper.getBatterySubtitle(application, device),
+                            batteryInfo = deviceHelper.getBattery(device)
                         )
                     }
                 }
@@ -82,9 +83,6 @@ class DeviceViewModel(
         device?.cancelPairing()
     }
 
-    fun unpair() {
-        device?.unpair()
-    }
 
     fun refreshDevicesAction() {
         BackgroundService.forceRefreshConnections(getApplication())

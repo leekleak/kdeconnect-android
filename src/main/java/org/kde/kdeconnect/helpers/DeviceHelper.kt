@@ -17,6 +17,7 @@ import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect.plugins.battery.BatteryPlugin
+import org.kde.kdeconnect.plugins.battery.DeviceBatteryInfo
 import org.kde.kdeconnect_tp.R
 import java.util.UUID
 
@@ -83,6 +84,11 @@ class DeviceHelper(val dataStore: SettingsDataStore) {
         }
 
         return context.getString(resId, info.currentCharge)
+    }
+
+    fun getBattery(device: Device): DeviceBatteryInfo? {
+        val batteryPlugin = device.getPlugin(BatteryPlugin::class.java)
+        return batteryPlugin?.remoteBatteryInfo
     }
 
     companion object {

@@ -41,12 +41,10 @@ import org.kde.kdeconnect_tp.R
 fun PluginsScreen(
     pluginsWithButtons: List<Plugin.PluginUiButton>,
     onButtonClick: (Plugin.PluginUiButton) -> Unit,
-    onUnpair: () -> Unit
 ) {
     PluginsScreenContent(
         pluginsWithButtons = pluginsWithButtons,
         onButtonClick = onButtonClick,
-        onUnpair = onUnpair
     )
 }
 
@@ -54,7 +52,6 @@ fun PluginsScreen(
 private fun PluginsScreenContent(
     pluginsWithButtons: List<Plugin.PluginUiButton>,
     onButtonClick: (Plugin.PluginUiButton) -> Unit,
-    onUnpair: () -> Unit
 ) {
     Column {
         val numColumns = LocalResources.current.getInteger(R.integer.plugins_columns)
@@ -63,10 +60,6 @@ private fun PluginsScreenContent(
             numColumns = numColumns,
             onButtonClick = onButtonClick
         )
-        Spacer(modifier = Modifier.padding(vertical = 6.dp))
-        TextButton(onClick = onUnpair) {
-            Text(stringResource(R.string.device_menu_unpair))
-        }
     }
 }
 
@@ -161,7 +154,6 @@ private fun PluginsScreenPreview() {
         PluginsScreenContent(
             pluginsWithButtons = emptyList(),
             onButtonClick = { /* Do nothing */ },
-            onUnpair = { /* Do nothing */ }
         )
     }
 }

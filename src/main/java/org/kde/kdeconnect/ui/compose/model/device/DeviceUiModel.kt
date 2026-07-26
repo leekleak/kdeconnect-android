@@ -7,10 +7,10 @@
 package org.kde.kdeconnect.ui.compose.model.device
 
 data class DeviceUiModel(
-    val id: String,
-    val icon: Int,
-    val name: String,
-    val summaryRes: Int,
-    val isReachable: Boolean,
-    val isPaired: Boolean
+    val id: String = "",
+    val icon: Int = 0,
+    val name: String = "",
+    val summaryRes: Int = 0,
+    val isReachable: Boolean = false,
+    val isPaired: Boolean = false
 )

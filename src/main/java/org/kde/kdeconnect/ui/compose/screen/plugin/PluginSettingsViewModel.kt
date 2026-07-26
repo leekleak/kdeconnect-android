@@ -20,6 +20,8 @@ import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect.ui.AlertDialogFragment
+import org.kde.kdeconnect.ui.navigation.Navigator
+import org.kde.kdeconnect.ui.navigation.PairingKey
 import org.koin.core.annotation.InjectedParam
 
 data class PluginSettingsUiState(
@@ -37,6 +39,7 @@ data class PluginSettingsItem(
 class PluginSettingsViewModel(
     private val application: KdeConnect,
     private val deviceManager: DeviceManager,
+    private val navigator: Navigator,
     @InjectedParam private val deviceId: String
 ) : ViewModel() {
 
@@ -118,5 +121,10 @@ class PluginSettingsViewModel(
                 dialog.show(it.supportFragmentManager, "permission_explanation")
             }
         }
+    }
+
+    fun unpair() {
+        device?.unpair()
+        navigator.setTo(PairingKey)
     }
 }

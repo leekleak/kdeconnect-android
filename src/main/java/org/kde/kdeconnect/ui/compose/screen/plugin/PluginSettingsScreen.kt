@@ -8,6 +8,8 @@ package org.kde.kdeconnect.ui.compose.screen.plugin
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -19,6 +21,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.NotificationTogglePreference
+import org.kde.kdeconnect.ui.compose.components.Preference
 import org.kde.kdeconnect.ui.compose.components.SwitchPreference
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.viewmodel.koinViewModel
@@ -101,5 +104,11 @@ fun PluginSettingsScreen(
                 onValueChanged = { viewModel.setPluginEnabled(context, plugin.key, it) }
             )
         }
+
+        CategoryTitleTextSmall(stringResource(R.string.other))
+        Preference(
+            title = stringResource(R.string.device_menu_unpair),
+            onClick = viewModel::unpair
+        )
     }
 }

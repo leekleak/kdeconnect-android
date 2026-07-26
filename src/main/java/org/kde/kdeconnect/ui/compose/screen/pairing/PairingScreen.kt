@@ -53,6 +53,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.kde.kdeconnect.DeviceManager
@@ -274,7 +275,6 @@ fun EmptyPlaceholder() {
     )
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun DeviceCard(
     device: DeviceUiModel,
@@ -286,14 +286,6 @@ private fun DeviceCard(
     val dashLength = 8.dp.px
     val cornerRadius = 16.dp.px
     val outlineColor = colorScheme.outline
-    val backgroundShape = roundedShapes.random().toPath()
-    val backgroundColor = colorScheme.primary
-    val backgroundSize = 96.dp
-    val backgroundSizePx = backgroundSize.px
-    val backgroundShapeTransformed = remember(backgroundSizePx) {
-        val matrix = Matrix().apply { scale(backgroundSizePx, backgroundSizePx) }
-        backgroundShape.copy().apply { transform(matrix) }
-    }
     val font = remember { googleSans(weight = 600f) }
     Column(
         modifier = Modifier
@@ -307,21 +299,7 @@ private fun DeviceCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(backgroundSize)
-                    .drawBehind {
-                        drawPath(backgroundShapeTransformed, backgroundColor)
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    modifier = Modifier.size(54.dp),
-                    painter = painterResource(device.icon),
-                    contentDescription = null,
-                    tint = colorScheme.onPrimary
-                )
-            }
+            DeviceHero(96.dp, 54.dp, device)
             Column(Modifier.weight(1f)) {
                 val deviceReal = remember { deviceManager.getDevice(device.id) }
                 Text(
@@ -354,6 +332,37 @@ private fun DeviceCard(
                 )
             }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun DeviceHero(
+    backgroundSize: Dp,
+    iconSize: Dp,
+    device: DeviceUiModel
+) {
+    val backgroundColor = colorScheme.primary
+    val backgroundShape = roundedShapes.random().toPath()
+    val backgroundSizePx = backgroundSize.px
+    val backgroundShapeTransformed = remember(backgroundSizePx) {
+        val matrix = Matrix().apply { scale(backgroundSizePx, backgroundSizePx) }
+        backgroundShape.copy().apply { transform(matrix) }
+    }
+    Box(
+        modifier = Modifier
+            .size(backgroundSize)
+            .drawBehind {
+                drawPath(backgroundShapeTransformed, backgroundColor)
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            modifier = Modifier.size(iconSize),
+            painter = painterResource(device.icon),
+            contentDescription = null,
+            tint = colorScheme.onPrimary
+        )
     }
 }
 
