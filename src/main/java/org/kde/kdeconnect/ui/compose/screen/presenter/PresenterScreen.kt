@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -38,7 +39,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media.VolumeProviderCompat
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
+import org.kde.kdeconnect.ui.navigation.Navigator
+import org.kde.kdeconnect.ui.navigation.PresenterPluginSettingsKey
 import org.kde.kdeconnect_tp.R
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -53,6 +57,7 @@ fun PresenterScreen(
 ) {
     val context = LocalContext.current
     val plugin = viewModel.plugin ?: return
+    val navigator: Navigator = koinInject()
     val sensorManager = context.getSystemService(android.content.Context.SENSOR_SERVICE) as? SensorManager
 
     val offScreenControlsSupported = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA
@@ -96,6 +101,16 @@ fun PresenterScreen(
     HazeScaffold(
         title = stringResource(R.string.pref_plugin_presenter),
         backButton = true,
+        actions = {
+            IconButton(
+                onClick = { navigator.goTo(PresenterPluginSettingsKey) }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_settings_24dp),
+                    contentDescription = stringResource(id = R.string.open)
+                )
+            }
+        }
     ) {
         FlowRow(
             modifier = Modifier.fillMaxWidth(),

@@ -29,10 +29,8 @@ import org.kde.kdeconnect.ui.compose.components.SectionHeader
 import org.kde.kdeconnect.ui.compose.components.SwitchPreference
 import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.ConnectionsSettingsKey
-import org.kde.kdeconnect.ui.navigation.MousePadPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.NotificationSettingsKey
-import org.kde.kdeconnect.ui.navigation.PresenterPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.SftpPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.SharePluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.TelephonyPluginSettingsKey
@@ -151,16 +149,8 @@ fun SettingsScreen(
         SectionHeader(title = stringResource(R.string.plugins))
 
         NavigatePreference(
-            title = "Mouse pad settings",
-            onClick = { navigator.goTo(MousePadPluginSettingsKey) }
-        )
-        NavigatePreference(
             title = "Share settings",
             onClick = { navigator.goTo(SharePluginSettingsKey) }
-        )
-        NavigatePreference(
-            title = "Presenter settings",
-            onClick = { navigator.goTo(PresenterPluginSettingsKey) }
         )
 
         CategoryTitleTextSmall(stringResource(R.string.other))
