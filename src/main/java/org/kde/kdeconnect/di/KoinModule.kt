@@ -24,6 +24,7 @@ import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.backends.lan.LanLinkProvider
 import org.kde.kdeconnect.datastore.ConnectionsSettingsDataStore
+import org.kde.kdeconnect.datastore.MousePadSettingsDataStore
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.datastore.SftpSettingsDataStore
@@ -202,6 +203,7 @@ val aboutModule = module {
 val settingsModule = module {
     single<TelephonySettingsDataStore>()
     single<SettingsDataStore>()
+    single<MousePadSettingsDataStore>()
     single<DeviceHelper> { DeviceHelper(get()) }
     single<DeviceManager> { DeviceManager(get()) }
     single<NotificationSettingsDataStore>()
@@ -307,7 +309,7 @@ val appModule = module {
         scoped { FindMyPhonePlugin(get(), get(), get()) }
         scoped { FindRemoteDevicePlugin(get(), get()) }
         scoped { InputDevicesReceiverPlugin(get(), get()) }
-        scoped { MousePadPlugin(get(), get()) }
+        scoped { MousePadPlugin(get(), get(), get()) }
         scoped { MouseReceiverPlugin(get(), get()) }
         scoped { MprisPlugin(get(), get(), get()) }
         scoped { MprisReceiverPlugin(get(), get()) }

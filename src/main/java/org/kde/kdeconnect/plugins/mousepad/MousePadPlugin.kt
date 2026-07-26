@@ -9,10 +9,10 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.view.KeyEvent
-import androidx.preference.PreferenceManager
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.datastore.MousePadSettingsDataStore
 import org.kde.kdeconnect.helpers.SPECIAL_KEY_ENCODING_MAP
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
@@ -23,7 +23,11 @@ import org.kde.kdeconnect.ui.navigation.MousePadKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 
-class MousePadPlugin(context: Context, device: Device) : Plugin(context, device) {
+class MousePadPlugin(
+    context: Context,
+    device: Device,
+    private val dataStore: MousePadSettingsDataStore
+) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = MousePadPluginSettings
 
     override fun getUiButtons(): List<PluginUiButton> {
@@ -44,8 +48,7 @@ class MousePadPlugin(context: Context, device: Device) : Plugin(context, device)
                 intent.putExtra("deviceId", device.deviceId)
                 parentActivity.startActivity(intent)
             }
-            val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-            if (prefs.getBoolean(context.getString(R.string.pref_bigscreen_hide_mouse_input), false)) {
+            if (dataStore.isHideMouseInputBlocking()) {
                 listOf(tvInput)
             } else {
                 listOf(mouseAndKeyboardInput, tvInput)

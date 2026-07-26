@@ -14,10 +14,12 @@ import android.speech.SpeechRecognizer
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import androidx.preference.PreferenceManager
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.ui.PermissionsAlertDialogFragment
 import org.kde.kdeconnect.base.BaseActivity
+import org.kde.kdeconnect.datastore.MousePadSettingsDataStore
 import org.kde.kdeconnect.extensions.viewBinding
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
@@ -27,6 +29,7 @@ import org.koin.android.ext.android.inject
 
 class BigscreenActivity : BaseActivity<ActivityBigscreenBinding>() {
     private val deviceManager: DeviceManager by inject()
+    private val mousePadSettingsDataStore: MousePadSettingsDataStore by inject()
 
     override val binding : ActivityBigscreenBinding by viewBinding(ActivityBigscreenBinding::inflate)
 
@@ -70,16 +73,15 @@ class BigscreenActivity : BaseActivity<ActivityBigscreenBinding>() {
             }
         }
 
-        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
-        if (prefs.getBoolean(getString(R.string.pref_bigscreen_show_back), true)) {
-            binding.backButton.visibility = View.VISIBLE
-        } else {
-            binding.backButton.visibility = View.INVISIBLE
+        lifecycleScope.launch {
+            mousePadSettingsDataStore.showBack.collect { show ->
+                binding.backButton.visibility = if (show) View.VISIBLE else View.INVISIBLE
+            }
         }
-        if (prefs.getBoolean(getString(R.string.pref_bigscreen_show_home), false)) {
-            binding.homeButton.visibility = View.VISIBLE
-        } else {
-            binding.homeButton.visibility = View.INVISIBLE
+        lifecycleScope.launch {
+            mousePadSettingsDataStore.showHome.collect { show ->
+                binding.homeButton.visibility = if (show) View.VISIBLE else View.INVISIBLE
+            }
         }
     }
 

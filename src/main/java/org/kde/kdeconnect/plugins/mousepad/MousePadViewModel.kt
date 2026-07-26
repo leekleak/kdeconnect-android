@@ -2,7 +2,6 @@ package org.kde.kdeconnect.plugins.mousepad
 
 import android.app.Application
 import android.content.Context
-import android.content.SharedPreferences
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -14,25 +13,26 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
-import androidx.preference.PreferenceManager
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.datastore.MousePadSettingsDataStore
 import org.kde.kdeconnect.helpers.SPECIAL_KEY_ENCODING_MAP
-import org.kde.kdeconnect_tp.R
 import org.koin.core.annotation.InjectedParam
 import kotlin.math.pow
 
 class MousePadViewModel(
     application: Application,
     deviceManager: DeviceManager,
+    private val dataStore: MousePadSettingsDataStore,
     @InjectedParam val deviceId: String
-) : AndroidViewModel(application), SensorEventListener, SharedPreferences.OnSharedPreferenceChangeListener {
+) : AndroidViewModel(application), SensorEventListener {
 
     val plugin: MousePadPlugin? = deviceManager.getDevicePlugin(deviceId, MousePadPlugin::class.java)
     private val sensorManager = application.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
-    private val prefs = PreferenceManager.getDefaultSharedPreferences(application)
 
     var mouseButtonsEnabled by mutableStateOf(true)
     var doubleTapDragEnabled by mutableStateOf(true)
@@ -65,41 +65,60 @@ class MousePadViewModel(
     }
 
     init {
-        prefs.registerOnSharedPreferenceChangeListener(this)
-        applyPrefs()
-    }
+        viewModelScope.launch {
+            combine<Any, Unit>(
+                dataStore.scrollDirection,
+                dataStore.scrollSensitivity,
+                dataStore.gyroEnabled,
+                dataStore.gyroSensitivity,
+                dataStore.singleTap,
+                dataStore.doubleTap,
+                dataStore.tripleTap,
+                dataStore.sensitivity,
+                dataStore.accelerationProfile,
+                dataStore.mouseButtonsEnabled,
+                dataStore.doubleTapDragEnabled
+            ) { params ->
+                val scrollDir = params[0] as Boolean
+                val scrollSens = params[1] as Int
+                val gyroEnabled = params[2] as Boolean
+                val gyroSens = params[3] as Int
+                val singleTap = params[4] as String
+                val doubleTap = params[5] as String
+                val tripleTap = params[6] as String
+                val sensitivity = params[7] as String
+                val accelProfile = params[8] as String
+                val mouseButtons = params[9] as Boolean
+                val doubleTapDrag = params[10] as Boolean
 
-    fun applyPrefs() {
-        val app = getApplication<Application>()
-        scrollDirection = if (prefs.getBoolean(app.getString(R.string.mousepad_scroll_direction), false)) -1 else 1
+                scrollDirection = if (scrollDir) -1 else 1
+                scrollCoefficient = (scrollSens.coerceAtLeast(1) / 100.0).pow(1.5)
+                
+                allowGyro = isGyroSensorAvailable() && gyroEnabled
+                if (allowGyro) {
+                    gyroscopeSensitivity = gyroSens
+                }
 
-        val scrollSens = prefs.getInt(app.getString(R.string.mousepad_scroll_sensitivity), 100).coerceAtLeast(1)
-        scrollCoefficient = (scrollSens / 100.0).pow(1.5)
+                singleTapAction = ClickType.fromString(singleTap)
+                doubleTapAction = ClickType.fromString(doubleTap)
+                tripleTapAction = ClickType.fromString(tripleTap)
 
-        allowGyro = isGyroSensorAvailable() && prefs.getBoolean(app.getString(R.string.gyro_mouse_enabled), false)
-        if (allowGyro) {
-            gyroscopeSensitivity = prefs.getInt(app.getString(R.string.gyro_mouse_sensitivity), 100)
+                currentSensitivity = when (sensitivity) {
+                    "slowest" -> 0.2f
+                    "aboveSlowest" -> 0.5f
+                    "default" -> 1.0f
+                    "aboveDefault" -> 1.5f
+                    "fastest" -> 2.0f
+                    else -> 1.0f
+                }
+
+                accelerationProfile = PointerAccelerationProfileFactory.getProfileWithName(accelProfile)
+                mouseButtonsEnabled = mouseButtons
+                doubleTapDragEnabled = doubleTapDrag
+            }.collect {
+                updateGyroListener()
+            }
         }
-
-        singleTapAction = ClickType.fromString(prefs.getString(app.getString(R.string.mousepad_single_tap_key), app.getString(R.string.mousepad_default_single)))
-        doubleTapAction = ClickType.fromString(prefs.getString(app.getString(R.string.mousepad_double_tap_key), app.getString(R.string.mousepad_default_double)))
-        tripleTapAction = ClickType.fromString(prefs.getString(app.getString(R.string.mousepad_triple_tap_key), app.getString(R.string.mousepad_default_triple)))
-
-        val sensitivitySetting = prefs.getString(app.getString(R.string.mousepad_sensitivity_key), app.getString(R.string.mousepad_default_sensitivity))
-        currentSensitivity = when (sensitivitySetting) {
-            "slowest" -> 0.2f
-            "aboveSlowest" -> 0.5f
-            "default" -> 1.0f
-            "aboveDefault" -> 1.5f
-            "fastest" -> 2.0f
-            else -> 1.0f
-        }
-
-        val accelerationProfileName = prefs.getString(app.getString(R.string.mousepad_acceleration_profile_key), app.getString(R.string.mousepad_default_acceleration_profile)) ?: app.getString(R.string.mousepad_default_acceleration_profile)
-        accelerationProfile = PointerAccelerationProfileFactory.getProfileWithName(accelerationProfileName)
-
-        mouseButtonsEnabled = prefs.getBoolean(app.getString(R.string.mousepad_mouse_buttons_enabled_pref), true)
-        doubleTapDragEnabled = prefs.getBoolean(app.getString(R.string.mousepad_doubletap_drag_enabled_pref), true)
     }
 
     fun onResume() {
@@ -123,7 +142,6 @@ class MousePadViewModel(
     }
 
     override fun onCleared() {
-        prefs.unregisterOnSharedPreferenceChangeListener(this)
         onPause()
     }
 
@@ -142,18 +160,14 @@ class MousePadViewModel(
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
-    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
-        applyPrefs()
-        updateGyroListener()
-    }
-
     fun isGyroSensorAvailable(): Boolean {
         return sensorManager?.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null
     }
 
     fun setGyroEnabled(enabled: Boolean) {
-        val app = getApplication<Application>()
-        prefs.edit { putBoolean(app.getString(R.string.gyro_mouse_enabled), enabled) }
+        viewModelScope.launch {
+            dataStore.setGyroEnabled(enabled)
+        }
     }
 
     fun sendLeftClick() {
