@@ -6,22 +6,25 @@
 package org.kde.kdeconnect.helpers
 
 import android.content.Context
+import androidx.room.Room
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.kde.kdeconnect.helpers.security.SslHelper
-import org.kde.kdeconnect.MockSharedPreference
 import java.security.cert.X509Certificate
+import java.security.cert.Certificate
 import java.util.Base64
 
 class SSLHelperTest {
     private val context: Context = mockk()
-    private lateinit var sharedPreferences: MockSharedPreference
+    private lateinit var deviceSettings: DeviceSettings
+    private lateinit var db: DevicesRoomDatabase
     private val certificateBase64 = """
         MIIBkzCCATmgAwIBAgIBATAKBggqhkjOPQQDBDBTMS0wKwYDVQQDDCRlZTA2MWE3NV9lNDAzXzRl
         Y2NfOTI2MV81ZmZlMjcyMmY2OTgxFDASBgNVBAsMC0tERSBDb25uZWN0MQwwCgYDVQQKDANLREUw
@@ -38,8 +41,10 @@ class SSLHelperTest {
 
     @Before
     fun setup() {
-        sharedPreferences = MockSharedPreference()
-        every { context.getSharedPreferences(deviceId, Context.MODE_PRIVATE) } returns sharedPreferences
+        db = Room.inMemoryDatabaseBuilder(context, DevicesRoomDatabase::class.java)
+            .allowMainThreadQueries()
+            .build()
+        deviceSettings = DeviceSettings(db.deviceDao())
 
         // implement android.util.Base64 using java.util.Base64
         mockkStatic(android.util.Base64::class)
@@ -57,37 +62,47 @@ class SSLHelperTest {
     }
 
     @Test
-    fun testNoCertificateStored() {
-        val isStored = TrustedDevices.isCertificateStored(context, deviceId)
-        Assert.assertFalse(isStored)
-    }
-
-    @Test
     fun testCertificateStored() {
-        sharedPreferences.edit().putString(certificateKey, certificateBase64).apply()
-        Assert.assertTrue(TrustedDevices.isCertificateStored(context, deviceId))
-        sharedPreferences.edit().remove(certificateKey).apply()
-        Assert.assertFalse(TrustedDevices.isCertificateStored(context, deviceId))
+        runBlocking {
+            deviceSettings.addTrustedDevice(
+                DeviceEntity(deviceId, "name", "phone", 0, Base64.getMimeDecoder().decode(certificateBase64))
+            )
+        }
+        Assert.assertTrue(runBlocking { deviceSettings.isCertificateStored(deviceId) })
+        runBlocking { deviceSettings.removeTrustedDevice(deviceId) }
+        Assert.assertFalse(runBlocking { deviceSettings.isCertificateStored(deviceId) })
     }
 
     @Test
     fun getAnyCertificate() {
-        Assert.assertThrows(Exception::class.java) { TrustedDevices.getDeviceCertificate(context, deviceId) }
-        sharedPreferences.edit().putString(certificateKey, certificateBase64).apply()
-        Assert.assertNotNull(TrustedDevices.getDeviceCertificate(context, deviceId))
+        Assert.assertThrows(Exception::class.java) { runBlocking { deviceSettings.getDeviceCertificate(deviceId) } }
+        runBlocking {
+            deviceSettings.addTrustedDevice(
+                DeviceEntity(deviceId, "name", "phone", 0, Base64.getMimeDecoder().decode(certificateBase64))
+            )
+        }
+        Assert.assertNotNull(runBlocking { deviceSettings.getDeviceCertificate(deviceId) })
     }
 
     @Test
     fun getExpectedCertificate() {
-        sharedPreferences.edit().putString(certificateKey, certificateBase64).apply()
-        val cert = TrustedDevices.getDeviceCertificate(context, deviceId)
+        runBlocking {
+            deviceSettings.addTrustedDevice(
+                DeviceEntity(deviceId, "name", "phone", 0, Base64.getMimeDecoder().decode(certificateBase64))
+            )
+        }
+        val cert: Certificate = runBlocking { deviceSettings.getDeviceCertificate(deviceId) }
         Assert.assertEquals(certificateBase64, Base64.getMimeEncoder().encodeToString(cert.encoded))
     }
 
     @Test
     fun getCertificateHash() {
-        sharedPreferences.edit().putString(certificateKey, certificateBase64).apply()
-        val cert = TrustedDevices.getDeviceCertificate(context, deviceId)
+        runBlocking {
+            deviceSettings.addTrustedDevice(
+                DeviceEntity(deviceId, "name", "phone", 0, Base64.getMimeDecoder().decode(certificateBase64))
+            )
+        }
+        val cert: Certificate = runBlocking { deviceSettings.getDeviceCertificate(deviceId) }
         val hash = SslHelper.getCertificateHash(cert)
         Assert.assertEquals(certificateHash, hash)
     }
@@ -102,8 +117,12 @@ class SSLHelperTest {
 
     @Test
     fun getCommonName() {
-        sharedPreferences.edit().putString(certificateKey, certificateBase64).apply()
-        val cert = TrustedDevices.getDeviceCertificate(context, deviceId)
+        runBlocking {
+            deviceSettings.addTrustedDevice(
+                DeviceEntity(deviceId, "name", "phone", 0, Base64.getMimeDecoder().decode(certificateBase64))
+            )
+        }
+        val cert = runBlocking { deviceSettings.getDeviceCertificate(deviceId) }
         val commonName = SslHelper.getCommonNameFromCertificate(cert as X509Certificate)
         Assert.assertEquals("ee061a75_e403_4ecc_9261_5ffe2722f698", commonName)
     }

@@ -1,6 +1,5 @@
 package org.kde.kdeconnect
 
-import android.content.Context
 import android.util.Log
 import androidx.annotation.WorkerThread
 import androidx.compose.runtime.snapshotFlow
@@ -17,7 +16,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLinkProvider.ConnectionReceiver
-import org.kde.kdeconnect.helpers.TrustedDevices
+import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.plugins.Plugin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
@@ -26,9 +25,10 @@ import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
 import java.util.Date
 import java.util.concurrent.ConcurrentHashMap
+import kotlinx.coroutines.runBlocking
 
 class DeviceManager(
-    private val context: Context,
+    private val deviceSettings: DeviceSettings,
 ) : KoinComponent {
 
     val jobScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -91,8 +91,7 @@ class DeviceManager(
     }
 
     private fun loadRememberedDevicesFromSettings() {
-        val trustedDevices = TrustedDevices.getAllTrustedDevices(context)
-        trustedDevices.asSequence()
+        runBlocking { deviceSettings.getAllTrustedDevices() }
             .onEach { Log.d("DeviceManager", "Loading device $it") }
             .forEach {
                 try {
@@ -110,7 +109,7 @@ class DeviceManager(
                         "DeviceManager",
                         "Couldn't load the certificate for a remembered device. Removing from trusted list.", e
                     )
-                    TrustedDevices.removeTrustedDevice(context, it)
+                    runBlocking { deviceSettings.removeTrustedDevice(it) }
                 }
             }
     }

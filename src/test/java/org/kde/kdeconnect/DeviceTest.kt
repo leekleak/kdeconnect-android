@@ -9,6 +9,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.preference.PreferenceManager
 import androidx.core.content.ContextCompat
+import androidx.room.Room
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
@@ -16,21 +17,23 @@ import io.mockk.mockkStatic
 import io.mockk.unmockkAll
 import io.mockk.unmockkObject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import org.kde.kdeconnect.backends.lan.LanLink
-import org.kde.kdeconnect.backends.lan.LanLinkProvider
 import org.kde.kdeconnect.DeviceInfo.Companion.fromIdentityPacketAndCert
 import org.kde.kdeconnect.DeviceInfo.Companion.isValidDeviceId
 import org.kde.kdeconnect.DeviceInfo.Companion.isValidIdentityPacket
 import org.kde.kdeconnect.DeviceInfo.Companion.loadFromSettings
 import org.kde.kdeconnect.DeviceType.Companion.fromString
+import org.kde.kdeconnect.backends.lan.LanLink
+import org.kde.kdeconnect.backends.lan.LanLinkProvider
 import org.kde.kdeconnect.helpers.DeviceHelper
+import org.kde.kdeconnect.helpers.DeviceSettings
+import org.kde.kdeconnect.helpers.DevicesRoomDatabase
 import org.kde.kdeconnect.helpers.security.RsaHelper
 import org.kde.kdeconnect.helpers.security.SslHelper
-import org.kde.kdeconnect.helpers.TrustedDevices
 import org.kde.kdeconnect.plugins.PluginFactory
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
@@ -39,10 +42,16 @@ import java.security.cert.CertificateException
 
 class DeviceTest {
     private val context: Context = mockk()
+    private lateinit var deviceSettings: DeviceSettings
+    private lateinit var db: DevicesRoomDatabase
 
     // Creating a paired device before each test case
     @Before
     fun setUp() {
+        db = Room.inMemoryDatabaseBuilder(context, DevicesRoomDatabase::class.java)
+            .allowMainThreadQueries()
+            .build()
+        deviceSettings = DeviceSettings(db.deviceDao())
         val deviceId = "testDevice"
         val name = "Test Device"
         val encodedCertificate = """
@@ -117,9 +126,10 @@ class DeviceTest {
 
         startKoin {
             modules(module {
+                single { deviceSettings }
                 single { mockk<DeviceHelper>(relaxed = true) }
                 factory { (deviceId: String, link: org.kde.kdeconnect.backends.BaseLink?) ->
-                    Device(context, deviceId, link)
+                    Device(context, get(), deviceId, link)
                 }
             })
         }
@@ -139,12 +149,13 @@ class DeviceTest {
     @Throws(CertificateException::class)
     fun testDeviceInfoToIdentityPacket() {
         val deviceId = "testDevice"
-        val deviceInfo = loadFromSettings(context, deviceId).copy(
-            protocolVersion = DeviceHelper.PROTOCOL_VERSION,
-            incomingCapabilities = hashSetOf("kdeconnect.plugin1State", "kdeconnect.plugin2State"),
-            outgoingCapabilities = hashSetOf("kdeconnect.plugin1State.request", "kdeconnect.plugin2State.request")
-        )
-
+        val deviceInfo = runBlocking {
+            loadFromSettings(deviceSettings, deviceId).copy(
+                protocolVersion = DeviceHelper.PROTOCOL_VERSION,
+                incomingCapabilities = hashSetOf("kdeconnect.plugin1State", "kdeconnect.plugin2State"),
+                outgoingCapabilities = hashSetOf("kdeconnect.plugin1State.request", "kdeconnect.plugin2State.request")
+            )
+        }
 
         val networkPacket = deviceInfo.toIdentityPacket()
         Assert.assertEquals(deviceInfo.id, networkPacket.getString("deviceId"))
@@ -205,7 +216,7 @@ class DeviceTest {
     @Test
     @Throws(CertificateException::class)
     fun testDevice() {
-        val device = Device(context, "testDevice")
+        val device = Device(context, deviceSettings, "testDevice")
 
         Assert.assertEquals(device.deviceId, "testDevice")
         Assert.assertEquals(device.deviceType, DeviceType.PHONE)
@@ -252,7 +263,7 @@ class DeviceTest {
         every { link.deviceId } returns deviceId
         every { link.deviceInfo } returns deviceInfo
         every { link.addPacketReceiver(any()) } returns Unit
-        val device = Device(context, null, link)
+        val device = Device(context, deviceSettings, null, link)
 
         Assert.assertNotNull(device)
         Assert.assertEquals(device.deviceId, deviceId)
@@ -264,27 +275,25 @@ class DeviceTest {
 
         Assert.assertTrue(device.isPaired)
 
-        Assert.assertTrue(TrustedDevices.isTrustedDevice(context, device.deviceId))
+        Assert.assertTrue(runBlocking { deviceSettings.isTrustedDevice(device.deviceId) })
 
-        val settings = TrustedDevices.getDeviceSettings(context, device.deviceId)
-        Assert.assertEquals(
-            settings.getString("deviceName", "Unknown device"),
-            "Unpaired Test Device"
-        )
-        Assert.assertEquals(settings.getString("deviceType", "tablet"), "phone")
+        val deviceEntity = runBlocking { deviceSettings.getDeviceEntity(device.deviceId) }
+        Assert.assertNotNull(deviceEntity)
+        Assert.assertEquals(deviceEntity?.name, "Unpaired Test Device")
+        Assert.assertEquals(deviceEntity?.type, "phone")
 
-        TrustedDevices.removeTrustedDevice(context, device.deviceId)
+        runBlocking { deviceSettings.removeTrustedDevice(device.deviceId) }
     }
 
     @Test
     @Throws(CertificateException::class)
     fun testUnpair() {
-        val device = Device(context, "testDevice")
+        val device = Device(context, deviceSettings, "testDevice")
 
         device.unpair()
 
         Assert.assertEquals(PairingHandler.PairState.NotPaired, device.pairingHandler.state.value)
 
-        Assert.assertFalse(TrustedDevices.isTrustedDevice(context, device.deviceId))
+        Assert.assertFalse(runBlocking { deviceSettings.isTrustedDevice(device.deviceId) })
     }
 }

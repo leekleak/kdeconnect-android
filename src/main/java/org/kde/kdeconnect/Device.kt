@@ -18,7 +18,6 @@ import androidx.annotation.VisibleForTesting
 import androidx.annotation.WorkerThread
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.edit
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,6 +31,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.DeviceInfo.Companion.loadFromSettings
 import org.kde.kdeconnect.DeviceStats.countReceived
 import org.kde.kdeconnect.DeviceStats.countSent
@@ -40,8 +40,8 @@ import org.kde.kdeconnect.PairingHandler.PairingCallback
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLink.PacketReceiver
 import org.kde.kdeconnect.helpers.DeviceHelper
+import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.NotificationHelper
-import org.kde.kdeconnect.helpers.TrustedDevices
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.Plugin.Companion.getPluginKey
 import org.kde.kdeconnect.plugins.PluginFactory
@@ -58,6 +58,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 class Device(
     private val context: Context,
+    private val deviceSettings: DeviceSettings,
     @InjectedParam deviceId: String?,
     @InjectedParam link: BaseLink? = null
 ) : PacketReceiver, KoinScopeComponent {
@@ -68,7 +69,7 @@ class Device(
     val jobScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _state: MutableStateFlow<DeviceState> = MutableStateFlow(DeviceState(
-        deviceInfo = link?.deviceInfo ?: loadFromSettings(context, deviceId!!),
+        deviceInfo = link?.deviceInfo ?: runBlocking { loadFromSettings(deviceSettings, deviceId!!) },
         pairStatus = if (link == null) PairState.Paired else PairState.NotPaired,
         isReachable = false,
         verificationKey = null,
@@ -187,11 +188,7 @@ class Device(
 
                 hidePairingNotification()
 
-                // Store current device certificate so we can check it in the future (TOFU)
-                deviceInfo.saveInSettings(context)
-
-                // Store as trusted device
-                TrustedDevices.addTrustedDevice(context, deviceInfo.id)
+                runBlocking { deviceInfo.saveInSettings(deviceSettings) }
 
                 try {
                     reloadPluginsFromSettings()
@@ -207,7 +204,7 @@ class Device(
             override fun unpaired(device: Device) {
                 assert(device == this@Device)
                 Log.i("Device", "unpaired, removing from trusted devices list")
-                TrustedDevices.removeTrustedDevice(context, deviceInfo.id)
+                runBlocking { deviceSettings.removeTrustedDevice(deviceInfo.id) }
 
                 notifyPluginsOfDeviceUnpaired(context, deviceInfo.id)
 
@@ -379,7 +376,7 @@ class Device(
                 )
             }
             if (isPaired) {
-                updatedInfo.saveInSettings(context)
+                runBlocking { updatedInfo.saveInSettings(deviceSettings) }
             }
         }
 
@@ -535,13 +532,13 @@ class Device(
     }
 
     fun setPluginEnabled(pluginKey: String, value: Boolean) {
-        TrustedDevices.getDeviceSettings(context, deviceId).edit { putBoolean(pluginKey, value) }
+        runBlocking { deviceSettings.setBooleanSetting(deviceId, pluginKey, value) }
         reloadPluginsFromSettings()
     }
 
     fun isPluginEnabled(pluginKey: String): Boolean {
         val enabledByDefault = PluginFactory.getPluginInfo(pluginKey).isEnabledByDefault
-        return TrustedDevices.getDeviceSettings(context, deviceId).getBoolean(pluginKey, enabledByDefault)
+        return runBlocking { deviceSettings.getBooleanSetting(deviceId, pluginKey, enabledByDefault) }
     }
 
     fun notifyPluginsOfDeviceUnpaired(context: Context, deviceId: String) {

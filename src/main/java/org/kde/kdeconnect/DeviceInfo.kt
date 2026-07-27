@@ -7,16 +7,15 @@
 package org.kde.kdeconnect
 
 import android.content.Context
-import android.util.Base64
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
+import org.kde.kdeconnect.helpers.DeviceEntity
 import org.kde.kdeconnect.helpers.DeviceHelper
-import org.kde.kdeconnect.helpers.TrustedDevices
+import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect_tp.R
 import java.security.cert.Certificate
 import java.security.cert.CertificateEncodingException
 import java.security.cert.CertificateException
-import androidx.core.content.edit
 
 /**
  * DeviceInfo contains all the properties needed to instantiate a Device.
@@ -36,15 +35,18 @@ data class DeviceInfo(
      * This is used to keep info from paired devices, even when they are not reachable.
      * The capabilities and protocol version are not persisted.
      */
-    fun saveInSettings(context: Context) {
+    suspend fun saveInSettings(deviceSettings: DeviceSettings) {
         try {
-            val encodedCertificate = Base64.encodeToString(certificate.encoded, 0)
-            TrustedDevices.getDeviceSettings(context, id).edit {
-                putString("certificate", encodedCertificate)
-                putString("deviceName", name)
-                putString("deviceType", type.toString())
-                putInt("protocolVersion", protocolVersion)
-            }
+            deviceSettings.addTrustedDevice(
+                DeviceEntity(
+                    deviceId = id,
+                    name = name,
+                    type = type.toString(),
+                    protocolVersion = protocolVersion,
+                    certificate = certificate.encoded,
+                    trusted = true
+                )
+            )
         } catch (e: CertificateEncodingException) {
             throw RuntimeException(e)
         }
@@ -66,31 +68,31 @@ data class DeviceInfo(
         }
 
     companion object {
-
         /**
          * Recreates a DeviceInfo object that was persisted using saveInSettings()
          */
         @JvmStatic
         @Throws(CertificateException::class)
-        fun loadFromSettings(context: Context, deviceId: String) =
-            with(TrustedDevices.getDeviceSettings(context, deviceId)) {
-                DeviceInfo(
-                    id = deviceId,
-                    name = getString("deviceName", "unknown")!!,
-                    type = DeviceType.fromString(getString("deviceType", "desktop")!!),
-                    certificate = TrustedDevices.getDeviceCertificate(context, deviceId),
-                    protocolVersion = getInt("protocolVersion", 0),
-                )
-            }
+        suspend fun loadFromSettings(deviceSettings: DeviceSettings, deviceId: String): DeviceInfo {
+            val device = deviceSettings.getDeviceEntity(deviceId)
+                ?: throw CertificateException("Device $deviceId not found in settings")
+            return DeviceInfo(
+                id = device.deviceId,
+                name = device.name,
+                type = DeviceType.fromString(device.type),
+                certificate = deviceSettings.getDeviceCertificate(device.deviceId),
+                protocolVersion = device.protocolVersion,
+            )
+        }
 
         /**
          * Reads the stored
          */
         @JvmStatic
-        fun loadProtocolVersionFromSettings(context: Context, deviceId: String) =
-            with(TrustedDevices.getDeviceSettings(context, deviceId)) {
-                getInt("protocolVersion", 0)
-            }
+        suspend fun loadProtocolVersionFromSettings(deviceSettings: DeviceSettings, deviceId: String): Int {
+            val device = deviceSettings.getDeviceEntity(deviceId)
+            return device?.protocolVersion ?: 0
+        }
 
         /**
          * Recreates a DeviceInfo object that was serialized using toIdentityPacket().

@@ -22,7 +22,7 @@ import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.RandomHelper
 import org.kde.kdeconnect.helpers.security.RsaHelper.getPrivateKey
 import org.kde.kdeconnect.helpers.security.RsaHelper.getPublicKey
-import org.kde.kdeconnect.helpers.TrustedDevices
+import org.kde.kdeconnect.helpers.DeviceSettings
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.io.ByteArrayInputStream
@@ -46,9 +46,11 @@ import javax.net.ssl.SSLSocket
 import javax.net.ssl.TrustManager
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
+import kotlinx.coroutines.runBlocking
 
 object SslHelper : KoinComponent {
     private val deviceHelper: DeviceHelper by inject()
+    private val deviceSettings: DeviceSettings by inject()
     lateinit var certificate: Certificate //my device's certificate
     private val factory: CertificateFactory = CertificateFactory.getInstance("X.509")
 
@@ -99,7 +101,7 @@ object SslHelper : KoinComponent {
         }
 
         if (needsToGenerateCertificate) {
-            TrustedDevices.removeAllTrustedDevices(context)
+            runBlocking { deviceSettings.removeAllTrustedDevices() }
             Log.i(LOG_TAG, "Generating a certificate")
             //Fix for https://issuetracker.google.com/issues/37095309
             val initialLocale = Locale.getDefault()
@@ -153,7 +155,7 @@ object SslHelper : KoinComponent {
 
         // Add device certificate if device trusted
         if (isDeviceTrusted) {
-            val remoteDeviceCertificate = TrustedDevices.getDeviceCertificate(context, deviceId)
+            val remoteDeviceCertificate = runBlocking { deviceSettings.getDeviceCertificate(deviceId) }
             keyStore.setCertificateEntry(deviceId, remoteDeviceCertificate)
         }
 

@@ -31,6 +31,10 @@ import org.kde.kdeconnect.datastore.SftpSettingsDataStore
 import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 import org.kde.kdeconnect.helpers.AppIconFetcher
 import org.kde.kdeconnect.helpers.DeviceHelper
+import androidx.room.Room
+import org.kde.kdeconnect.helpers.DeviceDao
+import org.kde.kdeconnect.helpers.DevicesRoomDatabase
+import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 import org.kde.kdeconnect.plugins.battery.BatteryPlugin
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin
@@ -207,6 +211,7 @@ val settingsModule = module {
     single<TelephonySettingsDataStore>()
     single<SettingsDataStore>()
     single<MousePadSettingsDataStore>()
+    single<DeviceSettings> { DeviceSettings(get()) }
     single<DeviceHelper> { DeviceHelper(get()) }
     single<DeviceManager> { DeviceManager(get()) }
     single<NotificationSettingsDataStore>()
@@ -303,9 +308,18 @@ val appModule = module {
     single<TrustedNetworkHelper>()
     single<AppDatabase>()
 
+    single<DevicesRoomDatabase> {
+        Room.databaseBuilder(
+            get(),
+            DevicesRoomDatabase::class.java,
+            "Devices"
+        ).build()
+    }
+    single<DeviceDao> { get<DevicesRoomDatabase>().deviceDao() }
+
     factory<Device>()
 
-    factory { (context: Context) -> LanLinkProvider(context, get(), get()) }
+    factory { (context: Context) -> LanLinkProvider(context, get(), get(), get()) }
 
     scope<Device> {
         scoped { SftpPlugin(get(), get(), get()) }

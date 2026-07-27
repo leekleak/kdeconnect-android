@@ -26,7 +26,7 @@ import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.backends.lan.LanLink.ConnectionStarted
 import org.kde.kdeconnect.helpers.CustomDevicesHelper.getCustomDeviceList
 import org.kde.kdeconnect.helpers.DeviceHelper
-import org.kde.kdeconnect.helpers.TrustedDevices
+import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 import org.kde.kdeconnect.helpers.isPrivateAddress
 import org.kde.kdeconnect.helpers.readLineBounded
@@ -46,6 +46,7 @@ import javax.net.SocketFactory
 import javax.net.ssl.HandshakeCompletedEvent
 import javax.net.ssl.SSLSocket
 import kotlin.text.Charsets.UTF_8
+import kotlinx.coroutines.runBlocking
 
 /**
  * This LanLinkProvider creates [LanLink]s to other devices on the same
@@ -57,7 +58,8 @@ import kotlin.text.Charsets.UTF_8
 class LanLinkProvider(
     private val context: Context,
     private val deviceHelper: DeviceHelper,
-    private val trustedNetworkHelper: TrustedNetworkHelper
+    private val trustedNetworkHelper: TrustedNetworkHelper,
+    private val deviceSettings: DeviceSettings,
 ) : BaseLinkProvider() {
 
     val visibleDevices: HashMap<String?, LanLink?> = HashMap() // Links by device id
@@ -112,7 +114,7 @@ class LanLinkProvider(
             return null
         }
 
-        val deviceTrusted = TrustedDevices.isTrustedDevice(context, deviceId)
+        val deviceTrusted = runBlocking { deviceSettings.isTrustedDevice(deviceId) }
         if (!deviceTrusted && !trustedNetworkHelper.isTrustedNetwork) {
             Log.i(
                 "KDE/LanLinkProvider",
@@ -329,7 +331,7 @@ class LanLinkProvider(
             return
         }
 
-        if (deviceTrusted && !TrustedDevices.isCertificateStored(context, deviceId)) {
+         if (deviceTrusted && !runBlocking { deviceSettings.isCertificateStored(deviceId) }) {
             Log.e(
                 "KDE/LanLinkProvider",
                 "Device trusted but no cert stored. This should not happen."
@@ -428,7 +430,7 @@ class LanLinkProvider(
 
     private fun isProtocolDowngrade(deviceId: String, protocolVersion: Int): Boolean {
         val lastKnownProtocolVersion =
-            DeviceInfo.loadProtocolVersionFromSettings(context, deviceId)
+            runBlocking { DeviceInfo.loadProtocolVersionFromSettings(deviceSettings, deviceId) }
         return lastKnownProtocolVersion > protocolVersion
     }
 
