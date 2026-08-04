@@ -20,8 +20,8 @@ import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.RandomHelper
-import org.kde.kdeconnect.helpers.security.RsaHelper.getPrivateKey
-import org.kde.kdeconnect.helpers.security.RsaHelper.getPublicKey
+import org.kde.kdeconnect.helpers.security.EcHelper.getPrivateKey
+import org.kde.kdeconnect.helpers.security.EcHelper.getPublicKey
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -63,8 +63,8 @@ object SslHelper : KoinComponent {
     })
 
     fun initialiseCertificate(context: Context) {
-        val privateKey: PrivateKey = getPrivateKey(context)
-        val publicKey: PublicKey = getPublicKey(context)
+        val privateKey: PrivateKey = getPrivateKey()
+        val publicKey: PublicKey = getPublicKey()
 
         Log.i(LOG_TAG, "Key algorithm: " + publicKey.algorithm)
 
@@ -123,7 +123,7 @@ object SslHelper : KoinComponent {
                 publicKey
             )
             val keyAlgorithm = privateKey.algorithm
-            val signatureAlgorithm = if ("RSA" == keyAlgorithm) "SHA512withRSA" else "SHA512withECDSA"
+            val signatureAlgorithm = if ("RSA" == keyAlgorithm) "SHA512withRSA" else "SHA256withECDSA"
             val contentSigner = JcaContentSignerBuilder(signatureAlgorithm).build(privateKey)
             val certificateBytes = certificateBuilder.build(contentSigner).encoded
             certificate = parseCertificate(certificateBytes)
@@ -146,7 +146,7 @@ object SslHelper : KoinComponent {
 
     private fun getSslContextForDevice(context: Context, deviceId: String, isDeviceTrusted: Boolean): SSLContext {
         // TODO: This method is called for each payload that is sent. Cache the result.
-        val privateKey = getPrivateKey(context)
+        val privateKey = getPrivateKey()
 
         // Setup keystore
         val keyStore = KeyStore.getInstance(KeyStore.getDefaultType())

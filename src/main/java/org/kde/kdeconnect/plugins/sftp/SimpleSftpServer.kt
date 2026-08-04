@@ -29,7 +29,7 @@ import org.apache.sshd.sftp.server.SftpSubsystemProxy
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.helpers.MediaStoreHelper
 import org.kde.kdeconnect.helpers.RandomHelper
-import org.kde.kdeconnect.helpers.security.RsaHelper
+import org.kde.kdeconnect.helpers.security.EcHelper
 import org.kde.kdeconnect.helpers.security.constantTimeCompare
 import org.kde.kdeconnect.plugins.sftp.saf.SafFileSystemFactory
 import org.kde.kdeconnect.plugins.sftp.saf.SafPath
@@ -95,8 +95,8 @@ internal class SimpleSftpServer {
 
         // Reuse this device keys for the ssh connection as well
         val keyPair = KeyPair(
-            RsaHelper.getPublicKey(context),
-            RsaHelper.getPrivateKey(context)
+            EcHelper.getPublicKey(),
+            EcHelper.getPrivateKey()
         )
         sshd.keyPairProvider = object : AbstractKeyPairProvider() {
             override fun loadKeys(session: SessionContext): Iterable<KeyPair> = listOf(keyPair)

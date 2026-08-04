@@ -32,7 +32,7 @@ import org.kde.kdeconnect.backends.lan.LanLinkProvider
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.DevicesRoomDatabase
-import org.kde.kdeconnect.helpers.security.RsaHelper
+import org.kde.kdeconnect.helpers.security.EcHelper
 import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.plugins.PluginFactory
 import org.koin.core.context.startKoin
@@ -104,7 +104,7 @@ class DeviceTest {
         val defaultSettings = MockSharedPreference()
         every { PreferenceManager.getDefaultSharedPreferences(any()) } returns defaultSettings
 
-        RsaHelper.initialiseRsaKeys(context)
+        EcHelper.ensureKeyPair()
 
         mockkStatic(ContextCompat::class)
         every { ContextCompat.getSystemService(context, NotificationManager::class.java) } returns mockk(relaxed = true)

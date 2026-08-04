@@ -17,7 +17,7 @@ import org.kde.kdeconnect.helpers.LifecycleHelper
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.ui.ThemeUtil
 import org.kde.kdeconnect_tp.BuildConfig
-import org.kde.kdeconnect.helpers.security.RsaHelper
+import org.kde.kdeconnect.helpers.security.EcHelper
 import org.kde.kdeconnect.helpers.security.SslHelper
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
@@ -44,7 +44,7 @@ class KdeConnect : Application() {
         Log.d("KdeConnect/Application", "onCreate")
         ThemeUtil.setUserPreferredTheme(this)
         deviceHelper.initializeDeviceId()
-        RsaHelper.initialiseRsaKeys(this)
+        EcHelper.ensureKeyPair()
         SslHelper.initialiseCertificate(this)
         NotificationHelper.initializeChannels(this)
         LifecycleHelper.initializeObserver()
