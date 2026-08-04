@@ -31,8 +31,6 @@ import org.kde.kdeconnect.helpers.FilesHelper.findValidNonExistingFileName
 import org.kde.kdeconnect.helpers.FilesHelper.getMimeTypeFromFile
 import org.kde.kdeconnect.helpers.MediaStoreHelper.indexFile
 import org.kde.kdeconnect_tp.R
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.IOException
@@ -69,9 +67,12 @@ import kotlin.time.Duration.Companion.milliseconds
  * @see CompositeUploadFileJob
  */
 @OptIn(ExperimentalAtomicApi::class)
-class CompositeReceiveFileJob(private val device: Device, private val context: Context, callBack: Callback<Void?>)
-    : BackgroundJob<Device, Void?>(device, callBack), KoinComponent {
-    private val settingsDataStore: SettingsDataStore by inject()
+class CompositeReceiveFileJob(
+    private val device: Device,
+    private val context: Context,
+    private val settingsDataStore: SettingsDataStore,
+    callBack: Callback<Void?>
+) : BackgroundJob<Device, Void?>(device, callBack) {
     private val receiveNotification: ReceiveNotification = ReceiveNotification(device, context, id)
     private var currentNetworkPacket: NetworkPacket? = null
     private var currentFileName: String? = null

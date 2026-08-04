@@ -20,9 +20,10 @@ import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.NetworkPacket.Companion.unserialize
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLinkProvider
+import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.LineTooLongException
 import org.kde.kdeconnect.helpers.readLineBounded
-import org.kde.kdeconnect.helpers.security.SslHelper.convertToSslSocket
+import org.kde.kdeconnect.helpers.security.SslHelper
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -41,7 +42,9 @@ class LanLink @WorkerThread constructor(
     context: Context,
     override var deviceInfo: DeviceInfo,
     linkProvider: BaseLinkProvider,
-    socket: SSLSocket
+    socket: SSLSocket,
+    private val sslHelper: SslHelper,
+    private val deviceSettings: DeviceSettings
 ) : BaseLink(context, linkProvider) {
     enum class ConnectionStarted {
         Locally, Remotely
@@ -215,9 +218,10 @@ class LanLink @WorkerThread constructor(
 
                 //Convert to SSL if needed
                 payloadSocket =
-                    convertToSslSocket(context, payloadSocket, deviceId,
+                    sslHelper.convertToSslSocket(context, payloadSocket!!, deviceId,
                         isDeviceTrusted = true,
-                        clientMode = false
+                        clientMode = false,
+                        deviceSettings
                     )
 
                 outputStream = payloadSocket.getOutputStream()
@@ -281,9 +285,10 @@ class LanLink @WorkerThread constructor(
                 val deviceAddress = socket?.remoteSocketAddress as InetSocketAddress
                 payloadSocket.connect(InetSocketAddress(deviceAddress.address, tcpPort))
                 payloadSocket =
-                    convertToSslSocket(context, payloadSocket, deviceId,
+                    sslHelper.convertToSslSocket(context, payloadSocket, deviceId,
                         isDeviceTrusted = true,
-                        clientMode = true
+                        clientMode = true,
+                        deviceSettings
                     )
                 np.payload = NetworkPacket.Payload(payloadSocket, np.payloadSize)
             } catch (e: Exception) {

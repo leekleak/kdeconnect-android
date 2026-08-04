@@ -13,6 +13,7 @@ import android.os.StrictMode.VmPolicy
 import android.util.Log
 import org.kde.kdeconnect.di.appModule
 import org.kde.kdeconnect.helpers.DeviceHelper
+import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.LifecycleHelper
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.ui.ThemeUtil
@@ -32,7 +33,10 @@ import org.slf4j.impl.HandroidLoggerAdapter
  */
 class KdeConnect : Application() {
     private val deviceHelper: DeviceHelper by inject()
+    private val deviceSettings: DeviceSettings by inject()
     private val deviceManager: DeviceManager by inject()
+    private val themeUtil: ThemeUtil by inject()
+    private val sslHelper: SslHelper by inject()
 
     override fun onCreate() {
         super.onCreate()
@@ -42,10 +46,10 @@ class KdeConnect : Application() {
             modules(appModule)
         }
         Log.d("KdeConnect/Application", "onCreate")
-        ThemeUtil.setUserPreferredTheme(this)
+        themeUtil.setUserPreferredTheme(this)
         deviceHelper.initializeDeviceId()
         EcHelper.ensureKeyPair()
-        SslHelper.initialiseCertificate(this)
+        sslHelper.initialiseCertificate(this, deviceHelper.getDeviceId(), deviceSettings)
         NotificationHelper.initializeChannels(this)
         LifecycleHelper.initializeObserver()
 

@@ -5,16 +5,13 @@
 */
 package org.kde.kdeconnect.helpers
 
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import java.net.MalformedURLException
 import java.net.URL
 
-object VideoUrlsHelper : KoinComponent {
-    private val deviceHelper: DeviceHelper by inject()
-    private const val SECONDS_IN_MINUTE = 60
-    private const val MINUTES_IN_HOUR = 60
-    private const val SECONDS_IN_HOUR = SECONDS_IN_MINUTE * MINUTES_IN_HOUR
+class VideoUrlsHelper(private val deviceHelper: DeviceHelper) {
+    private val SECONDS_IN_MINUTE = 60
+    private val MINUTES_IN_HOUR = 60
+    private val SECONDS_IN_HOUR = SECONDS_IN_MINUTE * MINUTES_IN_HOUR
 
     /** PeerTube uses a Flickr Base58 encoded short UUID (alphanumeric, but 0, O, I, and l are excluded) with a length of 22 characters **/
     private val peerTubePathPattern = Regex("^/w/[1-9a-km-zA-HJ-NP-Z]{22}(\\?.+)?$")

@@ -40,7 +40,9 @@ import java.util.concurrent.ConcurrentHashMap
 class MprisPlugin(
     context: Context,
     device: Device,
-    private val dataStore: NotificationSettingsDataStore
+    private val dataStore: NotificationSettingsDataStore,
+    private val mprisMediaSession: MprisMediaSession,
+    private val videoUrlsHelper: VideoUrlsHelper
 ) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = MprisPluginSettings
     inner class MprisPlayer internal constructor() {
@@ -208,7 +210,7 @@ class MprisPlugin(
     private val playerListUpdated = ConcurrentHashMap<String, () -> Unit>()
 
     override fun onCreate(): Boolean {
-        MprisMediaSession.instance.onCreate(context.applicationContext, this, device.deviceId)
+        mprisMediaSession.onCreate(context.applicationContext, this, device.deviceId)
 
         // Always request the player list so the data is up-to-date
         requestPlayerList()
@@ -222,7 +224,7 @@ class MprisPlugin(
     override fun onDestroy() {
         players.clear()
         deregisterPlugin(this)
-        MprisMediaSession.instance.onDestroy(this, device.deviceId)
+        mprisMediaSession.onDestroy(this, device.deviceId)
     }
 
     private fun sendCommand(player: String, method: String, value: String) {
@@ -362,8 +364,8 @@ class MprisPlugin(
             if (dataStore.isMprisKeepWatchingEnabledBlocking() && httpUrl != null) {
                 try {
                     val transformedUrl = httpUrl
-                        .let { VideoUrlsHelper.convertToAndFromYoutubeTvLinks(it) }
-                        .let { VideoUrlsHelper.formatUriWithSeek(it, playerStatus.position) }
+                        .let { videoUrlsHelper.convertToAndFromYoutubeTvLinks(it) }
+                        .let { videoUrlsHelper.formatUriWithSeek(it, playerStatus.position) }
                         .toUri()
                     val browserIntent = Intent(Intent.ACTION_VIEW, transformedUrl)
                     val pendingIntent = PendingIntent.getActivity(context, 0, browserIntent, PendingIntent.FLAG_IMMUTABLE)

@@ -8,6 +8,7 @@ package org.kde.kdeconnect.plugins.mpris
 import android.Manifest
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.ComponentCallbacks
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -27,6 +28,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
+import org.koin.android.ext.android.getKoin
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
 import org.kde.kdeconnect.helpers.NotificationHelper
@@ -37,8 +39,6 @@ import org.kde.kdeconnect.plugins.systemvolume.SystemVolumeProvider
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumeProvider.Companion.currentProvider
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumeProvider.ProviderStateListener
 import org.kde.kdeconnect_tp.R
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
 /**
  * Controls the mpris media control notification
@@ -49,12 +49,12 @@ import org.koin.core.component.inject
  * - The media session (via MediaSessionCompat; for lock screen control on
  * older Android version. And in the future for lock screen album covers)
  */
-class MprisMediaSession : NotificationReceiver.NotificationListener, KoinComponent,
-    ProviderStateListener {
+class MprisMediaSession(
+    private val dataStore: NotificationSettingsDataStore,
+    private val deviceManager: DeviceManager,
+) : NotificationReceiver.NotificationListener, ProviderStateListener {
     private var spotifyRunning = false
 
-    private val dataStore: NotificationSettingsDataStore by inject()
-    private val deviceManager: DeviceManager by inject()
     private var job: Job? = null
 
     // Holds the device and player displayed in the notification
@@ -65,7 +65,7 @@ class MprisMediaSession : NotificationReceiver.NotificationListener, KoinCompone
     private val mprisDevices = HashSet<String>()
 
     private var context: Context? = null
-    private var mediaSession: MediaSessionCompat? = null
+    internal var mediaSession: MediaSessionCompat? = null
 
     // Callback for control via the media session API
     private val mediaSessionCallback: MediaSessionCompat.Callback = object : MediaSessionCompat.Callback() {
@@ -169,7 +169,7 @@ class MprisMediaSession : NotificationReceiver.NotificationListener, KoinCompone
     }
 
     private fun findPlayer(): Pair<Device, MprisPlayer>? {
-        val currentDevice = if (notificationDeviceId != null && mprisDevices.contains(notificationDeviceId)) {
+        val currentDevice = if (notificationDeviceId != null && (notificationDeviceId in mprisDevices)) {
             deviceManager.getDevice(notificationDeviceId)
         } else {
             null
@@ -449,7 +449,7 @@ class MprisMediaSession : NotificationReceiver.NotificationListener, KoinCompone
         notification.setGroup("MprisMediaSession")
 
         // Display the notification
-        synchronized(instance) {
+        synchronized(this) {
             val mediaSession = mediaSession ?: MediaSessionCompat(context!!, MPRIS_MEDIA_SESSION_TAG).apply {
                 setCallback(mediaSessionCallback, Handler(context!!.mainLooper))
             }
@@ -472,7 +472,7 @@ class MprisMediaSession : NotificationReceiver.NotificationListener, KoinCompone
 
         // Clear the current player and media session
         notificationPlayer = null
-        synchronized(instance) {
+        synchronized(this) {
             mediaSession?.apply {
                 setPlaybackState(PlaybackStateCompat.Builder().build())
                 setMetadata(MediaMetadataCompat.Builder().build())
@@ -535,11 +535,5 @@ class MprisMediaSession : NotificationReceiver.NotificationListener, KoinCompone
         private const val MPRIS_MEDIA_SESSION_TAG = "org.kde.kdeconnect_tp.media_session"
 
         private const val SPOTIFY_PACKAGE_NAME = "com.spotify.music"
-
-        val instance: MprisMediaSession by lazy { MprisMediaSession() }
-
-        fun getMediaSession(): MediaSessionCompat? {
-            return instance.mediaSession
-        }
     }
 }

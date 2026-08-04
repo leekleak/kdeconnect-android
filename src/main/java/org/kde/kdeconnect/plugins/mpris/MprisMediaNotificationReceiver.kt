@@ -11,24 +11,27 @@ import android.content.Intent
 import android.util.Log
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.extensions.getParcelableCompat
-import org.koin.core.context.GlobalContext
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 /**
  * Called when the mpris media notification's buttons are pressed
  */
-class MprisMediaNotificationReceiver : BroadcastReceiver() {
+class MprisMediaNotificationReceiver : BroadcastReceiver(), KoinComponent {
+    private val mprisMediaSession: MprisMediaSession by inject()
+    private val deviceManager: DeviceManager by inject()
+
     override fun onReceive(context: Context, intent: Intent) {
         // First case: buttons send by other applications via the media session APIs. They don't target a specific device.
         if (Intent.ACTION_MEDIA_BUTTON == intent.action) {
             // Route these buttons to the media session, which will handle them
-            val mediaSession = MprisMediaSession.getMediaSession() ?: return
+            val mediaSession = mprisMediaSession.mediaSession ?: return
             mediaSession.controller.dispatchMediaButtonEvent(intent.getParcelableCompat(Intent.EXTRA_KEY_EVENT))
         } else {
             // Second case: buttons on the notification, which we created ourselves
             // Get the correct device, the mpris plugin and the mpris player
 
             val deviceId = intent.getStringExtra(EXTRA_DEVICE_ID)
-            val deviceManager: DeviceManager = GlobalContext.get().get()
             val plugin = deviceManager.getDevicePlugin(deviceId, MprisPlugin::class.java) ?: return
             val player = plugin.getPlayerStatus(intent.getStringExtra(EXTRA_MPRIS_PLAYER))
                 ?: return
@@ -39,7 +42,7 @@ class MprisMediaNotificationReceiver : BroadcastReceiver() {
                 ACTION_PREVIOUS -> player.sendPrevious()
                 ACTION_NEXT -> player.sendNext()
                 ACTION_CLOSE_NOTIFICATION ->                     //The user dismissed the notification: actually handle its removal correctly
-                    MprisMediaSession.instance.closeMediaNotification()
+                    mprisMediaSession.closeMediaNotification()
                 else -> {
                     Log.w(TAG, "Unknown action: ${intent.action}, ignore.")
                 }

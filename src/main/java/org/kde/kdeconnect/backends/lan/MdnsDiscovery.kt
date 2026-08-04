@@ -14,11 +14,12 @@ import android.net.wifi.WifiManager
 import android.net.wifi.WifiManager.MulticastLock
 import android.util.Log
 import org.kde.kdeconnect.helpers.DeviceHelper
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
-class MdnsDiscovery(context: Context, private val lanLinkProvider: LanLinkProvider) : KoinComponent {
-    private val deviceHelper: DeviceHelper by inject()
+class MdnsDiscovery(
+    context: Context,
+    private val lanLinkProvider: LanLinkProvider,
+    private val deviceHelper: DeviceHelper
+) {
     private val mNsdManager: NsdManager = context.getSystemService(Context.NSD_SERVICE) as NsdManager
     private var registrationListener: RegistrationListener? = null
     private var discoveryListener: DiscoveryListener? = null

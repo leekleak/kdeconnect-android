@@ -24,6 +24,7 @@ import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.backends.lan.LanLinkProvider
+import org.kde.kdeconnect.backends.loopback.LoopbackLinkProvider
 import org.kde.kdeconnect.datastore.ConnectionsSettingsDataStore
 import org.kde.kdeconnect.datastore.MousePadSettingsDataStore
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
@@ -97,6 +98,13 @@ import org.kde.kdeconnect.ui.compose.screen.settings.advanced.filesystem.SftpSet
 import org.kde.kdeconnect.ui.compose.screen.settings.advanced.filesystem.SftpSettingsViewModel
 import org.kde.kdeconnect.ui.compose.screen.settings.advanced.notifications.NotificationSettings
 import org.kde.kdeconnect.ui.compose.screen.settings.advanced.notifications.NotificationSettingsViewModel
+import org.kde.kdeconnect.ui.ThemeUtil
+import org.kde.kdeconnect.helpers.security.SslHelper
+import org.kde.kdeconnect.helpers.CustomDevicesHelper
+import org.kde.kdeconnect.helpers.VideoUrlsHelper
+import org.kde.kdeconnect.plugins.mpris.MprisMediaSession
+import org.kde.kdeconnect.backends.bluetooth.BluetoothLinkProvider
+import org.koin.core.parameter.parametersOf
 import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.BigscreenKey
 import org.kde.kdeconnect.ui.navigation.ConnectionsSettingsKey
@@ -216,9 +224,17 @@ val settingsModule = module {
     single<SettingsDataStore>()
     single<RunCommandSettingsDataStore>()
     single<MousePadSettingsDataStore>()
-    single<DeviceSettings> { DeviceSettings(get()) }
-    single<DeviceHelper> { DeviceHelper(get()) }
-    single<DeviceManager> { DeviceManager(get()) }
+    single { DeviceSettings(get(), get()) }
+    single { DeviceHelper(get(), get()) }
+    single { ThemeUtil(get()) }
+    single { SslHelper(get()) }
+    single { CustomDevicesHelper(get()) }
+    single { VideoUrlsHelper(get()) }
+    single<DeviceManager> {
+        DeviceManager(get()) { deviceId, link ->
+            get<Device> { parametersOf(deviceId, link) }
+        }
+    }
     single<NotificationSettingsDataStore>()
     single<SftpSettingsDataStore>()
     single<ConnectionsSettingsDataStore>()
@@ -330,7 +346,10 @@ val appModule = module {
 
     factory<Device>()
 
-    factory { (context: Context) -> LanLinkProvider(context, get(), get(), get()) }
+    single { MprisMediaSession(get(), get()) }
+    factory { (context: Context) -> BluetoothLinkProvider(context, get(), get(), get()) }
+    factory { (context: Context) -> LanLinkProvider(context, get(), get(), get(), get(), get()) }
+    factory { (context: Context) -> LoopbackLinkProvider(context, get()) }
 
     scope<Device> {
         scoped { SftpPlugin(get(), get(), get()) }
@@ -343,14 +362,14 @@ val appModule = module {
         scoped { InputDevicesReceiverPlugin(get(), get()) }
         scoped { MousePadPlugin(get(), get(), get()) }
         scoped { MouseReceiverPlugin(get(), get()) }
-        scoped { MprisPlugin(get(), get(), get()) }
+        scoped { MprisPlugin(get(), get(), get(), get(), get()) }
         scoped { MprisReceiverPlugin(get(), get()) }
         scoped { NotificationsPlugin(get(), get(), get(), get()) }
         scoped { PresenterPlugin(get(), get()) }
         scoped { ReceiveNotificationsPlugin(get(), get()) }
         scoped { RemoteKeyboardPlugin(get(), get()) }
         scoped { RunCommandPlugin(get(), get(), get()) }
-        scoped { SharePlugin(get(), get()) }
+        scoped { SharePlugin(get(), get(), get()) }
         scoped { SMSPlugin(get(), get(), get()) }
         scoped { SystemVolumePlugin(get(), get()) }
         scoped { TelephonyPlugin(get(), get(), get()) }

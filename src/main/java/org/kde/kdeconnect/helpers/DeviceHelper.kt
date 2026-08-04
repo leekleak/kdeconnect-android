@@ -21,7 +21,10 @@ import org.kde.kdeconnect.plugins.battery.DeviceBatteryInfo
 import org.kde.kdeconnect_tp.R
 import java.util.UUID
 
-class DeviceHelper(val dataStore: SettingsDataStore) {
+class DeviceHelper(
+    val dataStore: SettingsDataStore,
+    private val sslHelper: SslHelper
+) {
     val isTablet: Boolean by lazy {
         val config = Resources.getSystem().configuration
         //This assumes that the values for the screen sizes are consecutive, so XXLARGE > XLARGE > LARGE
@@ -63,7 +66,7 @@ class DeviceHelper(val dataStore: SettingsDataStore) {
     fun getDeviceInfo(): DeviceInfo {
         return DeviceInfo(
             getDeviceId(),
-            SslHelper.certificate,
+            sslHelper.certificate,
             getDeviceName(),
             deviceType,
             PROTOCOL_VERSION,

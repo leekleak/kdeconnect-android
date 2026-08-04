@@ -11,14 +11,11 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import com.google.android.material.color.DynamicColors
 import org.kde.kdeconnect.datastore.SettingsDataStore
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
 /**
  * Utilities for working with android [Themes][android.content.res.Resources.Theme].
  */
-object ThemeUtil : KoinComponent {
-    val dataStore: SettingsDataStore by inject()
+class ThemeUtil(private val dataStore: SettingsDataStore) {
 
     //Todo: Fix this as now the app thinks that the default theme is whatever theme was set when MainActivity was launched.
     fun applyTheme(themePref: AppTheme) {

@@ -24,7 +24,7 @@ import org.kde.kdeconnect.NetworkPacket.Companion.unserialize
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.backends.lan.LanLink.ConnectionStarted
-import org.kde.kdeconnect.helpers.CustomDevicesHelper.getCustomDeviceList
+import org.kde.kdeconnect.helpers.CustomDevicesHelper
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper
@@ -60,6 +60,8 @@ class LanLinkProvider(
     private val deviceHelper: DeviceHelper,
     private val trustedNetworkHelper: TrustedNetworkHelper,
     private val deviceSettings: DeviceSettings,
+    private val customDevicesHelper: CustomDevicesHelper,
+    private val sslHelper: SslHelper
 ) : BaseLinkProvider() {
 
     val visibleDevices: HashMap<String?, LanLink?> = HashMap() // Links by device id
@@ -72,7 +74,7 @@ class LanLinkProvider(
     private var tcpServer: ServerSocket? = null
     private var udpServer: DatagramSocket? = null
 
-    private val mdnsDiscovery: MdnsDiscovery = MdnsDiscovery(context, this)
+    private val mdnsDiscovery: MdnsDiscovery = MdnsDiscovery(context, this, deviceHelper)
 
     private var lastBroadcast: Long = 0
     private var listening = false
@@ -347,7 +349,7 @@ class LanLinkProvider(
         // If I'm the TCP server I will be the SSL client and vice-versa.
         val clientMode = (connectionStarted == ConnectionStarted.Locally)
         val sslSocket =
-            SslHelper.convertToSslSocket(context, socket, deviceId, deviceTrusted, clientMode)
+            sslHelper.convertToSslSocket(context, socket, deviceId, deviceTrusted, clientMode, deviceSettings)
         sslSocket.addHandshakeCompletedListener { event: HandshakeCompletedEvent? ->
             // Start a new thread because some Android versions don't allow calling sslSocket.getOutputStream() from the callback
             scope?.launch {
@@ -460,7 +462,7 @@ class LanLinkProvider(
         } else {
             // Create a new link
             Log.d("KDE/LanLinkProvider", "Creating a new link for device " + deviceInfo.id)
-            link = LanLink(context, deviceInfo, this, socket)
+            link = LanLink(context, deviceInfo, this, socket, sslHelper, deviceSettings)
             visibleDevices[deviceInfo.id] = link
             onConnectionReceived(link)
         }
@@ -561,7 +563,7 @@ class LanLinkProvider(
 
     private fun broadcastUdpIdentityPacket(network: Network?) {
         scope?.launch {
-            val hostList: MutableList<DeviceHost> = getCustomDeviceList()
+            val hostList: MutableList<DeviceHost> = customDevicesHelper.getCustomDeviceList()
             if (trustedNetworkHelper.isTrustedNetwork) {
                 hostList.add(DeviceHost.BROADCAST) //Default: broadcast.
             } else {

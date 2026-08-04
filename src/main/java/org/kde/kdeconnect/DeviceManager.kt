@@ -18,9 +18,6 @@ import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLinkProvider.ConnectionReceiver
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.plugins.Plugin
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.get
-import org.koin.core.parameter.parametersOf
 import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
 import java.util.Date
@@ -29,7 +26,8 @@ import kotlinx.coroutines.runBlocking
 
 class DeviceManager(
     private val deviceSettings: DeviceSettings,
-) : KoinComponent {
+    private val deviceFactory: (String, BaseLink?) -> Device
+) {
 
     val jobScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -95,7 +93,7 @@ class DeviceManager(
             .onEach { Log.d("DeviceManager", "Loading device $it") }
             .forEach {
                 try {
-                    val device: Device = get { parametersOf(it, null) }
+                    val device: Device = deviceFactory(it, null)
                     val now = Date()
                     val x509Cert = device.certificate as X509Certificate
                     if (now < x509Cert.notBefore) {
@@ -121,7 +119,7 @@ class DeviceManager(
             if (device != null) {
                 device.addLink(link)
             } else {
-                device = get { parametersOf(link.deviceId, link) }
+                device = deviceFactory(link.deviceId, link)
                 devices[link.deviceId] = device
             }
         }

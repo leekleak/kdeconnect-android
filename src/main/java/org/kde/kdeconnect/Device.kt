@@ -42,6 +42,7 @@ import org.kde.kdeconnect.backends.BaseLink.PacketReceiver
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.NotificationHelper
+import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.Plugin.Companion.getPluginKey
 import org.kde.kdeconnect.plugins.PluginFactory
@@ -59,6 +60,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 class Device(
     private val context: Context,
     private val deviceSettings: DeviceSettings,
+    private val sslHelper: SslHelper,
     @InjectedParam deviceId: String?,
     @InjectedParam link: BaseLink? = null
 ) : PacketReceiver, KoinScopeComponent {
@@ -99,6 +101,7 @@ class Device(
     @VisibleForTesting
     var pairingHandler: PairingHandler = PairingHandler(
         device = this,
+        sslHelper = sslHelper,
         callback = createDefaultPairingCallback(),
         startState = if (link == null) PairState.Paired else PairState.NotPaired
     )

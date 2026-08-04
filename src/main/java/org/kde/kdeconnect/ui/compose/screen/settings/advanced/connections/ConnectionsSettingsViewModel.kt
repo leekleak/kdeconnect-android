@@ -24,6 +24,7 @@ data class ConnectionsSettingsUiState(
 class ConnectionsSettingsViewModel(
     private val connectionsDataStore: ConnectionsSettingsDataStore,
     private val trustedNetworkHelper: TrustedNetworkHelper,
+    private val customDevicesHelper: CustomDevicesHelper
 ) : ViewModel() {
     private val _updateTrigger = MutableStateFlow(0)
 
@@ -33,7 +34,7 @@ class ConnectionsSettingsViewModel(
         connectionsDataStore.customDeviceList,
         _updateTrigger
     ) { trustedNetworks, allNetworksAllowed, customDeviceListRaw, _ ->
-        val customDevices = CustomDevicesHelper.deserializeIpList(customDeviceListRaw)
+        val customDevices = customDevicesHelper.deserializeIpList(customDeviceListRaw)
         customDevices.sortBy { it.toString() }
 
         ConnectionsSettingsUiState(

@@ -29,7 +29,6 @@ import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.backends.BaseLinkProvider.ConnectionReceiver
 import org.kde.kdeconnect.backends.bluetooth.BluetoothLinkProvider
 import org.kde.kdeconnect.backends.lan.LanLinkProvider
-import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.helpers.PermissionHelper
 import org.kde.kdeconnect.plugins.clipboard.ClipboardFloatingActivity
@@ -55,7 +54,6 @@ class BackgroundService : Service() {
     private val deviceManager: DeviceManager by inject()
 
     private val linkProviders = mutableListOf<BaseLinkProvider>()
-    private val settingsDataStore: SettingsDataStore by inject()
 
     fun updateForegroundNotification() {
         // Update the foreground notification with the currently connected device list
@@ -65,8 +63,8 @@ class BackgroundService : Service() {
 
     private fun registerLinkProviders() {
         linkProviders.add(get<LanLinkProvider> { parametersOf(this) })
-        //linkProviders.add(LoopbackLinkProvider(this))
-        linkProviders.add(BluetoothLinkProvider(this, settingsDataStore))
+        //linkProviders.add(get<LoopbackLinkProvider> { parametersOf(this) })
+        linkProviders.add(get<BluetoothLinkProvider> { parametersOf(this) })
     }
 
     fun onNetworkChange(network: Network?) {

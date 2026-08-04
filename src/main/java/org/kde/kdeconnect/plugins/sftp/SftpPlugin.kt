@@ -6,6 +6,7 @@
 */
 package org.kde.kdeconnect.plugins.sftp
 
+import android.content.ComponentCallbacks
 import android.content.Context
 import android.content.ContentResolver
 import android.net.Uri
@@ -37,8 +38,7 @@ import org.kde.kdeconnect.ui.PermissionRequest
 import org.kde.kdeconnect.ui.StartActivityAlertDialogFragment
 import org.kde.kdeconnect_tp.BuildConfig
 import org.kde.kdeconnect_tp.R
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
+import org.koin.android.ext.android.getKoin
 
 class SftpPlugin(
     context: Context,
@@ -99,7 +99,7 @@ class SftpPlugin(
                 paths.add(sv.directory!!.path)
             }
         } else {
-            val storageInfoList = pluginInfo.getStorageInfoList()
+            val storageInfoList = pluginInfo.getStorageInfoList(context)
             storageInfoList.sortBy { it.uri }
             if (storageInfoList.isEmpty()) {
                 device.sendPacket(NetworkPacket(PACKET_TYPE_SFTP).apply {
@@ -232,13 +232,12 @@ object SftpPluginInfo : PluginInfo(
     descriptionRes = R.string.pref_plugin_sftp_desc,
     supportedPacketTypes = arrayOf(PACKET_TYPE_SFTP_REQUEST),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_SFTP),
-), KoinComponent {
-    private val dataStore: SftpSettingsDataStore by inject()
+) {
     override fun checkRequiredPermissions(context: Context): Boolean {
         return if (SimpleSftpServer.SUPPORTS_NATIVEFS) {
             Environment.isExternalStorageManager()
         } else {
-            getStorageInfoList().isNotEmpty()
+            getStorageInfoList(context).isNotEmpty()
         }
     }
 
@@ -280,9 +279,10 @@ object SftpPluginInfo : PluginInfo(
         }
     }
 
-    fun getStorageInfoList(): MutableList<StorageInfo> {
+    fun getStorageInfoList(context: Context): MutableList<StorageInfo> {
         val storageInfoList = mutableListOf<StorageInfo>()
 
+        val dataStore = (context.applicationContext as ComponentCallbacks).getKoin().get<SftpSettingsDataStore>()
         val jsonString = dataStore.getStorageInfoListJsonBlocking()
 
         try {

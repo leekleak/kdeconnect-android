@@ -46,6 +46,8 @@ private typealias MprisPlayerCallback = (MprisPlayer) -> Unit
 
 class MprisNowPlayingFragment : Fragment(), VolumeKeyListener {
     private val deviceManager: DeviceManager by inject()
+    private val mprisMediaSession: MprisMediaSession by inject()
+    private val videoUrlsHelper: VideoUrlsHelper by inject()
     private val positionSeekUpdateHandler = Handler()
     private lateinit var mprisControlBinding: MprisControlBinding
     private lateinit var activityMprisBinding: MprisNowPlayingBinding
@@ -214,7 +216,7 @@ class MprisNowPlayingFragment : Fragment(), VolumeKeyListener {
                             updatePlayerStatus(plugin)
 
                             if (targetPlayer?.isPlaying == true) {
-                                MprisMediaSession.instance.playerSelected(targetPlayer)
+                                mprisMediaSession.playerSelected(targetPlayer)
                             }
                         }
 
@@ -371,8 +373,8 @@ class MprisNowPlayingFragment : Fragment(), VolumeKeyListener {
                     try {
                         val httpUrl = targetPlayer.getHttpUrl() ?: return false
                         val transformedUrl = httpUrl
-                            .let { VideoUrlsHelper.convertToAndFromYoutubeTvLinks(it) }
-                            .let { VideoUrlsHelper.formatUriWithSeek(it, targetPlayer.position) }
+                            .let { videoUrlsHelper.convertToAndFromYoutubeTvLinks(it) }
+                            .let { videoUrlsHelper.formatUriWithSeek(it, targetPlayer.position) }
                             .toUri()
                         val browserIntent = Intent(Intent.ACTION_VIEW, transformedUrl)
                         startActivity(browserIntent)

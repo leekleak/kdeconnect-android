@@ -23,7 +23,8 @@ import org.kde.kdeconnect_tp.BuildConfig
 import java.io.InputStreamReader
 
 class SettingsViewModel(
-    private val dataStore: SettingsDataStore
+    private val dataStore: SettingsDataStore,
+    private val themeUtil: ThemeUtil
 ) : ViewModel() {
 
     val uiState: StateFlow<SettingsUiState> = combine(
@@ -57,7 +58,7 @@ class SettingsViewModel(
     fun setTheme(theme: AppTheme) {
         viewModelScope.launch {
             dataStore.setTheme(theme)
-            ThemeUtil.applyTheme(theme)
+            themeUtil.applyTheme(theme)
         }
     }
 

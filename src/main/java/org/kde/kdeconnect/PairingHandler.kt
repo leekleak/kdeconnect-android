@@ -30,6 +30,7 @@ import kotlin.time.Duration.Companion.seconds
 
 class PairingHandler(
     private val device: Device,
+    private val sslHelper: SslHelper,
     private val callback: PairingCallback,
     startState: PairState,
 ) {
@@ -137,10 +138,10 @@ class PairingHandler(
             if (state != PairState.Requested && state != PairState.RequestedByPeer) {
                 null
             } else {
-                getVerificationKey(SslHelper.certificate, device.certificate, timestamp)
+                getVerificationKey(sslHelper.certificate, device.certificate, timestamp)
             }
         } else {
-            getVerificationKeyV7(SslHelper.certificate, device.certificate)
+            getVerificationKeyV7(sslHelper.certificate, device.certificate)
         }
     }
 

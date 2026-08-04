@@ -29,6 +29,7 @@ import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.async.BackgroundJob
 import org.kde.kdeconnect.async.BackgroundJobHandler
 import org.kde.kdeconnect.async.BackgroundJobHandler.Companion.newFixedThreadPoolBackgroundJobHandler
+import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.FilesHelper.uriToNetworkPacket
 import org.kde.kdeconnect.helpers.IntentHelper.startActivityFromBackgroundOrCreateNotification
 import org.kde.kdeconnect.plugins.Plugin
@@ -46,7 +47,11 @@ import java.net.URL
  * threads by [BackgroundJobHandler].
  * 
  */
-class SharePlugin(context: Context, device: Device) : Plugin(context, device) {
+class SharePlugin(
+    context: Context,
+    device: Device,
+    private val settingsDataStore: SettingsDataStore
+) : Plugin(context, device) {
     private val backgroundJobHandler: BackgroundJobHandler = newFixedThreadPoolBackgroundJobHandler(5)
     private val handler: Handler = Handler(Looper.getMainLooper())
 
@@ -200,7 +205,7 @@ class SharePlugin(context: Context, device: Device) : Plugin(context, device) {
         val job = if (hasNumberOfFiles && !isOpen && receiveFileJob != null) {
             receiveFileJob!!
         } else {
-            CompositeReceiveFileJob(device, context, receiveFileJobCallback)
+            CompositeReceiveFileJob(device, context, settingsDataStore, receiveFileJobCallback)
         }
 
         if (!hasNumberOfFiles) {

@@ -11,7 +11,7 @@ import androidx.room.TypeConverters
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.Json
-import org.kde.kdeconnect.helpers.security.SslHelper.parseCertificate
+import org.kde.kdeconnect.helpers.security.SslHelper
 import java.security.cert.Certificate
 
 @Entity(tableName = "devices")
@@ -99,7 +99,10 @@ abstract class DevicesRoomDatabase : RoomDatabase() {
     abstract fun deviceDao(): DeviceDao
 }
 
-class DeviceSettings(private val deviceDao: DeviceDao) {
+class DeviceSettings(
+    private val deviceDao: DeviceDao,
+    private val sslHelper: SslHelper
+) {
 
     suspend fun isTrustedDevice(deviceId: String): Boolean {
         return deviceDao.isTrusted(deviceId) ?: false
@@ -124,7 +127,7 @@ class DeviceSettings(private val deviceDao: DeviceDao) {
     suspend fun getDeviceCertificate(deviceId: String): Certificate {
         val certificateBytes = deviceDao.getCertificate(deviceId)
             ?: throw java.security.cert.CertificateException("No certificate stored for device $deviceId")
-        return parseCertificate(certificateBytes)
+        return sslHelper.parseCertificate(certificateBytes)
     }
 
     suspend fun isCertificateStored(deviceId: String): Boolean {

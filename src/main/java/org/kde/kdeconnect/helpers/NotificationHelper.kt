@@ -9,9 +9,8 @@ import android.content.Context
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationManagerCompat
 import org.kde.kdeconnect_tp.R
-import org.koin.core.component.KoinComponent
 
-object NotificationHelper : KoinComponent {
+object NotificationHelper {
     fun initializeChannels(context: Context) {
         val persistentChannel = NotificationChannelCompat.Builder(Channels.PERSISTENT, NotificationManagerCompat.IMPORTANCE_MIN)
             .setName(context.getString(R.string.notification_channel_persistent))
