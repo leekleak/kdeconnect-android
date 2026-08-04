@@ -15,6 +15,9 @@ object KdeConnectKeyConstants {
 data object PairingKey : KdeConnectKey
 
 @Serializable
+data object PermissionsScreenKey : KdeConnectKey
+
+@Serializable
 data object SettingsKey : KdeConnectKey
 
 @Serializable

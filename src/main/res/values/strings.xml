@@ -674,6 +674,11 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
   <string name="check_connection">Check Connection</string>
     <string name="could_not_find_device">Could not find device</string>
   <string name="reset">Reset</string>
+  <string name="ensures_the_app_can_run_in_the_background">Ensures the app can run in the background</string>
+  <string name="draw_over_other_apps">Draw over other apps</string>
+  <string name="ensures_the_app_is_able_to_process_incoming_commands">Ensures the app is able to process incoming commands</string>
+  <string name="local_network_access">Local network access</string>
+  <string name="required_to_find_other_devices">Required to find other devices</string>
 
 
 </resources>

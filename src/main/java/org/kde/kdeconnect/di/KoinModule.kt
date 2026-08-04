@@ -2,8 +2,12 @@
 
 package org.kde.kdeconnect.di
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
+import android.provider.Settings
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -12,6 +16,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.ImageLoader
@@ -81,6 +86,7 @@ import org.kde.kdeconnect.ui.compose.screen.licenses.LicensesEvent
 import org.kde.kdeconnect.ui.compose.screen.licenses.LicensesScreen
 import org.kde.kdeconnect.ui.compose.screen.pairing.PairingScreen
 import org.kde.kdeconnect.ui.compose.screen.pairing.PairingViewModel
+import org.kde.kdeconnect.ui.compose.screen.permissions.PermissionsScreen
 import org.kde.kdeconnect.ui.compose.screen.device.settings.DeviceSettingsScreen
 import org.kde.kdeconnect.ui.compose.screen.device.settings.DeviceSettingsViewModel
 import org.kde.kdeconnect.ui.compose.screen.presenter.PresenterScreen
@@ -106,6 +112,7 @@ import org.kde.kdeconnect.ui.navigation.MousePadPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.NotificationSettingsKey
 import org.kde.kdeconnect.ui.navigation.PairingKey
+import org.kde.kdeconnect.ui.navigation.PermissionsScreenKey
 import org.kde.kdeconnect.ui.navigation.PluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.PresenterKey
 import org.kde.kdeconnect.ui.navigation.PresenterPluginSettingsKey
@@ -114,6 +121,7 @@ import org.kde.kdeconnect.ui.navigation.SettingsKey
 import org.kde.kdeconnect.ui.navigation.SftpPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.TelephonyPluginSettingsKey
 import org.kde.kdeconnect_tp.R
+import org.koin.android.ext.koin.androidApplication
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import org.koin.core.annotation.KoinExperimentalAPI
@@ -136,6 +144,9 @@ val pairingModule = module {
             onClick = { deviceId -> navigator.goTo(DeviceKey(deviceId, true)) },
             onRefresh = { viewModel.onRefresh(get()) }
         )
+    }
+    navigation<PermissionsScreenKey> {
+        PermissionsScreen()
     }
 }
 
@@ -299,7 +310,26 @@ val appModule = module {
     single<BackgroundServiceData>()
     includes(pairingModule, deviceModule, pluginSettingsModule, presenterModule, mousePadModule, runCommandModule, digitizerModule, settingsModule, aboutModule)
 
-    single<Navigator>()
+    single {
+        val hasNotificationPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            androidApplication().checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+        val hasOverlayPermission = Settings.canDrawOverlays(get())
+        val hasNetworkDevicesPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN) {
+            androidApplication().checkSelfPermission(Manifest.permission.ACCESS_LOCAL_NETWORK) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+
+        val startDestination = if (hasNotificationPermission && hasOverlayPermission && hasNetworkDevicesPermission) {
+            PairingKey
+        } else {
+            PermissionsScreenKey
+        }
+        Navigator(startDestination)
+    }
     single<ImageLoader> { create(::buildImageLoader) }
 
     single<TrustedNetworkHelper>()

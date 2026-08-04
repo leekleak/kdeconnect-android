@@ -97,7 +97,7 @@ private fun SectionHeaderPreview() {
 @Composable
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 fun HazeScaffold(
-    title: String,
+    title: String? = null,
     modifier: Modifier = Modifier,
     scrollState: ScrollState? = rememberScrollState(),
     hazeState: HazeState = rememberHazeState(),
@@ -144,7 +144,7 @@ fun HazeScaffold(
 fun PageTitle(
     backButton: Boolean = false,
     hazeState: HazeState? = null,
-    text: String,
+    text: String?,
     customElement: @Composable (RowScope.() -> Unit)? = null,
 ){
     Box(
@@ -165,7 +165,7 @@ fun PageTitle(
             .padding(bottom = 6.dp)
             .fillMaxWidth()
         ) {
-            CategoryTitleText(text, backButton)
+            text?.let { CategoryTitleText(it, backButton) }
             Spacer(Modifier.weight(1f))
             customElement?.let { it() }
         }

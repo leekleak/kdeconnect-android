@@ -523,20 +523,24 @@ fun IconPreference(
     title: String,
     painter: Painter,
     enabled: Boolean = true,
+    important: Boolean = false,
     onClick: () -> Unit
 ) {
+    val reallyImportant = important && enabled
     Box(
         modifier = Modifier
             .width(52.dp)
             .fillMaxHeight()
             .card()
+            .then(if (reallyImportant) Modifier.background(colorScheme.primary) else Modifier)
             .clickable(enabled = enabled) { onClick.invoke() }
             .alpha(if (enabled) 1f else 0.38f),
     ) {
         Icon(
             modifier = Modifier.align(Alignment.Center),
             painter = painter,
-            contentDescription = title
+            contentDescription = title,
+            tint = if (reallyImportant) colorScheme.onPrimary else colorScheme.onSurface
         )
     }
 }

@@ -39,7 +39,6 @@ fun DeviceScreen(
     val context = LocalContext.current
 
     HazeScaffold(
-        title = "",
         backButton = true,
         actions = {
             IconButton(onNavigateToPluginsSettings) {
