@@ -46,7 +46,7 @@ class SftpPlugin(
 
     private var job: Job? = null
 
-    override fun onCreate(): Boolean {
+    override suspend fun onCreate(): Boolean {
         job = CoroutineScope(Dispatchers.Main).launch {
             dataStore.storageInfoListJson.collect {
                 if (!server.isStarted) return@collect
@@ -62,13 +62,13 @@ class SftpPlugin(
         return true
     }
 
-    override fun onDestroy() {
+    override suspend fun onDestroy() {
         server.stop()
         job?.cancel()
         job = null
     }
 
-    override fun onPacketReceived(np: NetworkPacket): Boolean {
+    override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         if (!np.getBoolean("startBrowsing")) return false
 
         if (!pluginInfo.checkRequiredPermissions(context)) {

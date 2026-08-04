@@ -114,7 +114,7 @@ class DeviceManager(
 
     val connectionListener: ConnectionReceiver = object : ConnectionReceiver {
         @WorkerThread
-        override fun onConnectionReceived(link: BaseLink) {
+        override suspend fun onConnectionReceived(link: BaseLink) {
             var device: Device? = devices[link.deviceId]
             if (device != null) {
                 device.addLink(link)
@@ -125,7 +125,7 @@ class DeviceManager(
         }
 
         @WorkerThread
-        override fun onConnectionLost(link: BaseLink) {
+        override suspend fun onConnectionLost(link: BaseLink) {
             val device = devices[link.deviceId]
             Log.i("DeviceManager/onConnectionLost", "removeLink, deviceId: ${link.deviceId}")
             if (device != null) {
@@ -140,7 +140,7 @@ class DeviceManager(
         }
 
         @WorkerThread
-        override fun onDeviceInfoUpdated(deviceInfo: DeviceInfo) {
+        override suspend fun onDeviceInfoUpdated(deviceInfo: DeviceInfo) {
             val device = devices[deviceInfo.id]
             if (device == null) {
                 Log.e("DeviceManager", "onDeviceInfoUpdated for an unknown device")

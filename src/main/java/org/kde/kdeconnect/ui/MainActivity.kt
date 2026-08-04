@@ -190,7 +190,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
         when (requestCode) {
             RESULT_NEEDS_RELOAD -> {
                 CoroutineScope(Dispatchers.IO).launch {
-                    deviceManager.devices.values.forEach(Device::reloadPluginsFromSettings)
+                    deviceManager.devices.values.forEach { it.reloadPluginsFromSettings() }
                 }
             }
             else -> super.onActivityResult(requestCode, resultCode, data)
@@ -220,7 +220,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
             }
 
             CoroutineScope(Dispatchers.IO).launch {
-                deviceManager.devices.values.forEach(Device::reloadPluginsFromSettings)
+                deviceManager.devices.values.forEach { it.reloadPluginsFromSettings() }
             }
         }
     }

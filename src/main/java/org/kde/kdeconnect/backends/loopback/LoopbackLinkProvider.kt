@@ -15,16 +15,16 @@ class LoopbackLinkProvider(
     private val deviceHelper: DeviceHelper
 ) : BaseLinkProvider() {
 
-    override fun getName(): String = "LoopbackLinkProvider"
-    override fun getPriority(): Int = 0
+    override val name: String = "LoopbackLinkProvider"
+    override val priority: Int = 0
 
-    override fun onStart() {
+    override suspend fun onStart() {
         onNetworkChange(null)
     }
 
     override fun onStop() { }
 
-    override fun onNetworkChange(network: Network?) {
+    override suspend fun onNetworkChange(network: Network?) {
         val link = LoopbackLink(context, this, deviceHelper)
         onConnectionReceived(link)
     }

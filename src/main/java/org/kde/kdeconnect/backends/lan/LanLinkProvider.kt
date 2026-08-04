@@ -81,7 +81,7 @@ class LanLinkProvider(
 
     private var scope: CoroutineScope? = null
 
-    override fun onConnectionLost(link: BaseLink) {
+    override suspend fun onConnectionLost(link: BaseLink) {
         val deviceId = link.deviceId
         visibleDevices.remove(deviceId)
         super.onConnectionLost(link)
@@ -445,7 +445,7 @@ class LanLinkProvider(
      */
     @WorkerThread
     @Throws(IOException::class)
-    private fun addOrUpdateLink(socket: SSLSocket, deviceInfo: DeviceInfo) {
+    private suspend fun addOrUpdateLink(socket: SSLSocket, deviceInfo: DeviceInfo) {
         var link = visibleDevices[deviceInfo.id]
         if (link != null) {
             if (link.deviceInfo.certificate != deviceInfo.certificate) {
@@ -641,7 +641,7 @@ class LanLinkProvider(
         socket.close()
     }
 
-    override fun onStart() {
+    override suspend fun onStart() {
         //Log.i("KDE/LanLinkProvider", "onStart");
         if (!listening) {
             listening = true
@@ -662,7 +662,7 @@ class LanLinkProvider(
         }
     }
 
-    override fun onNetworkChange(network: Network?) {
+    override suspend fun onNetworkChange(network: Network?) {
         if (System.currentTimeMillis() < lastBroadcast + DELAY_BETWEEN_BROADCASTS) {
             Log.i("LanLinkProvider", "onNetworkChange: relax cowboy")
             return
@@ -703,13 +703,9 @@ class LanLinkProvider(
         }
     }
 
-    override fun getName(): String {
-        return "LanLinkProvider"
-    }
+    override val name: String = "LanLinkProvider"
 
-    override fun getPriority(): Int {
-        return 20
-    }
+    override val priority: Int = 20
 
     val tcpPort: Int
         get() = tcpServer!!.localPort

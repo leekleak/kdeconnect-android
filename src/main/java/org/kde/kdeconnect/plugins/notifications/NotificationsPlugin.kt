@@ -97,17 +97,17 @@ class NotificationsPlugin(
     private lateinit var mainHandler: Handler
     private val postedNotificationsLock = Any()
 
-    override fun onCreate(): Boolean {
+    override suspend fun onCreate(): Boolean {
         keyguardManager = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
         mainHandler = Handler(Looper.getMainLooper())
-        NotificationReceiver.RunCommand(context) { service ->
+        NotificationReceiver.runCommand(context) { service ->
             service.addListener(this@NotificationsPlugin)
             serviceReady = service.isConnected
         }
         return true
     }
 
-    override fun onDestroy() {
+    override suspend fun onDestroy() {
         currentNotifications.clear()
         notificationsIcons.clear()
         pendingIntents.clear()
@@ -119,21 +119,16 @@ class NotificationsPlugin(
             postedNotifications.clear()
         }
 
-        NotificationReceiver.RunCommand(context) { service ->
+        NotificationReceiver.runCommand(context) { service ->
             service.removeListener(this@NotificationsPlugin)
         }
     }
 
-    override fun onListenerConnected(service: NotificationReceiver?) {
+    override fun onListenerConnected(service: NotificationReceiver) {
         serviceReady = true
     }
 
-    override fun onNotificationRemoved(statusBarNotification: StatusBarNotification?) {
-        if (statusBarNotification == null) {
-            Log.w(TAG, "onNotificationRemoved: notification is null")
-            return
-        }
-
+    override fun onNotificationRemoved(statusBarNotification: StatusBarNotification) {
         val id = getNotificationKeyCompat(statusBarNotification)
 
         synchronized(postedNotificationsLock) {
@@ -253,7 +248,7 @@ class NotificationsPlugin(
         np["id"] = key
         np["isClearable"] = statusBarNotification.isClearable
         val appName = appNameLookup(context, packageName)
-        np["appName"] = appName ?: packageName
+        np["appName"] = appName
         np["time"] = statusBarNotification.postTime.toString()
         np["silent"] = isPreexisting
 
@@ -503,7 +498,7 @@ class NotificationsPlugin(
         }
     }
 
-    override fun onPacketReceived(np: NetworkPacket): Boolean {
+    override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         if (np.type == PACKET_TYPE_NOTIFICATION_ACTION) {
             val key = np.getString("key")
             val title = np.getString("action")
@@ -525,14 +520,14 @@ class NotificationsPlugin(
             }
         } else if (np.getBoolean("request")) {
             if (serviceReady) {
-                NotificationReceiver.RunCommand(context) { service ->
+                NotificationReceiver.runCommand(context) { service ->
                     this.sendCurrentNotifications(service)
                 }
             }
         } else if (np.has("cancel")) {
             val dismissedId = np.getString("cancel")
             currentNotifications.remove(dismissedId)
-            NotificationReceiver.RunCommand(context) { service ->
+            NotificationReceiver.runCommand(context) { service ->
                 service.cancelNotification(dismissedId)
             }
         } else if (np.has("requestReplyId") && np.has("message")) {

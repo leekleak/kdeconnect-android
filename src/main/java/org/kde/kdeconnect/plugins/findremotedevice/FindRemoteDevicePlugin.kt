@@ -25,7 +25,7 @@ class FindRemoteDevicePlugin(context: Context, device: Device) : Plugin(context,
             device.sendPacket(NetworkPacket(FindMyPhonePlugin.PACKET_TYPE_FINDMYPHONE_REQUEST))
         })
 
-    override fun onPacketReceived(np: NetworkPacket): Boolean = true
+    override suspend fun onPacketReceived(np: NetworkPacket): Boolean = true
 }
 
 object FindRemoteDevicePluginInfo: PluginInfo(

@@ -28,7 +28,7 @@ class MouseReceiverPlugin(
 ) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = MouseReceiverPluginInfo
 
-    override fun onPacketReceived(np: NetworkPacket): Boolean {
+    override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         if (np.type != PACKET_TYPE_MOUSEPAD_REQUEST) {
             Log.e("MouseReceiverPlugin", "Invalid packet type for MouseReceiverPlugin: ${np.type}")
             return false

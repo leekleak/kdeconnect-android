@@ -61,7 +61,7 @@ class MousePadPlugin(
     var isKeyboardEnabled: Boolean = true
         private set
 
-    override fun onPacketReceived(np: NetworkPacket): Boolean {
+    override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         this.isKeyboardEnabled = np.getBoolean("state", true)
         return true
     }

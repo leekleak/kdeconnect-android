@@ -48,7 +48,7 @@ class DeviceSettingsViewModel(
     private var pendingPluginKey: String? = null
     private var pendingIsEnabled: Boolean = false
 
-    fun setPluginEnabled(pluginKey: String, isEnabled: Boolean): Boolean {
+    suspend fun setPluginEnabled(pluginKey: String, isEnabled: Boolean): Boolean {
         val device = device ?: return false
         device.setPluginEnabled(pluginKey, isEnabled)
         val missingPermission = device.pluginsWithoutPermissions.containsKey(pluginKey)
@@ -63,11 +63,13 @@ class DeviceSettingsViewModel(
     }
 
     fun onPermissionResult(resultCode: Int) {
-        val pluginKey = pendingPluginKey ?: return
-        if (resultCode == RESULT_OK) {
-            device?.setPluginEnabled(pluginKey, pendingIsEnabled)
+        viewModelScope.launch {
+            val pluginKey = pendingPluginKey ?: return@launch
+            if (resultCode == RESULT_OK) {
+                device?.setPluginEnabled(pluginKey, pendingIsEnabled)
+            }
+            pendingPluginKey = null
         }
-        pendingPluginKey = null
     }
 
     fun unpair() {

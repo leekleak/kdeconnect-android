@@ -73,7 +73,7 @@ abstract class Plugin(
      *
      * @return true if initialization was successful, false otherwise
      */
-    open fun onCreate(): Boolean {
+    open suspend fun onCreate(): Boolean {
         return true
     }
 
@@ -83,14 +83,14 @@ abstract class Plugin(
      * called as well if onCreate threw an exception, so your plugin
      * could be not fully initialized.
      */
-    open fun onDestroy() {}
+    open suspend fun onDestroy() {}
 
     /**
      * Called when a plugin receives a packet.
      * By convention, we return true when we have done something in response to the packet or false otherwise,
      * even though that value is unused as of now.
      */
-    open fun onPacketReceived(np: NetworkPacket): Boolean {
+    open suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         return false
     }
 

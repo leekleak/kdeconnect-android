@@ -40,7 +40,7 @@ class InputDevicesReceiverPlugin(
         override fun onDisplayChanged(displayId: Int) { resolveDisplaySize() }
     }
 
-    override fun onCreate(): Boolean {
+    override suspend fun onCreate(): Boolean {
         // We need to listen to display rotation changes, otherwise unintended behavior will happen
         // if the display rotates while we have the cursor.
         displayManager = context.getSystemService(DisplayManager::class.java)
@@ -49,7 +49,7 @@ class InputDevicesReceiverPlugin(
         return true
     }
 
-    override fun onDestroy() {
+    override suspend fun onDestroy() {
         displayManager.unregisterDisplayListener(displayListener)
     }
 
@@ -69,7 +69,7 @@ class InputDevicesReceiverPlugin(
         Cursor.enterEdge = NONE_EDGE
     }
 
-    override fun onPacketReceived(np: NetworkPacket): Boolean {
+    override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         val mouseReceiverPlugin = device.getPlugin("MouseReceiverPlugin")
 
         // If we do not have the permission or the MouseReceiverPlugin is disabled (either from the beginning or the user disabled it while the cursor was in our possession),

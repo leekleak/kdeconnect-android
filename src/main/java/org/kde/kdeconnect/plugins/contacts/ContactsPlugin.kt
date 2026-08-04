@@ -117,7 +117,7 @@ class ContactsPlugin(context: Context, device: Device) : Plugin(context, device)
         return true
     }
 
-    override fun onPacketReceived(np: NetworkPacket): Boolean = when (np.type) {
+    override suspend fun onPacketReceived(np: NetworkPacket): Boolean = when (np.type) {
         PACKET_TYPE_CONTACTS_REQUEST_ALL_UIDS_TIMESTAMPS -> this.handleRequestAllUIDsTimestamps(np)
         PACKET_TYPE_CONTACTS_REQUEST_VCARDS_BY_UIDS -> this.handleRequestVCardsByUIDs(np)
         else -> {

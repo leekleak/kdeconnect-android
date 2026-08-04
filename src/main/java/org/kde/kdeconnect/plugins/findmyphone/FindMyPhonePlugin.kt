@@ -44,7 +44,7 @@ class FindMyPhonePlugin(
 
     override val pluginInfo: FindMyPhonePluginInfo = FindMyPhonePluginInfo
 
-    override fun onCreate(): Boolean {
+    override suspend fun onCreate(): Boolean {
         val ringtoneString = telephonySettingsDataStore.getRingtoneUriBlockingBlocking()
         val ringtone = if (ringtoneString.isEmpty()) {
             Settings.System.DEFAULT_RINGTONE_URI
@@ -70,14 +70,14 @@ class FindMyPhonePlugin(
         return true
     }
 
-    override fun onDestroy() {
+    override suspend fun onDestroy() {
         if (mediaPlayer.isPlaying) {
             stopPlaying()
         }
         mediaPlayer.release()
     }
 
-    override fun onPacketReceived(np: NetworkPacket): Boolean {
+    override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         if (!pluginInfo.checkRequiredPermissions(context)) { // Todo: Find my permissions should be granted on app setup
             pluginInfo.showPermissionExplanation(context, permissionRequestHelper)
         } else {

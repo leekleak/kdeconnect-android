@@ -7,12 +7,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPluginInfo
 import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityReportPlugin
@@ -43,17 +45,20 @@ fun DeviceSettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         viewModel.onPermissionResult(result.resultCode)
     }
 
     fun onPluginToggled(pluginKey: String, isEnabled: Boolean) {
-        if (viewModel.setPluginEnabled(pluginKey, isEnabled)) {
-            val intent = Intent(context, PermissionExplanationActivity::class.java).apply {
-                putExtra("pluginKey", pluginKey)
+        scope.launch {
+            if (viewModel.setPluginEnabled(pluginKey, isEnabled)) {
+                val intent = Intent(context, PermissionExplanationActivity::class.java).apply {
+                    putExtra("pluginKey", pluginKey)
+                }
+                launcher.launch(intent)
             }
-            launcher.launch(intent)
         }
     }
 

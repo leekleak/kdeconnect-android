@@ -10,6 +10,7 @@ import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.util.Log
 import androidx.annotation.WorkerThread
+import kotlinx.coroutines.runBlocking
 import org.json.JSONException
 import org.json.JSONObject
 import org.kde.kdeconnect.backends.BaseLink
@@ -47,7 +48,7 @@ class BluetoothLink(
                             sb.appendRange(buf, 0, charsRead)
                         }
                         if (charsRead < 0) {
-                            disconnect()
+                            runBlocking { disconnect() }
                             return
                         }
                     }
@@ -56,16 +57,18 @@ class BluetoothLink(
                     if (endIndex != -1) {
                         val message = sb.substring(0, endIndex + 1)
                         sb.delete(0, endIndex + 1)
-                        processMessage(message)
+                        runBlocking {
+                            processMessage(message)
+                        }
                     }
                 }
             } catch (e: IOException) {
                 Log.e("BluetoothLink/receiving", "Connection to " + remoteAddress.address + " likely broken.", e)
-                disconnect()
+                runBlocking { disconnect() }
             }
         }
 
-        private fun processMessage(message: String) {
+        private suspend fun processMessage(message: String) {
             val np = try {
                 NetworkPacket.unserialize(message)
             } catch (e: JSONException) {
@@ -91,7 +94,7 @@ class BluetoothLink(
 
     override val name: String = "BluetoothLink"
 
-    override fun disconnect() {
+    override suspend fun disconnect() {
         continueAccepting = false
         try {
             connection.close()
@@ -108,7 +111,7 @@ class BluetoothLink(
 
     @WorkerThread
     @Throws(IOException::class)
-    override fun sendPacket(np: NetworkPacket, callback: Device.SendPacketStatusCallback, sendPayloadFromSameThread: Boolean): Boolean {
+    override suspend fun sendPacket(np: NetworkPacket, callback: Device.SendPacketStatusCallback, sendPayloadFromSameThread: Boolean): Boolean {
         // sendPayloadFromSameThread is ignored, we always send from the same thread!
 
         return try {

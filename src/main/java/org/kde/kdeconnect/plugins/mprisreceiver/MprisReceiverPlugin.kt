@@ -31,7 +31,7 @@ class MprisReceiverPlugin(context: Context, device: Device) : Plugin(context, de
 
     override val pluginInfo: MprisReceiverPluginInfo = MprisReceiverPluginInfo
 
-    override fun onCreate(): Boolean {
+    override suspend fun onCreate(): Boolean {
         if (!NotificationReceiver.hasReadNotificationsPermission(context)) {
             return false
         }
@@ -64,7 +64,7 @@ class MprisReceiverPlugin(context: Context, device: Device) : Plugin(context, de
         return true
     }
 
-    override fun onDestroy() {
+    override suspend fun onDestroy() {
         super.onDestroy()
         val manager = ContextCompat.getSystemService(context, MediaSessionManager::class.java)
         mediaSessionChangeListener?.let { manager?.removeOnActiveSessionsChangedListener(it) }
@@ -77,7 +77,7 @@ class MprisReceiverPlugin(context: Context, device: Device) : Plugin(context, de
         }
     }
 
-    override fun onPacketReceived(np: NetworkPacket): Boolean {
+    override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         if (np.getBoolean("requestPlayerList")) {
             sendPlayerList()
             return true

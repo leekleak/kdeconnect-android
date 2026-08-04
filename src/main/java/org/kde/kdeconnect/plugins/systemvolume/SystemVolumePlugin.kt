@@ -35,7 +35,7 @@ class SystemVolumePlugin(context: Context, device: Device) : Plugin(context, dev
     private val sinkMap: ConcurrentHashMap<String, Sink> = ConcurrentHashMap()
     private val listeners: MutableList<SinkListener> = mutableListOf()
 
-    override fun onPacketReceived(np: NetworkPacket): Boolean {
+    override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         if ("sinkList" in np) {
             sinkMap.clear()
 

@@ -30,7 +30,7 @@ import org.kde.kdeconnect_tp.R
 
 class ReceiveNotificationsPlugin(context: Context, device: Device) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = ReceiveNotificationsPluginInfo
-    override fun onCreate(): Boolean {
+    override suspend fun onCreate(): Boolean {
         // request all existing notifications
         val np = NetworkPacket(PACKET_TYPE_NOTIFICATION_REQUEST)
         np["request"] = true
@@ -38,7 +38,7 @@ class ReceiveNotificationsPlugin(context: Context, device: Device) : Plugin(cont
         return true
     }
 
-    override fun onPacketReceived(np: NetworkPacket): Boolean {
+    override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         if ("ticker" !in np || "appName" !in np || "id" !in np) {
             Log.e("NotificationsPlugin", "Received notification packet lacks properties")
             return true

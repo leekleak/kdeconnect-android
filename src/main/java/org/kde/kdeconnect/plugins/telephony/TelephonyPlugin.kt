@@ -163,18 +163,18 @@ class TelephonyPlugin(
         }
     }
 
-    override fun onCreate(): Boolean {
+    override suspend fun onCreate(): Boolean {
         val filter = IntentFilter(TelephonyManager.ACTION_PHONE_STATE_CHANGED)
         filter.priority = 500
         context.registerReceiver(receiver, filter)
         return true
     }
 
-    override fun onDestroy() {
+    override suspend fun onDestroy() {
         context.unregisterReceiver(receiver)
     }
 
-    override fun onPacketReceived(np: NetworkPacket): Boolean {
+    override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         when (np.type) {
             PACKET_TYPE_TELEPHONY_REQUEST_MUTE -> muteRinger()
         }

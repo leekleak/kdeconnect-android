@@ -61,12 +61,12 @@ class SharePlugin(
 
     override val pluginInfo: PluginInfo = SharePluginInfo
 
-    override fun onCreate(): Boolean {
+    override suspend fun onCreate(): Boolean {
         createOrUpdateDynamicShortcut(null)
         return true
     }
 
-    override fun onDestroy() {
+    override suspend fun onDestroy() {
         for (shortcut in ShortcutManagerCompat.getDynamicShortcuts(context)) {
             if (shortcut.id != device.deviceId) continue
             if (!device.isReachable && shortcut.isPinned) {
@@ -138,7 +138,7 @@ class SharePlugin(
     }
 
     @WorkerThread
-    override fun onPacketReceived(np: NetworkPacket): Boolean {
+    override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         try {
             if (np.type == PACKET_TYPE_SHARE_REQUEST_UPDATE) {
                 receiveFileJob?.let {

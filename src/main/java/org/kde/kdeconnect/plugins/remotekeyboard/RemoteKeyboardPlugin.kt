@@ -27,7 +27,7 @@ class RemoteKeyboardPlugin(
 ) : Plugin(context, device) {
     override val pluginInfo: RemoteKeyboardPluginInfo = RemoteKeyboardPluginInfo
 
-    override fun onCreate(): Boolean {
+    override suspend fun onCreate(): Boolean {
         Log.d("RemoteKeyboardPlugin", "Creating for device " + device.name)
         acquireInstances()
         try {
@@ -43,7 +43,7 @@ class RemoteKeyboardPlugin(
         return true
     }
 
-    override fun onDestroy() {
+    override suspend fun onDestroy() {
         acquireInstances()
         try {
             if (instances.contains(this)) {
@@ -273,7 +273,7 @@ class RemoteKeyboardPlugin(
         Mouse,
     }
 
-    override fun onPacketReceived(np: NetworkPacket): Boolean {
+    override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         if (np.type != PACKET_TYPE_MOUSEPAD_REQUEST) {
             Log.e(
                 "RemoteKeyboardPlugin",

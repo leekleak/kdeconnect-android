@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceInfo
@@ -56,10 +57,12 @@ class LanLink @WorkerThread constructor(
     private var socket: SSLSocket? = null
     override val name: String = "LanLink"
 
-    override fun disconnect() {
+    override suspend fun disconnect() {
         Log.i("LanLink/Disconnect", "socket:" + socket.hashCode())
         try {
-            socket?.close()
+            withContext(Dispatchers.IO) {
+                socket?.close()
+            }
             scope.cancel()
         } catch (e: IOException) {
             Log.e("LanLink", "Error", e)
@@ -124,7 +127,7 @@ class LanLink @WorkerThread constructor(
     }
 
     @WorkerThread
-    override fun sendPacket(
+    override suspend fun sendPacket(
         np: NetworkPacket,
         callback: Device.SendPacketStatusCallback,
         sendPayloadFromSameThread: Boolean
@@ -277,7 +280,7 @@ class LanLink @WorkerThread constructor(
         }
     }
 
-    private fun receivedNetworkPacket(np: NetworkPacket) {
+    private suspend fun receivedNetworkPacket(np: NetworkPacket) {
         if (np.hasPayloadTransferInfo()) {
             var payloadSocket = Socket()
             try {

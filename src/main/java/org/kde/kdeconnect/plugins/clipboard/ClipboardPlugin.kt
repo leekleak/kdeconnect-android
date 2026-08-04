@@ -34,7 +34,7 @@ class ClipboardPlugin(context: Context, device: Device) : Plugin(context, device
         ){ _: Activity? -> userInitiatedSendClipboard() })
     }
 
-    override fun onPacketReceived(np: NetworkPacket): Boolean {
+    override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         val content = np.getString("content")
         when (np.type) {
             (PACKET_TYPE_CLIPBOARD) -> {
@@ -79,13 +79,13 @@ class ClipboardPlugin(context: Context, device: Device) : Plugin(context, device
     }
 
 
-    override fun onCreate(): Boolean {
+    override suspend fun onCreate(): Boolean {
         ClipboardListener.instance(context).registerObserver(observer)
         sendConnectPacket()
         return true
     }
 
-    override fun onDestroy() {
+    override suspend fun onDestroy() {
         ClipboardListener.instance(context).removeObserver(observer)
     }
 

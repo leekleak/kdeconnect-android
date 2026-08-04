@@ -52,7 +52,7 @@ class BluetoothLinkProvider(
     private var clientRunnable: ClientRunnable? = null
 
     @Throws(CertificateException::class)
-    private fun addLink(identityPacket: NetworkPacket, link: BluetoothLink) {
+    private suspend fun addLink(identityPacket: NetworkPacket, link: BluetoothLink) {
         val deviceId = identityPacket.getString("deviceId")
         Log.i("BluetoothLinkProvider", "addLink to $deviceId")
         val oldLink = visibleDevices[deviceId]
@@ -76,7 +76,7 @@ class BluetoothLinkProvider(
         }
     }
 
-    override fun onStart() {
+    override suspend fun onStart() {
         if (!dataStore.getBluetoothEnabledBlocking()) {
             return
         }
@@ -94,7 +94,7 @@ class BluetoothLinkProvider(
         execute(serverRunnable!!)
     }
 
-    override fun onNetworkChange(network: Network?) {
+    override suspend fun onNetworkChange(network: Network?) {
         Log.i("BluetoothLinkProvider", "onNetworkChange called")
         onStop()
         onStart()
@@ -109,15 +109,11 @@ class BluetoothLinkProvider(
         serverRunnable!!.stopProcessing()
     }
 
-    override fun getName(): String {
-        return "BluetoothLinkProvider"
-    }
+    override val name: String = "BluetoothLinkProvider"
 
-    override fun getPriority(): Int {
-        return 10
-    }
+    override val priority: Int = 10
 
-    fun disconnectedLink(link: BluetoothLink, remoteAddress: BluetoothDevice?) {
+    suspend fun disconnectedLink(link: BluetoothLink, remoteAddress: BluetoothDevice?) {
         Log.i("BluetoothLinkProvider", "disconnectedLink called")
         synchronized(sockets) { sockets.remove(remoteAddress) }
         synchronized(visibleDevices) { visibleDevices.remove(link.deviceId) }
@@ -154,7 +150,9 @@ class BluetoothLinkProvider(
             try {
                 while (continueProcessing) {
                     val socket = serverSocket!!.accept()
-                    connect(socket)
+                    runBlocking {
+                        connect(socket)
+                    }
                 }
             } catch (e: Exception) {
                 Log.d("BTLinkProvider/Server", "Bluetooth Server error", e)
@@ -162,7 +160,7 @@ class BluetoothLinkProvider(
         }
 
         @Throws(Exception::class)
-        private fun connect(socket: BluetoothSocket) {
+        private suspend fun connect(socket: BluetoothSocket) {
             synchronized(sockets) {
                 if (sockets.containsKey(socket.remoteDevice)) {
                     Log.i("BTLinkProvider/Server", "Received duplicate connection from " + socket.remoteDevice.address)
@@ -341,10 +339,12 @@ class BluetoothLinkProvider(
 
     private inner class ClientConnect(private val device: BluetoothDevice?) : Runnable {
         override fun run() {
-            connectToDevice()
+            runBlocking {
+                connectToDevice()
+            }
         }
 
-        private fun connectToDevice() {
+        private suspend fun connectToDevice() {
             val socket: BluetoothSocket
             try {
                 Log.i("BTLinkProvider/Client", "Cancelling Discovery")
@@ -418,7 +418,9 @@ class BluetoothLinkProvider(
                 link.sendPacket(np2, object : Device.SendPacketStatusCallback() {
                     override fun onSuccess() {
                         try {
-                            addLink(identityPacket, link)
+                            runBlocking {
+                                addLink(identityPacket, link)
+                            }
                         } catch (e: CertificateException) {
                             e.printStackTrace()
                         }

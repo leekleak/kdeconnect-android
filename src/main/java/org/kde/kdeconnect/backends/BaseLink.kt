@@ -17,7 +17,7 @@ abstract class BaseLink protected constructor(
     open val linkProvider: BaseLinkProvider
 ) {
     interface PacketReceiver {
-        fun onPacketReceived(np: NetworkPacket)
+        suspend fun onPacketReceived(np: NetworkPacket)
     }
 
     private val receivers = ArrayList<PacketReceiver>()
@@ -39,20 +39,20 @@ abstract class BaseLink protected constructor(
     }
 
     //Should be called from a background thread listening for packets
-    fun packetReceived(np: NetworkPacket) {
+    suspend fun packetReceived(np: NetworkPacket) {
         for (pr in receivers) {
             pr.onPacketReceived(np)
         }
     }
 
-    open fun disconnect() {
+    open suspend fun disconnect() {
         linkProvider.onConnectionLost(this)
     }
 
     //TO OVERRIDE, should be sync. If sendPayloadFromSameThread is false, it should only block to send the packet but start a separate thread to send the payload.
     @WorkerThread
     @Throws(IOException::class)
-    abstract fun sendPacket(
+    abstract suspend fun sendPacket(
         np: NetworkPacket,
         callback: Device.SendPacketStatusCallback,
         sendPayloadFromSameThread: Boolean

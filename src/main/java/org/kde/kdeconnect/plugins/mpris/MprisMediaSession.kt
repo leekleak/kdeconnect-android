@@ -98,7 +98,7 @@ class MprisMediaSession(
      * @param plugin  The mpris plugin
      * @param device  The device id
      */
-    fun onCreate(context: Context?, plugin: MprisPlugin, device: String) {
+    suspend fun onCreate(context: Context?, plugin: MprisPlugin, device: String) {
         if (mprisDevices.isEmpty()) {
             job = CoroutineScope(Dispatchers.Main).launch {
                 dataStore.mprisNotificationEnabled.collect {
@@ -116,7 +116,7 @@ class MprisMediaSession(
             "media_notification"
         ) { this.updateMediaNotification() }
 
-        NotificationReceiver.RunCommand(context) { service: NotificationReceiver ->
+        NotificationReceiver.runCommand(context) { service: NotificationReceiver ->
             service.addListener(this@MprisMediaSession)
             val serviceReady = service.isConnected
             if (serviceReady) {

@@ -25,6 +25,7 @@ import androidx.annotation.MainThread
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
+import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.backends.BaseLinkProvider.ConnectionReceiver
 import org.kde.kdeconnect.backends.bluetooth.BluetoothLinkProvider
@@ -67,7 +68,7 @@ class BackgroundService : Service() {
         linkProviders.add(get<BluetoothLinkProvider> { parametersOf(this) })
     }
 
-    fun onNetworkChange(network: Network?) {
+    suspend fun onNetworkChange(network: Network?) {
         if (!initialized) {
             Log.d(LOG_TAG, "ignoring onNetworkChange called before the service is initialized")
             return
@@ -107,11 +108,10 @@ class BackgroundService : Service() {
         connectivityManager?.registerNetworkCallback(networkRequestBuilder.build(), object : NetworkCallback() {
 
             // All callbacks runs on a dedicated thread that isn't the main thread
-
             override fun onAvailable(network: Network) {
                 Log.i("BackgroundService", "Valid network available")
                 data.setConnected(true)
-                onNetworkChange(network)
+                runBlocking { onNetworkChange(network) }
             }
 
             override fun onLost(network: Network) {
@@ -123,7 +123,9 @@ class BackgroundService : Service() {
         registerLinkProviders()
         addConnectionListener(deviceManager.connectionListener) // Link Providers need to be already registered
         for (linkProvider in linkProviders) {
-            linkProvider.onStart()
+            runBlocking {
+                linkProvider.onStart()
+            }
         }
         initialized = true
     }
@@ -230,7 +232,7 @@ class BackgroundService : Service() {
             startForeground(FOREGROUND_NOTIFICATION_ID, createForegroundNotification())
         }
         if (intent != null && intent.getBooleanExtra("refresh", false)) {
-            onNetworkChange(null)
+            runBlocking { onNetworkChange(null) }
         }
         return START_STICKY
     }

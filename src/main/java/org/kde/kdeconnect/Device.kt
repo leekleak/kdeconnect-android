@@ -152,7 +152,9 @@ class Device(
                 updateState { it.copy(pairStatus = pairStatus, verificationKey = verificationKey) }
             }
         }
-        link?.let { addLink(it) }
+        jobScope.launch {
+            link?.let { addLink(it) }
+        }
     }
 
     // Returns 0 if the version matches, < 0 if it is older or > 0 if it is newer
@@ -194,7 +196,7 @@ class Device(
                 runBlocking { deviceInfo.saveInSettings(deviceSettings) }
 
                 try {
-                    reloadPluginsFromSettings()
+                    runBlocking { reloadPluginsFromSettings() }
                 } catch (e: Exception) {
                     Log.e("Device", "Exception in pairingSuccessful. Not unpairing because saving the trusted device succeeded", e)
                 }
@@ -211,7 +213,7 @@ class Device(
 
                 notifyPluginsOfDeviceUnpaired(context, deviceInfo.id)
 
-                reloadPluginsFromSettings()
+                runBlocking { reloadPluginsFromSettings() }
             }
         }
     }
@@ -282,7 +284,7 @@ class Device(
         notificationManager.cancel(notificationId)
     }
 
-    fun addLink(link: BaseLink) {
+    suspend fun addLink(link: BaseLink) {
         synchronized(sendChannel) {
             if (sendCoroutine == null) {
                 sendCoroutine = CoroutineScope(Dispatchers.IO).launch {
@@ -312,9 +314,7 @@ class Device(
     }
 
     @WorkerThread
-    fun removeLink(link: BaseLink) {
-        // FilesHelper.LogOpenFileCount();
-
+    suspend fun removeLink(link: BaseLink) {
         link.removePacketReceiver(this)
         links.remove(link)
         Log.i(
@@ -386,7 +386,7 @@ class Device(
         return hasChanges
     }
 
-    override fun onPacketReceived(np: NetworkPacket) {
+    override suspend fun onPacketReceived(np: NetworkPacket) {
         countReceived(deviceId, np.type)
 
         if (NetworkPacket.PACKET_TYPE_PAIR == np.type) {
@@ -415,7 +415,7 @@ class Device(
         notifyPluginPacketReceived(np)
     }
 
-    private fun notifyPluginPacketReceived(np: NetworkPacket) {
+    private suspend fun notifyPluginPacketReceived(np: NetworkPacket) {
         val targetPlugins = pluginsByIncomingInterface[np.type] // Returns an empty collection if the key doesn't exist
         if (targetPlugins == null) {
             Log.w("Device", "Ignoring packet with type ${np.type} because no plugin can handle it")
@@ -501,7 +501,7 @@ class Device(
 
         val success = links.any { link ->
             try {
-                link.sendPacket(np, callback, sendPayloadFromSameThread)
+                runBlocking { link.sendPacket(np, callback, sendPayloadFromSameThread) }
             } catch (e: IOException) {
                 Log.w("KDE/sendPacket", "Failed to send packet", e)
                 false
@@ -534,8 +534,8 @@ class Device(
         return loadedPlugins[pluginKey] ?: pluginsWithoutPermissions[pluginKey]
     }
 
-    fun setPluginEnabled(pluginKey: String, value: Boolean) {
-        runBlocking { deviceSettings.setBooleanSetting(deviceId, pluginKey, value) }
+    suspend fun setPluginEnabled(pluginKey: String, value: Boolean) {
+        deviceSettings.setBooleanSetting(deviceId, pluginKey, value)
         reloadPluginsFromSettings()
     }
 
@@ -562,9 +562,8 @@ class Device(
         }
     }
 
-    @Synchronized
     @WorkerThread
-    fun reloadPluginsFromSettings() {
+    suspend fun reloadPluginsFromSettings() {
         Log.i("Device", "${deviceInfo.name}: reloading plugins")
         val newPluginsByIncomingInterface: MutableMap<String, MutableList<String>> = mutableMapOf()
 
@@ -630,8 +629,8 @@ class Device(
 
     fun removePluginsChangedListener(listener: PluginsChangedListener) = pluginsChangedListeners.remove(listener)
 
-    fun disconnect() {
-        links.forEach(BaseLink::disconnect)
+    suspend fun disconnect() {
+        links.forEach { it.disconnect() }
     }
 
     fun close() {

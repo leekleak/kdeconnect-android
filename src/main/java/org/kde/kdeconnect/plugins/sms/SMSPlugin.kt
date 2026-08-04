@@ -230,7 +230,7 @@ class SMSPlugin(
         device.sendPacket(np)
     }
 
-    override fun onCreate(): Boolean {
+    override suspend fun onCreate(): Boolean {
         initialize()
         return true
     }
@@ -268,14 +268,14 @@ class SMSPlugin(
         }
     }
 
-    override fun onDestroy() {
+    override suspend fun onDestroy() {
         context.unregisterReceiver(receiver)
         context.unregisterReceiver(messagesUpdateReceiver)
         context.contentResolver.unregisterContentObserver(messageObserver)
         initialized = false
     }
 
-    override fun onPacketReceived(np: NetworkPacket): Boolean {
+    override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         val list = listOf(PACKET_TYPE_SMS_REQUEST_CONVERSATIONS, PACKET_TYPE_SMS_REQUEST_CONVERSATION,
             PACKET_TYPE_SMS_REQUEST, PACKET_TYPE_SMS_REQUEST_ATTACHMENT)
         if (!list.contains(np.type)) return false

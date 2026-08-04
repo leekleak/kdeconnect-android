@@ -68,12 +68,12 @@ class RunCommandPlugin(
             })
     }
 
-    override fun onCreate(): Boolean {
+    override suspend fun onCreate(): Boolean {
         requestCommandList()
         return true
     }
 
-    override fun onPacketReceived(np: NetworkPacket): Boolean {
+    override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         if (np.has("commandList")) {
             commandList.clear()
             try {

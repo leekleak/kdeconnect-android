@@ -43,6 +43,7 @@ class MprisMediaNotificationReceiver : BroadcastReceiver(), KoinComponent {
                 ACTION_NEXT -> player.sendNext()
                 ACTION_CLOSE_NOTIFICATION ->                     //The user dismissed the notification: actually handle its removal correctly
                     mprisMediaSession.closeMediaNotification()
+
                 else -> {
                     Log.w(TAG, "Unknown action: ${intent.action}, ignore.")
                 }

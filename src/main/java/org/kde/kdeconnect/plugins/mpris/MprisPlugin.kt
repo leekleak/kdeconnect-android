@@ -209,7 +209,7 @@ class MprisPlugin(
     private val playerStatusUpdated = ConcurrentHashMap<String, () -> Unit>()
     private val playerListUpdated = ConcurrentHashMap<String, () -> Unit>()
 
-    override fun onCreate(): Boolean {
+    override suspend fun onCreate(): Boolean {
         mprisMediaSession.onCreate(context.applicationContext, this, device.deviceId)
 
         // Always request the player list so the data is up-to-date
@@ -221,7 +221,7 @@ class MprisPlugin(
         return true
     }
 
-    override fun onDestroy() {
+    override suspend fun onDestroy() {
         players.clear()
         deregisterPlugin(this)
         mprisMediaSession.onDestroy(this, device.deviceId)
@@ -251,7 +251,7 @@ class MprisPlugin(
         device.sendPacket(np)
     }
 
-    override fun onPacketReceived(np: NetworkPacket): Boolean {
+    override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         if (np.getBoolean("transferringAlbumArt", false)) {
             payloadToDiskCache(np.getString("albumArtUrl"), np.payload)
             return true

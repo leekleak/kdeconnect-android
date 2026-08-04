@@ -32,7 +32,7 @@ class DigitizerPlugin(context: Context, device: Device) : Plugin(context, device
             navigator.goTo(DigitizerKey(device.deviceId))
         })
 
-    override fun onPacketReceived(np: NetworkPacket): Boolean {
+    override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         Log.e(TAG, "The drawing tablet plugin should not be able to receive any packets!")
         return false
     }
