@@ -45,7 +45,7 @@ internal class RunCommandWidgetDataProvider(private val context: Context, val in
     }
 
     override fun getCount(): Int {
-        return getPlugin()?.commandItems?.size ?: 0
+        return getPlugin()?.commandList?.size ?: 0
     }
 
     override fun getViewAt(i: Int): RemoteViews {
@@ -61,7 +61,7 @@ internal class RunCommandWidgetDataProvider(private val context: Context, val in
             return remoteView
         }
 
-        val listItem = plugin.commandItems.getOrNull(i) ?: return remoteView
+        val listItem = plugin.commandList.getOrNull(i) ?: return remoteView
 
         remoteView.setTextViewText(R.id.list_item_entry_title, listItem.name)
         remoteView.setTextViewText(R.id.list_item_entry_summary, listItem.command)
@@ -86,7 +86,7 @@ internal class RunCommandWidgetDataProvider(private val context: Context, val in
     }
 
     override fun getItemId(i: Int): Long {
-        return getPlugin()?.commandItems?.getOrNull(i)?.key?.hashCode()?.toLong() ?: 0
+        return getPlugin()?.commandList?.getOrNull(i)?.key?.hashCode()?.toLong() ?: 0
     }
 
     override fun hasStableIds(): Boolean {

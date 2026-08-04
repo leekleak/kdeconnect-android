@@ -2,7 +2,6 @@ package org.kde.kdeconnect.plugins.runcommand
 
 import android.content.ClipData
 import android.content.Context
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.platform.Clipboard
@@ -11,7 +10,6 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.json.JSONException
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect_tp.R
@@ -22,7 +20,7 @@ class RunCommandViewModel(
     @InjectedParam val deviceId: String
 ) : ViewModel() {
 
-    val commandList = mutableStateListOf<CommandEntry>()
+    val commandList = mutableStateListOf<RunCommand>()
     val plugin: RunCommandPlugin? = deviceManager.getDevicePlugin(deviceId, RunCommandPlugin::class.java)
     val device: Device? = deviceManager.getDevice(deviceId)
 
@@ -34,19 +32,13 @@ class RunCommandViewModel(
         commandList.clear()
         val plugin = plugin ?: return
 
-        for (obj in plugin.commandList) {
-            try {
-                commandList.add(CommandEntry(obj))
-            } catch (e: JSONException) {
-                Log.e("RunCommand", "Error parsing JSON", e)
-            }
-        }
+        commandList.addAll(plugin.commandList)
         commandList.sortBy { it.name.lowercase() }
     }
 
     fun copyCommandToClipboard(
         context: Context,
-        command: CommandEntry,
+        command: RunCommand,
         clipboardManager: Clipboard
     ) {
         val deviceId = deviceId

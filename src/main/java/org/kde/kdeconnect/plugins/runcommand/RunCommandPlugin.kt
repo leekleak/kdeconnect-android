@@ -8,18 +8,17 @@ package org.kde.kdeconnect.plugins.runcommand
 
 import android.app.Activity
 import android.content.Context
-import android.content.SharedPreferences
 import android.os.Build
 import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.preference.PreferenceManager
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.navigation.Navigator
@@ -27,15 +26,16 @@ import org.kde.kdeconnect.ui.navigation.RunCommandKey
 import org.kde.kdeconnect_tp.R
 import java.util.Collections
 import java.util.stream.Collectors
-import androidx.core.content.edit
 
-class RunCommandPlugin(context: Context, device: Device) : Plugin(context, device) {
-    val commandList: ArrayList<JSONObject> = ArrayList()
+class RunCommandPlugin(
+    context: Context,
+    device: Device,
+    private val settingsDataStore: RunCommandSettingsDataStore
+) : Plugin(context, device) {
+    val commandList: ArrayList<RunCommand> = ArrayList()
     private val callbacks = ArrayList<CommandsChangedCallback>()
-    val commandItems: ArrayList<CommandEntry> = ArrayList()
     val output: SnapshotStateList<RunCommandOutput> = SnapshotStateList()
 
-    private var sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
     private var canAddCommand = false
 
     override val pluginInfo: RunCommandPluginInfo = RunCommandPluginInfo
@@ -76,43 +76,24 @@ class RunCommandPlugin(context: Context, device: Device) : Plugin(context, devic
         if (np.has("commandList")) {
             commandList.clear()
             try {
-                commandItems.clear()
-                val obj = JSONObject(np.getString("commandList"))
-                for (s in obj.keys()) {
-                    val o = obj.getJSONObject(s)
-                    o.put("key", s)
-                    commandList.add(o)
-
-                    try {
-                        commandItems.add(
-                            CommandEntry(o)
-                        )
-                    } catch (e: JSONException) {
-                        Log.e("RunCommand", "Error parsing JSON", e)
-                    }
-                }
+                val parsedCommands = RunCommand.fromPacket(np.getString("commandList"))
+                commandList.addAll(parsedCommands)
 
                 Collections.sort(
-                    commandItems,
-                    Comparator.comparing(CommandEntry::name)
+                    commandList,
+                    Comparator.comparing(RunCommand::name)
                 )
 
                 // Used only by RunCommandControlsProviderService to display controls correctly even when device is not available
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    val array = JSONArray()
-
-                    for (command in commandList) {
-                        array.put(command)
-                    }
-
-                    sharedPreferences.edit {
-                        putString(KEY_COMMANDS_PREFERENCE + device.deviceId, array.toString())
+                    CoroutineScope(Dispatchers.IO).launch {
+                        settingsDataStore.setCommands(device.deviceId, commandList)
                     }
                 }
 
                 forceRefreshWidgets(context)
-            } catch (e: JSONException) {
-                Log.e("RunCommand", "Error parsing JSON", e)
+            } catch (e: Exception) {
+                Log.e("RunCommand", "Error parsing command list", e)
             }
 
             for (aCallback in callbacks) {
@@ -193,6 +174,5 @@ class RunCommandPlugin(context: Context, device: Device) : Plugin(context, devic
         const val PACKET_TYPE_RUNCOMMAND: String = "kdeconnect.runcommand"
         const val PACKET_TYPE_RUNCOMMAND_OUTPUT: String = "kdeconnect.runcommand.output"
         const val PACKET_TYPE_RUNCOMMAND_REQUEST: String = "kdeconnect.runcommand.request"
-        const val KEY_COMMANDS_PREFERENCE: String = "commands_preference_"
     }
 }
