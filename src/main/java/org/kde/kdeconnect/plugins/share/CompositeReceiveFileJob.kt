@@ -18,18 +18,21 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
-import androidx.preference.PreferenceManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import org.apache.commons.io.IOUtils
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.async.BackgroundJob
+import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.FilesHelper.findValidNonExistingFileName
 import org.kde.kdeconnect.helpers.FilesHelper.getMimeTypeFromFile
 import org.kde.kdeconnect.helpers.MediaStoreHelper.indexFile
 import org.kde.kdeconnect_tp.R
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.IOException
@@ -67,7 +70,8 @@ import kotlin.time.Duration.Companion.milliseconds
  */
 @OptIn(ExperimentalAtomicApi::class)
 class CompositeReceiveFileJob(private val device: Device, private val context: Context, callBack: Callback<Void?>)
-    : BackgroundJob<Device, Void?>(device, callBack) {
+    : BackgroundJob<Device, Void?>(device, callBack), KoinComponent {
+    private val settingsDataStore: SettingsDataStore by inject()
     private val receiveNotification: ReceiveNotification = ReceiveNotification(device, context, id)
     private var currentNetworkPacket: NetworkPacket? = null
     private var currentFileName: String? = null
@@ -268,16 +272,12 @@ class CompositeReceiveFileJob(private val device: Device, private val context: C
     }
 
     @Throws(RuntimeException::class)
-    private fun getDocumentFileFor(filename: String, open: Boolean): DocumentFile {
+    private suspend fun getDocumentFileFor(filename: String, open: Boolean): DocumentFile {
         val destinationFolderDocument: DocumentFile
 
         // If the file should be opened immediately store it in the standard location to avoid the FileProvider trouble (See ReceiveNotification::setURI)
-        if (open || !PreferenceManager.getDefaultSharedPreferences(context)
-                .getBoolean("share_destination_custom", false)
-        ) {
-            val defaultPath =
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                    .absolutePath
+        if (open || settingsDataStore.isFileDestinationDefault.first()) {
+            val defaultPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
             destinationFolderDocument = DocumentFile.fromFile(File(defaultPath))
         } else {
             destinationFolderDocument = getDestinationDirectory(context)
@@ -291,27 +291,19 @@ class CompositeReceiveFileJob(private val device: Device, private val context: C
         return fileDocument
     }
 
-    private fun getDestinationDirectory(context: Context): DocumentFile {
-        if (PreferenceManager.getDefaultSharedPreferences(context)
-                .getBoolean("share_destination_custom", false)
-        ) {
-            val path = PreferenceManager.getDefaultSharedPreferences(context)
-                .getString("share_destination_folder_uri", null)
-            if (path != null) {
-                val treeDocumentFile = DocumentFile.fromTreeUri(context, path.toUri())
-                if (treeDocumentFile != null && treeDocumentFile.canWrite()) { //Checks for FLAG_DIR_SUPPORTS_CREATE on directories
-                    return treeDocumentFile
-                } else {
-                    //Maybe permission was revoked
-                    Log.w(
-                        "SharePlugin",
-                        "Share destination is not writable, falling back to default path."
-                    )
-                }
-            }
+    private suspend fun getDestinationDirectory(context: Context): DocumentFile {
+        val path = settingsDataStore.fileDestination.first()
+        val treeDocumentFile = DocumentFile.fromTreeUri(context, path.toUri())
+        if (treeDocumentFile != null && treeDocumentFile.canWrite()) { //Checks for FLAG_DIR_SUPPORTS_CREATE on directories
+            return treeDocumentFile
+        } else {
+            //Maybe permission was revoked
+            Log.w(
+                "SharePlugin",
+                "Share destination is not writable, falling back to default path."
+            )
         }
-        val defaultDir =
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val defaultDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         try {
             defaultDir.mkdirs()
         } catch (e: Exception) {
@@ -369,10 +361,8 @@ class CompositeReceiveFileJob(private val device: Device, private val context: C
         receiveNotification.show()
     }
 
-    private fun publishFile(fileDocument: DocumentFile, size: Long) {
-        if (!PreferenceManager.getDefaultSharedPreferences(context)
-                .getBoolean("share_destination_custom", false)
-        ) {
+    private suspend fun publishFile(fileDocument: DocumentFile, size: Long) {
+        if (settingsDataStore.isFileDestinationDefault.first()) {
             Log.i("SharePlugin", "Adding to downloads")
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 val contentValues = ContentValues()

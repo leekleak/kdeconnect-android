@@ -41,7 +41,6 @@ import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.plugins.mousepad.MousePadViewModel
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
-import org.kde.kdeconnect.plugins.share.ShareSettingsViewModel
 import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
@@ -211,10 +210,6 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
                 CoroutineScope(Dispatchers.IO).launch {
                     deviceManager.devices.values.forEach(Device::reloadPluginsFromSettings)
                 }
-            }
-            STORAGE_LOCATION_CONFIGURED if resultCode == RESULT_OK && data != null -> {
-                val uri = data.data
-                ShareSettingsViewModel.saveStorageLocationPreference(this, uri!!)
             }
             else -> super.onActivityResult(requestCode, resultCode, data)
         }

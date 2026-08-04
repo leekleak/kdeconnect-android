@@ -5,12 +5,19 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -23,16 +30,15 @@ import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.compose.components.DialogItemSelectPreference
 import org.kde.kdeconnect.ui.compose.components.DialogTextPreference
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
+import org.kde.kdeconnect.ui.compose.components.IconPreference
 import org.kde.kdeconnect.ui.compose.components.NavigatePreference
 import org.kde.kdeconnect.ui.compose.components.Preference
-import org.kde.kdeconnect.ui.compose.components.SectionHeader
 import org.kde.kdeconnect.ui.compose.components.SwitchPreference
 import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.ConnectionsSettingsKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.NotificationSettingsKey
 import org.kde.kdeconnect.ui.navigation.SftpPluginSettingsKey
-import org.kde.kdeconnect.ui.navigation.SharePluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.TelephonyPluginSettingsKey
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.koinInject
@@ -146,12 +152,33 @@ fun SettingsScreen(
             }
         )
 
-        SectionHeader(title = stringResource(R.string.plugins))
+        val destinationSelector = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.OpenDocumentTree()
+        ) { uri ->
+            uri?.let { viewModel.saveStorageLocation(context, it) }
+        }
 
-        NavigatePreference(
-            title = "Share settings",
-            onClick = { navigator.goTo(SharePluginSettingsKey) }
-        )
+        Row (
+            modifier = Modifier.height(IntrinsicSize.Min),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Preference(
+                modifier = Modifier.weight(1f),
+                title = stringResource(R.string.share_destination_folder_preference),
+                summary = uiState.fileDestination?.let { viewModel.getDisplayPath(context, it) },
+                icon = painterResource(R.drawable.file_export),
+                onClick = {
+                    destinationSelector.launch(null)
+                }
+            )
+            IconPreference(
+                title = stringResource(R.string.reset),
+                painter = painterResource(R.drawable.replay),
+                enabled = !uiState.fileDestinationIsDefault
+            ) {
+                viewModel.resetStorageLocation()
+            }
+        }
 
         CategoryTitleTextSmall(stringResource(R.string.other))
 

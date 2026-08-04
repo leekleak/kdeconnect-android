@@ -1,8 +1,12 @@
 package org.kde.kdeconnect.ui.compose.screen.settings
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.os.storage.StorageManager
+import android.provider.DocumentsContract
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -25,14 +29,16 @@ class SettingsViewModel(
     val uiState: StateFlow<SettingsUiState> = combine(
         dataStore.deviceName,
         dataStore.theme,
-        dataStore.persistentNotificationEnabled,
         dataStore.bluetoothEnabled,
-    ) { deviceName, theme, persistentNotificationEnabled, bluetoothEnabled ->
+        dataStore.fileDestination,
+        dataStore.isFileDestinationDefault,
+    ) { deviceName, theme, bluetoothEnabled, destination, destinationDefault ->
         SettingsUiState(
             deviceName = deviceName,
             theme = theme,
-            persistentNotificationEnabled = persistentNotificationEnabled,
             bluetoothEnabled = bluetoothEnabled,
+            fileDestination = destination.toUri(),
+            fileDestinationIsDefault = destinationDefault
         )
     }.stateIn(
         scope = viewModelScope,
@@ -62,6 +68,23 @@ class SettingsViewModel(
         }
     }
 
+    fun saveStorageLocation(context: Context, uri: Uri) {
+        viewModelScope.launch {
+            context.contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+
+            dataStore.setFileDestination(uri.toString())
+        }
+    }
+
+    fun resetStorageLocation() {
+        viewModelScope.launch {
+            dataStore.setFileDestination(dataStore.getDefaultDestinationUri().toString())
+        }
+    }
+
     fun setBluetoothEnabled(enabled: Boolean) {
         viewModelScope.launch {
             dataStore.setBluetoothEnabled(enabled)
@@ -80,11 +103,32 @@ class SettingsViewModel(
             }
         }
     }
+
+    fun getDisplayPath(context: Context, uri: Uri): String {
+        val docId = DocumentsContract.getTreeDocumentId(uri)
+        val split = docId.split(":")
+        val type = split[0]
+        val relativePath = if (split.size > 1) split[1] else ""
+
+        val volumeName = if (type == "primary") {
+            "~"
+        } else {
+            getSdCardLabel(context, type) ?: type
+        }
+
+        return if (relativePath.isEmpty()) volumeName else "$volumeName/$relativePath"
+    }
+
+    fun getSdCardLabel(context: Context, volumeId: String): String? {
+        val storageManager = context.getSystemService(Context.STORAGE_SERVICE) as StorageManager
+        return storageManager.storageVolumes.firstOrNull { it.uuid == volumeId }?.getDescription(context)
+    }
 }
 
 data class SettingsUiState(
     val deviceName: String = "",
     val theme: String = "",
-    val persistentNotificationEnabled: Boolean = false,
     val bluetoothEnabled: Boolean = false,
+    val fileDestination: Uri? = null,
+    val fileDestinationIsDefault: Boolean = true
 )

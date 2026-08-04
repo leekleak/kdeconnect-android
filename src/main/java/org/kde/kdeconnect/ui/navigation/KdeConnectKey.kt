@@ -57,8 +57,6 @@ data object SftpPluginSettingsKey : KdeConnectKey
 @Serializable
 data object TelephonyPluginSettingsKey : KdeConnectKey
 @Serializable
-data object SharePluginSettingsKey : KdeConnectKey
-@Serializable
 data object PresenterPluginSettingsKey : KdeConnectKey
 @Serializable
 data object NotificationSettingsKey : KdeConnectKey

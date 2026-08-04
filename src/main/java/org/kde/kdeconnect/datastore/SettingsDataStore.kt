@@ -1,6 +1,9 @@
 package org.kde.kdeconnect.datastore
 
 import android.content.Context
+import android.net.Uri
+import android.os.Environment
+import android.provider.DocumentsContract
 import android.provider.Settings
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -39,6 +42,12 @@ class SettingsDataStore(private val context: Context) {
         .map { preferences -> preferences[KEY_DEVICE_ID] ?: "" }
         .distinctUntilChanged()
 
+    val fileDestination: Flow<String> = context.dataStore.data
+        .map { preferences -> preferences[FILE_DESTINATION] ?: getDefaultDestinationUri().toString() }
+        .distinctUntilChanged()
+
+    val isFileDestinationDefault: Flow<Boolean> = fileDestination.map { it == getDefaultDestinationUri().toString() }
+
     // Blocking getters for legacy interop
     fun getDeviceNameBlocking(): String = runBlocking { deviceName.first() }
     fun getThemeBlocking(): String = runBlocking { theme.first() }
@@ -76,11 +85,25 @@ class SettingsDataStore(private val context: Context) {
         }
     }
 
+    suspend fun setFileDestination(uri: String) {
+        context.dataStore.edit { preferences ->
+            preferences[FILE_DESTINATION] = uri
+        }
+    }
+
+    fun getDefaultDestinationUri(): Uri {
+        return DocumentsContract.buildTreeDocumentUri(
+            "com.android.externalstorage.documents",
+            "primary:${Environment.DIRECTORY_DOWNLOADS}"
+        )
+    }
+
     companion object {
         private val KEY_DEVICE_NAME = stringPreferencesKey("device_name_preference")
         private val KEY_THEME = stringPreferencesKey("theme_pref")
         private val KEY_BLUETOOTH_ENABLED = booleanPreferencesKey("bluetooth_enabled")
         private val KEY_PERSISTENT_NOTIFICATION = booleanPreferencesKey("persistentNotification")
         private val KEY_DEVICE_ID = stringPreferencesKey("device_id_preference")
+        private val FILE_DESTINATION = stringPreferencesKey("file_destination")
     }
 }

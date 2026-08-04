@@ -1,13 +1,11 @@
 package org.kde.kdeconnect.plugins.share
 
-import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.preference.PreferenceManager
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -88,11 +86,6 @@ internal class ReceiveNotification(private val device: Device, private val conte
             .setSmallIcon(R.drawable.check_circle)
             .setAutoCancel(true)
             .setOngoing(false)
-
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        if (prefs.getBoolean("share_notification_preference", true)) {
-            builder.setDefaults(Notification.DEFAULT_ALL)
-        }
     }
 
     fun setFailed(message: String?) {

@@ -5,14 +5,12 @@
  */
 package org.kde.kdeconnect.plugins.share
 
-import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import androidx.preference.PreferenceManager
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect_tp.R
@@ -71,11 +69,6 @@ internal class UploadNotification(private val device: Device, private val contex
             .setSmallIcon(R.drawable.check_circle)
             .setAutoCancel(true)
             .setOngoing(false)
-
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        if (prefs.getBoolean("share_notification_preference", true)) {
-            builder.setDefaults(Notification.DEFAULT_ALL)
-        }
     }
 
     fun setFailed(message: String?) {

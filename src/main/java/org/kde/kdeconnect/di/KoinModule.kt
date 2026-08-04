@@ -70,8 +70,6 @@ import org.kde.kdeconnect.plugins.runcommand.RunCommandScreen
 import org.kde.kdeconnect.plugins.runcommand.RunCommandViewModel
 import org.kde.kdeconnect.plugins.sftp.SftpPlugin
 import org.kde.kdeconnect.plugins.share.SharePlugin
-import org.kde.kdeconnect.plugins.share.ShareSettingsScreen
-import org.kde.kdeconnect.plugins.share.ShareSettingsViewModel
 import org.kde.kdeconnect.plugins.sms.SMSPlugin
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin
 import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin
@@ -114,7 +112,6 @@ import org.kde.kdeconnect.ui.navigation.PresenterPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.RunCommandKey
 import org.kde.kdeconnect.ui.navigation.SettingsKey
 import org.kde.kdeconnect.ui.navigation.SftpPluginSettingsKey
-import org.kde.kdeconnect.ui.navigation.SharePluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.TelephonyPluginSettingsKey
 import org.kde.kdeconnect_tp.R
 import org.koin.androidx.compose.koinViewModel
@@ -247,7 +244,6 @@ val pluginSettingsModule = module {
     viewModel<MousePadSettingsViewModel>()
     viewModel<SftpSettingsViewModel>()
     viewModel<TelephonySettingsViewModel>()
-    viewModel<ShareSettingsViewModel>()
     viewModel<PresenterSettingsViewModel>()
     viewModel<NotificationSettingsViewModel>()
     navigation<PluginSettingsKey> { key ->
@@ -256,7 +252,6 @@ val pluginSettingsModule = module {
     navigation<MousePadPluginSettingsKey> { MousePadSettingsScreen() }
     navigation<SftpPluginSettingsKey> { SftpSettingsScreen() }
     navigation<TelephonyPluginSettingsKey> { TelephonySettingsScreen() }
-    navigation<SharePluginSettingsKey> { ShareSettingsScreen() }
     navigation<PresenterPluginSettingsKey> { PresenterSettingsScreen() }
     navigation<NotificationSettingsKey> { NotificationSettings() }
 }

@@ -529,7 +529,6 @@ fun IconPreference(
         modifier = Modifier
             .width(52.dp)
             .fillMaxHeight()
-            .padding(vertical = 4.dp)
             .card()
             .clickable(enabled = enabled) { onClick.invoke() }
             .alpha(if (enabled) 1f else 0.38f),
