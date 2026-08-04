@@ -28,8 +28,8 @@ class ClipboardPlugin(context: Context, device: Device) : Plugin(context, device
 
     override fun getUiButtons(): List<PluginUiButton> {
         return listOf(PluginUiButton(
-            context.getString(R.string.send_clipboard),
-            R.drawable.ic_baseline_content_paste_24,
+            context.getString(R.string.clipboard),
+            R.drawable.assignment,
             ButtonCategory.SEND,
         ){ _: Activity? -> userInitiatedSendClipboard() })
     }

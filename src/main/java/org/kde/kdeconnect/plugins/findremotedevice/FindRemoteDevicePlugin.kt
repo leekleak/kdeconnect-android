@@ -18,8 +18,8 @@ class FindRemoteDevicePlugin(context: Context, device: Device) : Plugin(context,
 
     override fun getUiButtons(): List<PluginUiButton> = listOf(
         PluginUiButton(
-            name = context.getString(R.string.ring),
-            iconRes = R.drawable.arrow_upward,
+            name = context.getString(R.string.find_device),
+            iconRes = R.drawable.e911_emergency,
             category = ButtonCategory.CONTROL
         ) { _ ->
             device.sendPacket(NetworkPacket(FindMyPhonePlugin.PACKET_TYPE_FINDMYPHONE_REQUEST))
