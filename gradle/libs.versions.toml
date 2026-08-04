@@ -32,7 +32,6 @@ androidMaterial = "1.14.0"
 composeMaterial3 = "1.5.0-alpha24"
 media = "1.8.0"
 mockk = "1.14.11"
-preferenceKtx = "1.2.1"
 recyclerview = "1.4.0"
 robolectric = "4.16.1"
 slf4j = "2.0.18"
@@ -62,7 +61,6 @@ androidx-lifecycle-extensions = { module = "androidx.lifecycle:lifecycle-extensi
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-media = { module = "androidx.media:media", version.ref = "media" }
-androidx-preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "preferenceKtx" }
 androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
 androidx-swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefreshlayout" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
