@@ -1,6 +1,8 @@
 package org.kde.kdeconnect.ui.compose.screen.settings
 
-import android.Manifest
+import android.Manifest.permission.BLUETOOTH_CONNECT
+import android.Manifest.permission.BLUETOOTH_SCAN
+import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -19,14 +21,15 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.serialization.json.Json
 import org.kde.kdeconnect.helpers.CreateFileParams
 import org.kde.kdeconnect.helpers.CreateFileResultContract
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.plugins.sftp.SimpleSftpServer
 import org.kde.kdeconnect.ui.AppTheme
-import org.kde.kdeconnect.ui.PermissionsAlertDialogFragment
+import org.kde.kdeconnect.ui.PermissionExplanationActivity
+import org.kde.kdeconnect.ui.PermissionRequest
 import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.compose.components.DialogItemSelectPreference
 import org.kde.kdeconnect.ui.compose.components.DialogTextPreference
@@ -57,6 +60,12 @@ fun SettingsScreen(
         contract = CreateFileResultContract()
     ) { uri ->
         uri?.let { viewModel.exportLogs(context, it) }
+    }
+
+    val bluetoothPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        viewModel.setBluetoothEnabled(result.resultCode == RESULT_OK)
     }
 
     HazeScaffold(
@@ -118,19 +127,22 @@ fun SettingsScreen(
             value = uiState.bluetoothEnabled,
             onValueChanged = { newValue ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && newValue) {
-                    val permissions = arrayOf(Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN)
-                    val permissionsGranted = permissions.all {
-                        ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+                    val missingPermissionRequests = arrayOf(BLUETOOTH_CONNECT, BLUETOOTH_SCAN).filter {
+                        ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
+                    }.map { permission ->
+                        PermissionRequest(
+                            title = R.string.kde_connect,
+                            description = R.string.unreachable_description,
+                            intentAction = permission,
+                            positiveButton = R.string.grant
+                        )
                     }
-                    if (!permissionsGranted) {
-                        (context as? FragmentActivity)?.let {
-                            PermissionsAlertDialogFragment.Builder()
-                                .setTitle(R.string.location_permission_needed_title)
-                                .setMessage(R.string.bluetooth_permission_needed_desc)
-                                .setPermissions(permissions)
-                                .setRequestCode(2)
-                                .create().show(it.supportFragmentManager, null)
-                        }
+
+                    if (missingPermissionRequests.isNotEmpty()) {
+                        bluetoothPermissionLauncher.launch(Intent(context, PermissionExplanationActivity::class.java).apply {
+                            // Take 1 because I think you only need to ask for one of them and you get all? Todo: Test that
+                            putExtra("permissionRequests", Json.encodeToString(missingPermissionRequests.take(1)))
+                        })
                         return@SwitchPreference
                     }
                 }

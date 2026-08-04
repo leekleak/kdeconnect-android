@@ -27,7 +27,6 @@ import android.text.TextUtils
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.createBitmap
-import androidx.fragment.app.DialogFragment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -45,9 +44,7 @@ import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin.Companion.PA
 import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION_ACTION
 import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION_REPLY
 import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION_REQUEST
-import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.PermissionRequest
-import org.kde.kdeconnect.ui.StartActivityAlertDialogFragment
 import org.kde.kdeconnect_tp.R
 import java.io.ByteArrayOutputStream
 import java.security.MessageDigest
@@ -67,18 +64,6 @@ object NotificationsPluginInfo: PluginInfo(
 ) {
     override fun checkRequiredPermissions(context: Context): Boolean {
         return NotificationReceiver.hasReadNotificationsPermission(context)
-    }
-
-    override fun getPermissionExplanationDialog(context: Context): DialogFragment {
-        return StartActivityAlertDialogFragment.Builder()
-            .setTitle(R.string.pref_plugin_notifications)
-            .setMessage(R.string.no_permissions)
-            .setPositiveButton(R.string.open_settings)
-            .setNegativeButton(R.string.cancel)
-            .setIntentAction("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS")
-            .setStartForResult(true)
-            .setRequestCode(MainActivity.RESULT_NEEDS_RELOAD)
-            .create()
     }
 
     override fun getPermissionRequests(): List<PermissionRequest> {

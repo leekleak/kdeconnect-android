@@ -6,7 +6,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.compose.LocalActivity
-import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -41,6 +40,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.serialization.json.Json
 import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.ui.compose.KdeTheme
@@ -57,21 +57,25 @@ class PermissionExplanationActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val key = intent.getStringExtra("pluginKey")
-        pluginKey = key
+        val pluginKey = intent.getStringExtra("pluginKey")
+        val permissionRequests = intent.getStringExtra("permissionRequests")
+        val requestsDeserialized = permissionRequests?.let { Json.decodeFromString<List<PermissionRequest>>(it) }
+        this.pluginKey = pluginKey
 
-        if (key == null) {
+        if (pluginKey == null && requestsDeserialized.isNullOrEmpty()) {
             finish()
             return
         }
 
-        permissionRequestHelper.markExplanationShown(key)
-
-        val pluginInfo = PluginFactory.getPluginInfo(key)
+        val requests = if (pluginKey != null) {
+            permissionRequestHelper.markExplanationShown(pluginKey)
+            val pluginInfo = PluginFactory.getPluginInfo(pluginKey)
+            pluginInfo.getPermissionRequests()
+        } else {
+            requestsDeserialized!!
+        }
 
         setResult(RESULT_CANCELED)
-
-        val requests = pluginInfo.getPermissionRequests()
 
         setContent {
             KdeTheme {
@@ -213,9 +217,9 @@ private fun BottomSheetContent(
                                 data = Uri.fromParts("package", context.packageName, null)
                             }
                         activity?.startActivity(intent)
-                        onDone(false) // Really annoying to check if the user actually granted permission,
-                        // so return with the assumption that they didn't.
                     }
+                    onDone(false) // Really annoying to check if the user actually granted permission,
+                    // so return with the assumption that they didn't.
                 }
             }
         ) {

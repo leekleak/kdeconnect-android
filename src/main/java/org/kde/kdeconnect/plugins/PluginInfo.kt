@@ -31,22 +31,6 @@ open class PluginInfo(
     val supportedPacketTypes: Set<String> = supportedPacketTypes.toSet()
     val outgoingPacketTypes: Set<String> = outgoingPacketTypes.toSet()
 
-    private fun requestPermissionDialog(
-        context: Context,
-        permissions: Array<String>,
-        @StringRes reason: Int
-    ): PermissionsAlertDialogFragment {
-        return PermissionsAlertDialogFragment.Builder()
-            .setTitle(getDisplayName(context))
-            .setMessage(reason)
-            .setPermissions(permissions)
-            .setRequestCode(MainActivity.RESULT_NEEDS_RELOAD)
-            .create()
-    }
-
-    open fun getPermissionExplanationDialog(context: Context): DialogFragment
-            = requestPermissionDialog(context, requiredPermissions, 0)
-
     open fun getPermissionRequests(): List<PermissionRequest> {
         return requiredPermissions.map { permission ->
             PermissionRequest(

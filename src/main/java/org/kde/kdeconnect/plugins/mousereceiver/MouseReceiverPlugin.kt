@@ -9,7 +9,6 @@ import android.content.Context
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
-import androidx.fragment.app.DialogFragment
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.helpers.PermissionRequestHelper
@@ -17,9 +16,7 @@ import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_REQUEST
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPlugin
-import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.PermissionRequest
-import org.kde.kdeconnect.ui.StartActivityAlertDialogFragment
 import org.kde.kdeconnect_tp.R
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -144,17 +141,5 @@ object MouseReceiverPluginInfo : PluginInfo(
                 positiveButton = R.string.open_settings
             )
         )
-    }
-
-    override fun getPermissionExplanationDialog(context: Context): DialogFragment {
-        return StartActivityAlertDialogFragment.Builder()
-            .setTitle(R.string.mouse_receiver_plugin_description)
-            .setMessage(R.string.mouse_receiver_no_permissions)
-            .setPositiveButton(R.string.open_settings)
-            .setNegativeButton(R.string.cancel)
-            .setIntentAction(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-            .setStartForResult(true)
-            .setRequestCode(MainActivity.RESULT_NEEDS_RELOAD)
-            .create()
     }
 }

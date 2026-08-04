@@ -14,7 +14,6 @@ import android.os.storage.StorageManager
 import android.provider.Settings
 import android.util.Log
 import androidx.core.net.toUri
-import androidx.fragment.app.DialogFragment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -32,11 +31,7 @@ import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.sftp.SftpPlugin.Companion.PACKET_TYPE_SFTP
 import org.kde.kdeconnect.plugins.sftp.SftpPlugin.Companion.PACKET_TYPE_SFTP_REQUEST
 import org.kde.kdeconnect.plugins.sftp.SftpPlugin.StorageInfo
-import org.kde.kdeconnect.ui.DeviceSettingsAlertDialogFragment
-import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.PermissionRequest
-import org.kde.kdeconnect.ui.StartActivityAlertDialogFragment
-import org.kde.kdeconnect_tp.BuildConfig
 import org.kde.kdeconnect_tp.R
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -244,29 +239,6 @@ object SftpPluginInfo : PluginInfo(
             getStorageInfoList().isNotEmpty()
         }
     }
-
-    override fun getPermissionExplanationDialog(context: Context): DialogFragment
-        = if (SimpleSftpServer.SUPPORTS_NATIVEFS) {
-            StartActivityAlertDialogFragment.Builder()
-                .setTitle(getDisplayName(context))
-                .setMessage(R.string.sftp_manage_storage_permission_explanation)
-                .setPositiveButton(R.string.open_settings)
-                .setNegativeButton(R.string.cancel)
-                .setIntentAction(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
-                .setIntentUrl("package:" + BuildConfig.APPLICATION_ID)
-                .setStartForResult(true)
-                .setRequestCode(MainActivity.RESULT_NEEDS_RELOAD)
-                .create()
-        } else {
-            DeviceSettingsAlertDialogFragment.Builder()
-                .setTitle(getDisplayName(context))
-                .setMessage(R.string.sftp_saf_permission_explanation)
-                .setPositiveButton(R.string.ok)
-                .setNegativeButton(R.string.cancel)
-                .setDeviceId(null)
-                .setPluginKey(pluginKey)
-                .create()
-        }
 
     override fun getPermissionRequests(): List<PermissionRequest> {
         return buildList {
