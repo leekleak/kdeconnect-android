@@ -58,11 +58,9 @@ class BackgroundService : Service() {
     private val settingsDataStore: SettingsDataStore by inject()
 
     fun updateForegroundNotification() {
-        if (NotificationHelper.isPersistentNotificationEnabled(this)) {
-            // Update the foreground notification with the currently connected device list
-            val notificationManager = getSystemService<NotificationManager>()
-            notificationManager?.notify(FOREGROUND_NOTIFICATION_ID, createForegroundNotification())
-        }
+        // Update the foreground notification with the currently connected device list
+        val notificationManager = getSystemService<NotificationManager>()
+        notificationManager?.notify(FOREGROUND_NOTIFICATION_ID, createForegroundNotification())
     }
 
     private fun registerLinkProviders() {
@@ -238,18 +236,16 @@ class BackgroundService : Service() {
             return START_NOT_STICKY
         }
 
-        if (NotificationHelper.isPersistentNotificationEnabled(this)) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                try {
-                    startForeground(FOREGROUND_NOTIFICATION_ID, createForegroundNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE)
-                } catch (e: IllegalStateException) { // To catch ForegroundServiceStartNotAllowedException
-                    Log.w("BackgroundService", "Couldn't startForeground", e)
-                    return START_STICKY
-                }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            try {
+                startForeground(FOREGROUND_NOTIFICATION_ID, createForegroundNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE)
+            } catch (e: IllegalStateException) { // To catch ForegroundServiceStartNotAllowedException
+                Log.w("BackgroundService", "Couldn't startForeground", e)
+                return START_STICKY
             }
-            else {
-                startForeground(FOREGROUND_NOTIFICATION_ID, createForegroundNotification())
-            }
+        }
+        else {
+            startForeground(FOREGROUND_NOTIFICATION_ID, createForegroundNotification())
         }
         if (intent != null && intent.getBooleanExtra("refresh", false)) {
             onNetworkChange(null)

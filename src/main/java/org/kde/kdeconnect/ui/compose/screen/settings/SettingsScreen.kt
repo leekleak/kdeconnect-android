@@ -25,6 +25,7 @@ import org.kde.kdeconnect.helpers.CreateFileParams
 import org.kde.kdeconnect.helpers.CreateFileResultContract
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.plugins.sftp.SimpleSftpServer
+import org.kde.kdeconnect.ui.AppTheme
 import org.kde.kdeconnect.ui.PermissionsAlertDialogFragment
 import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.compose.components.DialogItemSelectPreference
@@ -65,6 +66,7 @@ fun SettingsScreen(
         CategoryTitleTextSmall(stringResource(R.string.app))
         DialogTextPreference(
             title = stringResource(R.string.settings_rename),
+            icon = painterResource(R.drawable.id_card),
             value = uiState.deviceName,
             filterInput = {
                 DeviceHelper.filterInvalidCharactersFromDeviceName(it)
@@ -75,31 +77,15 @@ fun SettingsScreen(
             }
         )
 
-        val themeEntries = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            stringArrayResource(R.array.theme_list_v28)
-        } else {
-            stringArrayResource(R.array.theme_list)
-        }
-        val themeValues = stringArrayResource(R.array.theme_list_values)
-        val themeOptions = themeValues.zip(themeEntries)
+        val themeEntries = stringArrayResource(R.array.theme_list)
+        val themeOptions = AppTheme.entries.zip(themeEntries)
 
         DialogItemSelectPreference(
             title = stringResource(R.string.theme_dialog_title),
+            icon = painterResource(R.drawable.colors),
             value = uiState.theme,
             values = themeOptions.toList(),
             onValueChanged = { viewModel.setTheme(it) }
-        )
-
-        Preference(
-            title = stringResource(R.string.setting_persistent_notification_oreo),
-            summary = stringResource(R.string.setting_persistent_notification_description),
-            onClick = {
-                val intent = Intent().apply {
-                    action = "android.settings.APP_NOTIFICATION_SETTINGS"
-                    putExtra("android.provider.extra.APP_PACKAGE", context.packageName)
-                }
-                context.startActivity(intent)
-            }
         )
 
         CategoryTitleTextSmall(stringResource(R.string.advanced))

@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
-import org.kde.kdeconnect.ui.ThemeUtil
+import org.kde.kdeconnect.ui.AppTheme
 
 class SettingsDataStore(private val context: Context) {
 
@@ -27,16 +27,12 @@ class SettingsDataStore(private val context: Context) {
         .map { it[KEY_DEVICE_NAME] ?: Settings.Global.getString(context.contentResolver, Settings.Global.DEVICE_NAME) }
         .distinctUntilChanged()
 
-    val theme: Flow<String> = context.dataStore.data
-        .map { preferences -> preferences[KEY_THEME] ?: ThemeUtil.DEFAULT_MODE }
+    val theme: Flow<AppTheme> = context.dataStore.data
+        .map { preferences -> preferences[KEY_THEME]?.let { AppTheme.valueOf(it) } ?: AppTheme.Default }
         .distinctUntilChanged()
 
     val bluetoothEnabled: Flow<Boolean> = context.dataStore.data
         .map { preferences -> preferences[KEY_BLUETOOTH_ENABLED] ?: false }
-        .distinctUntilChanged()
-
-    val persistentNotificationEnabled: Flow<Boolean> = context.dataStore.data
-        .map { preferences -> preferences[KEY_PERSISTENT_NOTIFICATION] ?: true }
         .distinctUntilChanged()
 
     val deviceId: Flow<String> = context.dataStore.data
@@ -63,12 +59,10 @@ class SettingsDataStore(private val context: Context) {
 
     // Blocking getters for legacy interop
     fun getDeviceNameBlocking(): String = runBlocking { deviceName.first() }
-    fun getThemeBlocking(): String = runBlocking { theme.first() }
+    fun getThemeBlocking(): AppTheme = runBlocking { theme.first() }
     fun getBluetoothEnabledBlocking(): Boolean = runBlocking { bluetoothEnabled.first() }
-    fun isPersistentNotificationEnabledBlocking(): Boolean = runBlocking { persistentNotificationEnabled.first() }
     fun getDeviceIdBlocking(): String = runBlocking { deviceId.first() }
     fun isPresenterVolumeKeysEnabledBlocking(): Boolean = runBlocking { presenterVolumeKeysEnabled.first() }
-    fun getPresenterSensitivityBlocking(): Int = runBlocking { presenterSensitivity.first() }
     fun getCertificateBlocking(): String = runBlocking { certificate.first() }
 
     suspend fun setDeviceName(name: String) {
@@ -77,21 +71,15 @@ class SettingsDataStore(private val context: Context) {
         }
     }
 
-    suspend fun setTheme(theme: String) {
+    suspend fun setTheme(theme: AppTheme) {
         context.dataStore.edit { preferences ->
-            preferences[KEY_THEME] = theme
+            preferences[KEY_THEME] = theme.name
         }
     }
 
     suspend fun setBluetoothEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[KEY_BLUETOOTH_ENABLED] = enabled
-        }
-    }
-
-    suspend fun setPersistentNotificationEnabled(enabled: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[KEY_PERSISTENT_NOTIFICATION] = enabled
         }
     }
 
@@ -130,7 +118,6 @@ class SettingsDataStore(private val context: Context) {
         private val KEY_DEVICE_NAME = stringPreferencesKey("device_name_preference")
         private val KEY_THEME = stringPreferencesKey("theme_pref")
         private val KEY_BLUETOOTH_ENABLED = booleanPreferencesKey("bluetooth_enabled")
-        private val KEY_PERSISTENT_NOTIFICATION = booleanPreferencesKey("persistentNotification")
         private val KEY_DEVICE_ID = stringPreferencesKey("device_id_preference")
         private val FILE_DESTINATION = stringPreferencesKey("file_destination")
         private val KEY_PRESENTER_VOLUME_KEYS = booleanPreferencesKey("pref_presenter_enable_volume_keys")

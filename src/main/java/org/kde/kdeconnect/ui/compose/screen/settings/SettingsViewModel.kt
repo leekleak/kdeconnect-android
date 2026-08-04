@@ -16,8 +16,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.apache.commons.io.IOUtils
-import org.kde.kdeconnect.BackgroundService
 import org.kde.kdeconnect.datastore.SettingsDataStore
+import org.kde.kdeconnect.ui.AppTheme
 import org.kde.kdeconnect.ui.ThemeUtil
 import org.kde.kdeconnect_tp.BuildConfig
 import java.io.InputStreamReader
@@ -54,17 +54,10 @@ class SettingsViewModel(
         }
     }
 
-    fun setTheme(theme: String) {
+    fun setTheme(theme: AppTheme) {
         viewModelScope.launch {
             dataStore.setTheme(theme)
             ThemeUtil.applyTheme(theme)
-        }
-    }
-
-    fun setPersistentNotificationEnabled(enabled: Boolean) {
-        viewModelScope.launch {
-            dataStore.setPersistentNotificationEnabled(enabled)
-            BackgroundService.instance?.changePersistentNotificationVisibility(enabled)
         }
     }
 
@@ -127,7 +120,7 @@ class SettingsViewModel(
 
 data class SettingsUiState(
     val deviceName: String = "",
-    val theme: String = "",
+    val theme: AppTheme = AppTheme.Default,
     val bluetoothEnabled: Boolean = false,
     val fileDestination: Uri? = null,
     val fileDestinationIsDefault: Boolean = true

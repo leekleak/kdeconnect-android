@@ -8,14 +8,10 @@ package org.kde.kdeconnect.helpers
 import android.content.Context
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationManagerCompat
-import kotlinx.coroutines.runBlocking
-import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect_tp.R
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
 object NotificationHelper : KoinComponent {
-    val dataStore: SettingsDataStore by inject()
     fun initializeChannels(context: Context) {
         val persistentChannel = NotificationChannelCompat.Builder(Channels.PERSISTENT, NotificationManagerCompat.IMPORTANCE_MIN)
             .setName(context.getString(R.string.notification_channel_persistent))
@@ -70,16 +66,6 @@ object NotificationHelper : KoinComponent {
         // Delete any notification channels which weren't added.
         // Use this to deprecate old channels.
         nm.deleteUnlistedNotificationChannels(channels.map { channel -> channel.id })
-    }
-
-    fun setPersistentNotificationEnabled(context: Context?, enabled: Boolean) {
-        runBlocking {
-            dataStore.setPersistentNotificationEnabled(enabled)
-        }
-    }
-
-    fun isPersistentNotificationEnabled(context: Context?): Boolean {
-        return dataStore.isPersistentNotificationEnabledBlocking()
     }
 
     object Channels {

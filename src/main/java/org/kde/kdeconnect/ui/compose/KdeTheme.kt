@@ -9,28 +9,44 @@ package org.kde.kdeconnect.ui.compose
 import android.content.Context
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import org.kde.kdeconnect.datastore.SettingsDataStore
+import org.kde.kdeconnect.ui.AppTheme.*
+import org.koin.compose.koinInject
 
 @Composable
 fun KdeTheme(context : Context, content: @Composable () -> Unit) {
-    val colorScheme = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        when (isSystemInDarkTheme()) {
-            true -> dynamicDarkColorScheme(context)
-            false -> dynamicLightColorScheme(context)
-        }
-    } else {
-        when (isSystemInDarkTheme()) {
-            true -> darkColorScheme()
-            false -> lightColorScheme()
-        }
+    val dataStore: SettingsDataStore = koinInject()
+    val theme by dataStore.theme.collectAsState(dataStore.getThemeBlocking())
+    val colorScheme = when (theme) {
+        Light -> getColorScheme(context, false)
+        Dark -> getColorScheme(context, true)
+        Default -> getColorScheme(context, isSystemInDarkTheme())
     }
     MaterialTheme(
         colorScheme = colorScheme,
         content = content,
     )
+}
+
+fun getColorScheme(context: Context, dark: Boolean): ColorScheme {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        when (dark) {
+            true -> dynamicDarkColorScheme(context)
+            false -> dynamicLightColorScheme(context)
+        }
+    } else {
+        when (dark) {
+            true -> darkColorScheme()
+            false -> lightColorScheme()
+        }
+    }
 }

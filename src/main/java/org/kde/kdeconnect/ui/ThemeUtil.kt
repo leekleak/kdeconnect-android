@@ -19,24 +19,20 @@ import org.koin.core.component.inject
  */
 object ThemeUtil : KoinComponent {
     val dataStore: SettingsDataStore by inject()
-    @Suppress("MemberVisibilityCanBePrivate")
-    const val LIGHT_MODE: String = "light"
-    @Suppress("MemberVisibilityCanBePrivate")
-    const val DARK_MODE: String = "dark"
-    const val DEFAULT_MODE: String = "default"
 
-    fun applyTheme(themePref: String) {
+    //Todo: Fix this as now the app thinks that the default theme is whatever theme was set when MainActivity was launched.
+    fun applyTheme(themePref: AppTheme) {
         when (themePref) {
-            LIGHT_MODE -> {
+            AppTheme.Light -> {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
             }
 
-            DARK_MODE -> {
+            AppTheme.Dark -> {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
             }
 
             else -> {
-                if (themePref == DEFAULT_MODE) {
+                if (themePref == AppTheme.Default) {
                     Log.d("ThemeUtil", "Theme preference not set, using system default.")
                 } else {
                     Log.w("ThemeUtil", "Unknown theme preference: $themePref, falling back to system default.")
@@ -59,4 +55,10 @@ object ThemeUtil : KoinComponent {
         DynamicColors.applyToActivitiesIfAvailable(application)
         applyTheme(appTheme)
     }
+}
+
+enum class AppTheme {
+    Default,
+    Light,
+    Dark,
 }

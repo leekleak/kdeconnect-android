@@ -406,19 +406,30 @@ fun <T> DialogItemSelectPreference(
                         .clip(MaterialTheme.shapes.medium)
                         .clickable {
                             onValueChanged(itemValue)
-                            expanded.value = false
                             haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                         }
                         .background(if (itemValue == value) colorScheme.primary else colorScheme.surfaceContainer)
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                     Text(
-                         text = label,
-                         style = MaterialTheme.typography.bodyLargeEmphasized,
-                         color = if (itemValue == value) colorScheme.onPrimary else colorScheme.onSurface,
-                         fontWeight = FontWeight.Bold
-                     )
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text = label,
+                        style = MaterialTheme.typography.bodyLargeEmphasized,
+                        color = if (itemValue == value) colorScheme.onPrimary else colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold
+                    )
+                    AnimatedVisibility(
+                        visible = itemValue == value,
+                        enter = fadeIn(tween()) + scaleIn(),
+                        exit = fadeOut(tween()) + scaleOut()
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.check_circle),
+                            contentDescription = stringResource(R.string.selected),
+                            tint = colorScheme.onPrimary
+                        )
+                    }
                 }
              }
          }
@@ -429,7 +440,7 @@ fun <T> DialogItemSelectPreference(
             horizontalArrangement = Arrangement.End
         ) {
              TextButton(onClick = { expanded.value = false }) {
-                 Text(stringResource(R.string.cancel))
+                 Text(stringResource(R.string.close))
              }
         }
     }
