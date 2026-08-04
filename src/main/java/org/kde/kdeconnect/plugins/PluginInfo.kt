@@ -1,20 +1,15 @@
 package org.kde.kdeconnect.plugins
 
-import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.DialogFragment
 import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.plugins.Plugin.Companion.getPluginKey
-import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.PermissionExplanationActivity
 import org.kde.kdeconnect.ui.PermissionRequest
-import org.kde.kdeconnect.ui.PermissionsAlertDialogFragment
 import org.kde.kdeconnect_tp.R
-import org.koin.core.context.GlobalContext
 
 open class PluginInfo(
     val instantiableClass: Class<out Plugin>,
