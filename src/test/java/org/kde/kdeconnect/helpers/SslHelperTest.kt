@@ -7,6 +7,8 @@ package org.kde.kdeconnect.helpers
 
 import android.content.Context
 import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
@@ -16,13 +18,15 @@ import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.kde.kdeconnect.helpers.security.SslHelper
 import java.security.cert.X509Certificate
 import java.security.cert.Certificate
 import java.util.Base64
 
+@RunWith(AndroidJUnit4::class)
 class SSLHelperTest {
-    private val context: Context = mockk()
+    private val context: Context = mockk(relaxed = true)
     private lateinit var deviceSettings: DeviceSettings
     private lateinit var db: DevicesRoomDatabase
     private val certificateBase64 = """
@@ -41,7 +45,8 @@ class SSLHelperTest {
 
     @Before
     fun setup() {
-        db = Room.inMemoryDatabaseBuilder(context, DevicesRoomDatabase::class.java)
+        val realContext = ApplicationProvider.getApplicationContext<Context>()
+        db = Room.inMemoryDatabaseBuilder(realContext, DevicesRoomDatabase::class.java)
             .allowMainThreadQueries()
             .build()
         deviceSettings = DeviceSettings(db.deviceDao())

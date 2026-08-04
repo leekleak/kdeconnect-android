@@ -7,9 +7,10 @@ package org.kde.kdeconnect
 
 import android.app.NotificationManager
 import android.content.Context
-import android.preference.PreferenceManager
 import androidx.core.content.ContextCompat
 import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
@@ -22,6 +23,7 @@ import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.kde.kdeconnect.DeviceInfo.Companion.fromIdentityPacketAndCert
 import org.kde.kdeconnect.DeviceInfo.Companion.isValidDeviceId
 import org.kde.kdeconnect.DeviceInfo.Companion.isValidIdentityPacket
@@ -29,6 +31,7 @@ import org.kde.kdeconnect.DeviceInfo.Companion.loadFromSettings
 import org.kde.kdeconnect.DeviceType.Companion.fromString
 import org.kde.kdeconnect.backends.lan.LanLink
 import org.kde.kdeconnect.backends.lan.LanLinkProvider
+import org.kde.kdeconnect.helpers.DeviceEntity
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.DevicesRoomDatabase
@@ -40,15 +43,17 @@ import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 import java.security.cert.CertificateException
 
+@RunWith(AndroidJUnit4::class)
 class DeviceTest {
-    private val context: Context = mockk()
+    private val context: Context = mockk(relaxed = true)
     private lateinit var deviceSettings: DeviceSettings
     private lateinit var db: DevicesRoomDatabase
 
     // Creating a paired device before each test case
     @Before
     fun setUp() {
-        db = Room.inMemoryDatabaseBuilder(context, DevicesRoomDatabase::class.java)
+        val realContext = ApplicationProvider.getApplicationContext<Context>()
+        db = Room.inMemoryDatabaseBuilder(realContext, DevicesRoomDatabase::class.java)
             .allowMainThreadQueries()
             .build()
         deviceSettings = DeviceSettings(db.deviceDao())
@@ -73,38 +78,21 @@ class DeviceTest {
             7n+KOQ==
             """.trimIndent()
 
-        // implement android.util.Base64 using java.util.Base64
-        mockkStatic(android.util.Base64::class)
-        every { android.util.Base64.encodeToString(any<ByteArray>(), any()) } answers {
-            java.util.Base64.getMimeEncoder().encodeToString(firstArg())
+        val certificateBytes = java.util.Base64.getMimeDecoder().decode(encodedCertificate)
+        runBlocking {
+            deviceSettings.addTrustedDevice(
+                DeviceEntity(
+                    deviceId = deviceId,
+                    name = name,
+                    type = DeviceType.PHONE.toString(),
+                    protocolVersion = DeviceHelper.PROTOCOL_VERSION,
+                    certificate = certificateBytes
+                )
+            )
         }
-        every { android.util.Base64.decode(any<String>(), any()) } answers {
-            java.util.Base64.getMimeDecoder().decode(firstArg<String>())
-        }
 
-        // Store device information needed to create a Device object in a future
-        val deviceSettings = MockSharedPreference()
-        val editor = deviceSettings.edit()
-        editor.putString("deviceName", name)
-        editor.putString("deviceType", DeviceType.PHONE.toString())
-        editor.putString("certificate", encodedCertificate)
-        editor.apply()
-        every { context.getSharedPreferences(deviceId, Context.MODE_PRIVATE) } returns deviceSettings
-
-        // Store the device as trusted
-        val trustedSettings = MockSharedPreference()
-        trustedSettings.edit().putBoolean(deviceId, true).apply()
-        every { context.getSharedPreferences("trusted_devices", Context.MODE_PRIVATE) } returns trustedSettings
-
-        // Store an untrusted device
-        val untrustedSettings = MockSharedPreference()
-        every { context.getSharedPreferences("unpairedTestDevice", Context.MODE_PRIVATE) } returns untrustedSettings
-
-        mockkStatic(PreferenceManager::class)
-        val defaultSettings = MockSharedPreference()
-        every { PreferenceManager.getDefaultSharedPreferences(any()) } returns defaultSettings
-
-        EcHelper.ensureKeyPair()
+        mockkObject(EcHelper)
+        every { EcHelper.ensureKeyPair() } returns Unit
 
         mockkStatic(ContextCompat::class)
         every { ContextCompat.getSystemService(context, NotificationManager::class.java) } returns mockk(relaxed = true)
@@ -134,7 +122,6 @@ class DeviceTest {
             })
         }
 
-        val certificateBytes = java.util.Base64.getMimeDecoder().decode(encodedCertificate)
         SslHelper.certificate = SslHelper.parseCertificate(certificateBytes)
     }
 

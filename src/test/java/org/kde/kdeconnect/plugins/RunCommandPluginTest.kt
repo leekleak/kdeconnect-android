@@ -17,6 +17,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
 import org.kde.kdeconnect.plugins.runcommand.RunCommandPlugin
 
 @RunWith(AndroidJUnit4::class)
@@ -24,6 +25,7 @@ class RunCommandPluginTest {
     private lateinit var runCommandPlugin: RunCommandPlugin
     private lateinit var context: Context
     private lateinit var device: Device
+    private lateinit var settingsDataStore: RunCommandSettingsDataStore
     private var packet: NetworkPacket? = null
 
     @Before
@@ -37,7 +39,8 @@ class RunCommandPluginTest {
             }
             every { onPluginsChanged() } returns Unit
         }
-        runCommandPlugin = RunCommandPlugin(context, device)
+        settingsDataStore = mockk(relaxed = true)
+        runCommandPlugin = RunCommandPlugin(context, device, settingsDataStore)
     }
 
     @After
@@ -75,11 +78,11 @@ class RunCommandPluginTest {
             set("commandList", JSONObject().apply {
                 put("command1", JSONObject().apply {
                     put("name", "Command 1")
-                    put("key", "command1")
+                    put("command", "cmd1")
                 })
                 put("command2", JSONObject().apply {
                     put("name", "Command 2")
-                    put("key", "command2")
+                    put("command", "cmd2")
                 })
             })
         }
@@ -90,12 +93,12 @@ class RunCommandPluginTest {
         assertEquals(2, commandList.size)
 
         val command1 = commandList[0]
-        assertEquals("command1", command1.getString("key"))
-        assertEquals("Command 1", command1.getString("name"))
+        assertEquals("command1", command1.key)
+        assertEquals("Command 1", command1.name)
 
         val command2 = commandList[1]
-        assertEquals("command2", command2.getString("key"))
-        assertEquals("Command 2", command2.getString("name"))
+        assertEquals("command2", command2.key)
+        assertEquals("Command 2", command2.name)
 
         verify(exactly = 1) { device.onPluginsChanged() }
     }
@@ -107,7 +110,7 @@ class RunCommandPluginTest {
             set("commandList", JSONObject().apply {
                 put("command1", JSONObject().apply {
                     put("name", "Command 1")
-                    put("key", "command1")
+                    put("command", "cmd1")
                 })
             })
         }
@@ -118,11 +121,11 @@ class RunCommandPluginTest {
             set("commandList", JSONObject().apply {
                 put("command1", JSONObject().apply {
                     put("name", "Updated Command 1")
-                    put("key", "command1")
+                    put("command", "cmd1")
                 })
                 put("command2", JSONObject().apply {
                     put("name", "Command 2")
-                    put("key", "command2")
+                    put("command", "cmd2")
                 })
             })
         }
@@ -132,13 +135,13 @@ class RunCommandPluginTest {
         val commandList = runCommandPlugin.commandList
         assertEquals(2, commandList.size)
 
-        val updatedCommand1 = commandList[0]
-        assertEquals("command1", updatedCommand1.getString("key"))
-        assertEquals("Updated Command 1", updatedCommand1.getString("name"))
+        val command2 = commandList[0]
+        assertEquals("command2", command2.key)
+        assertEquals("Command 2", command2.name)
 
-        val command2 = commandList[1]
-        assertEquals("command2", command2.getString("key"))
-        assertEquals("Command 2", command2.getString("name"))
+        val updatedCommand1 = commandList[1]
+        assertEquals("command1", updatedCommand1.key)
+        assertEquals("Updated Command 1", updatedCommand1.name)
 
         verify { device.onPluginsChanged() }
     }
