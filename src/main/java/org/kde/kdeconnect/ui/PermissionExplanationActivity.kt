@@ -42,24 +42,32 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.kde.kdeconnect.plugins.PluginFactory
+import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.compose.components.IconHero
 import org.kde.kdeconnect.ui.compose.components.card
 import org.kde.kdeconnect.ui.compose.components.googleSans
 import org.kde.kdeconnect_tp.R
+import org.koin.android.ext.android.inject
 
 class PermissionExplanationActivity : AppCompatActivity() {
+    private val permissionRequestHelper: PermissionRequestHelper by inject()
+    private var pluginKey: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val pluginKey = intent.getStringExtra("pluginKey")
+        val key = intent.getStringExtra("pluginKey")
+        pluginKey = key
 
-        if (pluginKey == null) {
+        if (key == null) {
             finish()
             return
         }
 
-        val pluginInfo = PluginFactory.getPluginInfo(pluginKey)
+        permissionRequestHelper.markExplanationShown(key)
+
+        val pluginInfo = PluginFactory.getPluginInfo(key)
 
         setResult(RESULT_CANCELED)
 
@@ -82,6 +90,11 @@ class PermissionExplanationActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        pluginKey?.let { permissionRequestHelper.markExplanationDismissed(it) }
     }
 }
 

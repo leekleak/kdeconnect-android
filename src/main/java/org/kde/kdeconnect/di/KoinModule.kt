@@ -37,6 +37,7 @@ import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.DevicesRoomDatabase
 import org.kde.kdeconnect.helpers.PermissionHelper
+import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 import org.kde.kdeconnect.plugins.battery.BatteryPlugin
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin
@@ -315,6 +316,7 @@ val appModule = module {
     single<ImageLoader> { create(::buildImageLoader) }
 
     single<TrustedNetworkHelper>()
+    single { PermissionRequestHelper() }
     single<AppDatabase>()
 
     single<DevicesRoomDatabase> {

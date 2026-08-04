@@ -277,7 +277,7 @@ class SMSPlugin(
         val list = listOf(PACKET_TYPE_SMS_REQUEST_CONVERSATIONS, PACKET_TYPE_SMS_REQUEST_CONVERSATION,
             PACKET_TYPE_SMS_REQUEST, PACKET_TYPE_SMS_REQUEST_ATTACHMENT)
         if (!list.contains(np.type)) return false
-        pluginInfo.showPermissionExplanation(context, device.deviceId) //Todo: Figure out a way to reemit all queries before permission had been granted.
+        pluginInfo.showPermissionExplanation(context) //Todo: Figure out a way to reemit all queries before permission had been granted.
         if (!initialized) initialize()
         if (!pluginInfo.checkRequiredPermissions(context)) return false
         return when (np.type) {

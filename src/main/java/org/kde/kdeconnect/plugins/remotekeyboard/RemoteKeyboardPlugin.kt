@@ -282,7 +282,7 @@ class RemoteKeyboardPlugin(context: Context, device: Device) : Plugin(context, d
         }
 
         if (!pluginInfo.checkRequiredPermissions(context)) {
-            pluginInfo.showPermissionExplanation(context, deviceId)
+            pluginInfo.showPermissionExplanation(context)
             return false
         }
 

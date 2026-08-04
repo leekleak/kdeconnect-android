@@ -77,7 +77,7 @@ class FindMyPhonePlugin(
 
     override fun onPacketReceived(np: NetworkPacket): Boolean {
         if (!pluginInfo.checkRequiredPermissions(context)) { // Todo: Find my permissions should be granted on app setup
-            pluginInfo.showPermissionExplanation(context, deviceId)
+            pluginInfo.showPermissionExplanation(context)
         } else {
             val intent = Intent(context, FindMyPhoneActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

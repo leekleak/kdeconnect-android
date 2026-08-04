@@ -75,7 +75,7 @@ class SftpPlugin(
         if (!np.getBoolean("startBrowsing")) return false
 
         if (!pluginInfo.checkRequiredPermissions(context)) {
-            pluginInfo.showPermissionExplanation(context, device.deviceId)
+            pluginInfo.showPermissionExplanation(context)
             val noPermissionsPacket = NetworkPacket(PACKET_TYPE_SFTP).apply {
                 this["errorMessage"] = context.getString(R.string.sftp_missing_permission_error)
             }

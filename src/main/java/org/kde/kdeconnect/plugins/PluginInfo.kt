@@ -7,12 +7,14 @@ import android.content.pm.PackageManager
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
+import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.plugins.Plugin.Companion.getPluginKey
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.PermissionExplanationActivity
 import org.kde.kdeconnect.ui.PermissionRequest
 import org.kde.kdeconnect.ui.PermissionsAlertDialogFragment
 import org.kde.kdeconnect_tp.R
+import org.koin.core.context.GlobalContext
 
 open class PluginInfo(
     val instantiableClass: Class<out Plugin>,
@@ -68,8 +70,11 @@ open class PluginInfo(
     /**
      * Shows the permissionExplanationDialog if required permissions are not granted.
      */
-    fun showPermissionExplanation(context: Context, deviceId: String) {
+    fun showPermissionExplanation(context: Context) {
         if (!checkRequiredPermissions(context)) {
+            val helper = GlobalContext.get().get<PermissionRequestHelper>()
+            if (helper.isExplanationShown(pluginKey)) return
+
             val intent = Intent(context, PermissionExplanationActivity::class.java).apply {
                 putExtra("pluginKey", pluginKey)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

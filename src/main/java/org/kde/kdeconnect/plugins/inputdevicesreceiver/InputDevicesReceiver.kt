@@ -71,7 +71,7 @@ class InputDevicesReceiverPlugin(context: Context, device: Device) : Plugin(cont
         // we must hand over control to the other end.
         if (mouseReceiverPlugin == null) {
             val plugin = device.getPluginIncludingWithoutPermissions("MouseReceiverPlugin")
-            plugin?.pluginInfo?.showPermissionExplanation(context, device.deviceId)
+            plugin?.pluginInfo?.showPermissionExplanation(context)
 
             Cursor.x = np.getInt("deltax", Cursor.x)
             Cursor.y = np.getInt("deltay", Cursor.y)

@@ -26,7 +26,6 @@ import kotlin.math.floor
 class MouseReceiverPlugin(context: Context, device: Device) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = MouseReceiverPluginInfo
 
-    var permissionDialogShown: Boolean = false
     override fun onPacketReceived(np: NetworkPacket): Boolean {
         if (np.type != PACKET_TYPE_MOUSEPAD_REQUEST) {
             Log.e("MouseReceiverPlugin", "Invalid packet type for MouseReceiverPlugin: ${np.type}")
@@ -37,9 +36,9 @@ class MouseReceiverPlugin(context: Context, device: Device) : Plugin(context, de
             return false // This packet will be handled by the remotekeyboard instead, silently ignore
         }
 
-        if (!pluginInfo.checkRequiredPermissions(context) && !permissionDialogShown) {
-            pluginInfo.showPermissionExplanation(context, deviceId)
-            permissionDialogShown = true
+        if (!pluginInfo.checkRequiredPermissions(context)) {
+            pluginInfo.showPermissionExplanation(context)
+            return true
         }
 
         val dx = np.getDouble("dx", 0.toDouble()).let { if (it < 0) floor(it) else ceil(it) }.toInt()
