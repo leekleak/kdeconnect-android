@@ -57,6 +57,10 @@ class SettingsDataStore(private val context: Context) {
         .map { it[KEY_PRESENTER_SENSITIVITY] ?: 50 }
         .distinctUntilChanged()
 
+    val certificate: Flow<String> = context.dataStore.data
+        .map { it[KEY_CERTIFICATE] ?: "" }
+        .distinctUntilChanged()
+
     // Blocking getters for legacy interop
     fun getDeviceNameBlocking(): String = runBlocking { deviceName.first() }
     fun getThemeBlocking(): String = runBlocking { theme.first() }
@@ -65,6 +69,7 @@ class SettingsDataStore(private val context: Context) {
     fun getDeviceIdBlocking(): String = runBlocking { deviceId.first() }
     fun isPresenterVolumeKeysEnabledBlocking(): Boolean = runBlocking { presenterVolumeKeysEnabled.first() }
     fun getPresenterSensitivityBlocking(): Int = runBlocking { presenterSensitivity.first() }
+    fun getCertificateBlocking(): String = runBlocking { certificate.first() }
 
     suspend fun setDeviceName(name: String) {
         context.dataStore.edit { preferences ->
@@ -110,6 +115,10 @@ class SettingsDataStore(private val context: Context) {
         context.dataStore.edit { it[KEY_PRESENTER_SENSITIVITY] = sensitivity }
     }
 
+    suspend fun setCertificate(certificate: String) {
+        context.dataStore.edit { it[KEY_CERTIFICATE] = certificate }
+    }
+
     fun getDefaultDestinationUri(): Uri {
         return DocumentsContract.buildTreeDocumentUri(
             "com.android.externalstorage.documents",
@@ -126,5 +135,6 @@ class SettingsDataStore(private val context: Context) {
         private val FILE_DESTINATION = stringPreferencesKey("file_destination")
         private val KEY_PRESENTER_VOLUME_KEYS = booleanPreferencesKey("pref_presenter_enable_volume_keys")
         private val KEY_PRESENTER_SENSITIVITY = intPreferencesKey("pref_presenter_sensitivity")
+        private val KEY_CERTIFICATE = stringPreferencesKey("certificate")
     }
 }

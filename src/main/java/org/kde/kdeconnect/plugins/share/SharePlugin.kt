@@ -10,7 +10,6 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
@@ -20,13 +19,11 @@ import androidx.annotation.WorkerThread
 import androidx.core.content.ContextCompat
 import androidx.core.content.IntentCompat
 import androidx.core.content.LocusIdCompat
-import androidx.core.content.edit
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import androidx.core.net.toUri
 import androidx.core.os.BundleCompat
-import androidx.preference.PreferenceManager
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.async.BackgroundJob
@@ -39,7 +36,6 @@ import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect_tp.R
 import java.net.MalformedURLException
-import java.net.URISyntaxException
 import java.net.URL
 
 /**
@@ -58,14 +54,10 @@ class SharePlugin(context: Context, device: Device) : Plugin(context, device) {
     private var uploadFileJob: CompositeUploadFileJob? = null
     private val receiveFileJobCallback: Callback = Callback()
 
-    private val mSharedPrefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-
     override val pluginInfo: PluginInfo = SharePluginInfo
 
     override fun onCreate(): Boolean {
         createOrUpdateDynamicShortcut(null)
-        // Deliver URLs previously shared to this device now that it's connected
-        deliverPreviouslySentIntents()
         return true
     }
 
@@ -124,24 +116,6 @@ class SharePlugin(context: Context, device: Device) : Plugin(context, device) {
             ShortcutManagerCompat.pushDynamicShortcut(context, shortcut)
         } else {
             ShortcutManagerCompat.updateShortcuts(context, listOf(shortcut))
-        }
-    }
-
-    private fun deliverPreviouslySentIntents() {
-        val currentUrlSet = mSharedPrefs.getStringSet(KEY_UNREACHABLE_URL_LIST + device.deviceId, null) ?: return
-        for (url in currentUrlSet) {
-            val intent: Intent
-            try {
-                intent = Intent.parseUri(url, 0)
-                intent.putExtra(Intent.EXTRA_TEXT, url)
-            } catch (_: URISyntaxException) {
-                Log.e("SharePlugin", "Malformed URI")
-                continue
-            }
-            share(intent)
-        }
-        mSharedPrefs.edit {
-            putStringSet(KEY_UNREACHABLE_URL_LIST + device.deviceId, null)
         }
     }
 
@@ -352,7 +326,6 @@ class SharePlugin(context: Context, device: Device) : Plugin(context, device) {
 
     override fun onDeviceUnpaired(context: Context, deviceId: String) {
         Log.i("KDE/SharePlugin", "onDeviceUnpaired deviceId = $deviceId")
-        mSharedPrefs.edit { remove(KEY_UNREACHABLE_URL_LIST + deviceId) }
     }
 
     companion object {
@@ -365,7 +338,5 @@ class SharePlugin(context: Context, device: Device) : Plugin(context, device) {
 
         const val KEY_NUMBER_OF_FILES: String = "numberOfFiles"
         const val KEY_TOTAL_PAYLOAD_SIZE: String = "totalPayloadSize"
-
-        const val KEY_UNREACHABLE_URL_LIST: String = "key_unreachable_url_list"
     }
 }

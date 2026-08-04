@@ -7,10 +7,8 @@ package org.kde.kdeconnect.helpers.security
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.preference.PreferenceManager
 import android.util.Base64
 import android.util.Log
-import androidx.core.content.edit
 import org.bouncycastle.asn1.x500.X500Name
 import org.bouncycastle.asn1.x500.X500NameBuilder
 import org.bouncycastle.asn1.x500.style.BCStyle
@@ -23,6 +21,7 @@ import org.kde.kdeconnect.helpers.RandomHelper
 import org.kde.kdeconnect.helpers.security.EcHelper.getPrivateKey
 import org.kde.kdeconnect.helpers.security.EcHelper.getPublicKey
 import org.kde.kdeconnect.helpers.DeviceSettings
+import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.io.ByteArrayInputStream
@@ -51,6 +50,7 @@ import kotlinx.coroutines.runBlocking
 object SslHelper : KoinComponent {
     private val deviceHelper: DeviceHelper by inject()
     private val deviceSettings: DeviceSettings by inject()
+    private val settingsDataStore: SettingsDataStore by inject()
     lateinit var certificate: Certificate //my device's certificate
     private val factory: CertificateFactory = CertificateFactory.getInstance("X.509")
 
@@ -71,12 +71,12 @@ object SslHelper : KoinComponent {
         val deviceId = deviceHelper.getDeviceId()
 
         var needsToGenerateCertificate = false
-        val settings = PreferenceManager.getDefaultSharedPreferences(context)
+        val certificateBase64 = settingsDataStore.getCertificateBlocking()
 
-        if (settings.contains("certificate")) {
+        if (certificateBase64.isNotEmpty()) {
             val currDate = Date()
             try {
-                val certificateBytes = Base64.decode(settings.getString("certificate", ""), 0)
+                val certificateBytes = Base64.decode(certificateBase64, 0)
                 val cert = parseCertificate(certificateBytes) as X509Certificate
 
                 val certDeviceId = getCommonNameFromCertificate(cert)
@@ -128,8 +128,8 @@ object SslHelper : KoinComponent {
             val certificateBytes = certificateBuilder.build(contentSigner).encoded
             certificate = parseCertificate(certificateBytes)
 
-            settings.edit {
-                putString("certificate", Base64.encodeToString(certificateBytes, 0))
+            runBlocking {
+                settingsDataStore.setCertificate(Base64.encodeToString(certificateBytes, 0))
             }
 
             setLocale(initialLocale, context)
