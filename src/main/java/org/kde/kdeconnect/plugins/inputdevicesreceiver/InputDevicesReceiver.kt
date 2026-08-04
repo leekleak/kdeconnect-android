@@ -11,11 +11,16 @@ import android.util.DisplayMetrics
 import android.view.Display
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect_tp.R
 
-class InputDevicesReceiverPlugin(context: Context, device: Device) : Plugin(context, device) {
+class InputDevicesReceiverPlugin(
+    context: Context,
+    device: Device,
+    private val permissionRequestHelper: PermissionRequestHelper
+) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = InputDevicesReceiverPluginInfo
 
     object Cursor {
@@ -71,7 +76,7 @@ class InputDevicesReceiverPlugin(context: Context, device: Device) : Plugin(cont
         // we must hand over control to the other end.
         if (mouseReceiverPlugin == null) {
             val plugin = device.getPluginIncludingWithoutPermissions("MouseReceiverPlugin")
-            plugin?.pluginInfo?.showPermissionExplanation(context)
+            plugin?.pluginInfo?.showPermissionExplanation(context, permissionRequestHelper)
 
             Cursor.x = np.getInt("deltax", Cursor.x)
             Cursor.y = np.getInt("deltay", Cursor.y)

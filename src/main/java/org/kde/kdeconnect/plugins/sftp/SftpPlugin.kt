@@ -6,9 +6,8 @@
 */
 package org.kde.kdeconnect.plugins.sftp
 
-import android.content.ComponentCallbacks
-import android.content.Context
 import android.content.ContentResolver
+import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import android.os.storage.StorageManager
@@ -26,6 +25,7 @@ import org.json.JSONObject
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.SftpSettingsDataStore
+import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.helpers.getLocalIpAddress
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
@@ -38,12 +38,14 @@ import org.kde.kdeconnect.ui.PermissionRequest
 import org.kde.kdeconnect.ui.StartActivityAlertDialogFragment
 import org.kde.kdeconnect_tp.BuildConfig
 import org.kde.kdeconnect_tp.R
-import org.koin.android.ext.android.getKoin
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 class SftpPlugin(
     context: Context,
     device: Device,
-    private val dataStore: SftpSettingsDataStore
+    private val dataStore: SftpSettingsDataStore,
+    private val permissionRequestHelper: PermissionRequestHelper
 ) : Plugin(context, device) {
     override val pluginInfo: SftpPluginInfo = SftpPluginInfo
 
@@ -75,7 +77,7 @@ class SftpPlugin(
         if (!np.getBoolean("startBrowsing")) return false
 
         if (!pluginInfo.checkRequiredPermissions(context)) {
-            pluginInfo.showPermissionExplanation(context)
+            pluginInfo.showPermissionExplanation(context, permissionRequestHelper)
             val noPermissionsPacket = NetworkPacket(PACKET_TYPE_SFTP).apply {
                 this["errorMessage"] = context.getString(R.string.sftp_missing_permission_error)
             }
@@ -99,7 +101,7 @@ class SftpPlugin(
                 paths.add(sv.directory!!.path)
             }
         } else {
-            val storageInfoList = pluginInfo.getStorageInfoList(context)
+            val storageInfoList = pluginInfo.getStorageInfoList()
             storageInfoList.sortBy { it.uri }
             if (storageInfoList.isEmpty()) {
                 device.sendPacket(NetworkPacket(PACKET_TYPE_SFTP).apply {
@@ -232,12 +234,14 @@ object SftpPluginInfo : PluginInfo(
     descriptionRes = R.string.pref_plugin_sftp_desc,
     supportedPacketTypes = arrayOf(PACKET_TYPE_SFTP_REQUEST),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_SFTP),
-) {
+), KoinComponent {
+    private val dataStore: SftpSettingsDataStore by inject()
+
     override fun checkRequiredPermissions(context: Context): Boolean {
         return if (SimpleSftpServer.SUPPORTS_NATIVEFS) {
             Environment.isExternalStorageManager()
         } else {
-            getStorageInfoList(context).isNotEmpty()
+            getStorageInfoList().isNotEmpty()
         }
     }
 
@@ -279,10 +283,9 @@ object SftpPluginInfo : PluginInfo(
         }
     }
 
-    fun getStorageInfoList(context: Context): MutableList<StorageInfo> {
+    fun getStorageInfoList(): MutableList<StorageInfo> {
         val storageInfoList = mutableListOf<StorageInfo>()
 
-        val dataStore = (context.applicationContext as ComponentCallbacks).getKoin().get<SftpSettingsDataStore>()
         val jsonString = dataStore.getStorageInfoListJsonBlocking()
 
         try {

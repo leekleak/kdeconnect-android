@@ -24,7 +24,6 @@ import org.kde.kdeconnect_tp.BuildConfig
 import org.kde.kdeconnect_tp.R
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.koin.core.context.GlobalContext
 
 const val RUN_COMMAND_ACTION = "RUN_COMMAND_ACTION"
 const val TARGET_COMMAND = "TARGET_COMMAND"
@@ -32,10 +31,11 @@ const val TARGET_DEVICE = "TARGET_DEVICE"
 
 class RunCommandWidgetProvider : AppWidgetProvider(), KoinComponent {
     private val runCommandSettingsDataStore: RunCommandSettingsDataStore by inject()
+    private val deviceManager: DeviceManager by inject()
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         for (appWidgetId in appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId)
+            updateAppWidget(context, appWidgetManager, appWidgetId, runCommandSettingsDataStore, deviceManager)
         }
     }
 
@@ -49,14 +49,12 @@ class RunCommandWidgetProvider : AppWidgetProvider(), KoinComponent {
 
     override fun onEnabled(context: Context) {
         super.onEnabled(context)
-        val deviceManager: DeviceManager = GlobalContext.get().get()
         deviceManager.addDeviceListChangedCallback("RunCommandWidget") {
             forceRefreshWidgets(context)
         }
     }
 
     override fun onDisabled(context: Context) {
-        val deviceManager: DeviceManager = GlobalContext.get().get()
         deviceManager.removeDeviceListChangedCallback("RunCommandWidget")
         super.onDisabled(context)
     }
@@ -67,7 +65,6 @@ class RunCommandWidgetProvider : AppWidgetProvider(), KoinComponent {
         if (intent.action == RUN_COMMAND_ACTION) {
             val targetCommand = intent.getStringExtra(TARGET_COMMAND)
             val targetDevice = intent.getStringExtra(TARGET_DEVICE)
-            val deviceManager: DeviceManager = GlobalContext.get().get()
             val plugin = deviceManager.getDevicePlugin(targetDevice, RunCommandPlugin::class.java)
             if (plugin != null && targetCommand != null) {
                 try {
@@ -114,14 +111,14 @@ fun forceRefreshWidgets(context : Context) {
 internal fun updateAppWidget(
     context: Context,
     appWidgetManager: AppWidgetManager,
-    appWidgetId: Int
+    appWidgetId: Int,
+    runCommandSettingsDataStore: RunCommandSettingsDataStore,
+    deviceManager: DeviceManager
 ) {
     Log.d("WidgetProvider", "updateAppWidget: $appWidgetId")
 
     // Determine which device provided these commands
-    val runCommandSettingsDataStore: RunCommandSettingsDataStore = GlobalContext.get().get() // Todo: Remove all instances of GlobalContext
     val deviceId = runCommandSettingsDataStore.getWidgetDeviceIdBlocking(appWidgetId)
-    val deviceManager: DeviceManager = GlobalContext.get().get()
     val device: Device? = if (deviceId != null) deviceManager.getDevice(deviceId) else null
 
     val views = RemoteViews(BuildConfig.APPLICATION_ID, R.layout.widget_remotecommandplugin)

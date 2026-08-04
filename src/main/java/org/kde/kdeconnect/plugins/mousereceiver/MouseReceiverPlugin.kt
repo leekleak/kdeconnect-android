@@ -12,6 +12,7 @@ import android.util.Log
 import androidx.fragment.app.DialogFragment
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_REQUEST
@@ -23,7 +24,11 @@ import org.kde.kdeconnect_tp.R
 import kotlin.math.ceil
 import kotlin.math.floor
 
-class MouseReceiverPlugin(context: Context, device: Device) : Plugin(context, device) {
+class MouseReceiverPlugin(
+    context: Context,
+    device: Device,
+    private val permissionRequestHelper: PermissionRequestHelper
+) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = MouseReceiverPluginInfo
 
     override fun onPacketReceived(np: NetworkPacket): Boolean {
@@ -37,7 +42,7 @@ class MouseReceiverPlugin(context: Context, device: Device) : Plugin(context, de
         }
 
         if (!pluginInfo.checkRequiredPermissions(context)) {
-            pluginInfo.showPermissionExplanation(context)
+            pluginInfo.showPermissionExplanation(context, permissionRequestHelper)
             return true
         }
 

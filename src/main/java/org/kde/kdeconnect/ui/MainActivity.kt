@@ -61,7 +61,7 @@ private const val STORAGE_LOCATION_CONFIGURED = 2020
 
 class MainActivity : AppCompatActivity(), AndroidScopeComponent {
     override val scope: Scope by activityRetainedScope()
-    val settingsDataStore: SettingsDataStore by inject()
+    private val settingsDataStore: SettingsDataStore by inject()
     private val deviceHelper: DeviceHelper by inject()
     private val deviceManager: DeviceManager by inject()
 

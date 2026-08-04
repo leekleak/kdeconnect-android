@@ -38,6 +38,7 @@ import org.kde.kdeconnect.helpers.DevicesRoomDatabase
 import org.kde.kdeconnect.helpers.security.EcHelper
 import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.plugins.PluginFactory
+import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
@@ -48,6 +49,8 @@ class DeviceTest {
     private val context: Context = mockk(relaxed = true)
     private lateinit var deviceSettings: DeviceSettings
     private lateinit var db: DevicesRoomDatabase
+    private val settingsDataStore: SettingsDataStore = mockk(relaxed = true)
+    private lateinit var sslHelper: SslHelper
 
     // Creating a paired device before each test case
     @Before
@@ -56,7 +59,8 @@ class DeviceTest {
         db = Room.inMemoryDatabaseBuilder(realContext, DevicesRoomDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-        deviceSettings = DeviceSettings(db.deviceDao())
+        sslHelper = SslHelper(settingsDataStore)
+        deviceSettings = DeviceSettings(db.deviceDao(), sslHelper)
         val deviceId = "testDevice"
         val name = "Test Device"
         val encodedCertificate = """
@@ -86,7 +90,7 @@ class DeviceTest {
                     name = name,
                     type = DeviceType.PHONE.toString(),
                     protocolVersion = DeviceHelper.PROTOCOL_VERSION,
-                    certificate = certificateBytes
+                    certificate = certificateBytes,
                 )
             )
         }
@@ -113,16 +117,19 @@ class DeviceTest {
         every { PluginFactory.instantiatePluginForDevice(any(), any()) } returns null
 
         startKoin {
-            modules(module {
-                single { deviceSettings }
-                single { mockk<DeviceHelper>(relaxed = true) }
-                factory { (deviceId: String, link: org.kde.kdeconnect.backends.BaseLink?) ->
-                    Device(context, get(), deviceId, link)
+            modules(
+                module {
+                    single { deviceSettings }
+                    single { sslHelper }
+                    single { mockk<DeviceHelper>(relaxed = true) }
+                    factory { (deviceId: String?, link: org.kde.kdeconnect.backends.BaseLink?) ->
+                        Device(context, get(), get(), deviceId, link)
+                    }
                 }
-            })
+            )
         }
 
-        SslHelper.certificate = SslHelper.parseCertificate(certificateBytes)
+        sslHelper.certificate = SslHelper.parseCertificate(certificateBytes)
     }
 
     @After
@@ -140,7 +147,7 @@ class DeviceTest {
             loadFromSettings(deviceSettings, deviceId).copy(
                 protocolVersion = DeviceHelper.PROTOCOL_VERSION,
                 incomingCapabilities = hashSetOf("kdeconnect.plugin1State", "kdeconnect.plugin2State"),
-                outgoingCapabilities = hashSetOf("kdeconnect.plugin1State.request", "kdeconnect.plugin2State.request")
+                outgoingCapabilities = hashSetOf("kdeconnect.plugin1State.request", "kdeconnect.plugin2State.request"),
             )
         }
 
@@ -203,7 +210,7 @@ class DeviceTest {
     @Test
     @Throws(CertificateException::class)
     fun testDevice() {
-        val device = Device(context, deviceSettings, "testDevice")
+        val device = Device(context, deviceSettings, sslHelper, "testDevice")
 
         Assert.assertEquals(device.deviceId, "testDevice")
         Assert.assertEquals(device.deviceType, DeviceType.PHONE)
@@ -250,7 +257,7 @@ class DeviceTest {
         every { link.deviceId } returns deviceId
         every { link.deviceInfo } returns deviceInfo
         every { link.addPacketReceiver(any()) } returns Unit
-        val device = Device(context, deviceSettings, null, link)
+        val device = Device(context, deviceSettings, sslHelper, null, link)
 
         Assert.assertNotNull(device)
         Assert.assertEquals(device.deviceId, deviceId)
@@ -275,7 +282,7 @@ class DeviceTest {
     @Test
     @Throws(CertificateException::class)
     fun testUnpair() {
-        val device = Device(context, deviceSettings, "testDevice")
+        val device = Device(context, deviceSettings, sslHelper, "testDevice")
 
         device.unpair()
 

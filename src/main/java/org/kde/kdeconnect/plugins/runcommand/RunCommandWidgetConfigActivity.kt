@@ -57,7 +57,7 @@ class RunCommandWidgetConfigActivity : AppCompatActivity() {
             runCommandSettingsDataStore.setWidgetDeviceId(appWidgetId, deviceId)
 
             val appWidgetManager = AppWidgetManager.getInstance(this@RunCommandWidgetConfigActivity)
-            updateAppWidget(this@RunCommandWidgetConfigActivity, appWidgetManager, appWidgetId)
+            updateAppWidget(this@RunCommandWidgetConfigActivity, appWidgetManager, appWidgetId, runCommandSettingsDataStore, deviceManager)
 
             val resultValue = Intent()
             resultValue.putExtra(EXTRA_APPWIDGET_ID, appWidgetId)

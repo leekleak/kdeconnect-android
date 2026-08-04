@@ -30,6 +30,7 @@ import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 import org.kde.kdeconnect.helpers.ContactsHelper
+import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.helpers.SMSHelper
 import org.kde.kdeconnect.helpers.SMSHelper.MessageLooper.Companion.getLooper
 import org.kde.kdeconnect.helpers.SMSHelper.ThreadID
@@ -59,7 +60,8 @@ import java.util.concurrent.locks.ReentrantLock
 class SMSPlugin(
     context: Context,
     device: Device,
-    val telephonySettings: TelephonySettingsDataStore
+    private val telephonySettings: TelephonySettingsDataStore,
+    private val permissionRequestHelper: PermissionRequestHelper
 ) : Plugin(context, device) {
     override val pluginInfo: SMSPluginInfo = SMSPluginInfo
 
@@ -277,7 +279,7 @@ class SMSPlugin(
         val list = listOf(PACKET_TYPE_SMS_REQUEST_CONVERSATIONS, PACKET_TYPE_SMS_REQUEST_CONVERSATION,
             PACKET_TYPE_SMS_REQUEST, PACKET_TYPE_SMS_REQUEST_ATTACHMENT)
         if (!list.contains(np.type)) return false
-        pluginInfo.showPermissionExplanation(context) //Todo: Figure out a way to reemit all queries before permission had been granted.
+        pluginInfo.showPermissionExplanation(context, permissionRequestHelper) //Todo: Figure out a way to reemit all queries before permission had been granted.
         if (!initialized) initialize()
         if (!pluginInfo.checkRequiredPermissions(context)) return false
         return when (np.type) {

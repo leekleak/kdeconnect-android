@@ -70,9 +70,8 @@ open class PluginInfo(
     /**
      * Shows the permissionExplanationDialog if required permissions are not granted.
      */
-    fun showPermissionExplanation(context: Context) {
+    fun showPermissionExplanation(context: Context, helper: PermissionRequestHelper) {
         if (!checkRequiredPermissions(context)) {
-            val helper = GlobalContext.get().get<PermissionRequestHelper>()
             if (helper.isExplanationShown(pluginKey)) return
 
             val intent = Intent(context, PermissionExplanationActivity::class.java).apply {

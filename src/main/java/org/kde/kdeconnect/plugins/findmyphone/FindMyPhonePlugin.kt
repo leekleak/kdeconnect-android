@@ -22,6 +22,7 @@ import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 import org.kde.kdeconnect.helpers.NotificationHelper
+import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo.Companion.isPermissionGranted
 import org.kde.kdeconnect_tp.R
@@ -30,7 +31,8 @@ import java.io.IOException
 class FindMyPhonePlugin(
     context: Context,
     device: Device,
-    private val telephonySettingsDataStore: TelephonySettingsDataStore
+    private val telephonySettingsDataStore: TelephonySettingsDataStore,
+    private val permissionRequestHelper: PermissionRequestHelper
 ) : Plugin(context, device) {
     private val notificationManager: NotificationManager = context.getSystemService(NotificationManager::class.java)
     private val notificationId = System.currentTimeMillis().toInt()
@@ -77,7 +79,7 @@ class FindMyPhonePlugin(
 
     override fun onPacketReceived(np: NetworkPacket): Boolean {
         if (!pluginInfo.checkRequiredPermissions(context)) { // Todo: Find my permissions should be granted on app setup
-            pluginInfo.showPermissionExplanation(context)
+            pluginInfo.showPermissionExplanation(context, permissionRequestHelper)
         } else {
             val intent = Intent(context, FindMyPhoneActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

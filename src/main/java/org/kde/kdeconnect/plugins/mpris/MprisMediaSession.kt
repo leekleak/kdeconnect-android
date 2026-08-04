@@ -8,7 +8,6 @@ package org.kde.kdeconnect.plugins.mpris
 import android.Manifest
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.ComponentCallbacks
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -28,7 +27,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
-import org.koin.android.ext.android.getKoin
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
 import org.kde.kdeconnect.helpers.NotificationHelper

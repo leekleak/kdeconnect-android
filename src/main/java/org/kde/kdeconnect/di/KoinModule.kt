@@ -352,25 +352,25 @@ val appModule = module {
     factory { (context: Context) -> LoopbackLinkProvider(context, get()) }
 
     scope<Device> {
-        scoped { SftpPlugin(get(), get(), get()) }
+        scoped { SftpPlugin(get(), get(), get(), get()) }
         scoped { BatteryPlugin(get(), get()) }
         scoped { ClipboardPlugin(get(), get()) }
         scoped { ConnectivityReportPlugin(get(), get()) }
         scoped { ContactsPlugin(get(), get()) }
-        scoped { FindMyPhonePlugin(get(), get(), get()) }
+        scoped { FindMyPhonePlugin(get(), get(), get(), get()) }
         scoped { FindRemoteDevicePlugin(get(), get()) }
-        scoped { InputDevicesReceiverPlugin(get(), get()) }
+        scoped { InputDevicesReceiverPlugin(get(), get(), get()) }
         scoped { MousePadPlugin(get(), get(), get()) }
-        scoped { MouseReceiverPlugin(get(), get()) }
+        scoped { MouseReceiverPlugin(get(), get(), get()) }
         scoped { MprisPlugin(get(), get(), get(), get(), get()) }
         scoped { MprisReceiverPlugin(get(), get()) }
         scoped { NotificationsPlugin(get(), get(), get(), get()) }
         scoped { PresenterPlugin(get(), get()) }
         scoped { ReceiveNotificationsPlugin(get(), get()) }
-        scoped { RemoteKeyboardPlugin(get(), get()) }
+        scoped { RemoteKeyboardPlugin(get(), get(), get()) }
         scoped { RunCommandPlugin(get(), get(), get()) }
         scoped { SharePlugin(get(), get(), get()) }
-        scoped { SMSPlugin(get(), get(), get()) }
+        scoped { SMSPlugin(get(), get(), get(), get()) }
         scoped { SystemVolumePlugin(get(), get()) }
         scoped { TelephonyPlugin(get(), get(), get()) }
         scoped { DigitizerPlugin(get(), get()) }

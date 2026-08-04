@@ -18,10 +18,13 @@ import android.widget.RemoteViewsService.RemoteViewsFactory
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
 import org.kde.kdeconnect_tp.R
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.koin.core.context.GlobalContext
 
-internal class RunCommandWidgetDataProvider(private val context: Context, val intent: Intent?) : RemoteViewsFactory {
-
+internal class RunCommandWidgetDataProvider(private val context: Context, val intent: Intent?) : RemoteViewsFactory, KoinComponent {
+    private val runCommandSettingsDataStore: RunCommandSettingsDataStore by inject()
+    private val deviceManager: DeviceManager by inject()
     private var deviceId : String? = null
     private var widgetId : Int = AppWidgetManager.INVALID_APPWIDGET_ID
 
@@ -31,19 +34,16 @@ internal class RunCommandWidgetDataProvider(private val context: Context, val in
             Log.e("KDEConnect/Widget", "RunCommandWidgetDataProvider: No widget id extra was set")
             return
         }
-        val runCommandSettingsDataStore: RunCommandSettingsDataStore = GlobalContext.get().get()
         deviceId = runCommandSettingsDataStore.getWidgetDeviceIdBlocking(widgetId)
     }
 
     override fun onDataSetChanged() {
-        val runCommandSettingsDataStore: RunCommandSettingsDataStore = GlobalContext.get().get()
         deviceId = runCommandSettingsDataStore.getWidgetDeviceIdBlocking(widgetId)
     }
 
     override fun onDestroy() {}
 
     private fun getPlugin(): RunCommandPlugin? {
-        val deviceManager: DeviceManager = GlobalContext.get().get()
         return deviceManager.getDevicePlugin(deviceId, RunCommandPlugin::class.java)
     }
 

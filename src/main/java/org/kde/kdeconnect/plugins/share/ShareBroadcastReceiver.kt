@@ -6,17 +6,19 @@
 package org.kde.kdeconnect.plugins.share
 
 import android.content.BroadcastReceiver
-import android.content.ComponentCallbacks
 import android.content.Context
 import android.content.Intent
 import android.util.Log
 import org.kde.kdeconnect.DeviceManager
-import org.koin.android.ext.android.getKoin
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
-class ShareBroadcastReceiver : BroadcastReceiver() {
+class ShareBroadcastReceiver : BroadcastReceiver(), KoinComponent {
+    private val deviceManager: DeviceManager by inject()
+
     override fun onReceive(context: Context?, intent: Intent) {
         when (intent.action) {
-            SharePlugin.ACTION_CANCEL_SHARE -> cancelShare(context!!, intent)
+            SharePlugin.ACTION_CANCEL_SHARE -> cancelShare(intent)
             else -> Log.d(
                 "ShareBroadcastReceiver",
                 "Unhandled Action received: ${intent.action}"
@@ -24,7 +26,7 @@ class ShareBroadcastReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun cancelShare(context: Context, intent: Intent) {
+    private fun cancelShare(intent: Intent) {
         if (!intent.hasExtra(SharePlugin.CANCEL_SHARE_BACKGROUND_JOB_ID_EXTRA) ||
             !intent.hasExtra(SharePlugin.CANCEL_SHARE_DEVICE_ID_EXTRA)
         ) {
@@ -38,7 +40,6 @@ class ShareBroadcastReceiver : BroadcastReceiver() {
         val jobId = intent.getLongExtra(SharePlugin.CANCEL_SHARE_BACKGROUND_JOB_ID_EXTRA, -1)
         val deviceId = intent.getStringExtra(SharePlugin.CANCEL_SHARE_DEVICE_ID_EXTRA)
 
-        val deviceManager: DeviceManager = (context.applicationContext as ComponentCallbacks).getKoin().get()
         val plugin = deviceManager.getDevicePlugin(deviceId, SharePlugin::class.java) ?: return
         plugin.cancelJob(jobId)
     }

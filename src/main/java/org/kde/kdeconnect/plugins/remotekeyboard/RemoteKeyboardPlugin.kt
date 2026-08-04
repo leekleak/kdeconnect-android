@@ -15,11 +15,16 @@ import android.view.inputmethod.ExtractedTextRequest
 import androidx.core.util.Pair
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.helpers.SPECIAL_KEY_MAP
 import org.kde.kdeconnect.plugins.Plugin
 import java.util.concurrent.locks.ReentrantLock
 
-class RemoteKeyboardPlugin(context: Context, device: Device) : Plugin(context, device) {
+class RemoteKeyboardPlugin(
+    context: Context,
+    device: Device,
+    private val permissionRequestHelper: PermissionRequestHelper
+) : Plugin(context, device) {
     override val pluginInfo: RemoteKeyboardPluginInfo = RemoteKeyboardPluginInfo
 
     override fun onCreate(): Boolean {
@@ -282,7 +287,7 @@ class RemoteKeyboardPlugin(context: Context, device: Device) : Plugin(context, d
         }
 
         if (!pluginInfo.checkRequiredPermissions(context)) {
-            pluginInfo.showPermissionExplanation(context)
+            pluginInfo.showPermissionExplanation(context, permissionRequestHelper)
             return false
         }
 
