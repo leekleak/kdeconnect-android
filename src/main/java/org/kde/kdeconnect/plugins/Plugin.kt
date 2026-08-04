@@ -7,7 +7,6 @@ package org.kde.kdeconnect.plugins
 
 import android.app.Activity
 import android.content.Context
-import android.content.SharedPreferences
 import android.os.Build
 import androidx.annotation.CallSuper
 import androidx.annotation.DrawableRes
@@ -20,10 +19,6 @@ abstract class Plugin(
 ) {
 
     abstract val pluginInfo: PluginInfo
-
-    val preferences: SharedPreferences? by lazy {
-        context.getSharedPreferences(sharedPreferencesName, Context.MODE_PRIVATE)
-    }
 
     enum class ButtonCategory {
         SEND,
@@ -41,9 +36,6 @@ abstract class Plugin(
      * Return entries to display as buttons in the Device main view
      */
     open fun getUiButtons(): List<PluginUiButton> = listOf()
-
-    val sharedPreferencesName: String
-        get() = pluginKey + "_preferences"
 
     /**
      * To receive the network packet from the unpaired device, override
@@ -66,8 +58,6 @@ abstract class Plugin(
         /**
          * Returns false when we should avoid loading this Plugin for [device].
          *
-         * Called after [setContext] but before [onCreate].
-         *
          * By default, this just checks if [minSdk] is smaller or equal than the
          * [SDK version][Build.VERSION.SDK_INT] of this Android device.
          *
@@ -78,7 +68,7 @@ abstract class Plugin(
     /**
      * Initialize the listeners and structures in your plugin.
      *
-     * If [isCompatible] or [checkRequiredPermissions] returns false, this
+     * If not [isCompatible] or permissions are missing, this
      * will *not* be called.
      *
      * @return true if initialization was successful, false otherwise

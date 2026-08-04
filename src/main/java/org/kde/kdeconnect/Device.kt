@@ -580,9 +580,7 @@ class Device(
                     ?: PluginFactory.instantiatePluginForDevice(pluginKey, this)
 
                 if (plugin != null && plugin.isCompatible) {
-                    val requiredPermissionsGranted = plugin.preferences?.let {
-                        plugin.pluginInfo.checkRequiredPermissions(it, context)
-                    } ?: plugin.pluginInfo.checkRequiredPermissions(context)
+                    val requiredPermissionsGranted = plugin.pluginInfo.checkRequiredPermissions(context)
 
                     newLoadedPlugins[pluginKey] = plugin
                     if (!requiredPermissionsGranted) {

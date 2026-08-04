@@ -2,12 +2,10 @@ package org.kde.kdeconnect.plugins
 
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
-import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.plugins.Plugin.Companion.getPluginKey
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.PermissionExplanationActivity
@@ -87,17 +85,5 @@ open class PluginInfo(
             val result = ContextCompat.checkSelfPermission(context, permission)
             return result == PackageManager.PERMISSION_GRANTED
         }
-    }
-
-    open fun checkRequiredPermissions(preferences: SharedPreferences, context: Context): Boolean {
-        return checkRequiredPermissions(context)
-    }
-
-    open fun getPermissionExplanationDialog(
-        preferences: SharedPreferences,
-        context: Context,
-        device: Device
-    ): DialogFragment {
-        return getPermissionExplanationDialog(context)
     }
 }

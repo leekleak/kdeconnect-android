@@ -10,23 +10,19 @@ package org.kde.kdeconnect.plugins.contacts
 
 import android.Manifest
 import android.content.Context
-import android.content.SharedPreferences
 import android.util.Log
-import androidx.core.content.edit
-import androidx.fragment.app.DialogFragment
 import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.helpers.ContactsHelper
 import org.kde.kdeconnect.helpers.ContactsHelper.ContactNotFoundException
-import org.kde.kdeconnect.helpers.ContactsHelper.VCardBuilder
 import org.kde.kdeconnect.helpers.ContactsHelper.UID
-import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.helpers.ContactsHelper.VCardBuilder
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_REQUEST_ALL_UIDS_TIMESTAMPS
 import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_REQUEST_VCARDS_BY_UIDS
 import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_RESPONSE_UIDS_TIMESTAMPS
 import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_RESPONSE_VCARDS
-import org.kde.kdeconnect.ui.AlertDialogFragment
 import org.kde.kdeconnect_tp.R
 
 class ContactsPlugin(context: Context, device: Device) : Plugin(context, device) {
@@ -184,32 +180,4 @@ object ContactsPluginInfo: PluginInfo(
 ) {
 
     override val permissionExplanation: Int = R.string.contacts_permission_explanation
-
-    override fun checkRequiredPermissions(preferences: SharedPreferences, context: Context): Boolean {
-        if (!arePermissionsGranted(context, requiredPermissions)) {
-            return false
-        }
-        return preferences.getBoolean("acceptedToTransferContacts", false)
-    }
-
-    override fun getPermissionExplanationDialog(preferences: SharedPreferences, context: Context, device: Device): DialogFragment {
-        if (!arePermissionsGranted(context, requiredPermissions)) {
-            return super.getPermissionExplanationDialog(context)
-        }
-        return AlertDialogFragment.Builder()
-            .setTitle(getDisplayName(context))
-            .setMessage(R.string.contacts_per_device_confirmation)
-            .setPositiveButton(R.string.ok)
-            .setNegativeButton(R.string.cancel)
-            .create()
-            .apply {
-                callback = object : AlertDialogFragment.Callback() {
-                    override fun onPositiveButtonClicked(): Boolean {
-                        preferences.edit { putBoolean("acceptedToTransferContacts", true) }
-                        device.launchBackgroundReloadPluginsFromSettings()
-                        return true
-                    }
-                }
-            }
-    }
 }

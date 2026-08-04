@@ -94,13 +94,7 @@ class PluginSettingsViewModel(
         val missingPermission = device.pluginsWithoutPermissions.containsKey(pluginKey)
         val plugin = device.getPluginIncludingWithoutPermissions(pluginKey) ?: return
         if (missingPermission) {
-            val dialog = plugin.pluginInfo.let {
-                if (plugin.preferences != null) {
-                    it.getPermissionExplanationDialog(plugin.preferences!!, context, device)
-                } else {
-                    it.getPermissionExplanationDialog(context)
-                }
-            }
+            val dialog = plugin.pluginInfo.getPermissionExplanationDialog(context)
             if (dialog is AlertDialogFragment) {
                 dialog.callback = object : AlertDialogFragment.Callback() {
                     var isPositiveButtonClicked = false
