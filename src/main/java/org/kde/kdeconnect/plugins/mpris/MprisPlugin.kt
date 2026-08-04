@@ -192,8 +192,9 @@ class MprisPlugin(
 
     override fun getUiButtons(): List<PluginUiButton> = listOf(
         PluginUiButton(
-            context.getString(R.string.open_mpris_controls),
-            R.drawable.mpris_plugin_action_24dp
+            name = context.getString(R.string.open_mpris_controls),
+            iconRes = R.drawable.music_cast,
+            category = ButtonCategory.CONTROL
         ) { parentActivity ->
             val intent = Intent(parentActivity, MprisActivity::class.java)
             intent.putExtra(DEVICE_ID_KEY, device.deviceId)

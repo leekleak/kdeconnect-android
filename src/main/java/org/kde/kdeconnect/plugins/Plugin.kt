@@ -25,10 +25,10 @@ abstract class Plugin(
         CONTROL
     }
 
-    data class PluginUiButton @JvmOverloads constructor(
+    data class PluginUiButton(
         val name: String,
         @get:DrawableRes val iconRes: Int,
-        val category: ButtonCategory = ButtonCategory.CONTROL,
+        val category: ButtonCategory,
         val onClick: (parentActivity: Activity) -> Unit,
     )
 

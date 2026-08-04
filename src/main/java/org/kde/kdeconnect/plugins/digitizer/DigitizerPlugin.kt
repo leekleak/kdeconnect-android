@@ -24,8 +24,9 @@ class DigitizerPlugin(context: Context, device: Device) : Plugin(context, device
 
     override fun getUiButtons(): List<PluginUiButton> = listOf(
         PluginUiButton(
-            context.getString(R.string.use_digitizer),
-            R.drawable.ic_draw_24dp
+            name = context.getString(R.string.use_digitizer),
+            iconRes = R.drawable.stylus_note,
+            category = ButtonCategory.CONTROL
         ) { parentActivity ->
             val navigator: Navigator = (parentActivity as MainActivity).scope.get(Navigator::class, null, null)
             navigator.goTo(DigitizerKey(device.deviceId))

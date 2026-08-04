@@ -33,7 +33,7 @@ class MousePadPlugin(
     override fun getUiButtons(): List<PluginUiButton> {
         val mouseAndKeyboardInput = PluginUiButton(
             name = context.getString(R.string.open_mousepad),
-            iconRes = R.drawable.touchpad_plugin_action_24dp,
+            iconRes = R.drawable.trackpad_input_2,
             category = ButtonCategory.CONTROL
         ) { parentActivity ->
             val navigator: Navigator = (parentActivity as MainActivity).scope.get(Navigator::class, null, null)
@@ -41,8 +41,9 @@ class MousePadPlugin(
         }
         return if (device.deviceType == DeviceType.TV) {
             val tvInput = PluginUiButton(
-                context.getString(R.string.open_mousepad_tv),
-                R.drawable.tv_remote
+                name = context.getString(R.string.open_mousepad_tv),
+                iconRes = R.drawable.tv_remote,
+                category = ButtonCategory.CONTROL
             ) { parentActivity ->
                 val navigator: Navigator = (parentActivity as MainActivity).scope.get(Navigator::class, null, null)
                 navigator.goTo(BigscreenKey(device.deviceId))

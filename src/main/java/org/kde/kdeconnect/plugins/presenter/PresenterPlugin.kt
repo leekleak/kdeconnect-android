@@ -36,8 +36,9 @@ class PresenterPlugin(context: Context, device: Device) : Plugin(context, device
 
     override fun getUiButtons(): List<PluginUiButton> = listOf(
         PluginUiButton(
-            context.getString(R.string.pref_plugin_presenter),
-            R.drawable.ic_presenter_24dp
+            name = context.getString(R.string.pref_plugin_presenter),
+            iconRes = R.drawable.missing_controller,
+            category = ButtonCategory.CONTROL
         ) {
             val navigator: Navigator by inject(Navigator::class.java)
             navigator.goTo(PresenterKey(device.deviceId))

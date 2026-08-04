@@ -57,8 +57,9 @@ class RunCommandPlugin(
     override fun getUiButtons(): List<PluginUiButton> {
         return listOf(
             PluginUiButton(
-                context.getString(R.string.pref_plugin_runcommand),
-                R.drawable.run_command_plugin_icon_24dp
+                name = context.getString(R.string.pref_plugin_runcommand),
+                iconRes = R.drawable.code,
+                category = ButtonCategory.CONTROL
             ) { parentActivity: Activity ->
                 val navigator = (parentActivity as MainActivity).scope.get<Navigator>(
                     Navigator::class.java.kotlin, null, null
