@@ -41,6 +41,7 @@ import androidx.room.Room
 import org.kde.kdeconnect.helpers.DeviceDao
 import org.kde.kdeconnect.helpers.DevicesRoomDatabase
 import org.kde.kdeconnect.helpers.DeviceSettings
+import org.kde.kdeconnect.helpers.PermissionHelper
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 import org.kde.kdeconnect.plugins.battery.BatteryPlugin
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin
@@ -311,19 +312,7 @@ val appModule = module {
     includes(pairingModule, deviceModule, pluginSettingsModule, presenterModule, mousePadModule, runCommandModule, digitizerModule, settingsModule, aboutModule)
 
     single {
-        val hasNotificationPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            androidApplication().checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
-        } else {
-            true
-        }
-        val hasOverlayPermission = Settings.canDrawOverlays(get())
-        val hasNetworkDevicesPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN) {
-            androidApplication().checkSelfPermission(Manifest.permission.ACCESS_LOCAL_NETWORK) == PackageManager.PERMISSION_GRANTED
-        } else {
-            true
-        }
-
-        val startDestination = if (hasNotificationPermission && hasOverlayPermission && hasNetworkDevicesPermission) {
+        val startDestination = if (PermissionHelper.hasRequiredPermissions(get())) {
             PairingKey
         } else {
             PermissionsScreenKey

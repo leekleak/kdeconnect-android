@@ -31,6 +31,7 @@ import org.kde.kdeconnect.backends.bluetooth.BluetoothLinkProvider
 import org.kde.kdeconnect.backends.lan.LanLinkProvider
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.NotificationHelper
+import org.kde.kdeconnect.helpers.PermissionHelper
 import org.kde.kdeconnect.plugins.clipboard.ClipboardFloatingActivity
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin
 import org.kde.kdeconnect.plugins.runcommand.RunCommandPlugin
@@ -230,6 +231,13 @@ class BackgroundService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(LOG_TAG, "onStartCommand")
+
+        if (!PermissionHelper.hasRequiredPermissions(this)) {
+            Log.w(LOG_TAG, "BackgroundService started without required permissions, stopping")
+            stopSelf()
+            return START_NOT_STICKY
+        }
+
         if (NotificationHelper.isPersistentNotificationEnabled(this)) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 try {
@@ -279,6 +287,10 @@ class BackgroundService : Service() {
 
         fun start(context: Context) {
             Log.d(LOG_TAG, "Start")
+            if (!PermissionHelper.hasRequiredPermissions(context)) {
+                Log.w(LOG_TAG, "Skipping start because required permissions are not granted")
+                return
+            }
             val intent = Intent(context, BackgroundService::class.java)
             ContextCompat.startForegroundService(context, intent)
         }
@@ -286,6 +298,10 @@ class BackgroundService : Service() {
         @JvmStatic
         fun forceRefreshConnections(context: Context) {
             Log.d(LOG_TAG, "ForceRefreshConnections")
+            if (!PermissionHelper.hasRequiredPermissions(context)) {
+                Log.w(LOG_TAG, "Skipping forceRefreshConnections because required permissions are not granted")
+                return
+            }
             val intent = Intent(context, BackgroundService::class.java)
             intent.putExtra("refresh", true)
             ContextCompat.startForegroundService(context, intent)

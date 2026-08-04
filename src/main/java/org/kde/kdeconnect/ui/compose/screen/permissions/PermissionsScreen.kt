@@ -33,6 +33,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import org.kde.kdeconnect.BackgroundService
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.IconPreference
 import org.kde.kdeconnect.ui.compose.components.Preference
@@ -78,6 +79,7 @@ fun PermissionsScreen() {
                 } else true
 
                 if (hasNotificationPermission && hasOverlayPermission && hasNetworkPermission) {
+                    BackgroundService.start(context)
                     navigator.setTo(PairingKey)
                 }
             }
