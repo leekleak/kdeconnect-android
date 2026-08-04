@@ -2,12 +2,8 @@
 
 package org.kde.kdeconnect.di
 
-import android.Manifest
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
-import android.provider.Settings
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -16,9 +12,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.room.Room
 import coil3.ImageLoader
 import coil3.request.crossfade
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -36,11 +32,10 @@ import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.datastore.SftpSettingsDataStore
 import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 import org.kde.kdeconnect.helpers.AppIconFetcher
-import org.kde.kdeconnect.helpers.DeviceHelper
-import androidx.room.Room
 import org.kde.kdeconnect.helpers.DeviceDao
-import org.kde.kdeconnect.helpers.DevicesRoomDatabase
+import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.DeviceSettings
+import org.kde.kdeconnect.helpers.DevicesRoomDatabase
 import org.kde.kdeconnect.helpers.PermissionHelper
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 import org.kde.kdeconnect.plugins.battery.BatteryPlugin
@@ -65,7 +60,6 @@ import org.kde.kdeconnect.plugins.mpris.MprisPlugin
 import org.kde.kdeconnect.plugins.mprisreceiver.MprisReceiverPlugin
 import org.kde.kdeconnect.plugins.notifications.AppDatabase
 import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin
-import org.kde.kdeconnect.plugins.ping.PingPlugin
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
 import org.kde.kdeconnect.plugins.presenter.PresenterSettingsScreen
 import org.kde.kdeconnect.plugins.presenter.PresenterSettingsViewModel
@@ -83,13 +77,13 @@ import org.kde.kdeconnect.ui.about.getApplicationAboutData
 import org.kde.kdeconnect.ui.compose.screen.about.AboutScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceViewModel
+import org.kde.kdeconnect.ui.compose.screen.device.settings.DeviceSettingsScreen
+import org.kde.kdeconnect.ui.compose.screen.device.settings.DeviceSettingsViewModel
 import org.kde.kdeconnect.ui.compose.screen.licenses.LicensesEvent
 import org.kde.kdeconnect.ui.compose.screen.licenses.LicensesScreen
 import org.kde.kdeconnect.ui.compose.screen.pairing.PairingScreen
 import org.kde.kdeconnect.ui.compose.screen.pairing.PairingViewModel
 import org.kde.kdeconnect.ui.compose.screen.permissions.PermissionsScreen
-import org.kde.kdeconnect.ui.compose.screen.device.settings.DeviceSettingsScreen
-import org.kde.kdeconnect.ui.compose.screen.device.settings.DeviceSettingsViewModel
 import org.kde.kdeconnect.ui.compose.screen.presenter.PresenterScreen
 import org.kde.kdeconnect.ui.compose.screen.presenter.PresenterViewModel
 import org.kde.kdeconnect.ui.compose.screen.settings.SettingsScreen
@@ -122,7 +116,6 @@ import org.kde.kdeconnect.ui.navigation.SettingsKey
 import org.kde.kdeconnect.ui.navigation.SftpPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.TelephonyPluginSettingsKey
 import org.kde.kdeconnect_tp.R
-import org.koin.android.ext.koin.androidApplication
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import org.koin.core.annotation.KoinExperimentalAPI
@@ -351,7 +344,6 @@ val appModule = module {
         scoped { MprisPlugin(get(), get(), get()) }
         scoped { MprisReceiverPlugin(get(), get()) }
         scoped { NotificationsPlugin(get(), get(), get(), get()) }
-        scoped { PingPlugin(get(), get()) }
         scoped { PresenterPlugin(get(), get()) }
         scoped { ReceiveNotificationsPlugin(get(), get()) }
         scoped { RemoteKeyboardPlugin(get(), get()) }

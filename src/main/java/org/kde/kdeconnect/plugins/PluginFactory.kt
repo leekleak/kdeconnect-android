@@ -21,7 +21,6 @@ import org.kde.kdeconnect.plugins.mousereceiver.MouseReceiverPluginInfo
 import org.kde.kdeconnect.plugins.mpris.MprisPluginSettings
 import org.kde.kdeconnect.plugins.mprisreceiver.MprisReceiverPluginInfo
 import org.kde.kdeconnect.plugins.notifications.NotificationsPluginInfo
-import org.kde.kdeconnect.plugins.ping.PingPluginInfo
 import org.kde.kdeconnect.plugins.presenter.PresenterPluginInfo
 import org.kde.kdeconnect.plugins.receivenotifications.ReceiveNotificationsPluginInfo
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPluginInfo
@@ -50,7 +49,6 @@ object PluginFactory {
         MouseReceiverPluginInfo.pluginKey to MouseReceiverPluginInfo,
         MprisPluginSettings.pluginKey to MprisPluginSettings,
         NotificationsPluginInfo.pluginKey to NotificationsPluginInfo,
-        PingPluginInfo.pluginKey to PingPluginInfo,
         PresenterPluginInfo.pluginKey to PresenterPluginInfo,
         ReceiveNotificationsPluginInfo.pluginKey to ReceiveNotificationsPluginInfo,
         SftpPluginInfo.pluginKey to SftpPluginInfo,
