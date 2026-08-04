@@ -26,7 +26,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -38,6 +39,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media.VolumeProviderCompat
+import kotlinx.coroutines.flow.asFlow
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.PresenterPluginSettingsKey
@@ -62,10 +64,6 @@ fun PresenterScreen(
 
     val offScreenControlsSupported = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA
 
-    LaunchedEffect(Unit) {
-        viewModel.applyPrefs(context)
-    }
-
     val activity = context as? Activity
     DisposableEffect(Unit) {
         activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -74,7 +72,8 @@ fun PresenterScreen(
         }
     }
 
-    if (viewModel.volumeKeys && offScreenControlsSupported) {
+    val volumeKeys by viewModel.volumeKeys.collectAsState()
+    if (volumeKeys && offScreenControlsSupported) {
         DisposableEffect(Unit) {
             val mediaSession = MediaSessionCompat(context, "kdeconnect")
             val volumeProvider = object : VolumeProviderCompat(VOLUME_CONTROL_RELATIVE, 0, 0) {
@@ -127,13 +126,15 @@ fun PresenterScreen(
                 onClick = { plugin.sendEsc() }
             )
         }
-        if (viewModel.volumeKeys) Text(
-            text = stringResource(if (offScreenControlsSupported) R.string.presenter_volume_keys_tip else R.string.presenter_volume_keys_foreground_tip),
-            modifier = Modifier
-                .padding(bottom = 8.dp)
-                .padding(horizontal = 16.dp),
-            style = MaterialTheme.typography.bodyLarge,
-        )
+        if (volumeKeys) {
+            Text(
+                text = stringResource(if (offScreenControlsSupported) R.string.presenter_volume_keys_tip else R.string.presenter_volume_keys_foreground_tip),
+                modifier = Modifier
+                    .padding(bottom = 8.dp)
+                    .padding(horizontal = 16.dp),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
         Row(
             modifier = Modifier
                 .fillMaxSize()

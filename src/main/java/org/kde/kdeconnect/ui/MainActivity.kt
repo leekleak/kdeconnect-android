@@ -28,7 +28,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation3.ui.NavDisplay
-import androidx.preference.PreferenceManager
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import kotlinx.coroutines.CoroutineScope
@@ -82,8 +81,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
             if (!offScreenControlsSupported) {
                 val keyCode = event.keyCode
                 val action = event.action
-                val prefs = PreferenceManager.getDefaultSharedPreferences(this)
-                val volumeKeysEnabled = prefs.getBoolean(getString(R.string.pref_presenter_enable_volume_keys), true)
+                val volumeKeysEnabled = settingsDataStore.isPresenterVolumeKeysEnabledBlocking()
 
                 if (volumeKeysEnabled) {
                     if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN && action == KeyEvent.ACTION_UP) {

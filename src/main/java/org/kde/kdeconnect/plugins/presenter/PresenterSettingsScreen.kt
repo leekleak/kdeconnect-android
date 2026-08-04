@@ -55,7 +55,7 @@ fun PresenterSettingsScreenContent(
             SliderPreference(
                 modifierLabelText = Modifier.widthIn(min = 52.dp),
                 title = stringResource(R.string.pref_presenter_sensitivity_title),
-                value = uiState.sensitivity,
+                value = uiState.sensitivity.toLong(),
                 values = sensitivityValues,
                 onValueChanged = onSensitivityChanged
             )

@@ -9,6 +9,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -48,12 +49,22 @@ class SettingsDataStore(private val context: Context) {
 
     val isFileDestinationDefault: Flow<Boolean> = fileDestination.map { it == getDefaultDestinationUri().toString() }
 
+    val presenterVolumeKeysEnabled: Flow<Boolean> = context.dataStore.data
+        .map { it[KEY_PRESENTER_VOLUME_KEYS] ?: true }
+        .distinctUntilChanged()
+
+    val presenterSensitivity: Flow<Int> = context.dataStore.data
+        .map { it[KEY_PRESENTER_SENSITIVITY] ?: 50 }
+        .distinctUntilChanged()
+
     // Blocking getters for legacy interop
     fun getDeviceNameBlocking(): String = runBlocking { deviceName.first() }
     fun getThemeBlocking(): String = runBlocking { theme.first() }
     fun getBluetoothEnabledBlocking(): Boolean = runBlocking { bluetoothEnabled.first() }
     fun isPersistentNotificationEnabledBlocking(): Boolean = runBlocking { persistentNotificationEnabled.first() }
     fun getDeviceIdBlocking(): String = runBlocking { deviceId.first() }
+    fun isPresenterVolumeKeysEnabledBlocking(): Boolean = runBlocking { presenterVolumeKeysEnabled.first() }
+    fun getPresenterSensitivityBlocking(): Int = runBlocking { presenterSensitivity.first() }
 
     suspend fun setDeviceName(name: String) {
         context.dataStore.edit { preferences ->
@@ -91,6 +102,14 @@ class SettingsDataStore(private val context: Context) {
         }
     }
 
+    suspend fun setPresenterVolumeKeysEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_PRESENTER_VOLUME_KEYS] = enabled }
+    }
+
+    suspend fun setPresenterSensitivity(sensitivity: Int) {
+        context.dataStore.edit { it[KEY_PRESENTER_SENSITIVITY] = sensitivity }
+    }
+
     fun getDefaultDestinationUri(): Uri {
         return DocumentsContract.buildTreeDocumentUri(
             "com.android.externalstorage.documents",
@@ -105,5 +124,7 @@ class SettingsDataStore(private val context: Context) {
         private val KEY_PERSISTENT_NOTIFICATION = booleanPreferencesKey("persistentNotification")
         private val KEY_DEVICE_ID = stringPreferencesKey("device_id_preference")
         private val FILE_DESTINATION = stringPreferencesKey("file_destination")
+        private val KEY_PRESENTER_VOLUME_KEYS = booleanPreferencesKey("pref_presenter_enable_volume_keys")
+        private val KEY_PRESENTER_SENSITIVITY = intPreferencesKey("pref_presenter_sensitivity")
     }
 }

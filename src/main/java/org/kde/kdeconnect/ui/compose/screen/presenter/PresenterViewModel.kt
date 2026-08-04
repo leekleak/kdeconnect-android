@@ -1,37 +1,40 @@
 package org.kde.kdeconnect.ui.compose.screen.presenter
 
 import android.app.Application
-import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
-import org.kde.kdeconnect_tp.R
 import org.koin.core.annotation.InjectedParam
 
-class PresenterViewModel(application: Application, deviceManager: DeviceManager, @InjectedParam private val deviceId: String) : AndroidViewModel(application), SensorEventListener {
+class PresenterViewModel(
+    application: Application,
+    deviceManager: DeviceManager,
+    settingsDataStore: SettingsDataStore,
+    @InjectedParam private val deviceId: String
+) : AndroidViewModel(application), SensorEventListener {
 
     val plugin: PresenterPlugin? = deviceManager.getDevicePlugin(deviceId, PresenterPlugin::class.java)
 
-    private var sensitivity = 0.03f
-    var volumeKeys = true
-        private set
+    val sensitivity: StateFlow<Float> = settingsDataStore.presenterSensitivity
+        .map { (it + 10) * 0.0006f }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0.03f)
 
-    fun applyPrefs(context: Context) {
-        val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
-        var scrollSensitivity = prefs.getInt(context.getString(R.string.pref_presenter_sensitivity), 50)
-        scrollSensitivity += 10 // Do not allow near-zero sensitivity
-        sensitivity = ((scrollSensitivity / 100f) / 10f) * (6f / 10f)
-
-        volumeKeys = prefs.getBoolean(context.getString(R.string.pref_presenter_enable_volume_keys), true)
-    }
+    val volumeKeys: StateFlow<Boolean> = settingsDataStore.presenterVolumeKeysEnabled
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
     override fun onSensorChanged(event: SensorEvent?) {
         if (event?.sensor?.type == Sensor.TYPE_GYROSCOPE) {
-            val xPos = -event.values[2] * sensitivity
-            val yPos = -event.values[0] * sensitivity
+            val xPos = -event.values[2] * sensitivity.value
+            val yPos = -event.values[0] * sensitivity.value
 
             plugin?.sendPointer(xPos, yPos)
         }
