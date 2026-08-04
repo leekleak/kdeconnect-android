@@ -1,7 +1,6 @@
 package org.kde.kdeconnect.ui.compose.screen.device
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,12 +18,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.room.util.TableInfo
 import org.kde.kdeconnect.PairingHandler
-import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
+import org.kde.kdeconnect.ui.compose.components.IconHero
 import org.kde.kdeconnect.ui.compose.components.googleSans
-import org.kde.kdeconnect.ui.compose.screen.pairing.DeviceHero
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -57,7 +54,11 @@ fun DeviceScreen(
         ) {
             val font = remember { googleSans(weight = 600f) }
             val batterySubtitle = uiState.batteryInfo?.let { " · ${it.currentCharge}%" }
-            DeviceHero(164.dp, 88.dp, uiState.deviceUiModel)
+            IconHero(
+                backgroundSize = 164.dp,
+                iconSize = 88.dp,
+                icon = uiState.deviceUiModel.icon
+            )
             Text(
                 text = uiState.deviceUiModel.name + (batterySubtitle ?: ""),
                 fontFamily = font,

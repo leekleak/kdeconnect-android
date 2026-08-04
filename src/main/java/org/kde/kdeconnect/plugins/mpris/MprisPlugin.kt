@@ -508,5 +508,5 @@ object MprisPluginSettings: PluginInfo(
     supportedPacketTypes = arrayOf(PACKET_TYPE_MPRIS),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_MPRIS_REQUEST),
 ) {
-    override val optionalPermissionExplanation: Int = R.string.mpris_notifications_explanation
+    //override val optionalPermissionExplanation: Int = R.string.mpris_notifications_explanation
 }

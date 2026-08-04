@@ -23,7 +23,7 @@ class FindMyPhoneActivity : AppCompatActivity() {
         }
 
         setContent {
-            KdeTheme(this) {
+            KdeTheme {
                 FindMyPhoneScreen(
                     deviceId = deviceId,
                     onFinish = { finish() }

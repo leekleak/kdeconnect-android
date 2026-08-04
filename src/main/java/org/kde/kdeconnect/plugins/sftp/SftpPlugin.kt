@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.SftpSettingsDataStore
 import org.kde.kdeconnect.helpers.getLocalIpAddress
@@ -32,6 +33,7 @@ import org.kde.kdeconnect.plugins.sftp.SftpPlugin.Companion.PACKET_TYPE_SFTP_REQ
 import org.kde.kdeconnect.plugins.sftp.SftpPlugin.StorageInfo
 import org.kde.kdeconnect.ui.DeviceSettingsAlertDialogFragment
 import org.kde.kdeconnect.ui.MainActivity
+import org.kde.kdeconnect.ui.PermissionRequest
 import org.kde.kdeconnect.ui.StartActivityAlertDialogFragment
 import org.kde.kdeconnect_tp.BuildConfig
 import org.kde.kdeconnect_tp.R
@@ -40,7 +42,7 @@ import org.koin.core.component.inject
 
 class SftpPlugin(
     context: Context,
-    device: org.kde.kdeconnect.Device,
+    device: Device,
     private val dataStore: SftpSettingsDataStore
 ) : Plugin(context, device) {
     override val pluginInfo: SftpPluginInfo = SftpPluginInfo
@@ -262,6 +264,21 @@ object SftpPluginInfo : PluginInfo(
                 .setPluginKey(pluginKey)
                 .create()
         }
+
+    override fun getPermissionRequests(): List<PermissionRequest> {
+        return buildList {
+            if (SimpleSftpServer.SUPPORTS_NATIVEFS) {
+                add(
+                    PermissionRequest(
+                        title = displayNameRes,
+                        description = R.string.sftp_manage_storage_permission_explanation,
+                        intentAction = Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                        positiveButton = R.string.open_settings
+                    )
+                )
+            }
+        }
+    }
 
     fun getStorageInfoList(): MutableList<StorageInfo> {
         val storageInfoList = mutableListOf<StorageInfo>()

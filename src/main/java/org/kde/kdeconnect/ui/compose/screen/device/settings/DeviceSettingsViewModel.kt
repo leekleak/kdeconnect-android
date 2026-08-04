@@ -1,7 +1,6 @@
 package org.kde.kdeconnect.ui.compose.screen.device.settings
 
-import android.content.Context
-import androidx.fragment.app.FragmentActivity
+import android.app.Activity.RESULT_OK
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +11,6 @@ import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.ui.AlertDialogFragment
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.PairingKey
 import org.koin.core.annotation.InjectedParam
@@ -47,34 +45,29 @@ class DeviceSettingsViewModel(
         }
     }
 
-    fun setPluginEnabled(context: Context, pluginKey: String, isEnabled: Boolean) {
-        val device = device ?: return
+    private var pendingPluginKey: String? = null
+    private var pendingIsEnabled: Boolean = false
+
+    fun setPluginEnabled(pluginKey: String, isEnabled: Boolean): Boolean {
+        val device = device ?: return false
         device.setPluginEnabled(pluginKey, isEnabled)
-        if (!isEnabled) return
-
         val missingPermission = device.pluginsWithoutPermissions.containsKey(pluginKey)
-        val plugin = device.getPluginIncludingWithoutPermissions(pluginKey) ?: return
-        if (missingPermission) {
-            val dialog = plugin.pluginInfo.getPermissionExplanationDialog(context)
-            if (dialog is AlertDialogFragment) {
-                dialog.callback = object : AlertDialogFragment.Callback() {
-                    var isPositiveButtonClicked = false
-                    override fun onPositiveButtonClicked(): Boolean {
-                        isPositiveButtonClicked = true
-                        return true
-                    }
+        if (!missingPermission) return false
+        if (!isEnabled) return false
 
-                    override fun onDismiss() {
-                        if (!isPositiveButtonClicked) {
-                            device.setPluginEnabled(pluginKey, false)
-                        }
-                    }
-                }
-            }
-            (context as? FragmentActivity)?.let {
-                dialog.show(it.supportFragmentManager, "permission_explanation")
-            }
+        device.setPluginEnabled(pluginKey, false)
+
+        pendingPluginKey = pluginKey
+        pendingIsEnabled = isEnabled
+        return true
+    }
+
+    fun onPermissionResult(resultCode: Int) {
+        val pluginKey = pendingPluginKey ?: return
+        if (resultCode == RESULT_OK) {
+            device?.setPluginEnabled(pluginKey, pendingIsEnabled)
         }
+        pendingPluginKey = null
     }
 
     fun unpair() {

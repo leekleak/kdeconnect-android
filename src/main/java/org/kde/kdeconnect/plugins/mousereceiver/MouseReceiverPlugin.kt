@@ -17,6 +17,7 @@ import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_REQUEST
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPlugin
 import org.kde.kdeconnect.ui.MainActivity
+import org.kde.kdeconnect.ui.PermissionRequest
 import org.kde.kdeconnect.ui.StartActivityAlertDialogFragment
 import org.kde.kdeconnect_tp.R
 import kotlin.math.ceil
@@ -128,6 +129,17 @@ object MouseReceiverPluginInfo : PluginInfo(
 ) {
     override fun checkRequiredPermissions(context: Context): Boolean {
         return MouseReceiverService.instance != null
+    }
+
+    override fun getPermissionRequests(): List<PermissionRequest> {
+        return listOf(
+            PermissionRequest(
+                title = R.string.mouse_receiver_plugin_description,
+                description = R.string.mouse_receiver_no_permissions,
+                intentAction = Settings.ACTION_ACCESSIBILITY_SETTINGS,
+                positiveButton = R.string.open_settings
+            )
+        )
     }
 
     override fun getPermissionExplanationDialog(context: Context): DialogFragment {

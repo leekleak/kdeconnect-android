@@ -19,10 +19,10 @@ object SharePluginInfo : PluginInfo(
         arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
     }
 ) {
-    override val optionalPermissionExplanation: Int
-        get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            R.string.share_notifications_explanation
-        } else {
-            R.string.share_optional_permission_explanation
-        }
+//    override val optionalPermissionExplanation: Int
+//        get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+//            R.string.share_notifications_explanation
+//        } else {
+//            R.string.share_optional_permission_explanation
+//        }
 }

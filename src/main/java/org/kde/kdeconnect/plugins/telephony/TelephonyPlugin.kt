@@ -219,7 +219,7 @@ object TelephonyPluginInfo : PluginInfo(
     supportedPacketTypes = arrayOf(PACKET_TYPE_TELEPHONY_REQUEST_MUTE),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_TELEPHONY),
 ) {
-    override val permissionExplanation: Int = R.string.telephony_permission_explanation
+    //override val permissionExplanation: Int = R.string.telephony_permission_explanation
 
-    override val optionalPermissionExplanation: Int = R.string.telephony_optional_permission_explanation
+    //override val optionalPermissionExplanation: Int = R.string.telephony_optional_permission_explanation
 }

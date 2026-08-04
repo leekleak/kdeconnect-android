@@ -109,5 +109,5 @@ object ReceiveNotificationsPluginInfo : PluginInfo(
     supportedPacketTypes = arrayOf(PACKET_TYPE_NOTIFICATION),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_NOTIFICATION_REQUEST),
 ) {
-    override val permissionExplanation: Int = R.string.receive_notifications_permission_explanation
+    //override val permissionExplanation: Int = R.string.receive_notifications_permission_explanation
 }

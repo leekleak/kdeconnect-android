@@ -86,12 +86,6 @@ class BackgroundService : Service() {
         }
     }
 
-    fun removeConnectionListener(connectionReceiver: ConnectionReceiver) {
-        for (linkProvider in linkProviders) {
-            linkProvider.removeConnectionReceiver(connectionReceiver)
-        }
-    }
-
     /** This will called only once, even if we launch the service intent several times */
     @MainThread
     override fun onCreate() {
@@ -134,16 +128,6 @@ class BackgroundService : Service() {
             linkProvider.onStart()
         }
         initialized = true
-    }
-
-    fun changePersistentNotificationVisibility(visible: Boolean) {
-        if (visible) {
-            updateForegroundNotification()
-        }
-        else {
-            stopForeground(true)
-            start(this)
-        }
     }
 
     private fun createForegroundNotification(): Notification {

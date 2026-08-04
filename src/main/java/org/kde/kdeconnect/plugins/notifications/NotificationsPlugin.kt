@@ -20,6 +20,7 @@ import android.graphics.drawable.Icon
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS
 import android.service.notification.StatusBarNotification
 import android.text.SpannableString
 import android.text.TextUtils
@@ -45,6 +46,7 @@ import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin.Companion.PA
 import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION_REPLY
 import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION_REQUEST
 import org.kde.kdeconnect.ui.MainActivity
+import org.kde.kdeconnect.ui.PermissionRequest
 import org.kde.kdeconnect.ui.StartActivityAlertDialogFragment
 import org.kde.kdeconnect_tp.R
 import java.io.ByteArrayOutputStream
@@ -77,6 +79,17 @@ object NotificationsPluginInfo: PluginInfo(
             .setStartForResult(true)
             .setRequestCode(MainActivity.RESULT_NEEDS_RELOAD)
             .create()
+    }
+
+    override fun getPermissionRequests(): List<PermissionRequest> {
+        return listOf(
+            PermissionRequest(
+                title = R.string.pref_plugin_notifications,
+                description = R.string.no_permissions,
+                intentAction = ACTION_NOTIFICATION_LISTENER_SETTINGS,
+                positiveButton = R.string.open_settings
+            )
+        )
     }
 }
 

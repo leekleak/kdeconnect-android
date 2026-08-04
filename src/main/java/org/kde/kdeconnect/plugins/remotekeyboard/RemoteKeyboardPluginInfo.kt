@@ -9,6 +9,7 @@ import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_
 import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_REQUEST
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPlugin.Companion.PACKET_TYPE_MOUSEPAD_ECHO
 import org.kde.kdeconnect.ui.MainActivity
+import org.kde.kdeconnect.ui.PermissionRequest
 import org.kde.kdeconnect.ui.StartActivityAlertDialogFragment
 import org.kde.kdeconnect_tp.R
 
@@ -36,5 +37,16 @@ object RemoteKeyboardPluginInfo : PluginInfo(
             .setStartForResult(true)
             .setRequestCode(MainActivity.RESULT_NEEDS_RELOAD)
             .create()
+    }
+
+    override fun getPermissionRequests(): List<PermissionRequest> {
+        return listOf(
+            PermissionRequest(
+                title = R.string.pref_plugin_remotekeyboard,
+                description = R.string.no_permissions_remotekeyboard,
+                intentAction = Settings.ACTION_INPUT_METHOD_SETTINGS,
+                positiveButton = R.string.open_settings
+            )
+        )
     }
 }

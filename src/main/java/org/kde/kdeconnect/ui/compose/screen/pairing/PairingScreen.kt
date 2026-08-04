@@ -9,7 +9,6 @@ package org.kde.kdeconnect.ui.compose.screen.pairing
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -20,14 +19,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.colorScheme
@@ -37,7 +34,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
-import androidx.compose.material3.toPath
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,26 +43,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.Matrix
-import androidx.compose.ui.graphics.copy
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
+import org.kde.kdeconnect.ui.compose.components.IconHero
 import org.kde.kdeconnect.ui.compose.components.KdeBodyMediumText
 import org.kde.kdeconnect.ui.compose.components.KdeBodySmallText
 import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
 import org.kde.kdeconnect.ui.compose.components.SectionHeader
 import org.kde.kdeconnect.ui.compose.components.googleSans
 import org.kde.kdeconnect.ui.compose.components.px
-import org.kde.kdeconnect.ui.compose.components.roundedShapes
 import org.kde.kdeconnect.ui.compose.components.smartDashBorder
 import org.kde.kdeconnect.ui.compose.model.device.DeviceUiModel
 import org.kde.kdeconnect.ui.navigation.Navigator
@@ -299,7 +292,11 @@ private fun DeviceCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            DeviceHero(96.dp, 54.dp, device)
+            IconHero(
+                backgroundSize = 96.dp,
+                iconSize = 54.dp,
+                icon = device.icon
+            )
             Column(Modifier.weight(1f)) {
                 val deviceReal = remember { deviceManager.getDevice(device.id) }
                 Text(
@@ -332,37 +329,6 @@ private fun DeviceCard(
                 )
             }
         }
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-fun DeviceHero(
-    backgroundSize: Dp,
-    iconSize: Dp,
-    device: DeviceUiModel
-) {
-    val backgroundColor = colorScheme.primary
-    val backgroundShape = roundedShapes.random().toPath()
-    val backgroundSizePx = backgroundSize.px
-    val backgroundShapeTransformed = remember(backgroundSizePx) {
-        val matrix = Matrix().apply { scale(backgroundSizePx, backgroundSizePx) }
-        backgroundShape.copy().apply { transform(matrix) }
-    }
-    Box(
-        modifier = Modifier
-            .size(backgroundSize)
-            .drawBehind {
-                drawPath(backgroundShapeTransformed, backgroundColor)
-            },
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            modifier = Modifier.size(iconSize),
-            painter = painterResource(device.icon),
-            contentDescription = null,
-            tint = colorScheme.onPrimary
-        )
     }
 }
 

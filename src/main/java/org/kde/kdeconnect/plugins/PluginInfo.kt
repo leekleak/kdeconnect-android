@@ -1,5 +1,6 @@
 package org.kde.kdeconnect.plugins
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -9,6 +10,7 @@ import androidx.fragment.app.DialogFragment
 import org.kde.kdeconnect.plugins.Plugin.Companion.getPluginKey
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.PermissionExplanationActivity
+import org.kde.kdeconnect.ui.PermissionRequest
 import org.kde.kdeconnect.ui.PermissionsAlertDialogFragment
 import org.kde.kdeconnect_tp.R
 
@@ -41,19 +43,18 @@ open class PluginInfo(
     }
 
     open fun getPermissionExplanationDialog(context: Context): DialogFragment
-            = requestPermissionDialog(context, requiredPermissions, permissionExplanation)
+            = requestPermissionDialog(context, requiredPermissions, 0)
 
-    /**
-     * Returns the string to display before asking for the required permissions for the plugin.
-     */
-    @get:StringRes
-    protected open val permissionExplanation: Int = R.string.permission_explanation
-
-    /**
-     * Returns the string to display before asking for the optional permissions for the plugin.
-     */
-    @get:StringRes
-    protected open val optionalPermissionExplanation: Int = R.string.optional_permission_explanation
+    open fun getPermissionRequests(): List<PermissionRequest> {
+        return requiredPermissions.map { permission ->
+            PermissionRequest(
+                title = displayNameRes,
+                description = descriptionRes,
+                intentAction = permission,
+                positiveButton = R.string.grant
+            )
+        }
+    }
 
     protected fun arePermissionsGranted(context: Context, permissions: Array<String>): Boolean {
         return permissions.all { permission -> isPermissionGranted(context, permission) }
@@ -70,7 +71,6 @@ open class PluginInfo(
     fun showPermissionExplanation(context: Context, deviceId: String) {
         if (!checkRequiredPermissions(context)) {
             val intent = Intent(context, PermissionExplanationActivity::class.java).apply {
-                putExtra("deviceId", deviceId)
                 putExtra("pluginKey", pluginKey)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }

@@ -23,6 +23,7 @@ import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_
 import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_REQUEST_VCARDS_BY_UIDS
 import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_RESPONSE_UIDS_TIMESTAMPS
 import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_RESPONSE_VCARDS
+import org.kde.kdeconnect.ui.PermissionRequest
 import org.kde.kdeconnect_tp.R
 
 class ContactsPlugin(context: Context, device: Device) : Plugin(context, device) {
@@ -178,6 +179,5 @@ object ContactsPluginInfo: PluginInfo(
     outgoingPacketTypes = arrayOf(PACKET_TYPE_CONTACTS_RESPONSE_UIDS_TIMESTAMPS, PACKET_TYPE_CONTACTS_RESPONSE_VCARDS),
     requiredPermissions = arrayOf(Manifest.permission.READ_CONTACTS) // One day maybe we will also support WRITE_CONTACTS, but not yet
 ) {
-
-    override val permissionExplanation: Int = R.string.contacts_permission_explanation
+    //override val permissionExplanation: Int = R.string.contacts_permission_explanation
 }
