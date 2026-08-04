@@ -8,14 +8,15 @@ package org.kde.kdeconnect.plugins.runcommand
 
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_ID
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.Window
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.edit
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
 import org.kde.kdeconnect.ui.list.DeviceItem
 import org.kde.kdeconnect.ui.list.ListAdapter
 import org.kde.kdeconnect_tp.databinding.WidgetRemoteCommandPluginDialogBinding
@@ -23,6 +24,7 @@ import org.koin.android.ext.android.inject
 
 class RunCommandWidgetConfigActivity : AppCompatActivity() {
     private val deviceManager: DeviceManager by inject()
+    private val runCommandSettingsDataStore: RunCommandSettingsDataStore by inject()
 
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
 
@@ -51,34 +53,17 @@ class RunCommandWidgetConfigActivity : AppCompatActivity() {
 
     fun deviceClicked(device: Device) {
         val deviceId = device.deviceId
-        saveWidgetDeviceIdPref(this, appWidgetId, deviceId)
+        lifecycleScope.launch {
+            runCommandSettingsDataStore.setWidgetDeviceId(appWidgetId, deviceId)
 
-        val appWidgetManager = AppWidgetManager.getInstance(this)
-        updateAppWidget(this, appWidgetManager, appWidgetId)
+            val appWidgetManager = AppWidgetManager.getInstance(this@RunCommandWidgetConfigActivity)
+            updateAppWidget(this@RunCommandWidgetConfigActivity, appWidgetManager, appWidgetId)
 
-        val resultValue = Intent()
-        resultValue.putExtra(EXTRA_APPWIDGET_ID, appWidgetId)
-        setResult(RESULT_OK, resultValue)
-        finish()
+            val resultValue = Intent()
+            resultValue.putExtra(EXTRA_APPWIDGET_ID, appWidgetId)
+            setResult(RESULT_OK, resultValue)
+            finish()
+        }
     }
 }
 
-private const val PREFS_NAME = "org.kde.kdeconnect_tp.WidgetProvider"
-private const val PREF_PREFIX_KEY = "appwidget_"
-
-internal fun saveWidgetDeviceIdPref(context: Context, appWidgetId: Int, deviceName: String) {
-    context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit {
-        putString(PREF_PREFIX_KEY + appWidgetId, deviceName)
-    }
-}
-
-internal fun loadWidgetDeviceIdPref(context: Context, appWidgetId: Int): String? {
-    val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    return prefs.getString(PREF_PREFIX_KEY + appWidgetId, null)
-}
-
-internal fun deleteWidgetDeviceIdPref(context: Context, appWidgetId: Int) {
-    context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit {
-        remove(PREF_PREFIX_KEY + appWidgetId)
-    }
-}

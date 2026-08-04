@@ -41,7 +41,22 @@ class RunCommandSettingsDataStore(private val context: Context) {
         context.dataStore.edit { it[stringPreferencesKey(KEY_COMMANDS_PREFIX + deviceId)] = serialized }
     }
 
+    fun getWidgetDeviceId(appWidgetId: Int): Flow<String?> = context.dataStore.data
+        .map { it[stringPreferencesKey(KEY_WIDGET_PREFIX + appWidgetId)] }
+        .distinctUntilChanged()
+
+    fun getWidgetDeviceIdBlocking(appWidgetId: Int): String? = runBlocking { getWidgetDeviceId(appWidgetId).first() }
+
+    suspend fun setWidgetDeviceId(appWidgetId: Int, deviceId: String) {
+        context.dataStore.edit { it[stringPreferencesKey(KEY_WIDGET_PREFIX + appWidgetId)] = deviceId }
+    }
+
+    suspend fun deleteWidgetDeviceId(appWidgetId: Int) {
+        context.dataStore.edit { it.remove(stringPreferencesKey(KEY_WIDGET_PREFIX + appWidgetId)) }
+    }
+
     companion object {
         private const val KEY_COMMANDS_PREFIX = "commands_preference_"
+        private const val KEY_WIDGET_PREFIX = "appwidget_"
     }
 }

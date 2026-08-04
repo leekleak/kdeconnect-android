@@ -16,17 +16,22 @@ import android.content.Intent
 import android.util.Log
 import android.widget.RemoteViews
 import androidx.core.net.toUri
+import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
 import org.kde.kdeconnect_tp.BuildConfig
 import org.kde.kdeconnect_tp.R
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.koin.core.context.GlobalContext
 
 const val RUN_COMMAND_ACTION = "RUN_COMMAND_ACTION"
 const val TARGET_COMMAND = "TARGET_COMMAND"
 const val TARGET_DEVICE = "TARGET_DEVICE"
 
-class RunCommandWidgetProvider : AppWidgetProvider() {
+class RunCommandWidgetProvider : AppWidgetProvider(), KoinComponent {
+    private val runCommandSettingsDataStore: RunCommandSettingsDataStore by inject()
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         for (appWidgetId in appWidgetIds) {
@@ -36,7 +41,9 @@ class RunCommandWidgetProvider : AppWidgetProvider() {
 
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
         for (appWidgetId in appWidgetIds) {
-            deleteWidgetDeviceIdPref(context, appWidgetId)
+            runBlocking {
+                runCommandSettingsDataStore.deleteWidgetDeviceId(appWidgetId)
+            }
         }
     }
 
@@ -112,7 +119,8 @@ internal fun updateAppWidget(
     Log.d("WidgetProvider", "updateAppWidget: $appWidgetId")
 
     // Determine which device provided these commands
-    val deviceId = loadWidgetDeviceIdPref(context, appWidgetId)
+    val runCommandSettingsDataStore: RunCommandSettingsDataStore = GlobalContext.get().get() // Todo: Remove all instances of GlobalContext
+    val deviceId = runCommandSettingsDataStore.getWidgetDeviceIdBlocking(appWidgetId)
     val deviceManager: DeviceManager = GlobalContext.get().get()
     val device: Device? = if (deviceId != null) deviceManager.getDevice(deviceId) else null
 
