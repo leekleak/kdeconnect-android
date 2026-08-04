@@ -55,6 +55,7 @@ object NotificationsPluginInfo: PluginInfo(
     instantiableClass = NotificationsPlugin::class.java,
     displayNameRes = R.string.pref_plugin_notifications,
     descriptionRes = R.string.pref_plugin_notifications_desc,
+    isEnabledByDefault = false,
     supportedPacketTypes = arrayOf(
         PACKET_TYPE_NOTIFICATION_REQUEST,
         PACKET_TYPE_NOTIFICATION_REPLY,

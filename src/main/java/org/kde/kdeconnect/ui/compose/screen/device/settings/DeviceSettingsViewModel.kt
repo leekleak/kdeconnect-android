@@ -1,10 +1,4 @@
-/*
- * SPDX-FileCopyrightText: 2026 Saul Cintero Chocarro <scintero@gmail.com>
- *
- * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
- */
-
-package org.kde.kdeconnect.ui.compose.screen.plugin
+package org.kde.kdeconnect.ui.compose.screen.device.settings
 
 import android.content.Context
 import androidx.fragment.app.FragmentActivity
@@ -17,74 +11,41 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
-import org.kde.kdeconnect.KdeConnect
-import org.kde.kdeconnect.plugins.PluginFactory
+import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.ui.AlertDialogFragment
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.PairingKey
 import org.koin.core.annotation.InjectedParam
 
-data class PluginSettingsUiState(
+data class DeviceSettingsUiState(
     val deviceName: String = "",
-    val plugins: List<PluginSettingsItem> = emptyList()
+    val plugins: List<Plugin> = emptyList()
 )
 
-data class PluginSettingsItem(
-    val key: String,
-    val name: String,
-    val description: String,
-    val isEnabled: Boolean,
-)
-
-class PluginSettingsViewModel(
-    private val application: KdeConnect,
+class DeviceSettingsViewModel(
     private val deviceManager: DeviceManager,
     private val navigator: Navigator,
     @InjectedParam private val deviceId: String
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(PluginSettingsUiState())
-    val uiState: StateFlow<PluginSettingsUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(DeviceSettingsUiState())
+    val uiState: StateFlow<DeviceSettingsUiState> = _uiState.asStateFlow()
 
     private val device: Device?
         get() = deviceManager.getDevice(deviceId)
 
-    private val pluginsChangedListener = Device.PluginsChangedListener {
-        viewModelScope.launch { refreshUI() }
-    }
-
     init {
-        device?.addPluginsChangedListener(pluginsChangedListener)
-        refreshUI()
-    }
-
-    override fun onCleared() {
-        device?.removePluginsChangedListener(pluginsChangedListener)
-    }
-
-    fun refreshUI() {
-        val device = device ?: return
-        val supportedPlugins = device.supportedPlugins.toList()
-        val sortedPlugins = PluginFactory.sortPluginList(application, supportedPlugins)
-
-        val pluginItems = sortedPlugins.map { pluginKey ->
-            val info = PluginFactory.getPluginInfo(pluginKey)
-            PluginSettingsItem(
-                key = pluginKey,
-                name = info.getDisplayName(application),
-                description = info.getDescription(application),
-                isEnabled = device.isPluginEnabled(pluginKey),
-            )
-        }
-
-        _uiState.update { state ->
-            state.copy(
-                deviceName = device.name,
-                plugins = pluginItems
-            )
+        viewModelScope.launch {
+            device?.state?.collect { deviceState ->
+                _uiState.update { state ->
+                    state.copy(
+                        deviceName = deviceState.deviceInfo.name,
+                        plugins = deviceState.loadedPlugins.values.toList()
+                    )
+                }
+            }
         }
     }
-
 
     fun setPluginEnabled(context: Context, pluginKey: String, isEnabled: Boolean) {
         val device = device ?: return
@@ -106,7 +67,6 @@ class PluginSettingsViewModel(
                     override fun onDismiss() {
                         if (!isPositiveButtonClicked) {
                             device.setPluginEnabled(pluginKey, false)
-                            refreshUI()
                         }
                     }
                 }

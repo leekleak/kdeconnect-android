@@ -82,8 +82,8 @@ import org.kde.kdeconnect.ui.compose.screen.licenses.LicensesEvent
 import org.kde.kdeconnect.ui.compose.screen.licenses.LicensesScreen
 import org.kde.kdeconnect.ui.compose.screen.pairing.PairingScreen
 import org.kde.kdeconnect.ui.compose.screen.pairing.PairingViewModel
-import org.kde.kdeconnect.ui.compose.screen.plugin.PluginSettingsScreen
-import org.kde.kdeconnect.ui.compose.screen.plugin.PluginSettingsViewModel
+import org.kde.kdeconnect.ui.compose.screen.device.settings.DeviceSettingsScreen
+import org.kde.kdeconnect.ui.compose.screen.device.settings.DeviceSettingsViewModel
 import org.kde.kdeconnect.ui.compose.screen.presenter.PresenterScreen
 import org.kde.kdeconnect.ui.compose.screen.presenter.PresenterViewModel
 import org.kde.kdeconnect.ui.compose.screen.settings.SettingsScreen
@@ -241,7 +241,7 @@ val deviceModule = module {
 }
 
 val pluginSettingsModule = module {
-    viewModel<PluginSettingsViewModel>()
+    viewModel<DeviceSettingsViewModel>()
     viewModel<MousePadSettingsViewModel>()
     viewModel<SftpSettingsViewModel>()
     viewModel<TelephonySettingsViewModel>()
@@ -249,7 +249,7 @@ val pluginSettingsModule = module {
     viewModel<PresenterSettingsViewModel>()
     viewModel<NotificationSettingsViewModel>()
     navigation<PluginSettingsKey> { key ->
-        PluginSettingsScreen(key.deviceId)
+        DeviceSettingsScreen(key.deviceId)
     }
     navigation<MousePadPluginSettingsKey> { MousePadSettingsScreen() }
     navigation<SftpPluginSettingsKey> { SftpSettingsScreen() }
