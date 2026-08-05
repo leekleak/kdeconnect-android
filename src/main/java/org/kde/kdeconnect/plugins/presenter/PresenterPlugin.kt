@@ -44,38 +44,38 @@ class PresenterPlugin(context: Context, device: Device) : Plugin(context, device
             navigator.goTo(PresenterKey(device.deviceId))
         })
 
-    fun sendNext() {
+    suspend fun sendNext() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
         np["specialKey"] = SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_PAGE_DOWN]!!
         device.sendPacket(np)
     }
 
-    fun sendPrevious() {
+    suspend fun sendPrevious() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
         np["specialKey"] = SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_PAGE_UP]!!
         device.sendPacket(np)
     }
 
-    fun sendFullscreen() {
+    suspend fun sendFullscreen() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
         np["specialKey"] = SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_F5]!!
         device.sendPacket(np)
     }
 
-    fun sendEsc() {
+    suspend fun sendEsc() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
         np["specialKey"] = SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_ESCAPE]!!
         device.sendPacket(np)
     }
 
-    fun sendPointer(xDelta: Float, yDelta: Float) {
+    suspend fun sendPointer(xDelta: Float, yDelta: Float) {
         val np = NetworkPacket(PACKET_TYPE_PRESENTER)
         np["dx"] = xDelta.toDouble()
         np["dy"] = yDelta.toDouble()
         device.sendPacket(np)
     }
 
-    fun stopPointer() {
+    suspend fun stopPointer() {
         val np = NetworkPacket(PACKET_TYPE_PRESENTER)
         np["stop"] = true
         device.sendPacket(np)

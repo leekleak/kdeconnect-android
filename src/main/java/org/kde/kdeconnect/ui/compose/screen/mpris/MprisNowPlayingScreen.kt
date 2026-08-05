@@ -49,7 +49,6 @@ fun MprisNowPlayingScreen(
     val selectedPlayerName by viewModel.selectedPlayerName.collectAsState()
     val playerStatus by viewModel.playerStatus.collectAsState()
     val playerPosition by viewModel.playerPosition.collectAsState()
-    val plugin = viewModel.plugin
 
     Column(
         modifier = Modifier
@@ -126,15 +125,7 @@ fun MprisNowPlayingScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (playerStatus?.isLoopStatusAllowed == true) {
-                IconButton(onClick = {
-                    val status = playerStatus ?: return@IconButton
-                    val p = plugin ?: return@IconButton
-                    when (status.loopStatus) {
-                        "None" -> p.sendSetLoopStatus(status.playerName, "Track")
-                        "Track" -> p.sendSetLoopStatus(status.playerName, "Playlist")
-                        "Playlist" -> p.sendSetLoopStatus(status.playerName, "None")
-                    }
-                }) {
+                IconButton(onClick = { viewModel.toggleLoopStatus() }) {
                     val icon = when (playerStatus?.loopStatus) {
                         "Track" -> R.drawable.ic_loop_track_black
                         "Playlist" -> R.drawable.ic_loop_playlist_black
@@ -145,7 +136,7 @@ fun MprisNowPlayingScreen(
             }
 
             IconButton(
-                onClick = { playerStatus?.let { plugin?.sendPlayPause(it.playerName) } },
+                onClick = { viewModel.playPause() },
                 modifier = Modifier.size(64.dp)
             ) {
                 val icon = if (playerStatus?.isPlaying == true) R.drawable.ic_pause_black else R.drawable.ic_play_black
@@ -157,7 +148,7 @@ fun MprisNowPlayingScreen(
             }
 
             if (playerStatus?.isShuffleAllowed == true) {
-                IconButton(onClick = { playerStatus?.let { plugin?.sendSetShuffle(it.playerName, !it.shuffle) } }) {
+                IconButton(onClick = { viewModel.toggleShuffle() }) {
                     val icon = if (playerStatus?.shuffle == true) R.drawable.ic_shuffle_on_black else R.drawable.ic_shuffle_off_black
                     Icon(painterResource(icon), contentDescription = stringResource(R.string.mpris_shuffle))
                 }
@@ -170,26 +161,26 @@ fun MprisNowPlayingScreen(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             IconButton(
-                onClick = { playerStatus?.let { plugin?.sendPrevious(it.playerName) } },
+                onClick = { viewModel.previous() },
                 enabled = playerStatus?.isGoPreviousAllowed == true
             ) {
                 Icon(painterResource(R.drawable.ic_previous_black), contentDescription = stringResource(R.string.mpris_previous))
             }
             if (playerStatus?.isSeekAllowed == true) {
-                IconButton(onClick = { playerStatus?.let { plugin?.sendSeek(it.playerName, -10000) } }) {
+                IconButton(onClick = { viewModel.seek(-10000) }) {
                     Icon(painterResource(R.drawable.ic_rewind_black), contentDescription = stringResource(R.string.mpris_rew))
                 }
             }
-            IconButton(onClick = { playerStatus?.let { plugin?.sendStop(it.playerName) } }) {
+            IconButton(onClick = { viewModel.stop() }) {
                 Icon(painterResource(R.drawable.ic_stop), contentDescription = stringResource(R.string.mpris_stop))
             }
             if (playerStatus?.isSeekAllowed == true) {
-                IconButton(onClick = { playerStatus?.let { plugin?.sendSeek(it.playerName, 10000) } }) {
+                IconButton(onClick = { viewModel.seek(10000) }) {
                     Icon(painterResource(R.drawable.ic_fast_forward_black), contentDescription = stringResource(R.string.mpris_ff))
                 }
             }
             IconButton(
-                onClick = { playerStatus?.let { plugin?.sendNext(it.playerName) } },
+                onClick = { viewModel.next() },
                 enabled = playerStatus?.isGoNextAllowed == true
             ) {
                 Icon(painterResource(R.drawable.ic_next_black), contentDescription = stringResource(R.string.mpris_next))
@@ -205,7 +196,7 @@ fun MprisNowPlayingScreen(
                 Slider(
                     value = playerPosition.toFloat(),
                     onValueChange = { /* Update preview? */ },
-                    onValueChangeFinished = { playerStatus?.let { plugin?.sendSetPosition(it.playerName, playerPosition.toInt()) } },
+                    onValueChangeFinished = { viewModel.setPosition(playerPosition) },
                     valueRange = 0f..(playerStatus?.length?.toFloat() ?: 0f),
                     modifier = Modifier.weight(1f)
                 )
@@ -219,7 +210,7 @@ fun MprisNowPlayingScreen(
                 Icon(painterResource(R.drawable.ic_volume), contentDescription = stringResource(R.string.mpris_volume))
                 Slider(
                     value = playerStatus?.volume?.toFloat() ?: 0f,
-                    onValueChange = { volume -> playerStatus?.let { plugin?.sendSetVolume(it.playerName, volume.toInt()) } },
+                    onValueChange = { volume -> viewModel.setVolume(volume.toInt()) },
                     valueRange = 0f..100f,
                     modifier = Modifier.weight(1f)
                 )

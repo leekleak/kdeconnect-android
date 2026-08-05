@@ -13,6 +13,8 @@ import android.os.Vibrator
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect_tp.R
 import org.koin.android.ext.android.inject
@@ -50,7 +52,9 @@ class RunCommandUrlActivity : AppCompatActivity() {
                     if (plugin == null) {
                         error(R.string.runcommand_noruncommandplugin)
                     } else {
-                        plugin.runCommand(uri.pathSegments[1])
+                        lifecycleScope.launch {
+                            plugin.runCommand(uri.pathSegments[1])
+                        }
                     }
                 }
                 this@RunCommandUrlActivity.finish()

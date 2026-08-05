@@ -155,7 +155,7 @@ class MousePadViewModel(
         dx = if (dx in -0.25f..0.25f) 0f else dx * sens
         dy = if (dy in -0.25f..0.25f) 0f else dy * sens
 
-        plugin?.sendMouseDelta(dx, dy)
+        viewModelScope.launch { plugin?.sendMouseDelta(dx, dy) }
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -171,37 +171,41 @@ class MousePadViewModel(
     }
 
     fun sendLeftClick() {
-        if (isDragging) {
-            plugin?.sendSingleRelease()
-            isDragging = false
-        } else {
-            plugin?.sendLeftClick()
+        viewModelScope.launch {
+            if (isDragging) {
+                plugin?.sendSingleRelease()
+                isDragging = false
+            } else {
+                plugin?.sendLeftClick()
+            }
         }
     }
 
     fun sendMiddleClick() {
-        plugin?.sendMiddleClick()
+        viewModelScope.launch { plugin?.sendMiddleClick() }
     }
 
     fun sendRightClick() {
-        plugin?.sendRightClick()
+        viewModelScope.launch { plugin?.sendRightClick() }
     }
 
     fun sendScroll(y: Double) {
-        plugin?.sendScroll(0.0, y)
+        viewModelScope.launch { plugin?.sendScroll(0.0, y) }
     }
 
     fun sendMouseDelta(dx: Float, dy: Float) {
-        plugin?.sendMouseDelta(dx, dy)
+        viewModelScope.launch { plugin?.sendMouseDelta(dx, dy) }
     }
 
     fun sendSingleHold() {
-        plugin?.sendSingleHold()
-        isDragging = true
+        viewModelScope.launch {
+            plugin?.sendSingleHold()
+            isDragging = true
+        }
     }
 
     fun sendDoubleClick() {
-        plugin?.sendDoubleClick()
+        viewModelScope.launch { plugin?.sendDoubleClick() }
     }
 
     fun performClickAction(action: ClickType) {
@@ -214,11 +218,11 @@ class MousePadViewModel(
     }
 
     fun sendChars(chars: CharSequence) {
-        plugin?.sendText(chars.toString())
+        viewModelScope.launch { plugin?.sendText(chars.toString()) }
     }
 
     fun sendComposed(text: String) {
-        plugin?.sendText(text)
+        viewModelScope.launch { plugin?.sendText(text) }
     }
 
     fun onKeyEvent(event: KeyEvent): Boolean {
@@ -272,8 +276,9 @@ class MousePadViewModel(
             //A normal key, but still not handled by the KeyInputConnection (happens with numbers)
             np["key"] = event.unicodeChar.toChar().toString()
         }
-
-        plugin?.sendPacket(np)
+        viewModelScope.launch {
+            plugin?.sendPacket(np)
+        }
         return true
     }
 }

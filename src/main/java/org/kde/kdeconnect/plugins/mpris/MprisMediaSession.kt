@@ -72,44 +72,56 @@ class MprisMediaSession(
 
     private val mediaSessionCallback: MediaSessionCompat.Callback = object : MediaSessionCompat.Callback() {
         override fun onPlay() {
-            notificationPlayer?.let {
-                val plugin = it.getPlugin() ?: return
-                plugin.sendPlay(it.playerName)
+            serviceScope.launch {
+                notificationPlayer?.let {
+                    val plugin = it.getPlugin() ?: return@launch
+                    plugin.sendPlay(it.playerName)
+                }
             }
         }
 
         override fun onPause() {
-            notificationPlayer?.let {
-                val plugin = it.getPlugin() ?: return
-                plugin.sendPause(it.playerName)
+            serviceScope.launch {
+                notificationPlayer?.let {
+                    val plugin = it.getPlugin() ?: return@launch
+                    plugin.sendPause(it.playerName)
+                }
             }
         }
 
         override fun onSkipToNext() {
-            notificationPlayer?.let {
-                val plugin = it.getPlugin() ?: return
-                plugin.sendNext(it.playerName)
+            serviceScope.launch {
+                notificationPlayer?.let {
+                    val plugin = it.getPlugin() ?: return@launch
+                    plugin.sendNext(it.playerName)
+                }
             }
         }
 
         override fun onSkipToPrevious() {
-            notificationPlayer?.let {
-                val plugin = it.getPlugin() ?: return
-                plugin.sendPrevious(it.playerName)
+            serviceScope.launch {
+                notificationPlayer?.let {
+                    val plugin = it.getPlugin() ?: return@launch
+                    plugin.sendPrevious(it.playerName)
+                }
             }
         }
 
         override fun onStop() {
-            notificationPlayer?.let {
-                val plugin = it.getPlugin() ?: return
-                plugin.sendStop(it.playerName)
+            serviceScope.launch {
+                notificationPlayer?.let {
+                    val plugin = it.getPlugin() ?: return@launch
+                    plugin.sendStop(it.playerName)
+                }
             }
         }
 
         override fun onSeekTo(pos: Long) {
-            notificationPlayer?.let {
-                val plugin = it.getPlugin() ?: return
-                plugin.sendSetPosition(it.playerName, pos.toInt())
+            serviceScope.launch {
+                notificationPlayer?.let {
+                    val plugin = it.getPlugin() ?: return@launch
+                    plugin.sendSetPosition(it.playerName, pos.toInt())
+                }
             }
         }
 

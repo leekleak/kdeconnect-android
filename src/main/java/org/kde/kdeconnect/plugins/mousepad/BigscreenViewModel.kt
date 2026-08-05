@@ -42,15 +42,12 @@ class BigscreenViewModel(
         }
     }
 
-    fun sendUp() = plugin?.sendUp()
-    fun sendDown() = plugin?.sendDown()
-    fun sendLeft() = plugin?.sendLeft()
-    fun sendRight() = plugin?.sendRight()
-    fun sendSelect() = plugin?.sendSelect()
-    fun sendHome() = plugin?.sendHome()
-    fun sendBack() = plugin?.sendBack()
-
-    fun sendText(text: String) {
-        plugin?.sendText(text)
-    }
+    fun sendUp() = viewModelScope.launch { plugin?.sendUp() }
+    fun sendDown() = viewModelScope.launch { plugin?.sendDown() }
+    fun sendLeft() = viewModelScope.launch { plugin?.sendLeft() }
+    fun sendRight() = viewModelScope.launch { plugin?.sendRight() }
+    fun sendSelect() = viewModelScope.launch { plugin?.sendSelect() }
+    fun sendHome() = viewModelScope.launch { plugin?.sendHome() }
+    fun sendBack() = viewModelScope.launch { plugin?.sendBack() }
+    fun sendText(text: String) = viewModelScope.launch { plugin?.sendText(text) }
 }

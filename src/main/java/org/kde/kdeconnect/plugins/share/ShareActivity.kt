@@ -13,6 +13,7 @@ import android.webkit.URLUtil
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -64,7 +65,9 @@ class ShareActivity : AppCompatActivity() {
         intent: Intent
     ) {
         val plugin: SharePlugin? = deviceManager.getDevicePlugin(device.deviceId, SharePlugin::class.java)
-        plugin?.share(intent)
+        lifecycleScope.launch {
+            plugin?.share(intent)
+        }
         finish()
     }
 
@@ -111,7 +114,9 @@ class ShareActivity : AppCompatActivity() {
 
         if (deviceId != null) {
             val plugin: SharePlugin? = deviceManager.getDevicePlugin(deviceId, SharePlugin::class.java)
-            plugin?.share(intent)
+            lifecycleScope.launch {
+                plugin?.share(intent)
+            }
             finish()
         } else {
             Toast.makeText(this, R.string.could_not_find_device, Toast.LENGTH_LONG).show()

@@ -119,7 +119,7 @@ class MprisPlugin(
         mprisMediaSession.onDestroy(this, device.deviceId)
     }
 
-    private fun sendCommand(player: String, method: String, value: String) {
+    private suspend fun sendCommand(player: String, method: String, value: String) {
         val np = NetworkPacket(PACKET_TYPE_MPRIS_REQUEST).apply {
             this["player"] = player
             this[method] = value
@@ -127,7 +127,7 @@ class MprisPlugin(
         device.sendPacket(np)
     }
 
-    private fun sendCommand(player: String, method: String, value: Boolean) {
+    private suspend fun sendCommand(player: String, method: String, value: Boolean) {
         val np = NetworkPacket(PACKET_TYPE_MPRIS_REQUEST).apply {
             this["player"] = player
             this[method] = value
@@ -135,7 +135,7 @@ class MprisPlugin(
         device.sendPacket(np)
     }
 
-    private fun sendCommand(player: String, method: String, value: Int) {
+    private suspend fun sendCommand(player: String, method: String, value: Int) {
         val np = NetworkPacket(PACKET_TYPE_MPRIS_REQUEST).apply {
             this["player"] = player
             this[method] = value
@@ -292,56 +292,56 @@ class MprisPlugin(
         }
     }
 
-    fun sendPlayPause(playerName: String) {
+    suspend fun sendPlayPause(playerName: String) {
         val player = getPlayerStatus(playerName) ?: return
         if (player.isPauseAllowed || player.isPlayAllowed) {
             sendCommand(playerName, "action", "PlayPause")
         }
     }
 
-    fun sendPlay(playerName: String) {
+    suspend fun sendPlay(playerName: String) {
         if (getPlayerStatus(playerName)?.isPlayAllowed == true) {
             sendCommand(playerName, "action", "Play")
         }
     }
 
-    fun sendPause(playerName: String) {
+    suspend fun sendPause(playerName: String) {
         if (getPlayerStatus(playerName)?.isPauseAllowed == true) {
             sendCommand(playerName, "action", "Pause")
         }
     }
 
-    fun sendStop(playerName: String) {
+    suspend fun sendStop(playerName: String) {
         sendCommand(playerName, "action", "Stop")
     }
 
-    fun sendPrevious(playerName: String) {
+    suspend fun sendPrevious(playerName: String) {
         if (getPlayerStatus(playerName)?.isGoPreviousAllowed == true) {
             sendCommand(playerName, "action", "Previous")
         }
     }
 
-    fun sendNext(playerName: String) {
+    suspend fun sendNext(playerName: String) {
         if (getPlayerStatus(playerName)?.isGoNextAllowed == true) {
             sendCommand(playerName, "action", "Next")
         }
     }
 
-    fun sendSetLoopStatus(playerName: String, loopStatus: String) {
+    suspend fun sendSetLoopStatus(playerName: String, loopStatus: String) {
         sendCommand(playerName, "setLoopStatus", loopStatus)
     }
 
-    fun sendSetShuffle(playerName: String, shuffle: Boolean) {
+    suspend fun sendSetShuffle(playerName: String, shuffle: Boolean) {
         sendCommand(playerName, "setShuffle", shuffle)
     }
 
-    fun sendSetVolume(playerName: String, volume: Int) {
+    suspend fun sendSetVolume(playerName: String, volume: Int) {
         if (getPlayerStatus(playerName)?.isSetVolumeAllowed == true) {
             sendCommand(playerName, "setVolume", volume)
         }
     }
 
-    fun sendSetPosition(playerName: String, position: Int) {
+    suspend fun sendSetPosition(playerName: String, position: Int) {
         val player = getPlayerStatus(playerName) ?: return
         if (player.isSeekAllowed) {
             sendCommand(playerName, "SetPosition", position)
@@ -357,7 +357,7 @@ class MprisPlugin(
         }
     }
 
-    fun sendSeek(playerName: String, offset: Int) {
+    suspend fun sendSeek(playerName: String, offset: Int) {
         if (getPlayerStatus(playerName)?.isSeekAllowed == true) {
             sendCommand(playerName, "Seek", offset)
         }
@@ -385,14 +385,14 @@ class MprisPlugin(
     val playingPlayer: MprisPlayerState?
         get() = _players.value.values.firstOrNull { it.isPlaying }
 
-    private fun requestPlayerList() {
+    private suspend fun requestPlayerList() {
         val np = NetworkPacket(PACKET_TYPE_MPRIS_REQUEST).apply {
             this["requestPlayerList"] = true
         }
         device.sendPacket(np)
     }
 
-    private fun requestPlayerStatus(player: String) {
+    private suspend fun requestPlayerStatus(player: String) {
         val np = NetworkPacket(PACKET_TYPE_MPRIS_REQUEST).apply {
             this["player"] = player
             this["requestNowPlaying"] = true
@@ -418,7 +418,7 @@ class MprisPlugin(
         }
     }
 
-    fun askTransferAlbumArt(url: String, playerName: String?): Boolean {
+    suspend fun askTransferAlbumArt(url: String, playerName: String?): Boolean {
         // First check if the remote supports transferring album art
         if (!supportAlbumArtPayload) return false
         if (url.isEmpty()) return false

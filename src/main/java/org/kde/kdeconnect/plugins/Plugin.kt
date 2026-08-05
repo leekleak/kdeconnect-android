@@ -10,6 +10,10 @@ import android.content.Context
 import android.os.Build
 import androidx.annotation.CallSuper
 import androidx.annotation.DrawableRes
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 
@@ -31,6 +35,8 @@ abstract class Plugin(
         val category: ButtonCategory,
         val onClick: (parentActivity: Activity) -> Unit,
     )
+
+    val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO) // Todo: Make private
 
     /**
      * Return entries to display as buttons in the Device main view
@@ -83,7 +89,10 @@ abstract class Plugin(
      * called as well if onCreate threw an exception, so your plugin
      * could be not fully initialized.
      */
-    open suspend fun onDestroy() {}
+    @CallSuper
+    open suspend fun onDestroy() {
+        coroutineScope.cancel()
+    }
 
     /**
      * Called when a plugin receives a packet.

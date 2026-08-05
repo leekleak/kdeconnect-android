@@ -25,6 +25,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation3.ui.NavDisplay
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
@@ -32,14 +33,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.BackgroundService
-import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.plugins.mousepad.MousePadViewModel
-import org.kde.kdeconnect.ui.compose.screen.mpris.MprisViewModel
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
 import org.kde.kdeconnect.ui.compose.KdeTheme
+import org.kde.kdeconnect.ui.compose.screen.mpris.MprisViewModel
 import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.DigitizerKey
 import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
@@ -84,10 +84,14 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
 
                 if (volumeKeysEnabled) {
                     if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN && action == KeyEvent.ACTION_UP) {
-                        deviceManager.getDevicePlugin(currentKey.deviceId, PresenterPlugin::class.java)?.sendPrevious()
+                        lifecycleScope.launch {
+                            deviceManager.getDevicePlugin(currentKey.deviceId, PresenterPlugin::class.java)?.sendPrevious()
+                        }
                         return true
                     } else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP && action == KeyEvent.ACTION_UP) {
-                        deviceManager.getDevicePlugin(currentKey.deviceId, PresenterPlugin::class.java)?.sendNext()
+                        lifecycleScope.launch {
+                            deviceManager.getDevicePlugin(currentKey.deviceId, PresenterPlugin::class.java)?.sendNext()
+                        }
                         return true
                     }
                     if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
@@ -169,19 +173,6 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
                 }
             )
         }
-    }
-
-    private fun onPairResultFromNotification(deviceId: String?, pairStatus: String): String? {
-        // TODO: Reimplement this
-        assert(deviceId != null)
-        if (pairStatus != PAIRING_PENDING) {
-            val device = deviceManager.getDevice(deviceId) ?: return null
-            when (pairStatus) {
-                PAIRING_ACCEPTED -> device.acceptPairing()
-                PAIRING_REJECTED -> device.cancelPairing()
-            }
-        }
-        return if (pairStatus == PAIRING_ACCEPTED || pairStatus == PAIRING_PENDING) deviceId else null
     }
 
     override fun onStart() {

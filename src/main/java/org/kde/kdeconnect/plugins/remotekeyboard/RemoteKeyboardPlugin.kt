@@ -323,7 +323,7 @@ class RemoteKeyboardPlugin(
         return true
     }
 
-    fun notifyKeyboardState(state: Boolean) {
+    suspend fun notifyKeyboardState(state: Boolean) {
         Log.d("RemoteKeyboardPlugin", "Keyboardstate changed to $state")
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE)
         np["state"] = state

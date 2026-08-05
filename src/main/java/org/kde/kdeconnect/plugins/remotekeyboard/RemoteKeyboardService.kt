@@ -31,6 +31,7 @@ import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPlugin.Companion.
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPlugin.Companion.isConnected
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPlugin.Companion.releaseInstances
 import org.kde.kdeconnect.ui.MainActivity
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import org.kde.kdeconnect_tp.R
@@ -112,7 +113,11 @@ class RemoteKeyboardService: InputMethodService(), LifecycleOwner, SavedStateReg
         visible = true
         val instances = acquireInstances()
         try {
-            for (i in instances) i.notifyKeyboardState(true)
+            for (i in instances) {
+                i.coroutineScope.launch {
+                    i.notifyKeyboardState(true)
+                }
+            }
         } finally {
             releaseInstances()
         }
@@ -125,7 +130,11 @@ class RemoteKeyboardService: InputMethodService(), LifecycleOwner, SavedStateReg
         visible = false
         val instances = acquireInstances()
         try {
-            for (i in instances) i.notifyKeyboardState(false)
+            for (i in instances) {
+                i.coroutineScope.launch {
+                    i.notifyKeyboardState(false)
+                }
+            }
         } finally {
             releaseInstances()
         }

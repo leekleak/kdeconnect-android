@@ -14,6 +14,7 @@ import android.os.Build
 import android.widget.Toast
 import androidx.annotation.VisibleForTesting
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
@@ -31,7 +32,7 @@ class ClipboardPlugin(context: Context, device: Device) : Plugin(context, device
             context.getString(R.string.clipboard),
             R.drawable.assignment,
             ButtonCategory.SEND,
-        ){ _: Activity? -> userInitiatedSendClipboard() })
+        ){ _: Activity? -> coroutineScope.launch { userInitiatedSendClipboard() } })
     }
 
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
@@ -58,18 +59,20 @@ class ClipboardPlugin(context: Context, device: Device) : Plugin(context, device
 
     private val observer: ClipboardObserver = object : ClipboardObserver {
         override fun clipboardChanged(content: String) {
-            return this@ClipboardPlugin.propagateClipboard(content)
+            coroutineScope.launch {
+                propagateClipboard(content)
+            }
         }
     }
 
     @VisibleForTesting
-    fun propagateClipboard(content: String) {
+    suspend fun propagateClipboard(content: String) {
         val np = NetworkPacket(PACKET_TYPE_CLIPBOARD)
         np["content"] = content
         device.sendPacket(np)
     }
 
-    private fun sendConnectPacket() {
+    private suspend fun sendConnectPacket() {
         val content = ClipboardListener.instance(context).currentContent ?: return // Send clipboard only if it had been initialized
         val np = NetworkPacket(PACKET_TYPE_CLIPBOARD_CONNECT)
         val timestamp = ClipboardListener.instance(context).updateTimestamp
@@ -89,7 +92,7 @@ class ClipboardPlugin(context: Context, device: Device) : Plugin(context, device
         ClipboardListener.instance(context).removeObserver(observer)
     }
 
-    private fun userInitiatedSendClipboard() {
+    private suspend fun userInitiatedSendClipboard() {
         val clipboardManager = ContextCompat.getSystemService<ClipboardManager>(this.context, ClipboardManager::class.java)
         if (clipboardManager!!.hasPrimaryClip()) {
             val item = clipboardManager.primaryClip!!.getItemAt(0)

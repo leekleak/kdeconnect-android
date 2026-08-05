@@ -14,10 +14,10 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.helpers.AppsHelper.appNameLookup
-import org.kde.kdeconnect.helpers.ThreadHelper.execute
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.notifications.NotificationReceiver
 import java.util.concurrent.ConcurrentHashMap
@@ -95,8 +95,7 @@ class MprisReceiverPlugin(context: Context, device: Device) : Plugin(context, de
                 Log.e(TAG, "no callback for $playerName (player likely stopped)")
                 return false
             }
-            // run it on a different thread to avoid blocking
-            execute { sendAlbumArt(playerName, cb, artUrl) }
+            sendAlbumArt(playerName, cb, artUrl)
             return true
         }
 
@@ -144,7 +143,7 @@ class MprisReceiverPlugin(context: Context, device: Device) : Plugin(context, de
             players.clear()
 
             createPlayers(controllers)
-            sendPlayerList()
+            coroutineScope.launch { sendPlayerList() }
         }
     }
 
@@ -159,14 +158,14 @@ class MprisReceiverPlugin(context: Context, device: Device) : Plugin(context, de
         players[player.name] = player
     }
 
-    private fun sendPlayerList() {
+    private suspend fun sendPlayerList() {
         val np = NetworkPacket(PACKET_TYPE_MPRIS)
         np["playerList"] = players.keys
         np["supportAlbumArtPayload"] = true
         device.sendPacket(np)
     }
 
-    fun sendAlbumArt(playerName: String, cb: MprisReceiverCallback, requestedUrl: String?) {
+    suspend fun sendAlbumArt(playerName: String, cb: MprisReceiverCallback, requestedUrl: String?) {
         // NOTE: It is possible that the player gets killed in the middle of this method.
         // The proper thing to do this case would be to abort the send - but that gets into the
         //   territory of async cancellation or putting a lock.
@@ -195,7 +194,7 @@ class MprisReceiverPlugin(context: Context, device: Device) : Plugin(context, de
         device.sendPacket(np)
     }
 
-    fun sendMetadata(player: MprisReceiverPlayer) {
+    suspend fun sendMetadata(player: MprisReceiverPlayer) {
         val np = NetworkPacket(PACKET_TYPE_MPRIS)
         np["player"] = player.name
         np["title"] = player.title

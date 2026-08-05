@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.kde.kdeconnect.DeviceInfo.Companion.loadFromSettings
 import org.kde.kdeconnect.DeviceStats.countReceived
 import org.kde.kdeconnect.DeviceStats.countSent
@@ -164,20 +165,20 @@ class Device(
     val isPaired: Boolean
         get() = state.value.pairStatus == PairState.Paired
 
-    fun requestPairing() {
+    suspend fun requestPairing() {
         pairingHandler.requestPairing()
     }
 
-    fun unpair() = pairingHandler.unpair()
+    suspend fun unpair() = pairingHandler.unpair()
 
     /* This method is called after accepting pair request form GUI */
-    fun acceptPairing() {
+    suspend fun acceptPairing() {
         Log.i("Device", "Accepted pair request started by the other device")
         pairingHandler.acceptPairing()
     }
 
     /* This method is called after rejecting pairing from GUI */
-    fun cancelPairing() {
+    suspend fun cancelPairing() {
         Log.i("Device", "This side cancelled the pair request")
         pairingHandler.cancelPairing()
     }
@@ -462,13 +463,11 @@ class Device(
      * @param np The packet
      * @param callback A callback for success/failure
      */
-    @AnyThread
-    fun sendPacket(np: NetworkPacket, callback: SendPacketStatusCallback) {
-        sendChannel.trySend(NetworkPacketWithCallback(np, callback))
+    suspend fun sendPacket(np: NetworkPacket, callback: SendPacketStatusCallback) = withContext(Dispatchers.IO) {
+        sendChannel.send(NetworkPacketWithCallback(np, callback))
     }
 
-    @AnyThread
-    fun sendPacket(np: NetworkPacket) = sendPacket(np, defaultCallback)
+    suspend fun sendPacket(np: NetworkPacket) = sendPacket(np, defaultCallback)
 
     @WorkerThread
     fun sendPacketBlocking(np: NetworkPacket, callback: SendPacketStatusCallback): Boolean =

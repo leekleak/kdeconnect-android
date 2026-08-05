@@ -25,7 +25,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.kde.kdeconnect.plugins.systemvolume.Sink
-import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -36,7 +35,6 @@ fun MprisSystemVolumeScreen(
     viewModel: MprisViewModel = koinViewModel(key = "MprisViewModel_$deviceId") { parametersOf(deviceId) }
 ) {
     val sinks by viewModel.sinks.collectAsState()
-    val plugin = viewModel.systemVolumePlugin ?: return
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -44,7 +42,7 @@ fun MprisSystemVolumeScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(sinks) { sink ->
-            SinkItem(sink = sink, plugin = plugin)
+            SinkItem(sink = sink, viewModel = viewModel)
         }
     }
 }
@@ -52,7 +50,7 @@ fun MprisSystemVolumeScreen(
 @Composable
 private fun SinkItem(
     sink: Sink,
-    plugin: SystemVolumePlugin
+    viewModel: MprisViewModel
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -68,14 +66,14 @@ private fun SinkItem(
             ) {
                 RadioButton(
                     selected = sink.isDefault,
-                    onClick = { if (!sink.isDefault) plugin.sendEnable(sink.name) }
+                    onClick = { if (!sink.isDefault) viewModel.setSinkEnabled(sink.name) }
                 )
                 Text(
                     text = sink.description,
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.weight(1f)
                 )
-                IconButton(onClick = { plugin.sendMute(sink.name, !sink.isMuted) }) {
+                IconButton(onClick = { viewModel.toggleSinkMute(sink.name, sink.isMuted) }) {
                     val icon = if (sink.isMuted) R.drawable.ic_volume_mute else R.drawable.ic_volume
                     Icon(
                         painter = painterResource(icon),
@@ -85,7 +83,7 @@ private fun SinkItem(
             }
             Slider(
                 value = sink.volume.toFloat(),
-                onValueChange = { plugin.sendVolume(sink.name, it.toInt()) },
+                onValueChange = { viewModel.setSinkVolume(sink.name, it.toInt()) },
                 valueRange = 0f..sink.maxVolume.toFloat(),
                 modifier = Modifier.fillMaxWidth()
             )

@@ -65,7 +65,7 @@ class ContactsPlugin(context: Context, device: Device) : Plugin(context, device)
      * @param np The packet containing the request
      * @return true if successfully handled, false otherwise
      */
-    private fun handleRequestAllUIDsTimestamps(np: NetworkPacket): Boolean {
+    private suspend fun handleRequestAllUIDsTimestamps(np: NetworkPacket): Boolean {
         val uIDsToTimestamps: Map<UID, Long?> = ContactsHelper.getAllContactTimestamps(context)
         val reply = NetworkPacket(PACKET_TYPE_CONTACTS_RESPONSE_UIDS_TIMESTAMPS).apply {
             val uIDsAsString = mutableListOf<String>()
@@ -81,7 +81,7 @@ class ContactsPlugin(context: Context, device: Device) : Plugin(context, device)
         return true
     }
 
-    private fun handleRequestVCardsByUIDs(np: NetworkPacket): Boolean {
+    private suspend fun handleRequestVCardsByUIDs(np: NetworkPacket): Boolean {
         if (PACKET_UIDS_KEY !in np) {
             Log.e("ContactsPlugin", "handleRequestNamesByUIDs received a malformed packet with no uids key")
             return false

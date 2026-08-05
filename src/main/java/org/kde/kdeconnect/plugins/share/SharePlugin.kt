@@ -241,7 +241,7 @@ class SharePlugin(
         }
     }
 
-    fun share(intent: Intent) {
+    suspend fun share(intent: Intent) {
         val streams = streamsFromIntent(intent)
         if (streams.isNotEmpty()) {
             sendUriList(streams)

@@ -13,6 +13,9 @@ import android.net.Uri
 import android.util.Pair
 import java.io.ByteArrayOutputStream
 import androidx.core.net.toUri
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MprisReceiverCallback : MediaController.Callback {
     private val plugin: MprisReceiverPlugin
@@ -102,7 +105,7 @@ class MprisReceiverCallback : MediaController.Callback {
     }
 
     override fun onPlaybackStateChanged(state: PlaybackState?) {
-        plugin.sendMetadata(player)
+        CoroutineScope(Dispatchers.IO).launch { plugin.sendMetadata(player) }
     }
 
     override fun onMetadataChanged(metadata: MediaMetadata?) {
@@ -142,12 +145,12 @@ class MprisReceiverCallback : MediaController.Callback {
             }
         }
 
-        plugin.sendMetadata(player)
+        CoroutineScope(Dispatchers.IO).launch { plugin.sendMetadata(player) }
     }
 
     override fun onAudioInfoChanged(info: MediaController.PlaybackInfo) {
         // Note: not called by all media players
-        plugin.sendMetadata(player)
+        CoroutineScope(Dispatchers.IO).launch { plugin.sendMetadata(player) }
     }
 
     val artAsArray: ByteArray?

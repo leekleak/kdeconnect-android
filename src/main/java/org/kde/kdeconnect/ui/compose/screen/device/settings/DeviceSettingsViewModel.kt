@@ -73,7 +73,9 @@ class DeviceSettingsViewModel(
     }
 
     fun unpair() {
-        device?.unpair()
+        viewModelScope.launch {
+            device?.unpair()
+        }
         navigator.setTo(PairingKey)
     }
 }

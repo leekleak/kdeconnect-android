@@ -7,6 +7,7 @@ package org.kde.kdeconnect.plugins.connectivityreport
 
 import android.Manifest
 import android.content.Context
+import kotlinx.coroutines.launch
 import org.json.JSONException
 import org.json.JSONObject
 import org.kde.kdeconnect.Device
@@ -60,7 +61,9 @@ class ConnectivityReportPlugin(context: Context, device: Device) : Plugin(contex
                 }
             }
             connectivityInfo["signalStrengths"] = signalStrengths
-            device.sendPacket(connectivityInfo)
+            coroutineScope.launch {
+                device.sendPacket(connectivityInfo)
+            }
         }
     }
 

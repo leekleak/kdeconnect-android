@@ -9,6 +9,9 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.extensions.getParcelableCompat
 import org.koin.core.component.KoinComponent
@@ -36,16 +39,18 @@ class MprisMediaNotificationReceiver : BroadcastReceiver(), KoinComponent {
             val player = plugin.getPlayerStatus(intent.getStringExtra(EXTRA_MPRIS_PLAYER))
                 ?: return
 
-            when (intent.action) {
-                ACTION_PLAY -> plugin.sendPlay(player.playerName)
-                ACTION_PAUSE -> plugin.sendPause(player.playerName)
-                ACTION_PREVIOUS -> plugin.sendPrevious(player.playerName)
-                ACTION_NEXT -> plugin.sendNext(player.playerName)
-                ACTION_CLOSE_NOTIFICATION ->                     //The user dismissed the notification: actually handle its removal correctly
-                    mprisMediaSession.closeMediaNotification()
+            CoroutineScope(Dispatchers.IO).launch {
+                when (intent.action) {
+                    ACTION_PLAY -> plugin.sendPlay(player.playerName)
+                    ACTION_PAUSE -> plugin.sendPause(player.playerName)
+                    ACTION_PREVIOUS -> plugin.sendPrevious(player.playerName)
+                    ACTION_NEXT -> plugin.sendNext(player.playerName)
+                    ACTION_CLOSE_NOTIFICATION ->                     //The user dismissed the notification: actually handle its removal correctly
+                        mprisMediaSession.closeMediaNotification()
 
-                else -> {
-                    Log.w(TAG, "Unknown action: ${intent.action}, ignore.")
+                    else -> {
+                        Log.w(TAG, "Unknown action: ${intent.action}, ignore.")
+                    }
                 }
             }
         }

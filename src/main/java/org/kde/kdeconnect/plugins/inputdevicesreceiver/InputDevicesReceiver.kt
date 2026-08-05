@@ -59,7 +59,7 @@ class InputDevicesReceiverPlugin(
             .getRealMetrics(metrics)
     }
 
-    private fun release(dx: Int, dy: Int) {
+    private suspend fun release(dx: Int, dy: Int) {
         val np = NetworkPacket(PACKET_TYPE_SHAREINPUTDEVICES)
 
         np["releaseDeltax"] = dx

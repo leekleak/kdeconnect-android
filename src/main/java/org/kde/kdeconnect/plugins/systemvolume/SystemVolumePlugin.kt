@@ -65,21 +65,21 @@ class SystemVolumePlugin(context: Context, device: Device) : Plugin(context, dev
         return true
     }
 
-    internal fun sendVolume(name: String, volume: Int) {
+    internal suspend fun sendVolume(name: String, volume: Int) {
         val np = NetworkPacket(PACKET_TYPE_SYSTEMVOLUME_REQUEST)
         np["volume"] = volume
         np["name"] = name
         device.sendPacket(np)
     }
 
-    internal fun sendMute(name: String, mute: Boolean) {
+    internal suspend fun sendMute(name: String, mute: Boolean) {
         val np = NetworkPacket(PACKET_TYPE_SYSTEMVOLUME_REQUEST)
         np["muted"] = mute
         np["name"] = name
         device.sendPacket(np)
     }
 
-    internal fun sendEnable(name: String) {
+    internal suspend fun sendEnable(name: String) {
         val np = NetworkPacket(PACKET_TYPE_SYSTEMVOLUME_REQUEST)
         np["enabled"] = true
         np["name"] = name

@@ -11,6 +11,8 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
 import androidx.annotation.VisibleForTesting
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
@@ -73,7 +75,10 @@ class BatteryPlugin(context: Context, device: Device) : Plugin(context, device) 
                 batteryInfo["currentCharge"] = currentCharge
                 batteryInfo["isCharging"] = isCharging
                 batteryInfo["thresholdEvent"] = thresholdEvent
-                device.sendPacket(batteryInfo)
+
+                coroutineScope.launch {
+                    device.sendPacket(batteryInfo)
+                }
 
                 // We just send a possible threshold event so reset it so we not create notifications on each change
                 thresholdEvent = THRESHOLD_EVENT_NONE

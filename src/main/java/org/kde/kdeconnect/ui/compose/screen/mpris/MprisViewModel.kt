@@ -93,6 +93,31 @@ class MprisViewModel(
         }
     }
 
+    fun playPause() = viewModelScope.launch { playerStatus.value?.let { plugin?.sendPlayPause(it.playerName) } }
+    fun next() = viewModelScope.launch { playerStatus.value?.let { plugin?.sendNext(it.playerName) } }
+    fun previous() = viewModelScope.launch { playerStatus.value?.let { plugin?.sendPrevious(it.playerName) } }
+    fun stop() = viewModelScope.launch { playerStatus.value?.let { plugin?.sendStop(it.playerName) } }
+    fun seek(offset: Int) = viewModelScope.launch { playerStatus.value?.let { plugin?.sendSeek(it.playerName, offset) } }
+    fun setPosition(position: Long) = viewModelScope.launch { playerStatus.value?.let { plugin?.sendSetPosition(it.playerName, position.toInt()) } }
+    fun setVolume(volume: Int) = viewModelScope.launch { playerStatus.value?.let { plugin?.sendSetVolume(it.playerName, volume) } }
+    fun toggleShuffle() = viewModelScope.launch { playerStatus.value?.let { plugin?.sendSetShuffle(it.playerName, !it.shuffle) } }
+    fun setSinkEnabled(name: String) = viewModelScope.launch { systemVolumePlugin?.sendEnable(name) }
+    fun toggleSinkMute(name: String, isMuted: Boolean) = viewModelScope.launch { systemVolumePlugin?.sendMute(name, !isMuted) }
+    fun setSinkVolume(name: String, volume: Int) = viewModelScope.launch { systemVolumePlugin?.sendVolume(name, volume) }
+
+    fun toggleLoopStatus() {
+        viewModelScope.launch {
+            val status = playerStatus.value ?: return@launch
+            val nextStatus = when (status.loopStatus) {
+                "None" -> "Track"
+                "Track" -> "Playlist"
+                "Playlist" -> "None"
+                else -> "None"
+            }
+            plugin?.sendSetLoopStatus(status.playerName, nextStatus)
+        }
+    }
+
     fun onVolumeUp() {
         onVolumeChange(5)
     }
@@ -102,17 +127,19 @@ class MprisViewModel(
     }
 
     private fun onVolumeChange(step: Int) {
-        if (currentTab == 0) {
-            val status = playerStatus.value ?: return
-            val newVolume = calculateNewVolume(status.volume, 100, step)
-            if (status.volume != newVolume) {
-                plugin?.sendSetVolume(status.playerName, newVolume)
-            }
-        } else {
-            val defaultSink = sinks.value.firstOrNull { it.isDefault } ?: return
-            val newVolume = calculateNewVolume(defaultSink.volume, defaultSink.maxVolume, step)
-            if (defaultSink.volume != newVolume) {
-                systemVolumePlugin?.sendVolume(defaultSink.name, newVolume)
+        viewModelScope.launch {
+            if (currentTab == 0) {
+                val status = playerStatus.value ?: return@launch
+                val newVolume = calculateNewVolume(status.volume, 100, step)
+                if (status.volume != newVolume) {
+                    plugin?.sendSetVolume(status.playerName, newVolume)
+                }
+            } else {
+                val defaultSink = sinks.value.firstOrNull { it.isDefault } ?: return@launch
+                val newVolume = calculateNewVolume(defaultSink.volume, defaultSink.maxVolume, step)
+                if (defaultSink.volume != newVolume) {
+                    systemVolumePlugin?.sendVolume(defaultSink.name, newVolume)
+                }
             }
         }
     }

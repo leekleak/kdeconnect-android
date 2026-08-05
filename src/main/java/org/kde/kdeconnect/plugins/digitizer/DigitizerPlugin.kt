@@ -37,7 +37,7 @@ class DigitizerPlugin(context: Context, device: Device) : Plugin(context, device
         return false
     }
 
-    fun startSession(width: Int, height: Int, resolutionX: Int, resolutionY: Int) {
+    suspend fun startSession(width: Int, height: Int, resolutionX: Int, resolutionY: Int) {
         val np = NetworkPacket(PACKET_TYPE_DIGITIZER_SESSION).apply {
             set("action", "start")
             set("width", width)
@@ -48,14 +48,14 @@ class DigitizerPlugin(context: Context, device: Device) : Plugin(context, device
         device.sendPacket(np)
     }
 
-    fun endSession() {
+    suspend fun endSession() {
         val np = NetworkPacket(PACKET_TYPE_DIGITIZER_SESSION).apply {
             set("action", "end")
         }
         device.sendPacket(np)
     }
 
-    fun reportEvent(event: ToolEvent) {
+    suspend fun reportEvent(event: ToolEvent) {
         Log.d(TAG, "reportEvent: $event")
 
         val np = NetworkPacket(PACKET_TYPE_DIGITIZER).also { packet ->

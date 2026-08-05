@@ -145,7 +145,7 @@ class PairingHandler(
         }
     }
 
-    fun requestPairing() {
+    suspend fun requestPairing() {
         cancelTimer()
 
         if (state.value == PairState.Paired) {
@@ -191,7 +191,7 @@ class PairingHandler(
         device.sendPacket(np, statusCallback)
     }
 
-    fun acceptPairing() {
+    suspend fun acceptPairing() {
         cancelTimer()
         val stateCallback = object : Device.SendPacketStatusCallback() {
             override fun onSuccess() {
@@ -209,7 +209,7 @@ class PairingHandler(
         device.sendPacket(np, stateCallback)
     }
 
-    fun cancelPairing() {
+    suspend fun cancelPairing() {
         cancelTimer()
         updateState(PairState.NotPaired)
         val np = NetworkPacket(NetworkPacket.PACKET_TYPE_PAIR)
@@ -230,7 +230,7 @@ class PairingHandler(
         }
     }
 
-    fun unpair() {
+    suspend fun unpair() {
         updateState(PairState.NotPaired)
         if (device.isReachable) {
             val np = NetworkPacket(NetworkPacket.PACKET_TYPE_PAIR)

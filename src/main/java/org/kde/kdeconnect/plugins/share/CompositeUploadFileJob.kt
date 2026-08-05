@@ -6,8 +6,11 @@
 package org.kde.kdeconnect.plugins.share
 
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.async.BackgroundJob
@@ -45,7 +48,6 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 class CompositeUploadFileJob(private val device: Device, private val context: Context, callback: Callback<Void?>) :
     BackgroundJob<Device, Void?>(device, callback) {
     private val isRunning: AtomicBoolean = AtomicBoolean(false)
-    private val handler: Handler = Handler(Looper.getMainLooper())
     private var currentFileName: String? = ""
     private var currentFileNum = 0
     private val updatePacketPending: AtomicBoolean = AtomicBoolean(false)
@@ -59,6 +61,8 @@ class CompositeUploadFileJob(private val device: Device, private val context: Co
 
     private val totalNumFiles: AtomicInt = AtomicInt(0)
     private val totalPayloadSize: AtomicLong = AtomicLong(0)
+
+    private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     override suspend fun run() {
         var done: Boolean
@@ -167,14 +171,14 @@ class CompositeUploadFileJob(private val device: Device, private val context: Co
             //Give SharePlugin some time to add more NetworkPackets
             if (isRunning.load() && !updatePacketPending.load()) {
                 updatePacketPending.store(true)
-                handler.post { sendUpdatePacket() }
+                coroutineScope.launch { sendUpdatePacket() }
             }
     }
 
     /**
      * Use this to send metadata ahead of all the other [packets][.networkPacketList].
      */
-    private fun sendUpdatePacket() {
+    private suspend fun sendUpdatePacket() {
         val np = NetworkPacket(SharePlugin.PACKET_TYPE_SHARE_REQUEST_UPDATE)
 
         np["numberOfFiles"] = totalNumFiles.load()
@@ -186,6 +190,7 @@ class CompositeUploadFileJob(private val device: Device, private val context: Co
 
     override fun cancel() {
         super.cancel()
+        coroutineScope.cancel()
 
         currentNetworkPacket?.cancel()
     }

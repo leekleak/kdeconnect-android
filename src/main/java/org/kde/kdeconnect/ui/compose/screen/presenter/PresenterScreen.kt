@@ -39,7 +39,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media.VolumeProviderCompat
-import kotlinx.coroutines.flow.asFlow
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.PresenterPluginSettingsKey
@@ -58,7 +57,6 @@ fun PresenterScreen(
     viewModel: PresenterViewModel = koinViewModel(key = "PresenterViewModel_$deviceId") { parametersOf(deviceId) }
 ) {
     val context = LocalContext.current
-    val plugin = viewModel.plugin ?: return
     val navigator: Navigator = koinInject()
     val sensorManager = context.getSystemService(android.content.Context.SENSOR_SERVICE) as? SensorManager
 
@@ -79,9 +77,9 @@ fun PresenterScreen(
             val volumeProvider = object : VolumeProviderCompat(VOLUME_CONTROL_RELATIVE, 0, 0) {
                 override fun onAdjustVolume(direction: Int) {
                     if (direction == VOLUME_UP) {
-                        plugin.sendNext()
+                        viewModel.sendNext()
                     } else if (direction == VOLUME_DOWN) {
-                        plugin.sendPrevious()
+                        viewModel.sendPrevious()
                     }
                 }
             }
@@ -118,12 +116,12 @@ fun PresenterScreen(
             TopButton(
                 text = stringResource(R.string.presenter_fullscreen),
                 painter = painterResource(R.drawable.fullscreen),
-                onClick = { plugin.sendFullscreen() }
+                onClick = { viewModel.sendFullscreen() }
             )
             TopButton(
                 text = stringResource(R.string.presenter_exit),
                 painter = painterResource(R.drawable.close),
-                onClick = { plugin.sendEsc() }
+                onClick = { viewModel.sendEsc() }
             )
         }
         if (volumeKeys) {
@@ -143,7 +141,7 @@ fun PresenterScreen(
             verticalAlignment = Alignment.Bottom
         ) {
             FilledIconButton (
-                onClick = { plugin.sendPrevious() },
+                onClick = { viewModel.sendPrevious() },
                 shape = MaterialTheme.shapes.extraLarge,
                 colors = IconButtonDefaults.iconButtonColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -160,7 +158,7 @@ fun PresenterScreen(
                 )
             }
             FilledIconButton (
-                onClick = { plugin.sendNext() },
+                onClick = { viewModel.sendNext() },
                 shape = MaterialTheme.shapes.extraLarge,
                 modifier = Modifier
                     .fillMaxHeight(0.55f)

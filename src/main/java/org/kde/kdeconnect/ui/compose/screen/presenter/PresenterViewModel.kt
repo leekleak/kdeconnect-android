@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
@@ -36,7 +37,9 @@ class PresenterViewModel(
             val xPos = -event.values[2] * sensitivity.value
             val yPos = -event.values[0] * sensitivity.value
 
-            plugin?.sendPointer(xPos, yPos)
+            viewModelScope.launch {
+                plugin?.sendPointer(xPos, yPos)
+            }
         }
     }
 
@@ -44,7 +47,9 @@ class PresenterViewModel(
         //ignored
     }
     
-    fun stopPointer() {
-        plugin?.stopPointer()
-    }
+    fun stopPointer() = viewModelScope.launch { plugin?.stopPointer() }
+    fun sendNext() = viewModelScope.launch { plugin?.sendNext() }
+    fun sendPrevious() = viewModelScope.launch { plugin?.sendPrevious() }
+    fun sendFullscreen() = viewModelScope.launch { plugin?.sendFullscreen() }
+    fun sendEsc() = viewModelScope.launch { plugin?.sendEsc() }
 }

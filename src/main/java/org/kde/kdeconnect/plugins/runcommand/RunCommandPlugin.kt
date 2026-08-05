@@ -141,7 +141,7 @@ class RunCommandPlugin(
         return false
     }
 
-    fun runCommand(cmdKey: String) {
+    suspend fun runCommand(cmdKey: String) {
         Log.d("RunCommand", "Sending $cmdKey")
         val np = NetworkPacket(PACKET_TYPE_RUNCOMMAND_REQUEST)
         np["key"] = cmdKey
@@ -149,7 +149,7 @@ class RunCommandPlugin(
         commandRunning.value = true
     }
 
-    private fun requestCommandList() {
+    private suspend fun requestCommandList() {
         val np = NetworkPacket(PACKET_TYPE_RUNCOMMAND_REQUEST)
         np["requestCommandList"] = true
         device.sendPacket(np)
@@ -159,13 +159,13 @@ class RunCommandPlugin(
         return canAddCommand
     }
 
-    fun sendSetupPacket() {
+    suspend fun sendSetupPacket() {
         val np = NetworkPacket(PACKET_TYPE_RUNCOMMAND_REQUEST)
         np["setup"] = true
         device.sendPacket(np)
     }
 
-    fun sendStop() {
+    suspend fun sendStop() {
         val np = NetworkPacket(PACKET_TYPE_RUNCOMMAND_REQUEST)
         np["stop"] = true
         device.sendPacket(np)

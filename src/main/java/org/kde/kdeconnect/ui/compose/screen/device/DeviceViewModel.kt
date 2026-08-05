@@ -71,18 +71,9 @@ class DeviceViewModel(
         }
     }
 
-    fun requestPairing() {
-        device?.requestPairing()
-    }
-
-    fun acceptPairing() {
-        device?.acceptPairing()
-    }
-
-    fun cancelPairing() {
-        device?.cancelPairing()
-    }
-
+    fun requestPairing() = viewModelScope.launch { device?.requestPairing() }
+    fun acceptPairing() = viewModelScope.launch { device?.acceptPairing() }
+    fun cancelPairing() = viewModelScope.launch { device?.cancelPairing() }
 
     fun refreshDevicesAction() {
         BackgroundService.forceRefreshConnections(getApplication())

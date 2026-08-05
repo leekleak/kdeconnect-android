@@ -23,6 +23,7 @@ import androidx.annotation.WorkerThread
 import androidx.core.content.ContextCompat
 import com.klinker.android.logger.Log
 import com.klinker.android.send_message.Transaction
+import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -84,7 +85,9 @@ class SMSPlugin(
                     messages.add(SmsMessage.createFromPdu(pdu))
                 }
 
-                smsBroadcastReceivedDeprecated(messages)
+                coroutineScope.launch {
+                    smsBroadcastReceivedDeprecated(messages)
+                }
             }
         }
     }
@@ -120,7 +123,9 @@ class SMSPlugin(
          * database changes and simply reports those updated messages to anyone who might be listening
          */
         override fun onChange(selfChange: Boolean) {
-            sendLatestMessage()
+            coroutineScope.launch {
+                sendLatestMessage()
+            }
         }
     }
 
@@ -134,7 +139,9 @@ class SMSPlugin(
             val action: String? = intent.action
 
             if (Transaction.REFRESH == action) {
-                sendLatestMessage()
+                coroutineScope.launch {
+                    sendLatestMessage()
+                }
             }
         }
     }
@@ -147,7 +154,7 @@ class SMSPlugin(
      *
      * Should only be called after initializing the mostRecentTimestamp
      */
-    private fun sendLatestMessage() {
+    private suspend fun sendLatestMessage() {
         // Lock so no one uses the mostRecentTimestamp between the moment we read it and the
         // moment we update it. This is because reading the Messages DB can take long.
         mostRecentTimestampLock.lock()
@@ -187,7 +194,7 @@ class SMSPlugin(
      * @param messages Ordered list of parts of the message body which should be combined into a single message
      */
     @Deprecated("")
-    private fun smsBroadcastReceivedDeprecated(messages: MutableList<SmsMessage>) {
+    private suspend fun smsBroadcastReceivedDeprecated(messages: MutableList<SmsMessage>) {
         if (BuildConfig.DEBUG) {
             if (messages.isEmpty()) {
                 throw AssertionError("This method requires at least one message")
@@ -269,6 +276,7 @@ class SMSPlugin(
     }
 
     override suspend fun onDestroy() {
+        super.onDestroy()
         context.unregisterReceiver(receiver)
         context.unregisterReceiver(messagesUpdateReceiver)
         context.contentResolver.unregisterContentObserver(messageObserver)
@@ -284,14 +292,14 @@ class SMSPlugin(
         if (!pluginInfo.checkRequiredPermissions(context)) return false
         return when (np.type) {
             PACKET_TYPE_SMS_REQUEST_CONVERSATIONS -> {
-                execute {
-                    this.handleRequestAllConversations(np)
+                coroutineScope.launch {
+                    handleRequestAllConversations(np)
                 }
                 true
             }
             PACKET_TYPE_SMS_REQUEST_CONVERSATION -> {
-                execute {
-                    this.handleRequestSingleConversation(np)
+                coroutineScope.launch {
+                    handleRequestSingleConversation(np)
                 }
                 true
             }
@@ -334,7 +342,7 @@ class SMSPlugin(
      * @param packet One packet of type [PACKET_TYPE_SMS_REQUEST_CONVERSATIONS] with the first message in all conversations that will be send
      */
     @WorkerThread
-    private fun handleRequestAllConversations(packet: NetworkPacket): Boolean {
+    private suspend fun handleRequestAllConversations(packet: NetworkPacket): Boolean {
         haveMessagesBeenRequested = true
         val conversations: Iterator<SMSHelper.Message> = getConversations(this.context).iterator()
 
@@ -348,7 +356,7 @@ class SMSPlugin(
     }
 
     @WorkerThread
-    private fun handleRequestSingleConversation(packet: NetworkPacket): Boolean {
+    private suspend fun handleRequestSingleConversation(packet: NetworkPacket): Boolean {
         haveMessagesBeenRequested = true
         val threadID = ThreadID(packet.getLong("threadID"))
 

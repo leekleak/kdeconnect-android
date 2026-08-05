@@ -80,7 +80,7 @@ fun RunCommandScreen(
             if (plugin.canAddCommand()) {
                 FloatingActionButton(
                     onClick = {
-                        plugin.sendSetupPacket()
+                        viewModel.sendSetupPacket()
                         showDialog = true
                     },
                     modifier = Modifier.size(40.dp)
@@ -122,7 +122,7 @@ fun RunCommandScreen(
         }
 
         CategoryTitleTextSmall(stringResource(R.string.terminal))
-        OutputCard(plugin.output, plugin)
+        OutputCard(plugin.output, plugin, onStopClick = { viewModel.sendStop() })
 
         CategoryTitleTextSmall(stringResource(R.string.commands))
         if (!commandList.isEmpty()) {
@@ -131,7 +131,7 @@ fun RunCommandScreen(
                 Preference(
                     title = command.name,
                     summary = command.command,
-                    onClick = { plugin.runCommand(command.key) },
+                    onClick = { viewModel.runCommand(command.key) },
                     onLongClick = {
                         viewModel.copyCommandToClipboard(context, command, clipboardManager)
                     }
@@ -156,7 +156,8 @@ fun RunCommandScreen(
 @Composable
 private fun OutputCard(
     outputList: SnapshotStateList<RunCommandOutput>,
-    plugin: RunCommandPlugin
+    plugin: RunCommandPlugin,
+    onStopClick: () -> Unit
 ) {
     val state = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -198,7 +199,7 @@ private fun OutputCard(
                         horizontalAlignment = Alignment.End,
                         verticalArrangement = Arrangement.Bottom
                     ) {
-                        IconButton(onClick = { plugin.sendStop() }) {
+                        IconButton(onClick = onStopClick) {
                             CircularProgressIndicator()
                             Icon(
                                 painterResource(R.drawable.ic_stop),

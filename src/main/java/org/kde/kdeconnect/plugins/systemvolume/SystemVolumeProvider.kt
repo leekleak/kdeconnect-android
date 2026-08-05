@@ -106,7 +106,9 @@ class SystemVolumeProvider : VolumeProviderCompat(VOLUME_CONTROL_ABSOLUTE, DEFAU
         val shouldUpdateRemote = updateLocalVolume(volume)
         if (!shouldUpdateRemote || sink == null) return
         val remoteVolume = scaleFromLocal(volume, sink.maxVolume)
-        systemVolumePlugin.sendVolume(sink.name, remoteVolume)
+        scope.launch {
+            systemVolumePlugin.sendVolume(sink.name, remoteVolume)
+        }
     }
 
     private fun updateLocalVolume(volume: Int): Boolean {

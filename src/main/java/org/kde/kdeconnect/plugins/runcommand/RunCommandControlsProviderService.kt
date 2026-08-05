@@ -20,6 +20,7 @@ import androidx.annotation.RequiresApi
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.jdk9.asPublisher
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
@@ -80,7 +81,9 @@ class RunCommandControlsProviderService : ControlsProviderService() {
                 val deviceId = controlId.split(":")[0]
                 val plugin = deviceManager.getDevicePlugin(deviceId, RunCommandPlugin::class.java)
                 if (plugin != null) {
-                    plugin.runCommand(commandEntry.command.key)
+                    plugin.coroutineScope.launch {
+                        plugin.runCommand(commandEntry.command.key)
+                    }
                     consumer.accept(ControlAction.RESPONSE_OK)
                 } else {
                     consumer.accept(ControlAction.RESPONSE_FAIL)

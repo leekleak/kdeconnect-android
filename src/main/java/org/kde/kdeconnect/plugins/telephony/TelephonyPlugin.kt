@@ -20,6 +20,7 @@ import android.telephony.PhoneNumberUtils
 import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
@@ -60,14 +61,16 @@ class TelephonyPlugin(
                 if (intState != lastState) {
                     lastState = intState
                     if (number != null) {
-                        callBroadcastReceived(intState, number)
+                        coroutineScope.launch {
+                            callBroadcastReceived(intState, number)
+                        }
                     }
                 }
             }
         }
     }
 
-    private fun callBroadcastReceived(state: Int, phoneNumber: String) {
+    private suspend fun callBroadcastReceived(state: Int, phoneNumber: String) {
         if (isNumberBlocked(phoneNumber)) return
 
         val np = NetworkPacket(PACKET_TYPE_TELEPHONY)

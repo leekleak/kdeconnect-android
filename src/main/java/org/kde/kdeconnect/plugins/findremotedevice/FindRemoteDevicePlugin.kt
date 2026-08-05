@@ -6,6 +6,7 @@
 package org.kde.kdeconnect.plugins.findremotedevice
 
 import android.content.Context
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.findmyphone.FindMyPhonePlugin
@@ -22,7 +23,9 @@ class FindRemoteDevicePlugin(context: Context, device: Device) : Plugin(context,
             iconRes = R.drawable.e911_emergency,
             category = ButtonCategory.CONTROL
         ) { _ ->
-            device.sendPacket(NetworkPacket(FindMyPhonePlugin.PACKET_TYPE_FINDMYPHONE_REQUEST))
+            coroutineScope.launch {
+                device.sendPacket(NetworkPacket(FindMyPhonePlugin.PACKET_TYPE_FINDMYPHONE_REQUEST))
+            }
         })
 
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean = true

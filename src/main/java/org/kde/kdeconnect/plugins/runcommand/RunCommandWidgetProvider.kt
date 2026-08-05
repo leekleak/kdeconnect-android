@@ -19,6 +19,7 @@ import androidx.core.net.toUri
 import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
 import org.kde.kdeconnect_tp.BuildConfig
 import org.kde.kdeconnect_tp.R
@@ -68,7 +69,9 @@ class RunCommandWidgetProvider : AppWidgetProvider(), KoinComponent {
             val plugin = deviceManager.getDevicePlugin(targetDevice, RunCommandPlugin::class.java)
             if (plugin != null && targetCommand != null) {
                 try {
-                    plugin.runCommand(targetCommand)
+                    plugin.coroutineScope.launch {
+                        plugin.runCommand(targetCommand)
+                    }
                 } catch (ex: Exception) {
                     Log.e("RunCommandWidget", "Error running command", ex)
                 }

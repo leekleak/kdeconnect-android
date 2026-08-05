@@ -7,7 +7,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.toClipEntry
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.CoroutineScope
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
@@ -45,7 +45,7 @@ class RunCommandViewModel(
         val url = "kdeconnect://runcommand/$deviceId/${command.key}"
         val clipData = ClipData.newPlainText("Command", url)
 
-        CoroutineScope(Dispatchers.IO).launch {
+        viewModelScope.launch(Dispatchers.IO) {
             clipboardManager.setClipEntry(clipData.toClipEntry())
         }
         Toast.makeText(
@@ -54,4 +54,8 @@ class RunCommandViewModel(
             Toast.LENGTH_SHORT
         ).show()
     }
+
+    fun runCommand(cmdKey: String) = viewModelScope.launch { plugin?.runCommand(cmdKey) }
+    fun sendStop() = viewModelScope.launch { plugin?.sendStop() }
+    fun sendSetupPacket() = viewModelScope.launch { plugin?.sendSetupPacket() }
 }
