@@ -25,10 +25,14 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -39,7 +43,7 @@ import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.plugins.mousepad.MousePadViewModel
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
 import org.kde.kdeconnect.ui.compose.KdeTheme
-import org.kde.kdeconnect.ui.compose.screen.mpris.MprisViewModel
+import org.kde.kdeconnect.plugins.mpris.MprisViewModel
 import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.DigitizerKey
 import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
@@ -136,6 +140,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
     private fun MainActivityContent() {
         val entryProvider = koinEntryProvider<Any>()
         val navigator: Navigator = koinInject()
+        val hazeState: HazeState = koinInject()
 
         LaunchedEffect(intent) {
             val deviceId = intent.getStringExtra(EXTRA_DEVICE_ID)
@@ -153,9 +158,11 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
 
         KdeTheme(this) {
             NavDisplay(
+                modifier = Modifier.hazeSource(hazeState),
                 backStack = navigator.backStack,
                 entryProvider = entryProvider,
                 onBack = { navigator.goBack() },
+                sceneStrategies = listOf(DialogSceneStrategy()),
                 transitionSpec = {
                     if (navigator.backStack.size == 1) fadeIn(tween()) togetherWith fadeOut(tween())
                     else {

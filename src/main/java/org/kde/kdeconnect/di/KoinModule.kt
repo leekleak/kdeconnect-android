@@ -12,6 +12,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.room.Room
@@ -109,8 +110,8 @@ import org.kde.kdeconnect.plugins.mpris.MprisMediaSession
 import org.kde.kdeconnect.backends.bluetooth.BluetoothLinkProvider
 import org.koin.core.parameter.parametersOf
 import org.kde.kdeconnect.plugins.mpris.MprisAlbumArtFetcher
-import org.kde.kdeconnect.ui.compose.screen.mpris.MprisScreen
-import org.kde.kdeconnect.ui.compose.screen.mpris.MprisViewModel
+import org.kde.kdeconnect.plugins.mpris.MprisScreen
+import org.kde.kdeconnect.plugins.mpris.MprisViewModel
 import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.BigscreenKey
 import org.kde.kdeconnect.ui.navigation.ConnectionsSettingsKey
@@ -137,7 +138,10 @@ import org.koin.compose.koinInject
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.dsl.module
 import org.koin.dsl.navigation3.navigation
-import org.koin.plugin.module.dsl.create
+import androidx.navigation3.scene.DialogSceneStrategy
+import dev.chrisbanes.haze.HazeState
+import org.kde.kdeconnect.plugins.mpris.SinkSelector
+import org.kde.kdeconnect.ui.navigation.MprisSinkKey
 import org.koin.plugin.module.dsl.factory
 import org.koin.plugin.module.dsl.single
 import org.koin.plugin.module.dsl.viewModel
@@ -294,8 +298,16 @@ val presenterModule = module {
 
 val mprisModule = module {
     viewModel<MprisViewModel>()
-    navigation<MprisKey> { key ->
+    navigation<MprisKey>(metadata = DialogSceneStrategy.dialog(
+        dialogProperties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false
+        )
+    )) { key ->
         MprisScreen(deviceId = key.deviceId)
+    }
+    navigation<MprisSinkKey>(metadata = DialogSceneStrategy.dialog()) { key ->
+        SinkSelector(deviceId = key.deviceId)
     }
 }
 
@@ -324,6 +336,10 @@ val digitizerModule = module {
     }
 }
 
+val hazeModule = module {
+    single { HazeState() }
+}
+
 fun buildImageLoader(context: Context, deviceManager: DeviceManager): ImageLoader =
     ImageLoader.Builder(context)
         .components {
@@ -348,7 +364,8 @@ fun buildImageLoader(context: Context, deviceManager: DeviceManager): ImageLoade
 val appModule = module {
     single<KdeConnect> { get<Context>() as KdeConnect }
     single<BackgroundServiceData>()
-    includes(pairingModule, deviceModule, pluginSettingsModule, presenterModule, mprisModule, mousePadModule, runCommandModule, digitizerModule, settingsModule, aboutModule)
+    includes(pairingModule, deviceModule, pluginSettingsModule, presenterModule, mprisModule,
+        mousePadModule, runCommandModule, digitizerModule, settingsModule, aboutModule, hazeModule)
 
     single {
         val startDestination = if (PermissionHelper.hasRequiredPermissions(get())) {

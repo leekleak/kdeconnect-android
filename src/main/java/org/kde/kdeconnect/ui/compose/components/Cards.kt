@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -61,8 +62,8 @@ private fun KdeCardPreview() {
 }
 
 @Composable
-fun Modifier.card(): Modifier {
+fun Modifier.card(backgroundColor: Color = colorScheme.surfaceContainer): Modifier {
     return this
         .clip(MaterialTheme.shapes.large)
-        .background(colorScheme.surfaceContainer)
+        .background(backgroundColor)
 }

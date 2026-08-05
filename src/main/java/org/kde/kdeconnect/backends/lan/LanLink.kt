@@ -286,7 +286,9 @@ class LanLink @WorkerThread constructor(
             try {
                 val tcpPort = np.payloadTransferInfo.getInt("port")
                 val deviceAddress = socket?.remoteSocketAddress as InetSocketAddress
-                payloadSocket.connect(InetSocketAddress(deviceAddress.address, tcpPort))
+                withContext(Dispatchers.IO) {
+                    payloadSocket.connect(InetSocketAddress(deviceAddress.address, tcpPort))
+                }
                 payloadSocket =
                     sslHelper.convertToSslSocket(context, payloadSocket, deviceId,
                         isDeviceTrusted = true,
@@ -296,13 +298,16 @@ class LanLink @WorkerThread constructor(
                 np.payload = NetworkPacket.Payload(payloadSocket, np.payloadSize)
             } catch (e: Exception) {
                 try {
-                    payloadSocket.close()
+                    withContext(Dispatchers.IO) {
+                        payloadSocket.close()
+                    }
                 } catch (_: Exception) {
                 }
                 Log.e("KDE/LanLink", "Exception connecting to payload remote socket", e)
             }
         }
 
+        Log.e("Receiving", np.type)
         packetReceived(np)
     }
 

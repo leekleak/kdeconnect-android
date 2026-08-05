@@ -1,4 +1,4 @@
-package org.kde.kdeconnect.ui.compose.screen.mpris
+package org.kde.kdeconnect.plugins.mpris
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -15,12 +15,10 @@ import kotlinx.coroutines.launch
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.helpers.VideoUrlsHelper
 import org.kde.kdeconnect.helpers.calculateNewVolume
-import org.kde.kdeconnect.plugins.mpris.MprisMediaSession
-import org.kde.kdeconnect.plugins.mpris.MprisPlayerState
-import org.kde.kdeconnect.plugins.mpris.MprisPlugin
 import org.kde.kdeconnect.plugins.systemvolume.Sink
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin
 import org.koin.core.annotation.InjectedParam
+import kotlin.collections.get
 import kotlin.time.Duration.Companion.seconds
 
 class MprisViewModel(
@@ -32,7 +30,7 @@ class MprisViewModel(
 ) : AndroidViewModel(application) {
 
     val plugin: MprisPlugin? = deviceManager.getDevicePlugin(deviceId, MprisPlugin::class.java)
-    val systemVolumePlugin: SystemVolumePlugin? = deviceManager.getDevicePlugin(deviceId, SystemVolumePlugin::class.java)
+    val systemVolumePlugin: SystemVolumePlugin = deviceManager.getDevicePlugin(deviceId, SystemVolumePlugin::class.java)!!
 
     val playerList: StateFlow<List<String>> = plugin?.players?.map { it.keys.sorted() }
         ?.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -51,8 +49,7 @@ class MprisViewModel(
     private val _playerPosition = MutableStateFlow(0L)
     val playerPosition: StateFlow<Long> = _playerPosition.asStateFlow()
 
-    val sinks: StateFlow<List<Sink>> = systemVolumePlugin?.sinks
-        ?: MutableStateFlow(emptyList())
+    val sinks: StateFlow<List<Sink>> = systemVolumePlugin.sinks
 
     var currentTab = 0
 
@@ -102,7 +99,7 @@ class MprisViewModel(
     fun setVolume(volume: Int) = viewModelScope.launch { playerStatus.value?.let { plugin?.sendSetVolume(it.playerName, volume) } }
     fun toggleShuffle() = viewModelScope.launch { playerStatus.value?.let { plugin?.sendSetShuffle(it.playerName, !it.shuffle) } }
     fun setSinkEnabled(name: String) = viewModelScope.launch { systemVolumePlugin?.sendEnable(name) }
-    fun toggleSinkMute(name: String, isMuted: Boolean) = viewModelScope.launch { systemVolumePlugin?.sendMute(name, !isMuted) }
+    //fun toggleSinkMute(name: String, isMuted: Boolean) = viewModelScope.launch { systemVolumePlugin?.sendMute(name, !isMuted) }
     fun setSinkVolume(name: String, volume: Int) = viewModelScope.launch { systemVolumePlugin?.sendVolume(name, volume) }
 
     fun toggleLoopStatus() {

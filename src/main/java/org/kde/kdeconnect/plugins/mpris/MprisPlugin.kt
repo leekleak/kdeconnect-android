@@ -115,6 +115,7 @@ class MprisPlugin(
     }
 
     override suspend fun onDestroy() {
+        super.onDestroy()
         _players.value = emptyMap()
         mprisMediaSession.onDestroy(this, device.deviceId)
     }
@@ -218,6 +219,7 @@ class MprisPlugin(
 
         val newPlayerList = np.getStringList("playerList")
         if (newPlayerList != null) {
+            Log.e("MPRIS", "Updating player list")
             _players.update { current ->
                 val updatedMap = current.toMutableMap()
 
@@ -380,12 +382,10 @@ class MprisPlugin(
         null
     } else _players.value[player]
 
-    fun getEmptyPlayer(): MprisPlayerState = MprisPlayerState()
-
     val playingPlayer: MprisPlayerState?
         get() = _players.value.values.firstOrNull { it.isPlaying }
 
-    private suspend fun requestPlayerList() {
+    suspend fun requestPlayerList() {
         val np = NetworkPacket(PACKET_TYPE_MPRIS_REQUEST).apply {
             this["requestPlayerList"] = true
         }

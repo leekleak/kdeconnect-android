@@ -464,6 +464,7 @@ class Device(
      * @param callback A callback for success/failure
      */
     suspend fun sendPacket(np: NetworkPacket, callback: SendPacketStatusCallback) = withContext(Dispatchers.IO) {
+        Log.e("Sending", np.type)
         sendChannel.send(NetworkPacketWithCallback(np, callback))
     }
 
