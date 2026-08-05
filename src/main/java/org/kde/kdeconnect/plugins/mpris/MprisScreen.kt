@@ -1,5 +1,7 @@
 package org.kde.kdeconnect.plugins.mpris
 
+import android.os.Build
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -23,16 +25,23 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.WavyProgressIndicatorDefaults
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,14 +61,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.palette.graphics.Palette
+import coil3.BitmapImage
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
-import coil3.toBitmap
 import dev.chrisbanes.haze.HazeProgressive
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
@@ -105,10 +115,10 @@ fun MprisScreen(
             .verticalScroll(rememberScrollState())
             .statusBarsPadding()
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
     ) {
         PlayerIsland(viewModel)
-        ControlsIsland(deviceId)
+        ControlsIsland(deviceId, viewModel)
     }
 }
 
@@ -116,11 +126,10 @@ fun MprisScreen(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
 fun PlayerIsland(viewModel: MprisViewModel) {
-    val selectedPlayerName by viewModel.selectedPlayerName.collectAsState()
     val playerStatus by viewModel.playerStatus.collectAsState()
     val playerPosition by viewModel.playerPosition.collectAsState()
 
-    var isBright by remember(selectedPlayerName, playerStatus?.albumArtUrl) { mutableStateOf(true) }
+    var isBright by remember { mutableStateOf(true) }
     val backgroundColor by animateColorAsState(if (isBright) Color.White else Color.Black)
     val contentColor by animateColorAsState(if (isBright) Color.Black else Color.White)
 
@@ -131,6 +140,7 @@ fun PlayerIsland(viewModel: MprisViewModel) {
             .clip(MaterialTheme.shapes.large)
             .background(backgroundColor)
     ) {
+        var currentCover by remember { mutableStateOf<Painter?>(null) }
         AsyncImage(
             modifier = Modifier
                 .aspectRatio(1f)
@@ -151,13 +161,12 @@ fun PlayerIsland(viewModel: MprisViewModel) {
                         it.albumArtUrl
                     )
                 })
-                .allowHardware(false)
+                .allowHardware(false) // Needed to get a pallete
                 .build(),
+            placeholder = currentCover,
             onSuccess = { result ->
-                val bitmap = result.result.image.toBitmap(
-                    result.result.image.width,
-                    result.result.image.height
-                )
+                currentCover = result.painter
+                val bitmap = (result.result.image as BitmapImage).bitmap
                 Palette.from(bitmap).generate { palette ->
                     palette?.dominantSwatch?.let {
                         isBright = it.hsl[2] > 0.5f
@@ -180,6 +189,42 @@ fun PlayerIsland(viewModel: MprisViewModel) {
                 }
             )
         }
+
+        Row(Modifier.align(Alignment.TopEnd).padding(8.dp)) {
+            if (playerStatus?.isShuffleAllowed == true) {
+                val checked = playerStatus?.shuffle == true
+                FilledIconToggleButton(
+                    checked = checked,
+                    onCheckedChange = { viewModel.toggleShuffle() }
+                ) {
+                    AnimatedContent(checked) {
+                        Icon(
+                            painterResource(if (it) R.drawable.shuffle_on else R.drawable.shuffle),
+                            contentDescription = stringResource(R.string.mpris_shuffle)
+                        )
+                    }
+                }
+            }
+            if (playerStatus?.isLoopStatusAllowed == true) {
+                val checked = playerStatus?.loopStatus != "Track" && playerStatus?.loopStatus != "Playlist"
+                FilledIconToggleButton(
+                    checked = checked,
+                    onCheckedChange = { viewModel.toggleLoopStatus() }
+                ) {
+                    val icon = when (playerStatus?.loopStatus) {
+                        "Track" -> R.drawable.repeat_one
+                        "Playlist" -> R.drawable.repeat_on
+                        else -> R.drawable.repeat
+                    }
+                    AnimatedContent(icon) {
+                        Icon(
+                            painterResource(it),
+                            contentDescription = stringResource(R.string.mpris_loop)
+                        )
+                    }
+                }
+            }
+        }
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -189,151 +234,113 @@ fun PlayerIsland(viewModel: MprisViewModel) {
             val artist = playerStatus?.artist ?: ""
             val fontBold = remember { googleSans(weight = 900f) }
             val font = remember { googleSans(weight = 600f) }
-            Text(
-                text = title,
-                modifier = Modifier.padding(horizontal = 16.dp),
-                fontSize = 36.sp,
-                color = contentColor,
-                fontFamily = fontBold,
-            )
-
-            Text(
-                text = artist,
-                modifier = Modifier.basicMarquee(),
-                fontSize = 16.sp,
-                maxLines = 1,
-                color = contentColor,
-                fontFamily = font,
-                fontStyle = FontStyle.Italic
-            )
+            AnimatedContent(title) {
+                Text(
+                    text = it,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    fontSize = 36.sp,
+                    color = contentColor,
+                    fontFamily = fontBold,
+                    textAlign = TextAlign.Center
+                )
+            }
+            AnimatedContent(artist) {
+                Text(
+                    text = it,
+                    modifier = Modifier.basicMarquee(),
+                    fontSize = 16.sp,
+                    maxLines = 1,
+                    color = contentColor,
+                    fontFamily = font,
+                    fontStyle = FontStyle.Italic
+                )
+            }
 
             Spacer(modifier = Modifier.size(16.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
+            MaterialTheme(colorScheme =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    if (isBright) dynamicLightColorScheme(LocalContext.current)
+                    else dynamicDarkColorScheme(LocalContext.current)
+                } else {
+                    if (isBright) lightColorScheme()
+                    else darkColorScheme()
+                }
             ) {
-                if (playerStatus?.isLoopStatusAllowed == true) {
-                    IconButton(onClick = { viewModel.toggleLoopStatus() }) {
-                        val icon = when (playerStatus?.loopStatus) {
-                            "Track" -> R.drawable.ic_loop_track_black
-                            "Playlist" -> R.drawable.ic_loop_playlist_black
-                            else -> R.drawable.ic_loop_none_black
+
+                if (playerStatus?.isSeekAllowed == true) {
+                    Column (Modifier.padding(16.dp)) {
+                        LinearWavyProgressIndicator(
+                            modifier = Modifier.fillMaxWidth(),
+                            progress = { playerPosition.toFloat()/(playerStatus?.length?.toFloat() ?: 0f )},
+                            waveSpeed = if (playerStatus?.isPlaying == true) WavyProgressIndicatorDefaults.LinearDeterminateWavelength else 0.dp
+                        )
+                        Row {
+                            Text(durationToProgress(playerPosition.milliseconds))
+                            Spacer(Modifier.weight(1f))
+                            Text(
+                                durationToProgress(
+                                    playerStatus?.length?.milliseconds ?: 0.milliseconds
+                                )
+                            )
                         }
-                        Icon(
-                            painterResource(icon),
-                            contentDescription = stringResource(R.string.mpris_loop)
-                        )
                     }
                 }
 
-                IconButton(
-                    onClick = { viewModel.playPause() },
-                    modifier = Modifier.size(64.dp)
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    val icon = if (playerStatus?.isPlaying == true) R.drawable.ic_pause_black
-                               else R.drawable.ic_play_black
-                    Icon(
-                        painterResource(icon),
-                        contentDescription = stringResource(
-                            if (playerStatus?.isPlaying == true) R.string.mpris_pause
-                            else R.string.mpris_play
-                        ),
-                        modifier = Modifier.size(48.dp)
-                    )
-                }
-
-                if (playerStatus?.isShuffleAllowed == true) {
-                    IconButton(onClick = { viewModel.toggleShuffle() }) {
-                        val icon =
-                            if (playerStatus?.shuffle == true) R.drawable.ic_shuffle_on_black else R.drawable.ic_shuffle_off_black
+                    Button(
+                        onClick = { viewModel.previous() },
+                        enabled = playerStatus?.isGoPreviousAllowed == true
+                    ) {
                         Icon(
-                            painterResource(icon),
-                            contentDescription = stringResource(R.string.mpris_shuffle)
+                            painterResource(R.drawable.ic_previous_black),
+                            contentDescription = stringResource(R.string.mpris_previous)
                         )
                     }
-                }
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                IconButton(
-                    onClick = { viewModel.previous() },
-                    enabled = playerStatus?.isGoPreviousAllowed == true
-                ) {
-                    Icon(
-                        painterResource(R.drawable.ic_previous_black),
-                        contentDescription = stringResource(R.string.mpris_previous)
-                    )
-                }
-                if (playerStatus?.isSeekAllowed == true) {
-                    IconButton(onClick = { viewModel.seek(-10000) }) {
+                    if (playerStatus?.isSeekAllowed == true) {
+                        Button(onClick = { viewModel.seek(-10000) }) {
+                            Icon(
+                                painterResource(R.drawable.ic_rewind_black),
+                                contentDescription = stringResource(R.string.mpris_rew)
+                            )
+                        }
+                    }
+                    Button(
+                        onClick = { viewModel.playPause() },
+                        modifier = Modifier.size(64.dp)
+                    ) {
+                        val icon = if (playerStatus?.isPlaying == true) R.drawable.ic_pause_black
+                        else R.drawable.ic_play_black
                         Icon(
-                            painterResource(R.drawable.ic_rewind_black),
-                            contentDescription = stringResource(R.string.mpris_rew)
+                            modifier = Modifier.size(48.dp),
+                            painter = painterResource(icon),
+                            contentDescription = stringResource(
+                                if (playerStatus?.isPlaying == true) R.string.mpris_pause
+                                else R.string.mpris_play
+                            ),
                         )
                     }
-                }
-                IconButton(onClick = { viewModel.stop() }) {
-                    Icon(
-                        painterResource(R.drawable.ic_stop),
-                        contentDescription = stringResource(R.string.mpris_stop)
-                    )
-                }
-                if (playerStatus?.isSeekAllowed == true) {
-                    IconButton(onClick = { viewModel.seek(10000) }) {
+                    if (playerStatus?.isSeekAllowed == true) {
+                        Button(onClick = { viewModel.seek(10000) }) {
+                            Icon(
+                                painterResource(R.drawable.ic_fast_forward_black),
+                                contentDescription = stringResource(R.string.mpris_ff)
+                            )
+                        }
+                    }
+                    Button(
+                        onClick = { viewModel.next() },
+                        enabled = playerStatus?.isGoNextAllowed == true
+                    ) {
                         Icon(
-                            painterResource(R.drawable.ic_fast_forward_black),
-                            contentDescription = stringResource(R.string.mpris_ff)
+                            painterResource(R.drawable.ic_next_black),
+                            contentDescription = stringResource(R.string.mpris_next)
                         )
                     }
-                }
-                IconButton(
-                    onClick = { viewModel.next() },
-                    enabled = playerStatus?.isGoNextAllowed == true
-                ) {
-                    Icon(
-                        painterResource(R.drawable.ic_next_black),
-                        contentDescription = stringResource(R.string.mpris_next)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.size(16.dp))
-
-            if (playerStatus?.isSeekAllowed == true) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(durationToProgress(playerPosition.milliseconds))
-                    Slider(
-                        value = playerPosition.toFloat(),
-                        onValueChange = { /* Update preview? */ },
-                        onValueChangeFinished = { viewModel.setPosition(playerPosition) },
-                        valueRange = 0f..(playerStatus?.length?.toFloat() ?: 0f),
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(
-                        durationToProgress(
-                            playerStatus?.length?.milliseconds ?: 0.milliseconds
-                        )
-                    )
-                }
-            }
-
-            if (playerStatus?.isSetVolumeAllowed == true) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        painterResource(R.drawable.ic_volume),
-                        contentDescription = stringResource(R.string.mpris_volume)
-                    )
-                    Slider(
-                        value = playerStatus?.volume?.toFloat() ?: 0f,
-                        onValueChange = { volume -> viewModel.setVolume(volume.toInt()) },
-                        valueRange = 0f..100f,
-                        modifier = Modifier.weight(1f)
-                    )
                 }
             }
         }
@@ -343,13 +350,20 @@ fun PlayerIsland(viewModel: MprisViewModel) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ControlsIsland(
-    deviceId: String
+    deviceId: String,
+    viewModel: MprisViewModel
 ) {
     val navigator: Navigator = koinInject()
+    val playerStatus by viewModel.playerStatus.collectAsState()
+    val sinks by viewModel.sinks.collectAsState()
+    val outputName by remember { derivedStateOf {
+        sinks.first { it.isDefault }.description
+    } }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .card()
+            .card(colorScheme.surfaceContainerLowest)
             .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -358,16 +372,30 @@ fun ControlsIsland(
         ) {
             ControlButton(
                 titleName = stringResource(R.string.input),
-                contentName = stringResource(R.string.input),
+                contentName = playerStatus?.playerName ?: "",
                 icon = painterResource(R.drawable.input),
                 onClick = { navigator.goTo(MprisSourceKey(deviceId)) }
             )
             ControlButton(
                 titleName = stringResource(R.string.output),
-                contentName = stringResource(R.string.output),
+                contentName = outputName,
                 icon = painterResource(R.drawable.speaker_group),
                 onClick = { navigator.goTo(MprisSinkKey(deviceId)) }
             )
+        }
+        if (playerStatus?.isSetVolumeAllowed == true) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painterResource(R.drawable.ic_volume),
+                    contentDescription = stringResource(R.string.mpris_volume)
+                )
+                Slider(
+                    value = playerStatus?.volume?.toFloat() ?: 0f,
+                    onValueChange = { volume -> viewModel.setVolume(volume.toInt()) },
+                    valueRange = 0f..100f,
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
     }
 }
@@ -397,7 +425,7 @@ private fun RowScope.ControlButton(
             Text(
                 text = titleName,
                 fontFamily = font,
-                color = colorScheme.onSurface
+                color = colorScheme.onSurface,
             )
         }
         Button(
@@ -405,7 +433,11 @@ private fun RowScope.ControlButton(
             shape = MaterialTheme.shapes.medium,
             onClick = onClick
         ) {
-            Text(contentName)
+            Text(
+                modifier = Modifier.basicMarquee(),
+                text = contentName,
+                maxLines = 1
+            )
         }
     }
 }
