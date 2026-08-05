@@ -23,11 +23,11 @@ class NotificationSettingsDataStore(private val context: Context) {
         .distinctUntilChanged()
 
     val mprisNotificationEnabled: Flow<Boolean> = context.dataStore.data
-        .map { it[KEY_MPRIS_NOTIFICATION_ENABLED] ?: true }
+        .map { it[KEY_MPRIS_NOTIFICATION_ENABLED] ?: false }
         .distinctUntilChanged()
 
     val mprisKeepWatchingEnabled: Flow<Boolean> = context.dataStore.data
-        .map { it[KEY_MPRIS_KEEP_WATCHING_ENABLED] ?: true }
+        .map { it[KEY_MPRIS_KEEP_WATCHING_ENABLED] ?: false }
         .distinctUntilChanged()
 
     // Blocking getters for legacy interop

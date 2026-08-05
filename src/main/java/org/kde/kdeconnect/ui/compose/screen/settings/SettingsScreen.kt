@@ -109,7 +109,7 @@ fun SettingsScreen(
             onClick = { navigator.goTo(TelephonyPluginSettingsKey) }
         )
         NavigatePreference(
-            title = stringResource(R.string.notifications),
+            title = stringResource(R.string.notifications_media),
             icon = painterResource(R.drawable.notifications),
             onClick = { navigator.goTo(NotificationSettingsKey) }
         )

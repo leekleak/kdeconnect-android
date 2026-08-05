@@ -5,6 +5,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -30,10 +32,15 @@ import org.kde.kdeconnect.plugins.receivenotifications.ReceiveNotificationsPlugi
 import org.kde.kdeconnect.ui.PermissionExplanationActivity
 import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
+import org.kde.kdeconnect.ui.compose.components.NavigatePreference
 import org.kde.kdeconnect.ui.compose.components.NotificationTogglePreference
 import org.kde.kdeconnect.ui.compose.components.Preference
 import org.kde.kdeconnect.ui.compose.components.SwitchPreference
+import org.kde.kdeconnect.ui.navigation.Navigator
+import org.kde.kdeconnect.ui.navigation.NotificationSettingsKey
+import org.kde.kdeconnect.ui.navigation.TelephonyPluginSettingsKey
 import org.kde.kdeconnect_tp.R
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -46,6 +53,7 @@ fun DeviceSettingsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val navigator: Navigator = koinInject()
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         viewModel.onPermissionResult(result.resultCode)
@@ -66,13 +74,20 @@ fun DeviceSettingsScreen(
     val notificationReceive = uiState.plugins.find { it is ReceiveNotificationsPlugin }
     val contacts = uiState.plugins.find { it is ContactsPlugin }
     val clipboard = uiState.plugins.find { it is ClipboardPlugin }
-    val multimedia = uiState.plugins.find { it is MprisReceiverPlugin }
     val connectivity = uiState.plugins.find { it is ConnectivityReportPlugin }
 
 
     HazeScaffold(
         title = uiState.deviceName,
         backButton = true,
+        actions = {
+            IconButton (viewModel::unpair) { // Todo: Confirmation dialog would be nice
+                Icon(
+                    painter = painterResource(R.drawable.link_off),
+                    contentDescription = stringResource(R.string.device_menu_unpair),
+                )
+            }
+        }
     ) {
         CategoryTitleTextSmall(stringResource(R.string.notifications))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -107,13 +122,6 @@ fun DeviceSettingsScreen(
             onValueChanged = { onPluginToggled(ContactsPluginInfo.pluginKey, it) }
         )
         SwitchPreference(
-            title = stringResource(MprisReceiverPluginInfo.displayNameRes),
-            summary = stringResource(MprisReceiverPluginInfo.descriptionRes),
-            icon = painterResource(R.drawable.media_link),
-            value = multimedia != null,
-            onValueChanged = { onPluginToggled(MprisReceiverPluginInfo.pluginKey, it) }
-        )
-        SwitchPreference(
             title = stringResource(ConnectivityReportPluginInfo.displayNameRes),
             summary = stringResource(ConnectivityReportPluginInfo.descriptionRes),
             icon = painterResource(R.drawable.query_stats),
@@ -121,11 +129,16 @@ fun DeviceSettingsScreen(
             onValueChanged = { onPluginToggled(ConnectivityReportPluginInfo.pluginKey, it) }
         )
 
-        CategoryTitleTextSmall(stringResource(R.string.other))
-        Preference(
-            title = stringResource(R.string.device_menu_unpair),
-            icon = painterResource(R.drawable.link_off),
-            onClick = viewModel::unpair
+        CategoryTitleTextSmall(stringResource(R.string.global_settings))
+        NavigatePreference(
+            title = stringResource(R.string.calls_messages),
+            icon = painterResource(R.drawable.perm_phone_msg),
+            onClick = { navigator.goTo(TelephonyPluginSettingsKey) }
+        )
+        NavigatePreference(
+            title = stringResource(R.string.notifications_media),
+            icon = painterResource(R.drawable.notifications),
+            onClick = { navigator.goTo(NotificationSettingsKey) }
         )
     }
 }
