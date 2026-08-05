@@ -17,20 +17,19 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withTimeoutOrNull
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.NetworkPacket.Payload
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.helpers.ThreadHelper
 import org.kde.kdeconnect.helpers.VideoUrlsHelper
-import org.kde.kdeconnect.plugins.mpris.AlbumArtCache.deregisterPlugin
-import org.kde.kdeconnect.plugins.mpris.AlbumArtCache.initializeDiskCache
-import org.kde.kdeconnect.plugins.mpris.AlbumArtCache.payloadToDiskCache
-import org.kde.kdeconnect.plugins.mpris.AlbumArtCache.registerPlugin
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.ui.MainActivity
@@ -38,6 +37,8 @@ import org.kde.kdeconnect.ui.navigation.MprisKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 import java.net.MalformedURLException
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration.Companion.milliseconds
 
 data class MprisPlayerState(
     val playerName: String = "",
@@ -102,21 +103,19 @@ class MprisPlugin(
 
     private var supportAlbumArtPayload = false
 
+    private val pendingAlbumArtFetches = ConcurrentHashMap<String, CompletableDeferred<Payload>>()
+
     override suspend fun onCreate(): Boolean {
         mprisMediaSession.onCreate(context.applicationContext, this, device.deviceId)
 
         // Always request the player list so the data is up-to-date
         requestPlayerList()
 
-        initializeDiskCache(context)
-        registerPlugin(this)
-
         return true
     }
 
     override suspend fun onDestroy() {
         _players.value = emptyMap()
-        deregisterPlugin(this)
         mprisMediaSession.onDestroy(this, device.deviceId)
     }
 
@@ -146,7 +145,10 @@ class MprisPlugin(
 
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         if (np.getBoolean("transferringAlbumArt", false)) {
-            payloadToDiskCache(np.getString("albumArtUrl"), np.payload)
+            val url = np.getString("albumArtUrl")
+            np.payload?.let { payload ->
+                pendingAlbumArtFetches.remove(url)?.complete(payload)
+            } ?: pendingAlbumArtFetches.remove(url)?.cancel()
             return true
         }
 
@@ -195,7 +197,7 @@ class MprisPlugin(
 
                 val newAlbumArtUrlString = np.getString("albumArtUrl", newState.albumArtUrl)
                 val newAlbumArtUrl = newAlbumArtUrlString.toUri()
-                if (newAlbumArtUrl.scheme in AlbumArtCache.ALLOWED_SCHEMES) {
+                if (newAlbumArtUrl.scheme in ALLOWED_SCHEMES) {
                     newState = newState.copy(albumArtUrl = newAlbumArtUrl.toString())
                 } else if (newAlbumArtUrlString.isNotEmpty()) {
                     Log.w("MprisControl", "Invalid album art URL: $newAlbumArtUrlString")
@@ -399,7 +401,21 @@ class MprisPlugin(
         device.sendPacket(np)
     }
 
-    fun fetchedAlbumArt(url: String) {
+    suspend fun fetchAlbumArt(url: String, playerName: String?): Payload? {
+        val deferred = CompletableDeferred<Payload>()
+        pendingAlbumArtFetches[url] = deferred
+
+        return try {
+            if (!askTransferAlbumArt(url, playerName)) {
+                null
+            } else {
+                withTimeoutOrNull(10000.milliseconds) {
+                    deferred.await()
+                }
+            }
+        } finally {
+            pendingAlbumArtFetches.remove(url)
+        }
     }
 
     fun askTransferAlbumArt(url: String, playerName: String?): Boolean {
@@ -424,6 +440,7 @@ class MprisPlugin(
         const val DEVICE_ID_KEY: String = "deviceId"
         const val PACKET_TYPE_MPRIS = "kdeconnect.mpris"
         const val PACKET_TYPE_MPRIS_REQUEST = "kdeconnect.mpris.request"
+        val ALLOWED_SCHEMES = listOf("http", "https", "file", "kdeconnect")
     }
 }
 

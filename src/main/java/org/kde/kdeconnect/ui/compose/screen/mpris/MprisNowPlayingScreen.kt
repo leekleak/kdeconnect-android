@@ -56,7 +56,6 @@ fun MprisNowPlayingScreen(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Album Art
         AsyncImage(
             model = playerStatus?.let { MprisAlbumArt(deviceId, it.playerName, it.albumArtUrl) },
             contentDescription = null,
@@ -68,7 +67,6 @@ fun MprisNowPlayingScreen(
             contentScale = ContentScale.Fit
         )
 
-        // Player Selection
         if (playerList.isNotEmpty()) {
             var expanded by remember { mutableStateOf(false) }
             ExposedDropdownMenuBox(

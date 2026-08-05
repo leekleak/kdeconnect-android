@@ -16,6 +16,9 @@ import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.room.Room
 import coil3.ImageLoader
+import coil3.disk.DiskCache
+import coil3.disk.directory
+import coil3.memory.MemoryCache
 import coil3.request.crossfade
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
@@ -326,6 +329,18 @@ fun buildImageLoader(context: Context, deviceManager: DeviceManager): ImageLoade
         .components {
             add(AppIconFetcher.Factory(context))
             add(MprisAlbumArtFetcher.Factory(deviceManager))
+            add(MprisAlbumArtFetcher.Keyer())
+        }
+        .memoryCache {
+            MemoryCache.Builder()
+                .maxSizePercent(context, 0.25)
+                .build()
+        }
+        .diskCache {
+            DiskCache.Builder()
+                .directory(context.cacheDir.resolve("album_art"))
+                .maxSizeBytes(5 * 1024 * 1024)
+                .build()
         }
         .crossfade(true)
         .build()
@@ -360,7 +375,7 @@ val appModule = module {
 
     factory<Device>()
 
-    single { MprisMediaSession(get(), get()) }
+    single { MprisMediaSession(get(), get(), get()) }
     factory { (context: Context) -> BluetoothLinkProvider(context, get(), get(), get()) }
     factory { (context: Context) -> LanLinkProvider(context, get(), get(), get(), get(), get()) }
     factory { (context: Context) -> LoopbackLinkProvider(context, get()) }

@@ -11,7 +11,6 @@ datastore = "1.2.1"
 coreKtx = "1.19.0"
 coilCompose = "3.5.0"
 dependencyLicenseReport = "3.1.4"
-disklrucache = "2.0.2"
 documentfile = "1.1.0"
 gridlayout = "1.1.0"
 jsonassert = "1.5.3"
@@ -70,7 +69,6 @@ bcpkix-jdk15on = { module = "org.bouncycastle:bcpkix-jdk15on", version.ref = "bc
 classindexksp = { module = "com.github.albertvaka:classindexksp", version.ref = "classindexksp" }
 commons-io = { module = "commons-io:commons-io", version.ref = "commonsIo" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
-disklrucache = { module = "com.jakewharton:disklrucache", version.ref = "disklrucache" }
 jsonassert = { module = "org.skyscreamer:jsonassert", version.ref = "jsonassert" }
 junit = { module = "junit:junit", version.ref = "junit" }
 android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "androidGradlePlugin" }

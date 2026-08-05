@@ -22,6 +22,9 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
+import coil3.BitmapImage
+import coil3.ImageLoader
+import coil3.request.ImageRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -48,7 +51,8 @@ import org.kde.kdeconnect_tp.R
  */
 class MprisMediaSession(
     private var context: Context?,
-    private val dataStore: NotificationSettingsDataStore
+    private val dataStore: NotificationSettingsDataStore,
+    private val imageLoader: ImageLoader
 ) : NotificationReceiver.NotificationListener, SystemVolumeProvider.ProviderStateListener {
     private lateinit var device: Device
     private var notificationDeviceId: String? = null
@@ -59,6 +63,9 @@ class MprisMediaSession(
     private var notificationPlayer: MprisPlayerState? = null
     private var spotifyRunning = false
     private var currentProvider: SystemVolumeProvider? = null
+
+    private var currentAlbumArtUrl: String? = null
+    private var currentAlbumArt: Bitmap? = null
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var collectionJob: Job? = null
@@ -148,7 +155,19 @@ class MprisMediaSession(
         val currentPlayer = notificationPlayer ?: return
 
         val plugin = device.getPlugin(MprisPlugin::class.java) ?: return
-        val albumArt = currentPlayer.getAlbumArt(plugin, currentPlayer.playerName)
+        
+        if (currentPlayer.albumArtUrl != currentAlbumArtUrl) {
+            currentAlbumArtUrl = currentPlayer.albumArtUrl
+            currentAlbumArt = null
+            serviceScope.launch {
+                val request = ImageRequest.Builder(context!!)
+                    .data(MprisAlbumArt(device.deviceId, currentPlayer.playerName, currentPlayer.albumArtUrl))
+                    .build()
+                val result = imageLoader.execute(request)
+                currentAlbumArt = (result.image as? BitmapImage)?.bitmap
+                updateMediaNotification()
+            }
+        }
 
         metadata
             .putString(MediaMetadataCompat.METADATA_KEY_TITLE, currentPlayer.title)
@@ -156,8 +175,8 @@ class MprisMediaSession(
             .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, currentPlayer.album)
             .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, currentPlayer.length)
 
-        if (albumArt != null) {
-            metadata.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, albumArt)
+        if (currentAlbumArt != null) {
+            metadata.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, currentAlbumArt)
         }
 
         playbackState.setState(
@@ -260,8 +279,8 @@ class MprisMediaSession(
             notification.setContentText(currentPlayer.playerName)
         }
 
-        if (albumArt != null) {
-            notification.setLargeIcon(albumArt)
+        if (currentAlbumArt != null) {
+            notification.setLargeIcon(currentAlbumArt)
         }
 
         if (!currentPlayer.isPlaying) {
@@ -410,9 +429,5 @@ class MprisMediaSession(
         private const val MPRIS_MEDIA_SESSION_TAG = "org.kde.kdeconnect_tp.media_session"
 
         private const val SPOTIFY_PACKAGE_NAME = "com.spotify.music"
-    }
-
-    private fun MprisPlayerState.getAlbumArt(plugin: MprisPlugin, playerName: String): Bitmap? {
-        return AlbumArtCache.getAlbumArt(this.albumArtUrl, plugin, playerName)
     }
 }
