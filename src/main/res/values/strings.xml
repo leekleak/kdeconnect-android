@@ -676,6 +676,8 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     <string name="permission_request">Permission Request</string>
     <string name="notifications_media"><![CDATA[Notifications & Media]]></string>
   <string name="global_settings">Global settings</string>
+    <string name="output">Output</string>
+  <string name="input">Input</string>
 
 
 </resources>

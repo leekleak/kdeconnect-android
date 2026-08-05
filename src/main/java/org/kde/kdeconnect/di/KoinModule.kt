@@ -141,7 +141,9 @@ import org.koin.dsl.navigation3.navigation
 import androidx.navigation3.scene.DialogSceneStrategy
 import dev.chrisbanes.haze.HazeState
 import org.kde.kdeconnect.plugins.mpris.SinkSelector
+import org.kde.kdeconnect.plugins.mpris.SourceSelector
 import org.kde.kdeconnect.ui.navigation.MprisSinkKey
+import org.kde.kdeconnect.ui.navigation.MprisSourceKey
 import org.koin.plugin.module.dsl.factory
 import org.koin.plugin.module.dsl.single
 import org.koin.plugin.module.dsl.viewModel
@@ -308,6 +310,9 @@ val mprisModule = module {
     }
     navigation<MprisSinkKey>(metadata = DialogSceneStrategy.dialog()) { key ->
         SinkSelector(deviceId = key.deviceId)
+    }
+    navigation<MprisSourceKey>(metadata = DialogSceneStrategy.dialog()) { key ->
+        SourceSelector(deviceId = key.deviceId)
     }
 }
 

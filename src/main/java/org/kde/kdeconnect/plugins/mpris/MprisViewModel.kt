@@ -55,6 +55,9 @@ class MprisViewModel(
 
     init {
         viewModelScope.launch {
+            plugin?.requestPlayerList()
+        }
+        viewModelScope.launch {
             playerList.collect { list ->
                 if (_selectedPlayerName.value == null || !list.contains(_selectedPlayerName.value)) {
                     val playing = plugin?.playingPlayer
