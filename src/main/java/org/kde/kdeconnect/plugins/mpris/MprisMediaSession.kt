@@ -2,15 +2,15 @@
  * SPDX-FileCopyrightText: 2017 Matthijs Tijink <matthijstijink@gmail.com>
  *
  * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
- */
+*/
+
 package org.kde.kdeconnect.plugins.mpris
 
-import android.Manifest
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.media.AudioManager
 import android.os.Build
 import android.os.Handler
@@ -25,17 +25,16 @@ import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
 import org.kde.kdeconnect.helpers.NotificationHelper
-import org.kde.kdeconnect.plugins.mpris.MprisPlugin.MprisPlayer
 import org.kde.kdeconnect.plugins.notifications.NotificationReceiver
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumeProvider
-import org.kde.kdeconnect.plugins.systemvolume.SystemVolumeProvider.Companion.currentProvider
-import org.kde.kdeconnect.plugins.systemvolume.SystemVolumeProvider.ProviderStateListener
+import org.kde.kdeconnect.ui.MainActivity
+import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import org.kde.kdeconnect_tp.R
 
 /**
@@ -48,262 +47,139 @@ import org.kde.kdeconnect_tp.R
  * older Android version. And in the future for lock screen album covers)
  */
 class MprisMediaSession(
-    private val dataStore: NotificationSettingsDataStore,
-    private val deviceManager: DeviceManager,
-) : NotificationReceiver.NotificationListener, ProviderStateListener {
-    private var spotifyRunning = false
-
-    private var job: Job? = null
-
-    // Holds the device and player displayed in the notification
+    private var context: Context?,
+    private val dataStore: NotificationSettingsDataStore
+) : NotificationReceiver.NotificationListener, SystemVolumeProvider.ProviderStateListener {
+    private lateinit var device: Device
     private var notificationDeviceId: String? = null
-    private var notificationPlayer: MprisPlayer? = null
+    var mediaSession: MediaSessionCompat? = null
+        private set
+    private lateinit var metadata: MediaMetadataCompat.Builder
+    private lateinit var playbackState: PlaybackStateCompat.Builder
+    private var notificationPlayer: MprisPlayerState? = null
+    private var spotifyRunning = false
+    private var currentProvider: SystemVolumeProvider? = null
 
-    // Holds the device ids for which we can display a notification
-    private val mprisDevices = HashSet<String>()
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private var collectionJob: Job? = null
 
-    private var context: Context? = null
-    internal var mediaSession: MediaSessionCompat? = null
-
-    // Callback for control via the media session API
     private val mediaSessionCallback: MediaSessionCompat.Callback = object : MediaSessionCompat.Callback() {
         override fun onPlay() {
-            notificationPlayer?.sendPlay()
+            notificationPlayer?.let {
+                val plugin = it.getPlugin() ?: return
+                plugin.sendPlay(it.playerName)
+            }
         }
 
         override fun onPause() {
-            notificationPlayer?.sendPause()
+            notificationPlayer?.let {
+                val plugin = it.getPlugin() ?: return
+                plugin.sendPause(it.playerName)
+            }
         }
 
         override fun onSkipToNext() {
-            notificationPlayer?.sendNext()
+            notificationPlayer?.let {
+                val plugin = it.getPlugin() ?: return
+                plugin.sendNext(it.playerName)
+            }
         }
 
         override fun onSkipToPrevious() {
-            notificationPlayer?.sendPrevious()
+            notificationPlayer?.let {
+                val plugin = it.getPlugin() ?: return
+                plugin.sendPrevious(it.playerName)
+            }
+        }
+
+        override fun onStop() {
+            notificationPlayer?.let {
+                val plugin = it.getPlugin() ?: return
+                plugin.sendStop(it.playerName)
+            }
         }
 
         override fun onSeekTo(pos: Long) {
-            notificationPlayer?.sendSetPosition(pos.toInt())
+            notificationPlayer?.let {
+                val plugin = it.getPlugin() ?: return
+                plugin.sendSetPosition(it.playerName, pos.toInt())
+            }
+        }
+
+        private fun MprisPlayerState.getPlugin(): MprisPlugin? {
+            val device = this@MprisMediaSession.device
+            return device.getPlugin(MprisPlugin::class.java)
         }
     }
 
-    /**
-     * Called by the mpris plugin when it wants media control notifications for its device
-     *
-     *
-     * Can be called multiple times, once for each device
-     *
-     * @param context The context
-     * @param plugin  The mpris plugin
-     * @param device  The device id
-     */
-    suspend fun onCreate(context: Context?, plugin: MprisPlugin, device: String) {
-        if (mprisDevices.isEmpty()) {
-            job = CoroutineScope(Dispatchers.Main).launch {
-                dataStore.mprisNotificationEnabled.collect {
-                    updateMediaNotification()
-                }
-            }
-        }
+    fun onCreate(context: Context, plugin: MprisPlugin, deviceId: String) {
         this.context = context
-        mprisDevices.add(device)
+        this.device = plugin.deviceObj
+        notificationDeviceId = deviceId
+        metadata = MediaMetadataCompat.Builder()
+        playbackState = PlaybackStateCompat.Builder()
 
-        plugin.setPlayerListUpdatedHandler(
-            "media_notification"
-        ) { this.updateMediaNotification() }
-        plugin.setPlayerStatusUpdatedHandler(
-            "media_notification"
-        ) { this.updateMediaNotification() }
-
-        NotificationReceiver.runCommand(context) { service: NotificationReceiver ->
-            service.addListener(this@MprisMediaSession)
-            val serviceReady = service.isConnected
-            if (serviceReady) {
-                onListenerConnected(service)
-            }
-        }
-    }
-
-    /**
-     * Called when a device disconnects/does not want notifications anymore
-     *
-     *
-     * Can be called multiple times, once for each device
-     *
-     * @param plugin  The mpris plugin
-     * @param device The device id
-     */
-    fun onDestroy(plugin: MprisPlugin, device: String) {
-        mprisDevices.remove(device)
-        plugin.removePlayerStatusUpdatedHandler("media_notification")
-        plugin.removePlayerListUpdatedHandler("media_notification")
-        updateMediaNotification()
-
-        val systemVolumeProvider = SystemVolumeProvider.getInstance()
-        systemVolumeProvider.setPlugin(null)
-        systemVolumeProvider.removeStateListener( this)
-
-        if (mprisDevices.isEmpty()) {
-            job?.cancel()
-            job = null
-        }
-    }
-
-    /**
-     * Updates which device+player we're going to use in the notification
-     *
-     *
-     * Prefers playing devices/mpris players, but tries to keep displaying the same
-     * player and device, while possible.
-     */
-    private fun updateCurrentPlayer(): MprisPlayer? {
-        val (device, mprisPlayer) = findPlayer() ?: return null
-
-        // Update the last-displayed device and player
-        notificationDeviceId = device.deviceId
-        notificationPlayer = mprisPlayer
-        return notificationPlayer
-    }
-
-    private fun findPlayer(): Pair<Device, MprisPlayer>? {
-        val currentDevice = if (notificationDeviceId != null && (notificationDeviceId in mprisDevices)) {
-            deviceManager.getDevice(notificationDeviceId)
-        } else {
-            null
-        }
-
-        // First try the previously displayed player (if still playing) or the previous displayed device (otherwise)
-        if (currentDevice != null) {
-            val playingPlayer = notificationPlayer?.takeIf { it.isPlaying }
-            val player = getPlayerFromDevice(currentDevice, playingPlayer)
-            if (player != null) {
-                return Pair(currentDevice, player)
+        collectionJob?.cancel()
+        collectionJob = serviceScope.launch {
+            plugin.players.collect {
+                updateMediaNotification()
             }
         }
 
-        // Try a different player from another device
-        for (otherDevice in deviceManager.devices.values) {
-            val player = getPlayerFromDevice(otherDevice, null)
-            if (player != null) {
-                return Pair(otherDevice, player)
-            }
+        currentProvider = SystemVolumeProvider.getInstance().apply {
+            setPlugin(device.getPlugin(SystemVolumePlugin::class.java))
+            addStateListener(this@MprisMediaSession)
         }
-
-        // So no player is playing. Try the previously displayed player again
-        //  This will succeed if it's paused:
-        //  that allows pausing and subsequently resuming via the notification
-        if (currentDevice != null) {
-            val player = getPlayerFromDevice(currentDevice, notificationPlayer)
-            if (player != null) {
-                return Pair(currentDevice, player)
-            }
-        }
-
-        return null
     }
 
-    private fun getPlayerFromDevice(device: Device, preferredPlayer: MprisPlayer?): MprisPlayer? {
-        if (!mprisDevices.contains(device.deviceId)) return null
-
-        val plugin = device.getPlugin(MprisPlugin::class.java) ?: return null
-        // First try the preferred player, if supplied & available, otherwise, accept any playing player
-        val player = preferredPlayer?.takeIf(plugin::hasPlayer)
-            ?: plugin.playingPlayer
-            ?: return null
-        return player.takeIf(::shouldShowPlayer)
+    fun onDestroy(plugin: MprisPlugin, deviceId: String) {
+        collectionJob?.cancel()
+        collectionJob = null
+        closeMediaNotification()
+        currentProvider?.release()
+        currentProvider = null
     }
 
-    private fun shouldShowPlayer(player: MprisPlayer): Boolean {
-        return !(player.isSpotify && spotifyRunning)
-    }
-
-    private fun updateRemoteDeviceVolumeControl() {
-        val plugin = deviceManager.getDevicePlugin(notificationDeviceId, SystemVolumePlugin::class.java)
-            ?: return
-        val systemVolumeProvider = SystemVolumeProvider.getInstance()
-        systemVolumeProvider.setPlugin(plugin)
-        systemVolumeProvider.addStateListener( this)
-    }
-
-    /**
-     * Update the media control notification
-     */
-    private fun updateMediaNotification() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val permissionResult = ContextCompat.checkSelfPermission(context!!, Manifest.permission.POST_NOTIFICATIONS)
-            if (permissionResult != PackageManager.PERMISSION_GRANTED) {
-                Log.i(TAG, "No permission to post notifications, closed.")
-                closeMediaNotification()
-                return
-            }
-        }
-
-        // If the user disabled the media notification, do not show it
+    fun updateMediaNotification() {
         if (!dataStore.isMprisNotificationEnabledBlocking()) {
-            closeMediaNotification()
             return
         }
 
-        // Make sure our information is up-to-date
-        val currentPlayer = updateCurrentPlayer()
+        val currentPlayer = notificationPlayer ?: return
 
-        val device = deviceManager.getDevice(notificationDeviceId)
-        if (device == null) {
-            closeMediaNotification()
-            return
-        }
+        val plugin = device.getPlugin(MprisPlugin::class.java) ?: return
+        val albumArt = currentPlayer.getAlbumArt(plugin, currentPlayer.playerName)
 
-        // If the player disappeared (and no other playing one found), just remove the notification
-        if (currentPlayer == null) {
-            closeMediaNotification()
-            return
-        }
+        metadata
+            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, currentPlayer.title)
+            .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, currentPlayer.artist)
+            .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, currentPlayer.album)
+            .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, currentPlayer.length)
 
-        updateRemoteDeviceVolumeControl()
-
-        val metadata = MediaMetadataCompat.Builder()
-
-        metadata.putString(MediaMetadataCompat.METADATA_KEY_TITLE, currentPlayer.title)
-
-        if (currentPlayer.artist.isNotEmpty()) {
-            metadata.putString(MediaMetadataCompat.METADATA_KEY_AUTHOR, currentPlayer.artist)
-            metadata.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, currentPlayer.artist)
-        }
-        if (currentPlayer.album.isNotEmpty()) {
-            metadata.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, currentPlayer.album)
-        }
-        if (currentPlayer.length > 0) {
-            metadata.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, currentPlayer.length)
-        }
-
-        val albumArt = currentPlayer.getAlbumArt()
         if (albumArt != null) {
             metadata.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, albumArt)
         }
 
-        val playbackState = PlaybackStateCompat.Builder()
+        playbackState.setState(
+            if (currentPlayer.isPlaying) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED,
+            currentPlayer.position,
+            1.0f
+        )
 
-        if (currentPlayer.isPlaying) {
-            playbackState.setState(PlaybackStateCompat.STATE_PLAYING, currentPlayer.position, 1.0f)
-        } else {
-            playbackState.setState(PlaybackStateCompat.STATE_PAUSED, currentPlayer.position, 0.0f)
-        }
-
-        // Create all actions (previous/play/pause/next)
-        val iPlay = Intent(context, MprisMediaNotificationReceiver::class.java).apply {
-            setAction(MprisMediaNotificationReceiver.ACTION_PLAY)
+        // Actions for the notification
+        val iPrevious = Intent(context, MprisMediaNotificationReceiver::class.java).apply {
+            setAction(MprisMediaNotificationReceiver.ACTION_PREVIOUS)
             putExtra(MprisMediaNotificationReceiver.EXTRA_DEVICE_ID, notificationDeviceId)
             putExtra(MprisMediaNotificationReceiver.EXTRA_MPRIS_PLAYER, currentPlayer.playerName)
         }
-        val piPlay = PendingIntent.getBroadcast(
+        val piPrevious = PendingIntent.getBroadcast(
             context,
             0,
-            iPlay,
+            iPrevious,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        val aPlay = NotificationCompat.Action.Builder(
-            R.drawable.ic_play_white, context!!.getString(R.string.mpris_play), piPlay
+        val aPrevious = NotificationCompat.Action.Builder(
+            R.drawable.ic_previous_white, context!!.getString(R.string.mpris_previous), piPrevious
         )
 
         val iPause = Intent(context, MprisMediaNotificationReceiver::class.java).apply {
@@ -321,19 +197,19 @@ class MprisMediaSession(
             R.drawable.ic_pause_white, context!!.getString(R.string.mpris_pause), piPause
         )
 
-        val iPrevious = Intent(context, MprisMediaNotificationReceiver::class.java).apply {
-            setAction(MprisMediaNotificationReceiver.ACTION_PREVIOUS)
+        val iPlay = Intent(context, MprisMediaNotificationReceiver::class.java).apply {
+            setAction(MprisMediaNotificationReceiver.ACTION_PLAY)
             putExtra(MprisMediaNotificationReceiver.EXTRA_DEVICE_ID, notificationDeviceId)
             putExtra(MprisMediaNotificationReceiver.EXTRA_MPRIS_PLAYER, currentPlayer.playerName)
         }
-        val piPrevious = PendingIntent.getBroadcast(
+        val piPlay = PendingIntent.getBroadcast(
             context,
             0,
-            iPrevious,
+            iPlay,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        val aPrevious = NotificationCompat.Action.Builder(
-            R.drawable.ic_previous_white, context!!.getString(R.string.mpris_previous), piPrevious
+        val aPlay = NotificationCompat.Action.Builder(
+            R.drawable.ic_play_white, context!!.getString(R.string.mpris_play), piPlay
         )
 
         val iNext = Intent(context, MprisMediaNotificationReceiver::class.java).apply {
@@ -351,8 +227,9 @@ class MprisMediaSession(
             R.drawable.ic_next_white, context!!.getString(R.string.mpris_next), piNext
         )
 
-        val iOpenActivity = Intent(context, MprisActivity::class.java).apply {
-            putExtra("deviceId", notificationDeviceId)
+        val iOpenActivity = Intent(context, MainActivity::class.java).apply {
+            putExtra(KdeConnectKeyConstants.EXTRA_DEVICE_ID, notificationDeviceId)
+            putExtra(KdeConnectKeyConstants.EXTRA_PLUGIN_KEY, "MprisPlugin")
             putExtra("player", currentPlayer.playerName)
         }
 
@@ -466,7 +343,7 @@ class MprisMediaSession(
     fun closeMediaNotification() {
         // Remove the notification
         val nm = ContextCompat.getSystemService(context!!, NotificationManager::class.java)
-        nm!!.cancel(MPRIS_MEDIA_NOTIFICATION_ID)
+        nm?.cancel(MPRIS_MEDIA_NOTIFICATION_ID)
 
         // Clear the current player and media session
         notificationPlayer = null
@@ -482,7 +359,7 @@ class MprisMediaSession(
         }
     }
 
-    fun playerSelected(player: MprisPlayer?) {
+    fun playerSelected(player: MprisPlayerState?) {
         notificationPlayer = player
         updateMediaNotification()
     }
@@ -503,7 +380,7 @@ class MprisMediaSession(
 
     override fun onListenerConnected(service: NotificationReceiver) {
         try {
-            service.activeNotifications.find { n -> n.isSpotify() }?.let {
+            service.activeNotifications?.find { n -> n.isSpotify() }?.let {
                 spotifyRunning = true
                 updateMediaNotification()
             }
@@ -533,5 +410,9 @@ class MprisMediaSession(
         private const val MPRIS_MEDIA_SESSION_TAG = "org.kde.kdeconnect_tp.media_session"
 
         private const val SPOTIFY_PACKAGE_NAME = "com.spotify.music"
+    }
+
+    private fun MprisPlayerState.getAlbumArt(plugin: MprisPlugin, playerName: String): Bitmap? {
+        return AlbumArtCache.getAlbumArt(this.albumArtUrl, plugin, playerName)
     }
 }

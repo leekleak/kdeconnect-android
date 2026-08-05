@@ -24,6 +24,9 @@ data object SettingsKey : KdeConnectKey
 data object ConnectionsSettingsKey : KdeConnectKey
 
 @Serializable
+data class MprisKey(val deviceId: String) : KdeConnectKey
+
+@Serializable
 data object AboutKey : KdeConnectKey
 @Serializable
 data object LicensesKey : KdeConnectKey

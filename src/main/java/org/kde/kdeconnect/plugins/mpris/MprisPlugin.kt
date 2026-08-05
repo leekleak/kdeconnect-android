@@ -10,7 +10,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -18,6 +17,10 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
@@ -25,17 +28,63 @@ import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.helpers.ThreadHelper
 import org.kde.kdeconnect.helpers.VideoUrlsHelper
 import org.kde.kdeconnect.plugins.mpris.AlbumArtCache.deregisterPlugin
-import org.kde.kdeconnect.plugins.mpris.AlbumArtCache.getAlbumArt
 import org.kde.kdeconnect.plugins.mpris.AlbumArtCache.initializeDiskCache
 import org.kde.kdeconnect.plugins.mpris.AlbumArtCache.payloadToDiskCache
 import org.kde.kdeconnect.plugins.mpris.AlbumArtCache.registerPlugin
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
-import org.kde.kdeconnect.plugins.mpris.MprisPlugin.Companion.PACKET_TYPE_MPRIS
-import org.kde.kdeconnect.plugins.mpris.MprisPlugin.Companion.PACKET_TYPE_MPRIS_REQUEST
+import org.kde.kdeconnect.ui.MainActivity
+import org.kde.kdeconnect.ui.navigation.MprisKey
+import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 import java.net.MalformedURLException
-import java.util.concurrent.ConcurrentHashMap
+
+data class MprisPlayerState(
+    val playerName: String = "",
+    val isPlaying: Boolean = false,
+    val playStartTime: Long = 0L,
+    val title: String = "",
+    val artist: String = "",
+    val album: String = "",
+    val albumArtUrl: String = "",
+    val url: String = "",
+    val loopStatus: String = "",
+    val isLoopStatusAllowed: Boolean = false,
+    val shuffle: Boolean = false,
+    val isShuffleAllowed: Boolean = false,
+    val volume: Int = 50,
+    val length: Long = -1,
+    val lastPosition: Long = 0,
+    val lastPositionTime: Long = System.currentTimeMillis(),
+    val isPlayAllowed: Boolean = true,
+    val isPauseAllowed: Boolean = true,
+    val isGoNextAllowed: Boolean = true,
+    val isGoPreviousAllowed: Boolean = true,
+    val seekAllowed: Boolean = true
+) {
+    val isSpotify: Boolean
+        get() = playerName.equals("spotify", ignoreCase = true)
+
+    val isSeekAllowed: Boolean
+        get() = seekAllowed && length >= 0 && position >= 0
+
+    val hasAlbumArt: Boolean
+        get() = albumArtUrl.isNotEmpty()
+
+    fun getHttpUrl(): String? {
+        return url.takeIf { it.startsWith("http://") || it.startsWith("https://") }
+    }
+
+    val isSetVolumeAllowed: Boolean
+        get() = volume > -1
+
+    val position: Long
+        get() = if (isPlaying) {
+            lastPosition + (System.currentTimeMillis() - lastPositionTime)
+        } else {
+            lastPosition
+        }
+}
 
 class MprisPlugin(
     context: Context,
@@ -45,169 +94,13 @@ class MprisPlugin(
     private val videoUrlsHelper: VideoUrlsHelper
 ) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = MprisPluginSettings
-    inner class MprisPlayer internal constructor() {
-        var playerName: String = ""
-            internal set
-        var isPlaying: Boolean = false
-            internal set(value) {
-                if (value && !field) {
-                    playStartTime = System.currentTimeMillis()
-                }
-                field = value
-            }
-        var playStartTime: Long = 0L
-            internal set
-        var title: String = ""
-            internal set
-        var artist: String = ""
-            internal set
-        var album: String = ""
-            internal set
-        internal var albumArtUrl: String = ""
-        internal var url: String = ""
-        var loopStatus: String = ""
-            internal set
-        var isLoopStatusAllowed: Boolean = false
-            internal set
-        var shuffle: Boolean = false
-            internal set
-        var isShuffleAllowed: Boolean = false
-            internal set
-        var volume: Int = 50
-            internal set
-        var length: Long = -1
-            internal set
-        var lastPosition: Long = 0
-            internal set
-        var lastPositionTime: Long
-            internal set
-        var isPlayAllowed: Boolean = true
-            internal set
-        var isPauseAllowed: Boolean = true
-            internal set
-        var isGoNextAllowed: Boolean = true
-            internal set
-        var isGoPreviousAllowed: Boolean = true
-            internal set
-        var seekAllowed: Boolean = true
-            internal set
 
-        init {
-            lastPositionTime = System.currentTimeMillis()
-        }
+    private val _players = MutableStateFlow<Map<String, MprisPlayerState>>(emptyMap())
+    val players: StateFlow<Map<String, MprisPlayerState>> = _players.asStateFlow()
 
-        val isSpotify: Boolean
-            get() = playerName.equals("spotify", ignoreCase = true)
+    val deviceObj: Device get() = device
 
-        val isSeekAllowed: Boolean
-            get() = seekAllowed && length >= 0 && position >= 0
-
-        val hasAlbumArt: Boolean
-            get() = albumArtUrl.isNotEmpty()
-
-        /**
-         * Returns the album art (if available). Note that this can return null even if hasAlbumArt() returns true.
-         *
-         * @return The album art, or null if not available
-         */
-        fun getAlbumArt(): Bitmap? {
-            return getAlbumArt(albumArtUrl, this@MprisPlugin, playerName)
-        }
-
-        fun getHttpUrl(): String? {
-            return url.takeIf { it.startsWith("http://") || it.startsWith("https://") }
-        }
-
-        val isSetVolumeAllowed: Boolean
-            get() = volume > -1
-
-        val position: Long
-            get() = if (isPlaying) {
-                lastPosition + (System.currentTimeMillis() - lastPositionTime)
-            } else {
-                lastPosition
-            }
-
-        fun sendPlayPause() {
-            if (isPauseAllowed || isPlayAllowed) {
-                sendCommand(playerName, "action", "PlayPause")
-            }
-        }
-
-        fun sendPlay() {
-            if (isPlayAllowed) {
-                sendCommand(playerName, "action", "Play")
-            }
-        }
-
-        fun sendPause() {
-            if (isPauseAllowed) {
-                sendCommand(playerName, "action", "Pause")
-            }
-        }
-
-        fun sendStop() {
-            sendCommand(playerName, "action", "Stop")
-        }
-
-        fun sendPrevious() {
-            if (isGoPreviousAllowed) {
-                sendCommand(playerName, "action", "Previous")
-            }
-        }
-
-        fun sendNext() {
-            if (isGoNextAllowed) {
-                sendCommand(playerName, "action", "Next")
-            }
-        }
-
-        fun sendSetLoopStatus(loopStatus: String) {
-            sendCommand(playerName, "setLoopStatus", loopStatus)
-        }
-
-        fun sendSetShuffle(shuffle: Boolean) {
-            sendCommand(playerName, "setShuffle", shuffle)
-        }
-
-        fun sendSetVolume(volume: Int) {
-            if (isSetVolumeAllowed) {
-                sendCommand(playerName, "setVolume", volume)
-            }
-        }
-
-        fun sendSetPosition(position: Int) {
-            if (isSeekAllowed) {
-                sendCommand(playerName, "SetPosition", position)
-
-                lastPosition = position.toLong()
-                lastPositionTime = System.currentTimeMillis()
-            }
-        }
-
-        fun sendSeek(offset: Int) {
-            if (isSeekAllowed) {
-                sendCommand(playerName, "Seek", offset)
-            }
-        }
-    }
-
-    override fun getUiButtons(): List<PluginUiButton> = listOf(
-        PluginUiButton(
-            name = context.getString(R.string.open_mpris_controls),
-            iconRes = R.drawable.music_cast,
-            category = ButtonCategory.CONTROL
-        ) { parentActivity ->
-            val intent = Intent(parentActivity, MprisActivity::class.java)
-            intent.putExtra(DEVICE_ID_KEY, device.deviceId)
-            parentActivity.startActivity(intent)
-        }
-    )
-
-    private val players = ConcurrentHashMap<String, MprisPlayer>()
     private var supportAlbumArtPayload = false
-    private val playerStatusUpdated = ConcurrentHashMap<String, () -> Unit>()
-    private val playerListUpdated = ConcurrentHashMap<String, () -> Unit>()
 
     override suspend fun onCreate(): Boolean {
         mprisMediaSession.onCreate(context.applicationContext, this, device.deviceId)
@@ -222,7 +115,7 @@ class MprisPlugin(
     }
 
     override suspend fun onDestroy() {
-        players.clear()
+        _players.value = emptyMap()
         deregisterPlugin(this)
         mprisMediaSession.onDestroy(this, device.deviceId)
     }
@@ -258,52 +151,63 @@ class MprisPlugin(
         }
 
         if (np.has("player")) {
-            val playerStatus = players[np.getString("player")]
-            if (playerStatus != null) {
-                val wasPlaying = playerStatus.isPlaying
-                //Note: title, artist and album will not be available for all desktop clients
-                playerStatus.title = np.getString("title", playerStatus.title)
-                playerStatus.artist = np.getString("artist", playerStatus.artist)
-                playerStatus.album = np.getString("album", playerStatus.album)
-                playerStatus.url = np.getString("url", playerStatus.url)
-                if (isInvalidPlayerUrl(playerStatus.url)) {
-                    playerStatus.url = ""
-                }
+            val playerName = np.getString("player")
+            _players.update { current ->
+                val oldState = current[playerName] ?: MprisPlayerState(playerName = playerName)
+                val wasPlaying = oldState.isPlaying
+                
+                var newState = oldState.copy(
+                    title = np.getString("title", oldState.title),
+                    artist = np.getString("artist", oldState.artist),
+                    album = np.getString("album", oldState.album),
+                    url = np.getString("url", oldState.url).let { if (isInvalidPlayerUrl(it)) "" else it },
+                    volume = np.getInt("volume", oldState.volume),
+                    length = np.getLong("length", oldState.length),
+                    isPlaying = np.getBoolean("isPlaying", oldState.isPlaying),
+                    isPlayAllowed = np.getBoolean("canPlay", oldState.isPlayAllowed),
+                    isPauseAllowed = np.getBoolean("canPause", oldState.isPauseAllowed),
+                    isGoNextAllowed = np.getBoolean("canGoNext", oldState.isGoNextAllowed),
+                    isGoPreviousAllowed = np.getBoolean("canGoPrevious", oldState.isGoPreviousAllowed),
+                    seekAllowed = np.getBoolean("canSeek", oldState.seekAllowed)
+                )
+
                 if (np.has("loopStatus")) {
-                    playerStatus.loopStatus = np.getString("loopStatus", playerStatus.loopStatus)
-                    playerStatus.isLoopStatusAllowed = true
+                    newState = newState.copy(
+                        loopStatus = np.getString("loopStatus", newState.loopStatus),
+                        isLoopStatusAllowed = true
+                    )
                 }
                 if (np.has("shuffle")) {
-                    playerStatus.shuffle = np.getBoolean("shuffle", playerStatus.shuffle)
-                    playerStatus.isShuffleAllowed = true
+                    newState = newState.copy(
+                        shuffle = np.getBoolean("shuffle", newState.shuffle),
+                        isShuffleAllowed = true
+                    )
                 }
-                playerStatus.volume = np.getInt("volume", playerStatus.volume)
-                playerStatus.length = np.getLong("length", playerStatus.length)
                 if (np.has("pos")) {
-                    playerStatus.lastPosition = np.getLong("pos", playerStatus.lastPosition)
-                    playerStatus.lastPositionTime = System.currentTimeMillis()
+                    newState = newState.copy(
+                        lastPosition = np.getLong("pos", newState.lastPosition),
+                        lastPositionTime = System.currentTimeMillis()
+                    )
                 }
-                playerStatus.isPlaying = np.getBoolean("isPlaying", playerStatus.isPlaying)
-                playerStatus.isPlayAllowed = np.getBoolean("canPlay", playerStatus.isPlayAllowed)
-                playerStatus.isPauseAllowed = np.getBoolean("canPause", playerStatus.isPauseAllowed)
-                playerStatus.isGoNextAllowed = np.getBoolean("canGoNext", playerStatus.isGoNextAllowed)
-                playerStatus.isGoPreviousAllowed = np.getBoolean("canGoPrevious", playerStatus.isGoPreviousAllowed)
-                playerStatus.seekAllowed = np.getBoolean("canSeek", playerStatus.seekAllowed)
-                val newAlbumArtUrlString = np.getString("albumArtUrl", playerStatus.albumArtUrl)
+                if (newState.isPlaying && !wasPlaying) {
+                    newState = newState.copy(playStartTime = System.currentTimeMillis())
+                }
+
+                val newAlbumArtUrlString = np.getString("albumArtUrl", newState.albumArtUrl)
                 val newAlbumArtUrl = newAlbumArtUrlString.toUri()
                 if (newAlbumArtUrl.scheme in AlbumArtCache.ALLOWED_SCHEMES) {
-                    playerStatus.albumArtUrl = newAlbumArtUrl.toString()
-                } else {
+                    newState = newState.copy(albumArtUrl = newAlbumArtUrl.toString())
+                } else if (newAlbumArtUrlString.isNotEmpty()) {
                     Log.w("MprisControl", "Invalid album art URL: $newAlbumArtUrlString")
-                    playerStatus.albumArtUrl = ""
+                    newState = newState.copy(albumArtUrl = "")
                 }
-
-                notifyPlayerStatusUpdated()
 
                 // Check to see if a stream has stopped playing and we should deliver a notification
-                if (np.has("isPlaying") && !playerStatus.isPlaying && wasPlaying) {
-                    showContinueWatchingNotification(playerStatus)
+                if (np.has("isPlaying") && !newState.isPlaying && wasPlaying) {
+                    showContinueWatchingNotification(newState)
                 }
+
+                current + (playerName to newState)
             }
         }
 
@@ -312,32 +216,28 @@ class MprisPlugin(
 
         val newPlayerList = np.getStringList("playerList")
         if (newPlayerList != null) {
-            var equals = true
-            newPlayerList.stream().filter { !players.containsKey(it) }.forEach { newPlayer ->
-                equals = false
-                val player = MprisPlayer().apply {
-                    playerName = newPlayer
-                }
-                players[newPlayer] = player
-                // Immediately ask for the data of this player
-                requestPlayerStatus(newPlayer)
-            }
-            val iter = players.entries.iterator()
-            iter.forEach {
-                val oldPlayer = it.key
-                val found = newPlayerList.stream().anyMatch { newPlayer -> newPlayer == oldPlayer }
-                if (!found) {
-                    // Player got removed
-                    equals = false
-                    iter.remove()
-                    val playerStatus = it.value
-                    if (playerStatus.isPlaying) {
-                        showContinueWatchingNotification(playerStatus)
+            _players.update { current ->
+                val updatedMap = current.toMutableMap()
+
+                newPlayerList.forEach { playerName ->
+                    if (!updatedMap.containsKey(playerName)) {
+                        updatedMap[playerName] = MprisPlayerState(playerName = playerName)
+                        requestPlayerStatus(playerName)
                     }
                 }
-            }
-            if (!equals) {
-                notifyPlayerListUpdated()
+
+                val iter = updatedMap.entries.iterator()
+                while (iter.hasNext()) {
+                    val entry = iter.next()
+                    if (!newPlayerList.contains(entry.key)) {
+                        if (entry.value.isPlaying) {
+                            showContinueWatchingNotification(entry.value)
+                        }
+                        iter.remove()
+                    }
+                }
+                
+                updatedMap
             }
         }
 
@@ -349,14 +249,14 @@ class MprisPlugin(
         return url == "https://www.youtube.com/" || url == "https://www.youtube.com/tv#/"
     }
 
-    private fun showContinueWatchingNotification(playerStatus: MprisPlayer) {
+    private fun showContinueWatchingNotification(playerStatus: MprisPlayerState) {
         if (playerStatus.playStartTime + 5000 > System.currentTimeMillis()) {
             // Playback was too short
             return
         }
         ThreadHelper.execute {
             Thread.sleep(500)
-            if (playerStatus.isPlaying) {
+            if (getPlayerStatus(playerStatus.playerName)?.isPlaying == true) {
                 // Pause was too short. Probably just the gap between songs
                 return@execute
             }
@@ -390,66 +290,98 @@ class MprisPlugin(
         }
     }
 
-
-
-    fun setPlayerStatusUpdatedHandler(id: String, callback: () -> Unit) {
-        playerStatusUpdated[id] = callback
-        callback()
+    fun sendPlayPause(playerName: String) {
+        val player = getPlayerStatus(playerName) ?: return
+        if (player.isPauseAllowed || player.isPlayAllowed) {
+            sendCommand(playerName, "action", "PlayPause")
+        }
     }
 
-    fun removePlayerStatusUpdatedHandler(id: String) {
-        playerStatusUpdated.remove(id)
+    fun sendPlay(playerName: String) {
+        if (getPlayerStatus(playerName)?.isPlayAllowed == true) {
+            sendCommand(playerName, "action", "Play")
+        }
     }
 
-    fun notifyPlayerStatusUpdated() {
-        for ((key, callback) in playerStatusUpdated) {
-            try {
-                callback()
-            } catch(e: Exception) {
-                Log.e("MprisControl", "Exception", e)
-                playerStatusUpdated.remove(key)
+    fun sendPause(playerName: String) {
+        if (getPlayerStatus(playerName)?.isPauseAllowed == true) {
+            sendCommand(playerName, "action", "Pause")
+        }
+    }
+
+    fun sendStop(playerName: String) {
+        sendCommand(playerName, "action", "Stop")
+    }
+
+    fun sendPrevious(playerName: String) {
+        if (getPlayerStatus(playerName)?.isGoPreviousAllowed == true) {
+            sendCommand(playerName, "action", "Previous")
+        }
+    }
+
+    fun sendNext(playerName: String) {
+        if (getPlayerStatus(playerName)?.isGoNextAllowed == true) {
+            sendCommand(playerName, "action", "Next")
+        }
+    }
+
+    fun sendSetLoopStatus(playerName: String, loopStatus: String) {
+        sendCommand(playerName, "setLoopStatus", loopStatus)
+    }
+
+    fun sendSetShuffle(playerName: String, shuffle: Boolean) {
+        sendCommand(playerName, "setShuffle", shuffle)
+    }
+
+    fun sendSetVolume(playerName: String, volume: Int) {
+        if (getPlayerStatus(playerName)?.isSetVolumeAllowed == true) {
+            sendCommand(playerName, "setVolume", volume)
+        }
+    }
+
+    fun sendSetPosition(playerName: String, position: Int) {
+        val player = getPlayerStatus(playerName) ?: return
+        if (player.isSeekAllowed) {
+            sendCommand(playerName, "SetPosition", position)
+
+            _players.update { current ->
+                current[playerName]?.let {
+                    current + (playerName to it.copy(
+                        lastPosition = position.toLong(),
+                        lastPositionTime = System.currentTimeMillis()
+                    ))
+                } ?: current
             }
         }
     }
 
-    fun setPlayerListUpdatedHandler(id: String, callback: () -> Unit) {
-        playerListUpdated[id] = callback
-        callback()
-    }
-
-    fun removePlayerListUpdatedHandler(id: String) {
-        playerListUpdated.remove(id)
-    }
-
-    fun notifyPlayerListUpdated() {
-        for ((key, callback) in playerListUpdated) {
-            try {
-                callback()
-            } catch(e: Exception) {
-                Log.e("MprisControl", "Exception", e)
-                playerListUpdated.remove(key)
-            }
+    fun sendSeek(playerName: String, offset: Int) {
+        if (getPlayerStatus(playerName)?.isSeekAllowed == true) {
+            sendCommand(playerName, "Seek", offset)
         }
     }
 
-    val playerList: List<String>
-        get() = players.keys.sorted()
+    override fun getUiButtons(): List<PluginUiButton> = listOf(
+        PluginUiButton(
+            name = context.getString(R.string.open_mpris_controls),
+            iconRes = R.drawable.music_cast,
+            category = ButtonCategory.CONTROL
+        ) { parentActivity ->
+            val navigator = (parentActivity as MainActivity).scope.get<Navigator>(
+                Navigator::class.java.kotlin, null, null
+            )
+            navigator.goTo(MprisKey(device.deviceId))
+        }
+    )
 
-    fun getPlayerStatus(player: String?): MprisPlayer? = if (player == null) {
+    fun getPlayerStatus(player: String?): MprisPlayerState? = if (player == null) {
         null
-    } else players[player]
+    } else _players.value[player]
 
-    fun getEmptyPlayer(): MprisPlayer = MprisPlayer()
+    fun getEmptyPlayer(): MprisPlayerState = MprisPlayerState()
 
-    val playingPlayer: MprisPlayer?
-        /**
-         * Returns a playing mpris player if any exist
-         *
-         * @return null if no players are playing, a playing player otherwise
-         */
-        get() = players.values.stream().filter(MprisPlayer::isPlaying).findFirst().orElse(null)
-
-    fun hasPlayer(player: MprisPlayer): Boolean = players.containsValue(player)
+    val playingPlayer: MprisPlayerState?
+        get() = _players.value.values.firstOrNull { it.isPlaying }
 
     private fun requestPlayerList() {
         val np = NetworkPacket(PACKET_TYPE_MPRIS_REQUEST).apply {
@@ -468,9 +400,6 @@ class MprisPlugin(
     }
 
     fun fetchedAlbumArt(url: String) {
-        if (players.values.stream().anyMatch { player -> url == player.albumArtUrl }) {
-            notifyPlayerStatusUpdated()
-        }
     }
 
     fun askTransferAlbumArt(url: String, playerName: String?): Boolean {
@@ -507,8 +436,8 @@ object MprisPluginSettings: PluginInfo(
     } else {
         arrayOf()
     },
-    supportedPacketTypes = arrayOf(PACKET_TYPE_MPRIS),
-    outgoingPacketTypes = arrayOf(PACKET_TYPE_MPRIS_REQUEST),
+    supportedPacketTypes = arrayOf(MprisPlugin.PACKET_TYPE_MPRIS),
+    outgoingPacketTypes = arrayOf(MprisPlugin.PACKET_TYPE_MPRIS_REQUEST),
 ) {
     //override val optionalPermissionExplanation: Int = R.string.mpris_notifications_explanation
 }

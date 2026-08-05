@@ -105,6 +105,9 @@ import org.kde.kdeconnect.helpers.VideoUrlsHelper
 import org.kde.kdeconnect.plugins.mpris.MprisMediaSession
 import org.kde.kdeconnect.backends.bluetooth.BluetoothLinkProvider
 import org.koin.core.parameter.parametersOf
+import org.kde.kdeconnect.plugins.mpris.MprisAlbumArtFetcher
+import org.kde.kdeconnect.ui.compose.screen.mpris.MprisScreen
+import org.kde.kdeconnect.ui.compose.screen.mpris.MprisViewModel
 import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.BigscreenKey
 import org.kde.kdeconnect.ui.navigation.ConnectionsSettingsKey
@@ -113,6 +116,7 @@ import org.kde.kdeconnect.ui.navigation.DigitizerKey
 import org.kde.kdeconnect.ui.navigation.LicensesKey
 import org.kde.kdeconnect.ui.navigation.MousePadKey
 import org.kde.kdeconnect.ui.navigation.MousePadPluginSettingsKey
+import org.kde.kdeconnect.ui.navigation.MprisKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.NotificationSettingsKey
 import org.kde.kdeconnect.ui.navigation.PairingKey
@@ -285,6 +289,13 @@ val presenterModule = module {
     }
 }
 
+val mprisModule = module {
+    viewModel<MprisViewModel>()
+    navigation<MprisKey> { key ->
+        MprisScreen(deviceId = key.deviceId)
+    }
+}
+
 val mousePadModule = module {
     viewModel<MousePadViewModel>()
     viewModel<BigscreenViewModel>()
@@ -310,16 +321,19 @@ val digitizerModule = module {
     }
 }
 
-fun buildImageLoader(context: Context): ImageLoader =
+fun buildImageLoader(context: Context, deviceManager: DeviceManager): ImageLoader =
     ImageLoader.Builder(context)
-        .components { add(AppIconFetcher.Factory(context)) }
+        .components {
+            add(AppIconFetcher.Factory(context))
+            add(MprisAlbumArtFetcher.Factory(deviceManager))
+        }
         .crossfade(true)
         .build()
 
 val appModule = module {
     single<KdeConnect> { get<Context>() as KdeConnect }
     single<BackgroundServiceData>()
-    includes(pairingModule, deviceModule, pluginSettingsModule, presenterModule, mousePadModule, runCommandModule, digitizerModule, settingsModule, aboutModule)
+    includes(pairingModule, deviceModule, pluginSettingsModule, presenterModule, mprisModule, mousePadModule, runCommandModule, digitizerModule, settingsModule, aboutModule)
 
     single {
         val startDestination = if (PermissionHelper.hasRequiredPermissions(get())) {
@@ -329,7 +343,7 @@ val appModule = module {
         }
         Navigator(startDestination)
     }
-    single<ImageLoader> { create(::buildImageLoader) }
+    single<ImageLoader> { buildImageLoader(get(), get()) }
 
     single<TrustedNetworkHelper>()
     single { PermissionRequestHelper() }

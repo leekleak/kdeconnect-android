@@ -37,12 +37,14 @@ import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.plugins.mousepad.MousePadViewModel
+import org.kde.kdeconnect.ui.compose.screen.mpris.MprisViewModel
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
 import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.DigitizerKey
 import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import org.kde.kdeconnect.ui.navigation.MousePadKey
+import org.kde.kdeconnect.ui.navigation.MprisKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.PairingKey
 import org.kde.kdeconnect.ui.navigation.PresenterKey
@@ -94,6 +96,21 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
                 }
             }
         }
+        if (currentKey is MprisKey) {
+            val keyCode = event.keyCode
+            val action = event.action
+            if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+                if (action == KeyEvent.ACTION_UP) {
+                    val viewModel: MprisViewModel = scope.get(MprisViewModel::class, null) { parametersOf(currentKey.deviceId) }
+                    if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+                        viewModel.onVolumeUp()
+                    } else {
+                        viewModel.onVolumeDown()
+                    }
+                }
+                return true
+            }
+        }
         return super.dispatchKeyEvent(event)
     }
 
@@ -124,6 +141,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
                     "RunCommandPlugin" -> navigator.goTo(RunCommandKey(deviceId))
                     "DigitizerPlugin" -> navigator.goTo(DigitizerKey(deviceId))
                     "MousePadPlugin" -> navigator.goTo(MousePadKey(deviceId))
+                    "MprisPlugin" -> navigator.goTo(MprisKey(deviceId))
                     else -> navigator.goTo(DeviceKey(deviceId))
                 }
             }

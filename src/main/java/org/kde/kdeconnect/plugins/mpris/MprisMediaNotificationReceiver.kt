@@ -37,10 +37,10 @@ class MprisMediaNotificationReceiver : BroadcastReceiver(), KoinComponent {
                 ?: return
 
             when (intent.action) {
-                ACTION_PLAY -> player.sendPlay()
-                ACTION_PAUSE -> player.sendPause()
-                ACTION_PREVIOUS -> player.sendPrevious()
-                ACTION_NEXT -> player.sendNext()
+                ACTION_PLAY -> plugin.sendPlay(player.playerName)
+                ACTION_PAUSE -> plugin.sendPause(player.playerName)
+                ACTION_PREVIOUS -> plugin.sendPrevious(player.playerName)
+                ACTION_NEXT -> plugin.sendNext(player.playerName)
                 ACTION_CLOSE_NOTIFICATION ->                     //The user dismissed the notification: actually handle its removal correctly
                     mprisMediaSession.closeMediaNotification()
 

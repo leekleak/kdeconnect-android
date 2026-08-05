@@ -8,18 +8,18 @@ package org.kde.kdeconnect.plugins.systemvolume
 
 import android.media.AudioManager
 import androidx.media.VolumeProviderCompat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.helpers.DEFAULT_MAX_VOLUME
 import org.kde.kdeconnect.helpers.DEFAULT_VOLUME_STEP
 import org.kde.kdeconnect.helpers.calculateNewVolume
-import org.kde.kdeconnect.plugins.systemvolume.Sink.UpdateListener
-import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin.SinkListener
 import kotlin.math.ceil
 import kotlin.math.floor
 
-class SystemVolumeProvider :
-        VolumeProviderCompat(VOLUME_CONTROL_ABSOLUTE, DEFAULT_MAX_VOLUME, 0),
-        SinkListener,
-        UpdateListener {
+class SystemVolumeProvider : VolumeProviderCompat(VOLUME_CONTROL_ABSOLUTE, DEFAULT_MAX_VOLUME, 0) {
 
     interface ProviderStateListener {
         fun onProviderStateChanged(systemVolumeProvider: SystemVolumeProvider, isActive: Boolean)
@@ -32,8 +32,9 @@ class SystemVolumeProvider :
 
         @JvmStatic
         fun getInstance(): SystemVolumeProvider {
-            val currentProvider = currentProvider ?: SystemVolumeProvider()
-            return currentProvider
+            val provider = currentProvider ?: SystemVolumeProvider()
+            currentProvider = provider
+            return provider
         }
 
         private fun scale(value: Int, maxValue: Int, maxScaled: Int): Int {
@@ -51,27 +52,28 @@ class SystemVolumeProvider :
     private var defaultSink: Sink? = null
 
     private var systemVolumePlugin: SystemVolumePlugin? = null
+    
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private var collectionJob: Job? = null
 
     fun setPlugin(plugin: SystemVolumePlugin?) {
         if (plugin === systemVolumePlugin) return
 
         propagateState(false)
         defaultSink = null
-        stopListeningForSinks()
+        collectionJob?.cancel()
         systemVolumePlugin = plugin
         if (plugin != null) {
-            startListeningForSinks()
+            collectionJob = scope.launch {
+                plugin.sinks.collect { sinks ->
+                    onSinksChanged(sinks)
+                }
+            }
         }
     }
 
-    override fun sinksChanged() {
-        val systemVolumePlugin = systemVolumePlugin ?: return
-
-        for (sink in systemVolumePlugin.sinks) {
-            sink.addListener(this)
-        }
-
-        val newDefaultSink = getDefaultSink(systemVolumePlugin)
+    private fun onSinksChanged(sinks: List<Sink>) {
+        val newDefaultSink = sinks.firstOrNull { it.isDefault }
 
         newDefaultSink?.also {
             updateLocalVolume(it)
@@ -82,12 +84,6 @@ class SystemVolumeProvider :
             propagateState(volumeAdjustSupported)
         }
         defaultSink = newDefaultSink
-    }
-
-    override fun updateSink(sink: Sink) {
-        if (!sink.isDefault) return
-        defaultSink = sink
-        updateLocalVolume(sink)
     }
 
     override fun onAdjustVolume(direction: Int) {
@@ -154,22 +150,8 @@ class SystemVolumeProvider :
     }
 
     fun release() {
-        stopListeningForSinks()
+        collectionJob?.cancel()
         stateListeners.clear()
         currentProvider = null
-    }
-
-    private fun startListeningForSinks() {
-        val systemVolumePlugin = systemVolumePlugin ?: return
-        systemVolumePlugin.addSinkListener(this)
-        sinksChanged()
-    }
-
-    private fun stopListeningForSinks() {
-        val systemVolumePlugin = systemVolumePlugin ?: return
-        for (sink in systemVolumePlugin.sinks) {
-            sink.removeListener(this)
-        }
-        systemVolumePlugin.removeSinkListener(this)
     }
 }
