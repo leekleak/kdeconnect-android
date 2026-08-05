@@ -154,19 +154,21 @@ class LanLink @WorkerThread constructor(
             //Log.e("LanLink/sendPacket", np.getType());
 
             //Send body of the network packet
-            try {
-                val writer = socket?.getOutputStream()
-                writer?.write(np.serialize().toByteArray(UTF_8))
-                writer?.flush()
-            } catch (e: Exception) {
-                disconnect() //main socket is broken, disconnect
-                if (server != null) {
-                    try {
-                        server.close()
-                    } catch (_: Exception) {
+            withContext(Dispatchers.IO) {
+                try {
+                    val writer = socket?.getOutputStream()
+                    writer?.write(np.serialize().toByteArray(UTF_8))
+                    writer?.flush()
+                } catch (e: Exception) {
+                    disconnect() //main socket is broken, disconnect
+                    if (server != null) {
+                        try {
+                            server.close()
+                        } catch (_: Exception) {
+                        }
                     }
+                    throw e
                 }
-                throw e
             }
 
             //Send payload
