@@ -29,6 +29,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
@@ -53,7 +54,7 @@ class MprisMediaSession(
     private var context: Context?,
     private val dataStore: NotificationSettingsDataStore,
     private val imageLoader: ImageLoader
-) : NotificationReceiver.NotificationListener, SystemVolumeProvider.ProviderStateListener {
+) : SystemVolumeProvider.ProviderStateListener {
     private lateinit var device: Device
     private var notificationDeviceId: String? = null
     var mediaSession: MediaSessionCompat? = null
@@ -69,6 +70,7 @@ class MprisMediaSession(
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var collectionJob: Job? = null
+    private var enabled: Boolean = false
 
     private val mediaSessionCallback: MediaSessionCompat.Callback = object : MediaSessionCompat.Callback() {
         override fun onPlay() {
@@ -140,8 +142,12 @@ class MprisMediaSession(
 
         collectionJob?.cancel()
         collectionJob = serviceScope.launch {
-            plugin.players.collect {
-                updateMediaNotification()
+            combine(
+                dataStore.mprisNotificationEnabled,
+                plugin.players
+            ) {enabled, players -> enabled to players}.collect {(enabled, players) ->
+                this@MprisMediaSession.enabled = enabled
+                updateMediaNotification(players.values.toList())
             }
         }
 
@@ -159,14 +165,12 @@ class MprisMediaSession(
         currentProvider = null
     }
 
-    fun updateMediaNotification() {
-        if (!dataStore.isMprisNotificationEnabledBlocking()) {
-            return
-        }
+    fun updateMediaNotification(players: List<MprisPlayerState>?) {
+        if (!enabled) return
+
+        notificationPlayer = players?.firstOrNull() ?: notificationPlayer
 
         val currentPlayer = notificationPlayer ?: return
-
-        val plugin = device.getPlugin(MprisPlugin::class.java) ?: return
         
         if (currentPlayer.albumArtUrl != currentAlbumArtUrl) {
             currentAlbumArtUrl = currentPlayer.albumArtUrl
@@ -177,7 +181,7 @@ class MprisMediaSession(
                     .build()
                 val result = imageLoader.execute(request)
                 currentAlbumArt = (result.image as? BitmapImage)?.bitmap
-                updateMediaNotification()
+                updateMediaNotification(null)
             }
         }
 
@@ -392,32 +396,7 @@ class MprisMediaSession(
 
     fun playerSelected(player: MprisPlayerState?) {
         notificationPlayer = player
-        updateMediaNotification()
-    }
-
-    override fun onNotificationPosted(n: StatusBarNotification) {
-        if (n.isSpotify()) {
-            spotifyRunning = true
-            updateMediaNotification()
-        }
-    }
-
-    override fun onNotificationRemoved(n: StatusBarNotification) {
-        if (n.isSpotify()) {
-            spotifyRunning = false
-            updateMediaNotification()
-        }
-    }
-
-    override fun onListenerConnected(service: NotificationReceiver) {
-        try {
-            service.activeNotifications?.find { n -> n.isSpotify() }?.let {
-                spotifyRunning = true
-                updateMediaNotification()
-            }
-        } catch (e: SecurityException) {
-            Log.w(TAG, "Failed to get active notifications", e)
-        }
+        updateMediaNotification(null)
     }
 
     override fun onProviderStateChanged(systemVolumeProvider: SystemVolumeProvider, isActive: Boolean) {
@@ -429,17 +408,12 @@ class MprisMediaSession(
             mediaSession.setPlaybackToLocal(AudioManager.STREAM_MUSIC)
         }
     }
-
-    private fun StatusBarNotification.isSpotify(): Boolean =
-        this.packageName == SPOTIFY_PACKAGE_NAME
-
+    
     companion object {
         const val TAG = "MprisMediaSession"
 
         private const val MPRIS_MEDIA_NOTIFICATION_ID =
             0x91b70463.toInt() // echo MprisNotification | md5sum | head -c 8
         private const val MPRIS_MEDIA_SESSION_TAG = "org.kde.kdeconnect_tp.media_session"
-
-        private const val SPOTIFY_PACKAGE_NAME = "com.spotify.music"
     }
 }
