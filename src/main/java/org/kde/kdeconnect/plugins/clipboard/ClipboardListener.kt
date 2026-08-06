@@ -13,9 +13,11 @@ import android.os.Handler
 import android.os.Looper
 import androidx.core.content.ContextCompat
 import org.kde.kdeconnect.helpers.ThreadHelper.execute
+import org.kde.kdeconnect.plugins.mousereceiver.MouseReceiverService
 import org.kde.kdeconnect_tp.BuildConfig
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.lang.ref.WeakReference
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -95,12 +97,13 @@ class ClipboardListener {
     }
 
     companion object {
-        private var _instance: ClipboardListener? = null
+        private var instanceRef: WeakReference<ClipboardListener>? = null
+        val instance: ClipboardListener?
+            get() = instanceRef?.get()
 
-        @JvmStatic
         fun instance(context: Context): ClipboardListener {
             // FIXME: The _instance we return won't be completely initialized yet since initialization happens on a new thread (why?)
-            return _instance ?: ClipboardListener(context).also { _instance = it }
+            return instance ?: ClipboardListener(context).also { instanceRef = WeakReference(it) }
         }
     }
 }

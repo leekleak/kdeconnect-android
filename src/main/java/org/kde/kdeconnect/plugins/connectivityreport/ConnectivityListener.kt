@@ -19,6 +19,8 @@ import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
+import org.kde.kdeconnect.plugins.clipboard.ClipboardListener
+import java.lang.ref.WeakReference
 
 /**
  * Registers a listener for changes in connectivity for the device.
@@ -38,13 +40,11 @@ class ConnectivityListener(context: Context) {
 
     companion object {
         private const val TAG: String = "ConnectivityListener"
-        private var instance: ConnectivityListener? = null
-        @JvmStatic
+        private var instanceRef: WeakReference<ConnectivityListener>? = null
+        val instance: ConnectivityListener? get() = instanceRef?.get()
+
         fun getInstance(context: Context): ConnectivityListener {
-            if (instance == null) {
-                instance = ConnectivityListener(context)
-            }
-            return instance!!
+            return instance ?: ConnectivityListener(context).also { instanceRef = WeakReference(it) }
         }
     }
 
