@@ -6,8 +6,9 @@
 
 package org.kde.kdeconnect.plugins.connectivityreport
 
-import android.annotation.SuppressLint
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -18,18 +19,17 @@ import android.telephony.SubscriptionManager.OnSubscriptionsChangedListener
 import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.annotation.RequiresPermission
 import androidx.core.content.ContextCompat
-import org.kde.kdeconnect.plugins.clipboard.ClipboardListener
 import java.lang.ref.WeakReference
 
 /**
  * Registers a listener for changes in connectivity for the device.
  */
-class ConnectivityListener(context: Context) {
-
-    val context : Context = context.applicationContext
+class ConnectivityListener(private val context: Context) {
 
     data class SubscriptionState(var signalStrength: Int = 0, var networkType: String = "Unknown") {
+        @RequiresPermission(Manifest.permission.READ_PHONE_STATE)
         @RequiresApi(Build.VERSION_CODES.P)
         constructor(tm: TelephonyManager) : this(ASUUtils.signalStrengthToLevel(tm.signalStrength), ASUUtils.networkTypeToString(tm.dataNetworkType))
     }
@@ -90,7 +90,8 @@ class ConnectivityListener(context: Context) {
                 for (subID in addedSubs) {
                     val subTm = tm.createForSubscriptionId(subID)
                     Log.i(TAG, "Added subscription ID $subID")
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    val gotPermission = context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && gotPermission) {
                         states[subID] = SubscriptionState(subTm)
                     } else {
                         states[subID] = SubscriptionState()
