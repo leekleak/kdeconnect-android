@@ -9,7 +9,6 @@ package org.kde.kdeconnect.ui.compose.screen.pairing
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +18,6 @@ import kotlinx.coroutines.launch
 import org.kde.kdeconnect.BackgroundService.Companion.forceRefreshConnections
 import org.kde.kdeconnect.BackgroundServiceData
 import org.kde.kdeconnect.DeviceManager
-import org.kde.kdeconnect.DeviceState
 import org.kde.kdeconnect.PairingHandler
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 import org.kde.kdeconnect.ui.compose.extensions.device.toUiModel
@@ -37,7 +35,6 @@ class PairingViewModel(
             hasDuplicateNames = false,
             connected = emptyList(),
             available = emptyList(),
-            remembered = emptyList()
         )
     )
     val pairingUiState: StateFlow<PairingUiState> = _pairingUiState.asStateFlow()
@@ -56,43 +53,37 @@ class PairingViewModel(
         viewModelScope.launch {
             deviceManager.allDeviceStatesMap.collect { map ->
                 val devices = map.values.filter { it.isReachable || it.pairStatus == PairingHandler.PairState.Paired }
-                buildUiState(devices)
+                val deviceList = devices.toList()
+
+                val connected = mutableListOf<DeviceUiModel>()
+                val available = mutableListOf<DeviceUiModel>()
+                val remembered = mutableListOf<DeviceUiModel>()
+                val names = mutableSetOf<String>()
+                var hasDuplicateNames = false
+
+                for (device in deviceList) {
+                    val paired = device.pairStatus == PairingHandler.PairState.Paired
+                    if (device.isReachable || paired) {
+                        if (!names.add(device.deviceInfo.name)) hasDuplicateNames = true
+                        val uiModel = device.toUiModel()
+                        when {
+                            device.isReachable && paired -> connected.add(uiModel)
+                            device.isReachable && !paired -> available.add(uiModel)
+                            else -> remembered.add(uiModel)
+                        }
+                    }
+                }
+
+                _pairingUiState.update { state ->
+                    state.copy(
+                        hasDuplicateNames = hasDuplicateNames,
+                        connected = connected,
+                        available = available,
+                    )
+                }
             }
         }
     }
-
-    fun buildUiState(devices: List<DeviceState>) =
-        viewModelScope.launch(context = Dispatchers.Default) {
-            val deviceList = devices.toList()
-
-            val connected = mutableListOf<DeviceUiModel>()
-            val available = mutableListOf<DeviceUiModel>()
-            val remembered = mutableListOf<DeviceUiModel>()
-            val names = mutableSetOf<String>()
-            var hasDuplicateNames = false
-
-            for (device in deviceList) {
-                val paired = device.pairStatus == PairingHandler.PairState.Paired
-                if (device.isReachable || paired) {
-                    if (!names.add(device.deviceInfo.name)) hasDuplicateNames = true
-                    val uiModel = device.toUiModel()
-                    when {
-                        device.isReachable && paired -> connected.add(uiModel)
-                        device.isReachable && !paired -> available.add(uiModel)
-                        else -> remembered.add(uiModel)
-                    }
-                }
-            }
-
-            _pairingUiState.update { state ->
-                state.copy(
-                    hasDuplicateNames = hasDuplicateNames,
-                    connected = connected,
-                    available = available,
-                    remembered = remembered
-                )
-            }
-        }
 
     fun onRefresh(context: Context) {
         _pairingUiState.update { uiState -> uiState.copy(isRefreshing = true) }

@@ -19,7 +19,8 @@ data object PermissionsScreenKey : KdeConnectKey
 
 @Serializable
 data object SettingsKey : KdeConnectKey
-
+@Serializable
+data object SavedDevicesKey : KdeConnectKey
 @Serializable
 data object ConnectionsSettingsKey : KdeConnectKey
 

@@ -7,59 +7,39 @@
 package org.kde.kdeconnect.ui.compose.screen.pairing
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.colorScheme
-import androidx.compose.material3.MaterialTheme.shapes
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import org.kde.kdeconnect.DeviceManager
-import org.kde.kdeconnect.helpers.DeviceHelper
+import org.kde.kdeconnect.ui.compose.components.DeviceCard
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
-import org.kde.kdeconnect.ui.compose.components.IconHero
 import org.kde.kdeconnect.ui.compose.components.KdeBodyMediumText
 import org.kde.kdeconnect.ui.compose.components.KdeBodySmallText
 import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
 import org.kde.kdeconnect.ui.compose.components.SectionHeader
-import org.kde.kdeconnect.ui.compose.components.googleSans
-import org.kde.kdeconnect.ui.compose.components.px
-import org.kde.kdeconnect.ui.compose.components.smartDashBorder
 import org.kde.kdeconnect.ui.compose.model.device.DeviceUiModel
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.SettingsKey
@@ -76,13 +56,6 @@ fun PairingScreen(
     val lazyListState = rememberLazyListState()
     val pullRefreshState = rememberPullToRefreshState()
     val navigator: Navigator = koinInject()
-    var showPairedSheet by remember { mutableStateOf(false) }
-    val pairedDevices = uiState.remembered.size
-
-    fun onClickInternal(string: String) {
-        onClick(string)
-        showPairedSheet = false
-    }
 
     HazeScaffold(
         title = stringResource(R.string.kde_connect_short),
@@ -98,30 +71,6 @@ fun PairingScreen(
             }
         }
     ) {paddingValues ->
-        if (showPairedSheet) {
-            ModalBottomSheet(onDismissRequest = {showPairedSheet = false}) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    state = lazyListState,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Remembered devices
-                    item {
-                        SectionHeader(stringResource(R.string.category_remembered_devices))
-                    }
-                    itemsIndexed(
-                        items = uiState.remembered,
-                        key = { _, rememberedDevice -> rememberedDevice.id }) { _, rememberedDevice ->
-                        Spacer(Modifier.height(4.dp))
-                        DeviceCard (
-                            device = rememberedDevice,
-                            onClick = { onClickInternal(it) }
-                        )
-                    }
-                }
-            }
-        }
         PullToRefreshBox(
             isRefreshing = uiState.isRefreshing,
             onRefresh = onRefresh,
@@ -163,7 +112,7 @@ fun PairingScreen(
                         Spacer(Modifier.height(4.dp))
                         DeviceCard (
                             device = connectedDevice,
-                            onClick = { onClickInternal(it) }
+                            onClick = { onClick(it) }
                         )
                     }
                 }
@@ -179,20 +128,9 @@ fun PairingScreen(
                         Spacer(Modifier.height(4.dp))
                         DeviceCard (
                             device = availableDevice,
-                            onClick = { onClickInternal(it) }
+                            onClick = { onClick(it) }
                         )
                     }
-                }
-            }
-            if (pairedDevices != 0) {
-                Button(
-                    modifier = Modifier
-                        .navigationBarsPadding()
-                        .align(Alignment.BottomCenter)
-                        .padding(16.dp),
-                    onClick = { showPairedSheet = true }
-                ) {
-                    Text(text = "$pairedDevices Paired devices")
                 }
             }
         }
@@ -267,70 +205,6 @@ fun EmptyPlaceholder() {
     )
 }
 
-@Composable
-private fun DeviceCard(
-    device: DeviceUiModel,
-    onClick: (String) -> Unit
-) {
-    val deviceManager = koinInject<DeviceManager>()
-    val context = LocalContext.current
-    val width = 2.dp.px
-    val dashLength = 8.dp.px
-    val cornerRadius = 16.dp.px
-    val outlineColor = colorScheme.outline
-    val font = remember { googleSans(weight = 600f) }
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .drawBehind { smartDashBorder(cornerRadius, dashLength, width, outlineColor) }
-    ) {
-        Row(
-            modifier = Modifier
-                .height(128.dp)
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            IconHero(
-                backgroundSize = 96.dp,
-                iconSize = 54.dp,
-                icon = device.icon
-            )
-            Column(Modifier.weight(1f)) {
-                val deviceReal = remember { deviceManager.getDevice(device.id) }
-                Text(
-                    fontSize = 42.sp,
-                    text = device.name,
-                    fontFamily = font
-                )
-                if (deviceReal != null) {
-                    val deviceHelper: DeviceHelper = koinInject()
-                    val batteryString = deviceHelper.getBatterySubtitle(context, deviceReal)
-                    if (batteryString != null) {
-                        Text(
-                            text = batteryString,
-                            fontFamily = font
-                        )
-                    }
-                }
-            }
-            IconButton (
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .background(colorScheme.primary, shape = shapes.large)
-                    .width(38.dp),
-                onClick = { onClick(device.id) }
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.arrow_forward_ios),
-                    contentDescription = stringResource(R.string.open),
-                    tint = colorScheme.onPrimary
-                )
-            }
-        }
-    }
-}
-
 @KdeThemePreviews
 @Composable
 private fun PreviewCompose() {
@@ -357,7 +231,6 @@ private fun PreviewCompose() {
                     isPaired = false
                 )
             ),
-            remembered = emptyList(),
             isRefreshing = false
         ),
         onClick = { /* Do nothing */ },

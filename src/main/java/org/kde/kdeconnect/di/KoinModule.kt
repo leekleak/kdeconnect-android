@@ -142,8 +142,11 @@ import androidx.navigation3.scene.DialogSceneStrategy
 import dev.chrisbanes.haze.HazeState
 import org.kde.kdeconnect.plugins.mpris.SinkSelector
 import org.kde.kdeconnect.plugins.mpris.SourceSelector
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.paired.SavedDevices
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.paired.SavedDevicesViewModel
 import org.kde.kdeconnect.ui.navigation.MprisSinkKey
 import org.kde.kdeconnect.ui.navigation.MprisSourceKey
+import org.kde.kdeconnect.ui.navigation.SavedDevicesKey
 import org.koin.plugin.module.dsl.factory
 import org.koin.plugin.module.dsl.single
 import org.koin.plugin.module.dsl.viewModel
@@ -258,6 +261,10 @@ val settingsModule = module {
     }
     navigation<ConnectionsSettingsKey> {
         ConnectionsSettingsScreen()
+    }
+    viewModel<SavedDevicesViewModel>()
+    navigation<SavedDevicesKey> {
+        SavedDevices()
     }
 }
 

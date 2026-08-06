@@ -14,6 +14,5 @@ data class PairingUiState(
     val hasDuplicateNames: Boolean,
     val connected: List<DeviceUiModel>,
     val available: List<DeviceUiModel>,
-    val remembered: List<DeviceUiModel>,
     val isRefreshing: Boolean = false
 )

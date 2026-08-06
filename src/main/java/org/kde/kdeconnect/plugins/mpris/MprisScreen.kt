@@ -34,7 +34,6 @@ import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.WavyProgressIndicatorDefaults
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -68,7 +67,6 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.palette.graphics.Palette
 import coil3.BitmapImage
 import coil3.compose.AsyncImage
@@ -82,6 +80,7 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import org.kde.kdeconnect.ui.compose.KdeTheme
+import org.kde.kdeconnect.ui.compose.components.FancyDialog
 import org.kde.kdeconnect.ui.compose.components.card
 import org.kde.kdeconnect.ui.compose.components.googleSans
 import org.kde.kdeconnect.ui.navigation.MprisSinkKey
@@ -461,33 +460,11 @@ fun SinkSelector(
     val navigator: Navigator = koinInject()
     val sinks by viewModel.sinks.collectAsState()
     KdeTheme {
-        Dialog(onDismissRequest = { navigator.goBack() }) {
-            Column(
-                modifier = Modifier
-                    .height(400.dp)
-                    .fillMaxWidth()
-                    .card(colorScheme.surfaceContainerLowest)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                val font = remember { googleSans(weight = 600f) }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        modifier = Modifier.size(32.dp),
-                        painter = painterResource(R.drawable.speaker_group),
-                        contentDescription = null,
-                        tint = colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(R.string.output),
-                        fontFamily = font,
-                        fontSize = 20.sp,
-                        color = colorScheme.onSurface
-                    )
-                }
+        FancyDialog(
+            modifier = Modifier.height(400.dp),
+            title = stringResource(R.string.output),
+            icon = painterResource(R.drawable.speaker_group),
+            content = {
                 LazyColumn(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -496,15 +473,10 @@ fun SinkSelector(
                         SinkItem(sink = sink, viewModel::setSinkEnabled, viewModel::setSinkVolume)
                     }
                 }
-                TextButton(
-                    modifier = Modifier
-                        .align(Alignment.End),
-                    onClick = { navigator.goBack() }
-                ) {
-                    Text(stringResource(R.string.close))
-                }
-            }
-        }
+            },
+            actionButton = {},
+            onDismissRequest = { navigator.goBack() }
+        )
     }
 }
 
@@ -518,33 +490,11 @@ fun SourceSelector(
     val selectedPlayerName by viewModel.selectedPlayerName.collectAsState()
 
     KdeTheme {
-        Dialog(onDismissRequest = { navigator.goBack() }) {
-            Column(
-                modifier = Modifier
-                    .height(400.dp)
-                    .fillMaxWidth()
-                    .card(colorScheme.surfaceContainerLowest)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                val font = remember { googleSans(weight = 600f) }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        modifier = Modifier.size(32.dp),
-                        painter = painterResource(R.drawable.input),
-                        contentDescription = null,
-                        tint = colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(R.string.input),
-                        fontFamily = font,
-                        fontSize = 20.sp,
-                        color = colorScheme.onSurface
-                    )
-                }
+        FancyDialog(
+            modifier = Modifier.height(400.dp),
+            title = stringResource(R.string.input),
+            icon = painterResource(R.drawable.input),
+            content = {
                 LazyColumn(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -553,15 +503,10 @@ fun SourceSelector(
                         SourceItem (source, source == selectedPlayerName) { viewModel.selectPlayer(source) }
                     }
                 }
-                TextButton(
-                    modifier = Modifier
-                        .align(Alignment.End),
-                    onClick = { navigator.goBack() }
-                ) {
-                    Text(stringResource(R.string.close))
-                }
-            }
-        }
+            },
+            actionButton = {},
+            onDismissRequest = { navigator.goBack() }
+        )
     }
 }
 

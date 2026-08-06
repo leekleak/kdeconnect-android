@@ -39,6 +39,7 @@ val roundedShapes = listOf(VerySunny, Sunny, Cookie6Sided, Cookie7Sided,
 
 val angledShapes = listOf(Square, Slanted, Arch, Cookie4Sided, Clover4Leaf, PixelCircle)
 
+@Deprecated("")
 fun DrawScope.smartDashBorder(
     cornerRadius: Float,
     dashLength: Float,

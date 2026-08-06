@@ -38,10 +38,12 @@ import org.kde.kdeconnect.ui.compose.components.IconPreference
 import org.kde.kdeconnect.ui.compose.components.NavigatePreference
 import org.kde.kdeconnect.ui.compose.components.Preference
 import org.kde.kdeconnect.ui.compose.components.SwitchPreference
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.paired.SavedDevices
 import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.ConnectionsSettingsKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.NotificationSettingsKey
+import org.kde.kdeconnect.ui.navigation.SavedDevicesKey
 import org.kde.kdeconnect.ui.navigation.SftpPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.TelephonyPluginSettingsKey
 import org.kde.kdeconnect_tp.R
@@ -95,6 +97,12 @@ fun SettingsScreen(
             value = uiState.theme,
             values = themeOptions.toList(),
             onValueChanged = { viewModel.setTheme(it) }
+        )
+
+        NavigatePreference(
+            title = stringResource(R.string.saved_devices),
+            icon = painterResource(R.drawable.devices),
+            onClick = { navigator.goTo(SavedDevicesKey) }
         )
 
         CategoryTitleTextSmall(stringResource(R.string.advanced))
