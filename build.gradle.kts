@@ -132,8 +132,8 @@ dependencies {
     implementation(libs.androidx.palette)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
-
-    implementation(libs.androidx.media)
+    
+    implementation(libs.androidx.media3.session)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.recyclerview)

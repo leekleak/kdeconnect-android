@@ -83,11 +83,6 @@ class MprisViewModel(
 
     fun selectPlayer(playerName: String?) {
         _selectedPlayerName.value = playerName
-        
-        val status = playerStatus.value
-        if (status?.isPlaying == true) {
-            mprisMediaSession.playerSelected(status)
-        }
     }
 
     fun playPause() = viewModelScope.launch { playerStatus.value?.let { plugin?.sendPlayPause(it.playerName) } }

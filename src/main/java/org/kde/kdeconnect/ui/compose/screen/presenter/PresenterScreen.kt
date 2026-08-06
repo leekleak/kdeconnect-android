@@ -1,11 +1,11 @@
 package org.kde.kdeconnect.ui.compose.screen.presenter
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.os.Build
-import android.support.v4.media.session.MediaSessionCompat
-import android.support.v4.media.session.PlaybackStateCompat
+import android.os.Looper
 import android.view.MotionEvent
 import android.view.WindowManager
 import androidx.compose.foundation.background
@@ -38,7 +38,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.media.VolumeProviderCompat
+import androidx.media3.common.DeviceInfo
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.common.SimpleBasePlayer
+import androidx.media3.session.MediaSession
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.PresenterPluginSettingsKey
@@ -47,10 +53,8 @@ import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-private const val VOLUME_UP = 1
-private const val VOLUME_DOWN = -1
-
 @OptIn(ExperimentalComposeUiApi::class)
+@SuppressLint("UnsafeOptInUsageError")
 @Composable
 fun PresenterScreen(
     deviceId: String,
@@ -73,24 +77,50 @@ fun PresenterScreen(
     val volumeKeys by viewModel.volumeKeys.collectAsState()
     if (volumeKeys && offScreenControlsSupported) {
         DisposableEffect(Unit) {
-            val mediaSession = MediaSessionCompat(context, "kdeconnect")
-            val volumeProvider = object : VolumeProviderCompat(VOLUME_CONTROL_RELATIVE, 0, 0) {
-                override fun onAdjustVolume(direction: Int) {
-                    if (direction == VOLUME_UP) {
-                        viewModel.sendNext()
-                    } else if (direction == VOLUME_DOWN) {
-                        viewModel.sendPrevious()
-                    }
+            val player = object : SimpleBasePlayer(Looper.getMainLooper()) {
+                private var state = State.Builder()
+                    .setAvailableCommands(
+                        Player.Commands.Builder()
+                            .addAll(COMMAND_ADJUST_DEVICE_VOLUME_WITH_FLAGS)
+                            .build()
+                    )
+                    .setPlaybackState(STATE_READY)
+                    .setPlayWhenReady(true, PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)
+                    .setPlaylist(
+                        listOf(
+                            MediaItemData.Builder("kdeconnect-dummy")
+                                .setMediaItem(MediaItem.EMPTY)
+                                .build()
+                        )
+                    )
+                    .setDeviceInfo(
+                        DeviceInfo.Builder(DeviceInfo.PLAYBACK_TYPE_REMOTE)
+                            .build()
+                    )
+                    .build()
+
+                override fun getState(): State = state
+
+                override fun handleIncreaseDeviceVolume(flags: Int): ListenableFuture<*> {
+                    viewModel.sendNext()
+                    return Futures.immediateFuture(null)
+                }
+
+                override fun handleDecreaseDeviceVolume(flags: Int): ListenableFuture<*> {
+                    viewModel.sendPrevious()
+                    return Futures.immediateFuture(null)
+                }
+
+                override fun handleSetDeviceVolume(deviceVolume: Int, flags: Int): ListenableFuture<*> {
+                    return Futures.immediateFuture(null)
                 }
             }
-            mediaSession.setPlaybackState(
-                PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_PLAYING, 0, 0f).build()
-            )
-            mediaSession.setPlaybackToRemote(volumeProvider)
-            mediaSession.isActive = true
+
+            val mediaSession = MediaSession.Builder(context, player).build()
 
             onDispose {
                 mediaSession.release()
+                player.release()
             }
         }
     }

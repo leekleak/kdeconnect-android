@@ -113,7 +113,7 @@ class MprisPlugin(
     override suspend fun onDestroy() {
         super.onDestroy()
         _players.value = emptyMap()
-        mprisMediaSession.onDestroy(this, device.deviceId)
+        mprisMediaSession.onDestroy(this)
     }
 
     private suspend fun sendCommand(player: String, method: String, value: String) {

@@ -30,7 +30,7 @@ lifecycleRuntimeKtx = "2.11.0"
 logger = "1.0.3"
 androidMaterial = "1.14.0"
 composeMaterial3 = "1.5.0-alpha25"
-media = "1.8.0"
+media3 = "1.10.1"
 mockk = "1.14.11"
 recyclerview = "1.4.0"
 robolectric = "4.16.1"
@@ -60,7 +60,7 @@ androidx-lifecycle-common-java8 = { module = "androidx.lifecycle:lifecycle-commo
 androidx-lifecycle-extensions = { module = "androidx.lifecycle:lifecycle-extensions", version.ref = "lifecycleExtensions" }
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleRuntimeKtx" }
-androidx-media = { module = "androidx.media:media", version.ref = "media" }
+androidx-media3-session = { module = "androidx.media3:media3-session", version.ref = "media3" }
 androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
 androidx-swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefreshlayout" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
