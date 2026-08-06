@@ -13,19 +13,16 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.DeviceManager
-import org.kde.kdeconnect.helpers.VideoUrlsHelper
 import org.kde.kdeconnect.helpers.calculateNewVolume
 import org.kde.kdeconnect.plugins.systemvolume.Sink
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin
 import org.koin.core.annotation.InjectedParam
-import kotlin.collections.get
 import kotlin.time.Duration.Companion.seconds
 
 class MprisViewModel(
     application: Application,
     deviceManager: DeviceManager,
     private val mprisMediaSession: MprisMediaSession,
-    val videoUrlsHelper: VideoUrlsHelper,
     @InjectedParam val deviceId: String
 ) : AndroidViewModel(application) {
 
@@ -98,12 +95,9 @@ class MprisViewModel(
     fun previous() = viewModelScope.launch { playerStatus.value?.let { plugin?.sendPrevious(it.playerName) } }
     fun stop() = viewModelScope.launch { playerStatus.value?.let { plugin?.sendStop(it.playerName) } }
     fun seek(offset: Int) = viewModelScope.launch { playerStatus.value?.let { plugin?.sendSeek(it.playerName, offset) } }
-    fun setPosition(position: Long) = viewModelScope.launch { playerStatus.value?.let { plugin?.sendSetPosition(it.playerName, position.toInt()) } }
-    fun setVolume(volume: Int) = viewModelScope.launch { playerStatus.value?.let { plugin?.sendSetVolume(it.playerName, volume) } }
     fun toggleShuffle() = viewModelScope.launch { playerStatus.value?.let { plugin?.sendSetShuffle(it.playerName, !it.shuffle) } }
-    fun setSinkEnabled(name: String) = viewModelScope.launch { systemVolumePlugin?.sendEnable(name) }
-    //fun toggleSinkMute(name: String, isMuted: Boolean) = viewModelScope.launch { systemVolumePlugin?.sendMute(name, !isMuted) }
-    fun setSinkVolume(name: String, volume: Int) = viewModelScope.launch { systemVolumePlugin?.sendVolume(name, volume) }
+    fun setSinkEnabled(name: String) = viewModelScope.launch { systemVolumePlugin.sendEnable(name) }
+    fun setSinkVolume(name: String, volume: Int) = viewModelScope.launch { systemVolumePlugin.sendVolume(name, volume) }
 
     fun toggleLoopStatus() {
         viewModelScope.launch {
@@ -138,7 +132,7 @@ class MprisViewModel(
                 val defaultSink = sinks.value.firstOrNull { it.isDefault } ?: return@launch
                 val newVolume = calculateNewVolume(defaultSink.volume, defaultSink.maxVolume, step)
                 if (defaultSink.volume != newVolume) {
-                    systemVolumePlugin?.sendVolume(defaultSink.name, newVolume)
+                    systemVolumePlugin.sendVolume(defaultSink.name, newVolume)
                 }
             }
         }

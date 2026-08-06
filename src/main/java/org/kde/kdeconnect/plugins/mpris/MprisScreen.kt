@@ -3,11 +3,13 @@ package org.kde.kdeconnect.plugins.mpris
 import android.os.Build
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.MarqueeSpacing
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -18,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.rememberPagerState
@@ -25,7 +28,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledIconToggleButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -60,6 +65,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -241,6 +248,7 @@ fun PlayerIsland(viewModel: MprisViewModel) {
                     fontSize = 36.sp,
                     color = contentColor,
                     fontFamily = fontBold,
+                    lineHeight = 36.sp,
                     textAlign = TextAlign.Center
                 )
             }
@@ -268,6 +276,7 @@ fun PlayerIsland(viewModel: MprisViewModel) {
                 }
             ) {
 
+                val monospacedFont = FontFamily(Font(R.font.jetbrains_mono_regular))
                 if (playerStatus?.isSeekAllowed == true) {
                     Column (Modifier.padding(16.dp)) {
                         LinearWavyProgressIndicator(
@@ -275,13 +284,17 @@ fun PlayerIsland(viewModel: MprisViewModel) {
                             progress = { playerPosition.toFloat()/(playerStatus?.length?.toFloat() ?: 0f )},
                             waveSpeed = if (playerStatus?.isPlaying == true) WavyProgressIndicatorDefaults.LinearDeterminateWavelength else 0.dp
                         )
-                        Row {
-                            Text(durationToProgress(playerPosition.milliseconds))
+                        Row(modifier = Modifier.padding(top = 8.dp)) {
+                            Text(
+                                text = durationToProgress(playerPosition.milliseconds),
+                                fontFamily = monospacedFont,
+                                color = contentColor
+                            )
                             Spacer(Modifier.weight(1f))
                             Text(
-                                durationToProgress(
-                                    playerStatus?.length?.milliseconds ?: 0.milliseconds
-                                )
+                                text = durationToProgress(playerStatus?.length?.milliseconds ?: 0.milliseconds),
+                                fontFamily = monospacedFont,
+                                color = contentColor
                             )
                         }
                     }
@@ -289,57 +302,70 @@ fun PlayerIsland(viewModel: MprisViewModel) {
 
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Button(
-                        onClick = { viewModel.previous() },
-                        enabled = playerStatus?.isGoPreviousAllowed == true
-                    ) {
-                        Icon(
-                            painterResource(R.drawable.ic_previous_black),
-                            contentDescription = stringResource(R.string.mpris_previous)
-                        )
-                    }
                     if (playerStatus?.isSeekAllowed == true) {
-                        Button(onClick = { viewModel.seek(-10000) }) {
+                        FilledTonalIconButton(
+                            modifier = Modifier.width(42.dp).height(36.dp),
+                            shape = MaterialTheme.shapes.medium,
+                            onClick = { viewModel.seek(-30000) }
+                        ) {
                             Icon(
-                                painterResource(R.drawable.ic_rewind_black),
+                                painterResource(R.drawable.replay_30),
                                 contentDescription = stringResource(R.string.mpris_rew)
                             )
                         }
                     }
-                    Button(
-                        onClick = { viewModel.playPause() },
-                        modifier = Modifier.size(64.dp)
+                    FilledTonalIconButton(
+                        modifier = Modifier.width(56.dp).height(42.dp),
+                        onClick = { viewModel.previous() },
+                        shape = MaterialTheme.shapes.medium,
+                        enabled = playerStatus?.isGoPreviousAllowed == true
                     ) {
-                        val icon = if (playerStatus?.isPlaying == true) R.drawable.ic_pause_black
-                        else R.drawable.ic_play_black
                         Icon(
-                            modifier = Modifier.size(48.dp),
-                            painter = painterResource(icon),
-                            contentDescription = stringResource(
-                                if (playerStatus?.isPlaying == true) R.string.mpris_pause
-                                else R.string.mpris_play
-                            ),
+                            painterResource(R.drawable.skip_previous),
+                            contentDescription = stringResource(R.string.mpris_previous)
                         )
                     }
-                    if (playerStatus?.isSeekAllowed == true) {
-                        Button(onClick = { viewModel.seek(10000) }) {
+                    val playChecked = playerStatus?.isPlaying == true
+                    FilledIconToggleButton(
+                        modifier = Modifier.width(100.dp).height(64.dp),
+                        checked = playChecked,
+                        onCheckedChange = { viewModel.playPause() },
+                        shape = MaterialTheme.shapes.medium,
+                    ) {
+                        AnimatedContent(playChecked) {
                             Icon(
-                                painterResource(R.drawable.ic_fast_forward_black),
-                                contentDescription = stringResource(R.string.mpris_ff)
+                                modifier = Modifier.size(48.dp),
+                                painter = painterResource(if (it) R.drawable.pause else R.drawable.play_arrow),
+                                contentDescription = stringResource(if (it) R.string.mpris_pause else R.string.mpris_play),
                             )
                         }
                     }
-                    Button(
+                    FilledTonalIconButton(
+                        modifier = Modifier.width(56.dp).height(42.dp),
                         onClick = { viewModel.next() },
+                        shape = MaterialTheme.shapes.medium,
                         enabled = playerStatus?.isGoNextAllowed == true
                     ) {
                         Icon(
-                            painterResource(R.drawable.ic_next_black),
+                            painterResource(R.drawable.skip_next),
                             contentDescription = stringResource(R.string.mpris_next)
                         )
+                    }
+                    if (playerStatus?.isSeekAllowed == true) {
+                        FilledTonalIconButton(
+                            modifier = Modifier.width(42.dp).height(36.dp),
+                            shape = MaterialTheme.shapes.medium,
+                            onClick = { viewModel.seek(30000) }
+                        ) {
+                            Icon(
+                                painterResource(R.drawable.forward_30),
+                                contentDescription = stringResource(R.string.mpris_ff)
+                            )
+                        }
                     }
                 }
             }
@@ -364,7 +390,7 @@ fun ControlsIsland(
         modifier = Modifier
             .fillMaxWidth()
             .card(colorScheme.surfaceContainerLowest)
-            .padding(8.dp),
+            .padding(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
@@ -383,20 +409,6 @@ fun ControlsIsland(
                 onClick = { navigator.goTo(MprisSinkKey(deviceId)) }
             )
         }
-        if (playerStatus?.isSetVolumeAllowed == true) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    painterResource(R.drawable.ic_volume),
-                    contentDescription = stringResource(R.string.mpris_volume)
-                )
-                Slider(
-                    value = playerStatus?.volume?.toFloat() ?: 0f,
-                    onValueChange = { volume -> viewModel.setVolume(volume.toInt()) },
-                    valueRange = 0f..100f,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
     }
 }
 
@@ -410,7 +422,7 @@ private fun RowScope.ControlButton(
     val font = remember { googleSans(weight = 600f) }
     Column(
         modifier = Modifier.weight(1f),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Row(
             modifier = Modifier.padding(start = 4.dp),
@@ -431,13 +443,15 @@ private fun RowScope.ControlButton(
         Button(
             modifier = Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.medium,
+            contentPadding = PaddingValues(0.dp),
             onClick = onClick
         ) {
-            Text(
-                modifier = Modifier.basicMarquee(),
-                text = contentName,
-                maxLines = 1
-            )
+            Box(modifier = Modifier.basicMarquee().padding(vertical = 8.dp, horizontal = 16.dp)) {
+                Text(
+                    text = contentName,
+                    maxLines = 1
+                )
+            }
         }
     }
 }

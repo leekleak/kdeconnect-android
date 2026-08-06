@@ -18,17 +18,18 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.NetworkPacket.Payload
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
 import org.kde.kdeconnect.helpers.NotificationHelper
-import org.kde.kdeconnect.helpers.ThreadHelper
 import org.kde.kdeconnect.helpers.VideoUrlsHelper
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
@@ -63,14 +64,9 @@ data class MprisPlayerState(
     val isGoPreviousAllowed: Boolean = true,
     val seekAllowed: Boolean = true
 ) {
-    val isSpotify: Boolean
-        get() = playerName.equals("spotify", ignoreCase = true)
-
     val isSeekAllowed: Boolean
         get() = seekAllowed && length >= 0 && position >= 0
 
-    val hasAlbumArt: Boolean
-        get() = albumArtUrl.isNotEmpty()
 
     fun getHttpUrl(): String? {
         return url.takeIf { it.startsWith("http://") || it.startsWith("https://") }
@@ -258,11 +254,11 @@ class MprisPlugin(
             // Playback was too short
             return
         }
-        ThreadHelper.execute {
-            Thread.sleep(500)
+        coroutineScope.launch {
+            delay(500.milliseconds)
             if (getPlayerStatus(playerStatus.playerName)?.isPlaying == true) {
                 // Pause was too short. Probably just the gap between songs
-                return@execute
+                return@launch
             }
             val httpUrl = playerStatus.getHttpUrl()
             if (dataStore.isMprisKeepWatchingEnabledBlocking() && httpUrl != null) {
