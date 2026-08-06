@@ -10,7 +10,7 @@ import android.os.Build
 import android.os.Process
 import android.os.UserManager
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -49,7 +49,7 @@ class NotificationSettingsViewModel(
     application: Application,
     private val dataStore: NotificationSettingsDataStore,
     private val appDatabase: AppDatabase,
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
     private val _allApps = MutableStateFlow<List<AppInfo>>(emptyList())
@@ -79,12 +79,12 @@ class NotificationSettingsViewModel(
     )
 
     init {
-        loadApps()
+        loadApps(application)
     }
 
-    private fun loadApps() {
+    private fun loadApps(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
-            val packageManager = getApplication<Application>().packageManager
+            val packageManager = context.packageManager
             val installedApps = packageManager.getInstalledApplications(0)
             val notificationApps = installedApps.filter { canPostNotifications(packageManager, it) }
             val allPackageNames = mutableSetOf<String>()
@@ -100,7 +100,6 @@ class NotificationSettingsViewModel(
             // Work profiles
             val workResult = mutableListOf<AppInfo>() // Todo: Check if this should be kept as I'm unsure if normal apps actually have access to other users
             try {
-                val context = getApplication<Application>()
                 val currentUser = Process.myUserHandle()
                 val launcher = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
                 val um = context.getSystemService(Context.USER_SERVICE) as UserManager

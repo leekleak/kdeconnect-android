@@ -5,7 +5,7 @@ import android.speech.SpeechRecognizer
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
@@ -18,7 +18,7 @@ class BigscreenViewModel(
     deviceManager: DeviceManager,
     private val dataStore: MousePadSettingsDataStore,
     @InjectedParam val deviceId: String
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
     val plugin: MousePadPlugin? = deviceManager.getDevicePlugin(deviceId, MousePadPlugin::class.java)
 

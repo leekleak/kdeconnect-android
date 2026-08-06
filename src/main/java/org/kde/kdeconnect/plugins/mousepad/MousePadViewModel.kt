@@ -13,7 +13,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
@@ -29,7 +29,7 @@ class MousePadViewModel(
     deviceManager: DeviceManager,
     private val dataStore: MousePadSettingsDataStore,
     @InjectedParam val deviceId: String
-) : AndroidViewModel(application), SensorEventListener {
+) : ViewModel(), SensorEventListener {
 
     val plugin: MousePadPlugin? = deviceManager.getDevicePlugin(deviceId, MousePadPlugin::class.java)
     private val sensorManager = application.getSystemService(Context.SENSOR_SERVICE) as? SensorManager

@@ -1,5 +1,6 @@
 package org.kde.kdeconnect.ui.compose.screen.device
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,6 +34,7 @@ fun DeviceScreen(
     onNavigateToPluginsSettings: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val activity = LocalActivity.current
     val context = LocalContext.current
 
     HazeScaffold(
@@ -81,12 +83,12 @@ fun DeviceScreen(
                 if (uiState.deviceUiModel.isReachable) {
                     PluginsScreen(
                         pluginsWithButtons = uiState.pluginsWithButtons,
-                        onButtonClick = { button -> button.onClick(context as android.app.Activity) },
+                        onButtonClick = { button -> activity?.let { button.onClick(it) } },
                     )
                 } else {
                     DeviceErrorScreen(
                         isRefreshing = uiState.isRefreshing,
-                        onRefresh = { viewModel.refreshDevicesAction() }
+                        onRefresh = { viewModel.refreshDevicesAction(context) }
                     )
                 }
             }

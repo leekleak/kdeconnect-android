@@ -6,8 +6,8 @@
 
 package org.kde.kdeconnect.ui.compose.screen.device
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import android.content.Context
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -37,11 +37,10 @@ data class DeviceUiState(
 )
 
 class DeviceViewModel(
-    application: Application,
     private val deviceHelper: DeviceHelper,
     private val deviceManager: DeviceManager,
     @InjectedParam private val deviceId: String
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DeviceUiState())
     val uiState: StateFlow<DeviceUiState> = _uiState.asStateFlow()
@@ -75,8 +74,8 @@ class DeviceViewModel(
     fun acceptPairing() = viewModelScope.launch { device?.acceptPairing() }
     fun cancelPairing() = viewModelScope.launch { device?.cancelPairing() }
 
-    fun refreshDevicesAction() {
-        BackgroundService.forceRefreshConnections(getApplication())
+    fun refreshDevicesAction(context: Context) {
+        BackgroundService.forceRefreshConnections(context)
         _uiState.update { it.copy(isRefreshing = true) }
         viewModelScope.launch {
             kotlinx.coroutines.delay(1500.milliseconds)

@@ -1,7 +1,6 @@
 package org.kde.kdeconnect.plugins.presenter
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -16,9 +15,8 @@ data class PresenterSettingsUiState(
 )
 
 class PresenterSettingsViewModel(
-    application: Application,
     private val settingsDataStore: SettingsDataStore
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
     val uiState: StateFlow<PresenterSettingsUiState> = combine(
         settingsDataStore.presenterVolumeKeysEnabled,

@@ -1,10 +1,9 @@
 package org.kde.kdeconnect.ui.compose.screen.presenter
 
-import android.app.Application
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -17,11 +16,10 @@ import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
 import org.koin.core.annotation.InjectedParam
 
 class PresenterViewModel(
-    application: Application,
     deviceManager: DeviceManager,
     settingsDataStore: SettingsDataStore,
     @InjectedParam private val deviceId: String
-) : AndroidViewModel(application), SensorEventListener {
+) : ViewModel(), SensorEventListener {
 
     val plugin: PresenterPlugin? = deviceManager.getDevicePlugin(deviceId, PresenterPlugin::class.java)
 

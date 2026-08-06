@@ -1,7 +1,6 @@
 package org.kde.kdeconnect.plugins.mpris
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,11 +19,9 @@ import org.koin.core.annotation.InjectedParam
 import kotlin.time.Duration.Companion.seconds
 
 class MprisViewModel(
-    application: Application,
     deviceManager: DeviceManager,
-    private val mprisMediaSession: MprisMediaSession,
     @InjectedParam val deviceId: String
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
     val plugin: MprisPlugin? = deviceManager.getDevicePlugin(deviceId, MprisPlugin::class.java)
     val systemVolumePlugin: SystemVolumePlugin = deviceManager.getDevicePlugin(deviceId, SystemVolumePlugin::class.java)!!
