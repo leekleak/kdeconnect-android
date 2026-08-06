@@ -128,7 +128,6 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.constraintlayout.compose)
     implementation(libs.androidx.palette)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
@@ -136,26 +135,21 @@ dependencies {
     implementation(libs.androidx.media3.session)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.recyclerview)
-    implementation(libs.androidx.swiperefreshlayout)
     implementation(libs.androidx.documentfile)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.lifecycle.extensions)
-    implementation(libs.androidx.lifecycle.common.java8)
+    implementation(libs.androidx.lifecycle.process)
 
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.androidx.compose.ui.viewbinding)
 
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
     implementation(libs.koin.compose.navigation3)
     implementation(libs.koin.annotations)
 
-    implementation(libs.androidx.gridlayout)
     implementation(libs.google.android.material)
     implementation(libs.slf4j.api)
     implementation(libs.slf4j.handroid)
@@ -183,7 +177,6 @@ dependencies {
     implementation(libs.commons.io)
 
     // Kotlin
-    implementation(libs.kotlin.stdlib.jdk8)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
 

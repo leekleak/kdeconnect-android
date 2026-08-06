@@ -6,13 +6,11 @@ appcompat = "1.7.1"
 bcpkixJdk15on = "1.70"
 classindexksp = "1.2"
 commonsIo = "2.22.0"
-constraintlayoutCompose = "1.1.2"
 datastore = "1.2.1"
 coreKtx = "1.19.0"
 coilCompose = "3.5.0"
 dependencyLicenseReport = "3.1.4"
 documentfile = "1.1.0"
-gridlayout = "1.1.0"
 palette = "1.0.0"
 jsonassert = "1.5.3"
 junit = "4.13.2"
@@ -25,19 +23,16 @@ koin = "4.2.2"
 koinPlugin = "1.1.0"
 nav3Core = "1.1.5"
 lifecycleViewmodelNav3 = "2.11.0"
-lifecycleExtensions = "2.2.0"
 lifecycleRuntimeKtx = "2.11.0"
 logger = "1.0.3"
 androidMaterial = "1.14.0"
 composeMaterial3 = "1.5.0-alpha25"
 media3 = "1.10.1"
 mockk = "1.14.11"
-recyclerview = "1.4.0"
 robolectric = "4.16.1"
 slf4j = "2.0.18"
 slf4j-handroid = "2.0.13"
 sshdCore = "2.19.0"
-swiperefreshlayout = "1.2.0"
 room = "2.8.4"
 uiToolingPreview = "1.11.4"
 haze = "1.7.2"
@@ -49,20 +44,15 @@ androidx-activity-compose = { module = "androidx.activity:activity-compose", ver
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 androidx-compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "composeMaterial3" }
 androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "uiToolingPreview" }
-androidx-constraintlayout-compose = { module = "androidx.constraintlayout:constraintlayout-compose", version.ref = "constraintlayoutCompose" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "uiToolingPreview" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 androidx-documentfile = { module = "androidx.documentfile:documentfile", version.ref = "documentfile" }
-androidx-gridlayout = { module = "androidx.gridlayout:gridlayout", version.ref = "gridlayout" }
 androidx-junit = { module = "androidx.test.ext:junit", version.ref = "junitExt" }
-androidx-lifecycle-common-java8 = { module = "androidx.lifecycle:lifecycle-common-java8", version.ref = "lifecycleRuntimeKtx" }
-androidx-lifecycle-extensions = { module = "androidx.lifecycle:lifecycle-extensions", version.ref = "lifecycleExtensions" }
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "lifecycleRuntimeKtx" }
 androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-media3-session = { module = "androidx.media3:media3-session", version.ref = "media3" }
-androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
-androidx-swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefreshlayout" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
@@ -74,7 +64,6 @@ jsonassert = { module = "org.skyscreamer:jsonassert", version.ref = "jsonassert"
 junit = { module = "junit:junit", version.ref = "junit" }
 android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "androidGradlePlugin" }
 kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesCore" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
 kotlinx-coroutines-jdk9 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk9", version.ref = "kotlinxCoroutinesCore" }
@@ -82,7 +71,6 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "nav3Core" }
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "nav3Core" }
 androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "lifecycleViewmodelNav3" }
-androidx-compose-ui-viewbinding = { module = "androidx.compose.ui:ui-viewbinding", version.ref = "uiToolingPreview" }
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
 koin-compose-navigation3 = { module = "io.insert-koin:koin-compose-navigation3", version.ref = "koin" }
