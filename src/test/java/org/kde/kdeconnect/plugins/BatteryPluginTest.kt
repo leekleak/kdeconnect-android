@@ -6,10 +6,13 @@ import android.content.Intent
 import android.os.BatteryManager
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
@@ -32,7 +35,7 @@ class BatteryPluginTest {
         device = mockk {
             every { deviceId } returns "some_id"
             val packetSlot = slot<NetworkPacket>()
-            every { sendPacket(capture(packetSlot)) } answers {
+            coEvery { sendPacket(capture(packetSlot)) } answers {
                 packet = packetSlot.captured
             }
             every { onPluginsChanged() } returns Unit
@@ -68,6 +71,7 @@ class BatteryPluginTest {
         batteryPlugin.receiver.onReceive(context, batChangedIntent)
 
         // Check battery info updated accordingly
+        coVerify(timeout = 2000) { device.sendPacket(any()) }
         val p1 = checkNotNull(packet)
 
         Assert.assertEquals(20, p1.getInt("currentCharge"))
@@ -94,6 +98,7 @@ class BatteryPluginTest {
 
         batteryPlugin.receiver.onReceive(context, batChangedIntent)
 
+        coVerify(timeout = 2000) { device.sendPacket(any()) }
         val p1 = checkNotNull(packet)
 
         Assert.assertEquals(20, p1.getInt("currentCharge"))
@@ -121,6 +126,7 @@ class BatteryPluginTest {
         batteryPlugin.receiver.onReceive(context, batChangedIntent2)
 
         // Check if the isLowBattery flag is reset
+        coVerify(timeout = 2000) { device.sendPacket(any()) }
         val p2 = checkNotNull(packet)
 
         Assert.assertEquals(25, p2.getInt("currentCharge"))
@@ -139,6 +145,7 @@ class BatteryPluginTest {
         batteryPlugin.receiver.onReceive(context, batChangedintent)
 
         // Check battery info updated accordingly
+        coVerify(timeout = 2000) { device.sendPacket(any()) }
         val p1 = checkNotNull(packet)
 
         Assert.assertEquals(50, p1.getInt("currentCharge"))
@@ -157,6 +164,7 @@ class BatteryPluginTest {
         batteryPlugin.receiver.onReceive(context, chargingIntent)
 
         // Initial state should reflect charging
+        coVerify(timeout = 2000) { device.sendPacket(any()) }
         val p1 = checkNotNull(packet)
 
         Assert.assertEquals(25, p1.getInt("currentCharge"))
@@ -183,6 +191,7 @@ class BatteryPluginTest {
         batteryPlugin.receiver.onReceive(context, chargingIntent2)
 
         // Check battery info updated accordingly
+        coVerify(timeout = 2000) { device.sendPacket(any()) }
         val p2 = checkNotNull(packet)
 
         Assert.assertEquals(20, p2.getInt("currentCharge"))
@@ -201,6 +210,7 @@ class BatteryPluginTest {
         batteryPlugin.receiver.onReceive(context, chargingIntent)
 
         // Initial state should reflect charging
+        coVerify(timeout = 2000) { device.sendPacket(any()) }
         val p1 = checkNotNull(packet)
 
         Assert.assertEquals(60, p1.getInt("currentCharge"))
@@ -216,6 +226,7 @@ class BatteryPluginTest {
         batteryPlugin.receiver.onReceive(context, notChargingIntent)
 
         // Check battery info updated accordingly
+        coVerify(timeout = 2000) { device.sendPacket(any()) }
         val p2 = checkNotNull(packet)
 
         Assert.assertEquals(60, p2.getInt("currentCharge"))
@@ -226,7 +237,7 @@ class BatteryPluginTest {
     // REMOTE -> LOCAL
 
     @Test
-    fun checkPacketType() {
+    fun checkPacketType() = runBlocking {
         Assert.assertFalse(batteryPlugin.onPacketReceived(NetworkPacket("invalid type")))
 
         Assert.assertTrue(batteryPlugin.onPacketReceived(NetworkPacket("kdeconnect.battery")))
@@ -240,7 +251,7 @@ class BatteryPluginTest {
         packet["isCharging"] = true
         packet["thresholdEvent"] = 0
 
-        batteryPlugin.onPacketReceived(packet)
+        runBlocking { batteryPlugin.onPacketReceived(packet) }
 
         val batteryInfo = batteryPlugin.remoteBatteryInfo
         checkNotNull(batteryInfo)

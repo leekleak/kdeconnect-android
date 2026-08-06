@@ -4,9 +4,10 @@ import android.app.Application
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
+import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.After
@@ -31,7 +32,7 @@ class SystemVolumePluginTest {
         context = ApplicationProvider.getApplicationContext<Application>()
         device = mockk {
             every { deviceId } returns "some_id"
-            every { sendPacket(any()) } answers {
+            coEvery { sendPacket(any()) } answers {
                 val sentPacket = arg<NetworkPacket>(0)
                 packet = sentPacket
             }
@@ -47,7 +48,7 @@ class SystemVolumePluginTest {
     // LOCAL -> REMOTE
 
     @Test
-    fun testSendVolume() {
+    fun testSendVolume() = runBlocking {
         systemVolumePlugin.sendVolume("Sink 1", 85)
         val sentPacket = checkNotNull(packet)
 
@@ -57,7 +58,7 @@ class SystemVolumePluginTest {
     }
 
     @Test
-    fun testSendMute() {
+    fun testSendMute() = runBlocking {
         systemVolumePlugin.sendMute("Sink 1", true)
         val sentPacket = checkNotNull(packet)
 
@@ -67,7 +68,7 @@ class SystemVolumePluginTest {
     }
 
     @Test
-    fun testSendEnable() {
+    fun testSendEnable() = runBlocking {
         systemVolumePlugin.sendEnable("Sink 1")
         val sentPacket = checkNotNull(packet)
 
@@ -79,25 +80,7 @@ class SystemVolumePluginTest {
     // REMOTE -> LOCAL
 
     @Test
-    fun testSinkListeners() {
-        val listener = mockk<SystemVolumePlugin.SinkListener>(relaxed = true)
-
-        systemVolumePlugin.addSinkListener(listener)
-        systemVolumePlugin.addSinkListener(listener)
-
-        // Simulate receiving a packet to trigger listener
-        val sinkPacket = NetworkPacket("kdeconnect.systemvolume").apply {
-            set("sinkList", listOf())
-        }
-
-        systemVolumePlugin.onPacketReceived(sinkPacket)
-
-        // Verify listener called
-        verify(exactly = 2) { listener.sinksChanged() }
-    }
-
-    @Test
-    fun testReceiveSinkList() {
+    fun testReceiveSinkList() = runBlocking {
         // Simulate receiving a packet with sink list
         val sinkPacket = NetworkPacket("kdeconnect.systemvolume").apply {
             set("sinkList", JSONArray().apply {
@@ -120,20 +103,20 @@ class SystemVolumePluginTest {
 
         assertTrue(systemVolumePlugin.onPacketReceived(sinkPacket))
 
-        val sinks = systemVolumePlugin.sinks
+        val sinks = systemVolumePlugin.sinks.value
         assertEquals(2, sinks.size)
 
         val sink1 = sinks.first { it.name == "Sink 1" }
         assertEquals(50, sink1.volume)
-        assertTrue(!sink1.isMute())
+        assertTrue(!sink1.isMuted)
 
         val sink2 = sinks.first { it.name == "Sink 2" }
         assertEquals(70, sink2.volume)
-        assertTrue(sink2.isMute())
+        assertTrue(sink2.isMuted)
     }
 
     @Test
-    fun testReceiveSinkUpdate() {
+    fun testReceiveSinkUpdate() = runBlocking {
         // First, add a sink to ensure proper updates
         val sinkPacket = NetworkPacket("kdeconnect.systemvolume").apply {
             set("sinkList", JSONArray().apply {
@@ -158,11 +141,11 @@ class SystemVolumePluginTest {
 
         assertTrue(systemVolumePlugin.onPacketReceived(updatePacket))
 
-        val sinks = systemVolumePlugin.sinks
+        val sinks = systemVolumePlugin.sinks.value
         val updatedSink = sinks.first { it.name == "Sink 1" }
 
         assertEquals(40, updatedSink.volume)
-        assertEquals(true, updatedSink.isMute())
-        assertTrue(updatedSink.isMute())
+        assertEquals(true, updatedSink.isMuted)
+        assertTrue(updatedSink.isMuted)
     }
 }

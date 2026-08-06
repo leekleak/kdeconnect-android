@@ -14,7 +14,9 @@ import android.os.Build
 import android.widget.Toast
 import androidx.annotation.VisibleForTesting
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
@@ -89,6 +91,7 @@ class ClipboardPlugin(context: Context, device: Device) : Plugin(context, device
     }
 
     override suspend fun onDestroy() {
+        super.onDestroy()
         ClipboardListener.instance(context).removeObserver(observer)
     }
 
@@ -98,7 +101,9 @@ class ClipboardPlugin(context: Context, device: Device) : Plugin(context, device
             val item = clipboardManager.primaryClip!!.getItemAt(0)
             val content = item.coerceToText(this.context).toString()
             this.propagateClipboard(content)
-            Toast.makeText(this.context, R.string.pref_plugin_clipboard_sent, Toast.LENGTH_SHORT).show()
+            withContext(Dispatchers.Main) {
+                Toast.makeText(this@ClipboardPlugin.context, R.string.pref_plugin_clipboard_sent, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

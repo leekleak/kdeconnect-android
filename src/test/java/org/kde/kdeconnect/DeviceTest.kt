@@ -281,13 +281,13 @@ class DeviceTest {
 
     @Test
     @Throws(CertificateException::class)
-    fun testUnpair() {
+    fun testUnpair() = runBlocking {
         val device = Device(context, deviceSettings, sslHelper, "testDevice")
 
         device.unpair()
 
         Assert.assertEquals(PairingHandler.PairState.NotPaired, device.pairingHandler.state.value)
 
-        Assert.assertFalse(runBlocking { deviceSettings.isTrustedDevice(device.deviceId) })
+        Assert.assertFalse(deviceSettings.isTrustedDevice(device.deviceId))
     }
 }

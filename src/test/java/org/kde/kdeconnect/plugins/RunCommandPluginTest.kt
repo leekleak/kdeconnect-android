@@ -4,9 +4,11 @@ import android.app.Application
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -33,7 +35,7 @@ class RunCommandPluginTest {
         context = ApplicationProvider.getApplicationContext<Application>()
         device = mockk {
             every { deviceId } returns "some_id"
-            every { sendPacket(any()) } answers {
+            coEvery { sendPacket(any()) } answers {
                 val sentPacket = arg<NetworkPacket>(0)
                 packet = sentPacket
             }
@@ -51,7 +53,7 @@ class RunCommandPluginTest {
     // LOCAL -> REMOTE
 
     @Test
-    fun testRunCommand() {
+    fun testRunCommand() = runBlocking {
         val commandKey = "testCommandKey"
         runCommandPlugin.runCommand(commandKey)
 
@@ -61,7 +63,7 @@ class RunCommandPluginTest {
     }
 
     @Test
-    fun testRequestCommandList() {
+    fun testRequestCommandList() = runBlocking {
         runCommandPlugin.onCreate() // Simulate plugin creation that requests command list
 
         val sentPacket = checkNotNull(packet)
@@ -73,7 +75,7 @@ class RunCommandPluginTest {
     // REMOTE -> LOCAL
 
     @Test
-    fun testReceiveCommandList() {
+    fun testReceiveCommandList() = runBlocking {
         val commandListPacket = NetworkPacket("kdeconnect.runcommand").apply {
             set("commandList", JSONObject().apply {
                 put("command1", JSONObject().apply {
@@ -104,7 +106,7 @@ class RunCommandPluginTest {
     }
 
     @Test
-    fun testReceiveCommandsUpdate() {
+    fun testReceiveCommandsUpdate() = runBlocking {
         // First, simulate receiving a basic command list
         val initialCommandPacket = NetworkPacket("kdeconnect.runcommand").apply {
             set("commandList", JSONObject().apply {
@@ -147,7 +149,7 @@ class RunCommandPluginTest {
     }
 
     @Test
-    fun testCallbacksOnCommandListUpdate() {
+    fun testCallbacksOnCommandListUpdate() = runBlocking {
         val listener = mockk<RunCommandPlugin.CommandsChangedCallback>(relaxed = true)
         runCommandPlugin.addCommandsUpdatedCallback(listener)
 
@@ -165,7 +167,7 @@ class RunCommandPluginTest {
     }
 
     @Test
-    fun testCanAddCommandFlag() {
+    fun testCanAddCommandFlag() = runBlocking {
         fun addBasicCommandList(np: NetworkPacket) {
             np["commandList"] = JSONObject().apply {
                 put("command1", JSONObject().apply {

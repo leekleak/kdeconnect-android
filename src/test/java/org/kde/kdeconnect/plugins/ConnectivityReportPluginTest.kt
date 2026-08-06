@@ -4,12 +4,15 @@ import android.app.Application
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.slot
 import io.mockk.unmockkObject
 import io.mockk.verify
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -37,7 +40,7 @@ class ConnectivityReportPluginTest {
         device = mockk {
             every { deviceId } returns "some_id"
             val packetSlot = slot<NetworkPacket>()
-            every { sendPacket(capture(packetSlot)) } answers {
+            coEvery { sendPacket(capture(packetSlot)) } answers {
                 packet = packetSlot.captured
             }
             every { onPluginsChanged() } returns Unit
@@ -69,6 +72,7 @@ class ConnectivityReportPluginTest {
 
         plugin.listener.statesChanged(mapOf(6 to subState))
 
+        coVerify(timeout = 2000) { device.sendPacket(any()) }
         val sent = checkNotNull(packet)
 
         assertEquals("kdeconnect.connectivity_report", sent.type)
@@ -92,6 +96,7 @@ class ConnectivityReportPluginTest {
 
         plugin.listener.statesChanged(mapOf(6 to subState1, 17 to subState2))
 
+        coVerify(timeout = 2000) { device.sendPacket(any()) }
         val sent = checkNotNull(packet)
 
         val signalStrengths = sent.getJSONObject("signalStrengths")!!
@@ -108,7 +113,7 @@ class ConnectivityReportPluginTest {
     // REMOTE -> LOCAL
 
     @Test
-    fun testIgnoresReceivedPackets() {
+    fun testIgnoresReceivedPackets() = runBlocking {
         assertFalse(plugin.onPacketReceived(NetworkPacket("kdeconnect.connectivity_report")))
         assertFalse(plugin.onPacketReceived(NetworkPacket("some.other.type")))
 
@@ -116,7 +121,7 @@ class ConnectivityReportPluginTest {
     }
 
     @Test
-    fun testRegistersAndUnregistersStateListener() {
+    fun testRegistersAndUnregistersStateListener() = runBlocking {
         val connectivityListener = mockk<ConnectivityListener>(relaxed = true)
 
         mockkObject(ConnectivityListener.Companion)

@@ -3,11 +3,13 @@ package org.kde.kdeconnect.plugins
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.spyk
 import io.mockk.verify
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
@@ -38,7 +40,7 @@ class ClipboardPluginTest {
 
         device = mockk {
             every { deviceId } returns "some_id"
-            every { sendPacket(any()) } answers {
+            coEvery { sendPacket(any()) } answers {
                 packet = arg<NetworkPacket>(0)
             }
         }
@@ -54,7 +56,7 @@ class ClipboardPluginTest {
     // REMOTE -> LOCAL
 
     @Test
-    fun testReceiveAndApplyClipboardUpdate() {
+    fun testReceiveAndApplyClipboardUpdate() = runBlocking {
         val content = "Gr5hDjL68YQKfH6pez7n59Dm6"
         val packet = NetworkPacket("kdeconnect.clipboard").apply {
             set("content", content)
@@ -67,7 +69,7 @@ class ClipboardPluginTest {
     }
 
     @Test
-    fun testReceiveAndDiscardClipboardUpdateTimestampZero() {
+    fun testReceiveAndDiscardClipboardUpdateTimestampZero() = runBlocking {
         val content = "DLWq7RvblSa6zFPrwLjs9JAdA"
         val timestamp = System.currentTimeMillis()
         val packet = NetworkPacket("kdeconnect.clipboard.connect").apply {
@@ -84,7 +86,7 @@ class ClipboardPluginTest {
     }
 
     @Test
-    fun testReceiveAndDiscardClipboardUpdateTimestampOld() {
+    fun testReceiveAndDiscardClipboardUpdateTimestampOld() = runBlocking {
         val content = "2aZB2x22brdYSubSPPDr864LW"
         val timestamp = System.currentTimeMillis() - 1000 // Simulating an older timestamp
         val packet = NetworkPacket("kdeconnect.clipboard.connect").apply {
@@ -102,14 +104,16 @@ class ClipboardPluginTest {
 
     @Test(expected = UnsupportedOperationException::class)
     fun testReceiveInvalidPacket() {
-        val invalidPacket = NetworkPacket("invalid.type")
-        clipboardPlugin.onPacketReceived(invalidPacket) // Should throw exception
+        runBlocking {
+            val invalidPacket = NetworkPacket("invalid.type")
+            clipboardPlugin.onPacketReceived(invalidPacket) // Should throw exception
+        }
     }
 
     // LOCAL -> REMOTE
 
     @Test
-    fun testOnCreate() {
+    fun testOnCreate() = runBlocking {
         val content = "B7n30xe0NNO6Y1J7PXOFj6pGd"
         every { clipboardListener.currentContent } returns content
 
@@ -122,7 +126,7 @@ class ClipboardPluginTest {
     }
 
     @Test
-    fun testPropagateClipboard() {
+    fun testPropagateClipboard() = runBlocking {
         val content = "llY3kfZNhPur9ldTWEuHQBHPC"
         every { clipboardListener.currentContent } returns content
 
