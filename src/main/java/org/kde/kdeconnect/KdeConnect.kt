@@ -14,7 +14,6 @@ import android.util.Log
 import org.kde.kdeconnect.di.appModule
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.DeviceSettings
-import org.kde.kdeconnect.helpers.LifecycleHelper
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.ui.ThemeUtil
 import org.kde.kdeconnect_tp.BuildConfig
@@ -34,7 +33,6 @@ import org.slf4j.impl.HandroidLoggerAdapter
 class KdeConnect : Application() {
     private val deviceHelper: DeviceHelper by inject()
     private val deviceSettings: DeviceSettings by inject()
-    private val deviceManager: DeviceManager by inject()
     private val themeUtil: ThemeUtil by inject()
     private val sslHelper: SslHelper by inject()
 
@@ -51,22 +49,23 @@ class KdeConnect : Application() {
         EcHelper.ensureKeyPair()
         sslHelper.initialiseCertificate(this, deviceHelper.getDeviceId(), deviceSettings)
         NotificationHelper.initializeChannels(this)
-        LifecycleHelper.initializeObserver()
 
         if (BuildConfig.DEBUG && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             StrictMode.setVmPolicy(
-                VmPolicy.Builder(StrictMode.getVmPolicy())
-                    .detectActivityLeaks()
-                    .detectLeakedClosableObjects()
-                    .detectLeakedRegistrationObjects()
-                    .detectFileUriExposure()
-                    .detectContentUriWithoutPermission()
-                    .detectCredentialProtectedWhileLocked()
-                    .detectIncorrectContextUse()
-                    .detectUnsafeIntentLaunch()
-                    //.detectBlockedBackgroundActivityLaunch()
-                    .penaltyLog()
-                    .build()
+                VmPolicy.Builder(StrictMode.getVmPolicy()).apply {
+                    detectActivityLeaks()
+                    detectLeakedClosableObjects()
+                    detectLeakedRegistrationObjects()
+                    detectFileUriExposure()
+                    detectContentUriWithoutPermission()
+                    detectCredentialProtectedWhileLocked()
+                    detectIncorrectContextUse()
+                    detectUnsafeIntentLaunch()
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+                        detectBlockedBackgroundActivityLaunch()
+                    }
+                    penaltyLog()
+                }.build()
             )
             StrictMode.setThreadPolicy(
                 ThreadPolicy.Builder(StrictMode.getThreadPolicy())

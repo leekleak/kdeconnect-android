@@ -31,7 +31,6 @@ import org.kde.kdeconnect.async.BackgroundJobHandler
 import org.kde.kdeconnect.async.BackgroundJobHandler.Companion.newFixedThreadPoolBackgroundJobHandler
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.FilesHelper.uriToNetworkPacket
-import org.kde.kdeconnect.helpers.IntentHelper.startActivityFromBackgroundOrCreateNotification
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.ui.MainActivity
@@ -179,10 +178,10 @@ class SharePlugin(
 
         Log.i("SharePlugin", "hasUrl: $url")
 
-        val browserIntent = Intent(Intent.ACTION_VIEW, url.toUri())
-        browserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-
-        startActivityFromBackgroundOrCreateNotification(context, browserIntent, url)
+        val intent = Intent(Intent.ACTION_VIEW, url.toUri()).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(intent)
     }
 
     private fun receiveText(np: NetworkPacket) {
