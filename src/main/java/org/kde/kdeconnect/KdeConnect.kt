@@ -11,14 +11,15 @@ import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
 import android.os.StrictMode.VmPolicy
 import android.util.Log
+import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.di.appModule
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.NotificationHelper
-import org.kde.kdeconnect.ui.ThemeUtil
-import org.kde.kdeconnect_tp.BuildConfig
 import org.kde.kdeconnect.helpers.security.EcHelper
 import org.kde.kdeconnect.helpers.security.SslHelper
+import org.kde.kdeconnect.ui.ThemeUtil
+import org.kde.kdeconnect_tp.BuildConfig
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
@@ -45,9 +46,9 @@ class KdeConnect : Application() {
         }
         Log.d("KdeConnect/Application", "onCreate")
         themeUtil.setUserPreferredTheme(this)
-        deviceHelper.initializeDeviceId()
+        runBlocking { deviceHelper.initializeDeviceId() }
         EcHelper.ensureKeyPair()
-        sslHelper.initialiseCertificate(this, deviceHelper.getDeviceId(), deviceSettings)
+        runBlocking { sslHelper.initialiseCertificate(this@KdeConnect, deviceSettings) }
         NotificationHelper.initializeChannels(this)
 
         if (BuildConfig.DEBUG && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

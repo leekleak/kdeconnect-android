@@ -14,9 +14,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.ui.AppTheme
 
 class SettingsDataStore(private val context: Context) {
@@ -56,14 +54,6 @@ class SettingsDataStore(private val context: Context) {
     val certificate: Flow<String> = context.dataStore.data
         .map { it[KEY_CERTIFICATE] ?: "" }
         .distinctUntilChanged()
-
-    // Blocking getters for legacy interop
-    fun getDeviceNameBlocking(): String = runBlocking { deviceName.first() }
-    fun getThemeBlocking(): AppTheme = runBlocking { theme.first() }
-    fun getBluetoothEnabledBlocking(): Boolean = runBlocking { bluetoothEnabled.first() }
-    fun getDeviceIdBlocking(): String = runBlocking { deviceId.first() }
-    fun isPresenterVolumeKeysEnabledBlocking(): Boolean = runBlocking { presenterVolumeKeysEnabled.first() }
-    fun getCertificateBlocking(): String = runBlocking { certificate.first() }
 
     suspend fun setDeviceName(name: String) {
         context.dataStore.edit { preferences ->

@@ -9,6 +9,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Base64
 import android.util.Log
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.bouncycastle.asn1.x500.X500Name
 import org.bouncycastle.asn1.x500.X500NameBuilder
@@ -45,7 +46,7 @@ import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 
 class SslHelper(
-    private val settingsDataStore: SettingsDataStore
+    private val settingsDataStore: SettingsDataStore,
 ) {
     lateinit var certificate: Certificate //my device's certificate
     private val factory: CertificateFactory = CertificateFactory.getInstance("X.509")
@@ -58,14 +59,15 @@ class SslHelper(
         override fun checkServerTrusted(certs: Array<X509Certificate?>?, authType: String?) = Unit
     })
 
-    fun initialiseCertificate(context: Context, deviceId: String, deviceSettings: DeviceSettings) {
+    suspend fun initialiseCertificate(context: Context, deviceSettings: DeviceSettings) {
         val privateKey: PrivateKey = getPrivateKey()
         val publicKey: PublicKey = getPublicKey()
 
         Log.i(LOG_TAG, "Key algorithm: " + publicKey.algorithm)
 
         var needsToGenerateCertificate = false
-        val certificateBase64 = settingsDataStore.getCertificateBlocking()
+        val deviceId: String = settingsDataStore.deviceId.first()
+        val certificateBase64 = settingsDataStore.certificate.first()
 
         if (certificateBase64.isNotEmpty()) {
             val currDate = Date()
@@ -95,7 +97,7 @@ class SslHelper(
         }
 
         if (needsToGenerateCertificate) {
-            runBlocking { deviceSettings.removeAllTrustedDevices() }
+            deviceSettings.removeAllTrustedDevices()
             Log.i(LOG_TAG, "Generating a certificate")
             //Fix for https://issuetracker.google.com/issues/37095309
             val initialLocale = Locale.getDefault()
@@ -122,9 +124,7 @@ class SslHelper(
             val certificateBytes = certificateBuilder.build(contentSigner).encoded
             certificate = parseCertificate(certificateBytes)
 
-            runBlocking {
-                settingsDataStore.setCertificate(Base64.encodeToString(certificateBytes, 0))
-            }
+            settingsDataStore.setCertificate(Base64.encodeToString(certificateBytes, 0))
 
             setLocale(initialLocale, context)
         }

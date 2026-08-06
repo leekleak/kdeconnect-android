@@ -47,6 +47,7 @@ import javax.net.ssl.HandshakeCompletedEvent
 import javax.net.ssl.SSLSocket
 import kotlin.text.Charsets.UTF_8
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 /**
  * This LanLinkProvider creates [LanLink]s to other devices on the same
@@ -87,25 +88,25 @@ class LanLinkProvider(
         super.onConnectionLost(link)
     }
 
-    fun unserializeReceivedIdentityPacket(message: String): Pair<NetworkPacket, Boolean?>? {
+    suspend fun unserializeReceivedIdentityPacket(message: String): Pair<NetworkPacket, Boolean?>? = withContext(Dispatchers.IO) {
         val identityPacket: NetworkPacket?
         try {
             identityPacket = unserialize(message)
         } catch (e: JSONException) {
             Log.w("KDE/LanLinkProvider", "Invalid identity packet received: " + e.message)
-            return null
+            return@withContext null
         }
 
         if (!isValidIdentityPacket(identityPacket)) {
             Log.w("KDE/LanLinkProvider", "Invalid identity packet received.")
-            return null
+            return@withContext null
         }
 
         val deviceId = identityPacket.getString("deviceId")
         val myId = deviceHelper.getDeviceId()
         if (deviceId == myId) {
             //Ignore my own broadcast
-            return null
+            return@withContext null
         }
 
         if (rateLimitByDeviceId(deviceId)) {
@@ -113,30 +114,30 @@ class LanLinkProvider(
                 "LanLinkProvider",
                 "Discarding second packet from the same device $deviceId received too quickly"
             )
-            return null
+            return@withContext null
         }
 
-        val deviceTrusted = runBlocking { deviceSettings.isTrustedDevice(deviceId) }
+        val deviceTrusted = deviceSettings.isTrustedDevice(deviceId)
         if (!deviceTrusted && !trustedNetworkHelper.isTrustedNetwork) {
             Log.i(
                 "KDE/LanLinkProvider",
                 "Ignoring identity packet because the device is not trusted and I'm not on a trusted network."
             )
-            return null
+            return@withContext null
         }
 
-        return Pair<NetworkPacket, Boolean?>(identityPacket, deviceTrusted)
+        return@withContext Pair<NetworkPacket, Boolean?>(identityPacket, deviceTrusted)
     }
 
     //They received my UDP broadcast and are connecting to me. The first thing they send should be their identity packet.
     @WorkerThread
     @Throws(IOException::class, CertificateException::class)
-    private fun tcpPacketReceived(socket: Socket) {
+    private suspend fun tcpPacketReceived(socket: Socket) = withContext(Dispatchers.IO) {
         val address = socket.inetAddress
 
         if (!isPrivateAddress(address)) {
             Log.i("LanLinkProvider", "Discarding TCP packet from a non-local IP")
-            return
+            return@withContext
         }
 
         if (rateLimitByIp(address)) {
@@ -144,7 +145,7 @@ class LanLinkProvider(
                 "LanLinkProvider",
                 "Discarding second TCP packet from the same ip $address received too quickly"
             )
-            return
+            return@withContext
         }
 
         val message: String?
@@ -156,10 +157,10 @@ class LanLinkProvider(
             //Log.e("TcpListener", "Received TCP packet: " + message);
         } catch (e: Exception) {
             Log.e("KDE/LanLinkProvider", "Exception while receiving TCP packet", e)
-            return
+            return@withContext
         }
 
-        val pair = unserializeReceivedIdentityPacket(message) ?: return
+        val pair = unserializeReceivedIdentityPacket(message) ?: return@withContext
         val identityPacket = pair.first
         val deviceTrusted: Boolean = pair.second!!
 
@@ -175,14 +176,14 @@ class LanLinkProvider(
                 "KDE/LanLinkProvider",
                 "Received a connection request for a device that isn't me: $targetDeviceId"
             )
-            return
+            return@withContext
         }
         if (targetProtocolVersion != null && targetProtocolVersion != DeviceHelper.PROTOCOL_VERSION) {
             Log.e(
                 "KDE/LanLinkProvider",
                 "Received a connection request for a protocol version that isn't mine: $targetProtocolVersion"
             )
-            return
+            return@withContext
         }
 
         identityPacketReceived(identityPacket, socket, ConnectionStarted.Locally, deviceTrusted)
@@ -216,12 +217,12 @@ class LanLinkProvider(
 
     //I've received their broadcast and should connect to their TCP socket and send my identity.
     @WorkerThread
-    private fun udpPacketReceived(packet: DatagramPacket) {
+    private suspend fun udpPacketReceived(packet: DatagramPacket) = withContext(Dispatchers.IO) {
         val address = packet.address
 
         if (!isPrivateAddress(address)) {
             Log.i("LanLinkProvider", "Discarding UDP packet from a non-local IP")
-            return
+            return@withContext
         }
 
         if (rateLimitByIp(address)) {
@@ -229,12 +230,12 @@ class LanLinkProvider(
                 "LanLinkProvider",
                 "Discarding second UDP packet from the same ip $address received too quickly"
             )
-            return
+            return@withContext
         }
 
         val message = String(packet.data, UTF_8)
 
-        val pair = unserializeReceivedIdentityPacket(message) ?: return
+        val pair = unserializeReceivedIdentityPacket(message) ?: return@withContext
         val identityPacket = pair.first
         val deviceTrusted: Boolean = pair.second!!
 
@@ -246,7 +247,7 @@ class LanLinkProvider(
         val tcpPort = identityPacket.getInt("tcpPort", MIN_PORT)
         if (tcpPort !in MIN_PORT..MAX_PORT) {
             Log.e("LanLinkProvider", "TCP port outside of kdeconnect's range")
-            return
+            return@withContext
         }
 
         var socket: Socket? = null
@@ -587,10 +588,10 @@ class LanLinkProvider(
     }
 
     @WorkerThread
-    fun sendUdpIdentityPacket(ipList: MutableList<InetAddress>, network: Network?) {
+    suspend fun sendUdpIdentityPacket(ipList: MutableList<InetAddress>, network: Network?) = withContext(Dispatchers.IO) {
         if (tcpServer == null || !tcpServer!!.isBound) {
             Log.i("LanLinkProvider", "Won't broadcast UDP packet if TCP socket is not ready yet")
-            return
+            return@withContext
         }
 
         // TODO: In protocol version 8 this packet doesn't need to contain identity info
@@ -604,7 +605,7 @@ class LanLinkProvider(
             bytes = identity.serialize().toByteArray(UTF_8)
         } catch (e: JSONException) {
             Log.e("KDE/LanLinkProvider", "Failed to serialize identity packet", e)
-            return
+            return@withContext
         }
 
         val socket: DatagramSocket?
@@ -622,7 +623,7 @@ class LanLinkProvider(
             socket.broadcast = true
         } catch (e: SocketException) {
             Log.e("KDE/LanLinkProvider", "Failed to create DatagramSocket", e)
-            return
+            return@withContext
         }
 
         for (ip in ipList) {
@@ -642,7 +643,6 @@ class LanLinkProvider(
     }
 
     override suspend fun onStart() {
-        //Log.i("KDE/LanLinkProvider", "onStart");
         if (!listening) {
             listening = true
 
@@ -651,11 +651,9 @@ class LanLinkProvider(
             setupUdpListener()
             setupTcpListener()
 
-            synchronized(mdnsDiscovery) {
-                mdnsDiscovery.startDiscovering()
-                if (trustedNetworkHelper.isTrustedNetwork) {
-                    mdnsDiscovery.startAnnouncing()
-                }
+            mdnsDiscovery.startDiscovering()
+            if (trustedNetworkHelper.isTrustedNetwork) {
+                mdnsDiscovery.startAnnouncing()
             }
 
             broadcastUdpIdentityPacket(null)

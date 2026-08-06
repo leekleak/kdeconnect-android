@@ -9,7 +9,10 @@ import android.content.Context
 import android.content.res.Configuration
 import android.content.res.Resources
 import androidx.annotation.StringRes
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.DeviceType
@@ -46,25 +49,21 @@ class DeviceHelper(
         }
     }
 
-    fun getDeviceName(): String = dataStore.getDeviceNameBlocking()
+    suspend fun getDeviceName(): String = dataStore.deviceName.first()
 
-    fun initializeDeviceId() {
-        val deviceId = dataStore.getDeviceIdBlocking()
+    suspend fun initializeDeviceId() = withContext(Dispatchers.IO) {
+        val deviceId = dataStore.deviceId.first()
         if (DeviceInfo.isValidDeviceId(deviceId)) {
-            return // We already have an ID
+            return@withContext // We already have an ID
         }
         val deviceName = UUID.randomUUID().toString().replace("-", "")
-        runBlocking {
-            dataStore.setDeviceId(deviceName)
-        }
+        dataStore.setDeviceId(deviceName)
     }
 
-    fun getDeviceId(): String {
-        return dataStore.getDeviceIdBlocking()
-    }
+    fun getDeviceId(): String = runBlocking(Dispatchers.IO) { dataStore.deviceId.first() }
 
-    fun getDeviceInfo(): DeviceInfo {
-        return DeviceInfo(
+    fun getDeviceInfo(): DeviceInfo = runBlocking(Dispatchers.IO) {
+        return@runBlocking DeviceInfo(
             getDeviceId(),
             sslHelper.certificate,
             getDeviceName(),

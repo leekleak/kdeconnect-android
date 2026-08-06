@@ -19,6 +19,7 @@ import android.net.Network
 import android.os.Parcelable
 import android.util.Base64
 import android.util.Log
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.io.IOUtils
 import org.kde.kdeconnect.backends.BaseLinkProvider
@@ -77,7 +78,7 @@ class BluetoothLinkProvider(
     }
 
     override suspend fun onStart() {
-        if (!dataStore.getBluetoothEnabledBlocking()) {
+        if (!dataStore.bluetoothEnabled.first()) {
             return
         }
         if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled) {

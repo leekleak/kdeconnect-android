@@ -10,6 +10,8 @@ import android.os.Build
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import com.google.android.material.color.DynamicColors
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.datastore.SettingsDataStore
 
 /**
@@ -48,7 +50,7 @@ class ThemeUtil(private val dataStore: SettingsDataStore) {
      * Called when an activity is created for the first time to reliably load the correct theme.
      */
     fun setUserPreferredTheme(application: Application) {
-        val appTheme = dataStore.getThemeBlocking()
+        val appTheme = runBlocking { dataStore.theme.first() }
         DynamicColors.applyToActivitiesIfAvailable(application)
         applyTheme(appTheme)
     }

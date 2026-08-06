@@ -13,6 +13,9 @@ import android.net.nsd.NsdServiceInfo
 import android.net.wifi.WifiManager
 import android.net.wifi.WifiManager.MulticastLock
 import android.util.Log
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.kde.kdeconnect.helpers.DeviceHelper
 
 class MdnsDiscovery(
@@ -51,7 +54,7 @@ class MdnsDiscovery(
         discoveryListener = null
     }
 
-    fun startAnnouncing() {
+    suspend fun startAnnouncing() {
         if (registrationListener == null) {
             val serviceInfo: NsdServiceInfo?
             try {
@@ -96,7 +99,7 @@ class MdnsDiscovery(
     }
 
     @Throws(IllegalAccessException::class)
-    fun createNsdServiceInfo(): NsdServiceInfo {
+    suspend fun createNsdServiceInfo(): NsdServiceInfo = withContext(Dispatchers.IO) {
         val serviceInfo = NsdServiceInfo()
 
         val deviceId = deviceHelper.getDeviceId()
@@ -119,7 +122,7 @@ class MdnsDiscovery(
 
         Log.i(LOG_TAG, "My MDNS info: $serviceInfo")
 
-        return serviceInfo
+        return@withContext serviceInfo
     }
 
     fun createDiscoveryListener() = object : DiscoveryListener {
@@ -185,7 +188,9 @@ class MdnsDiscovery(
             // TODO: In protocol version 8 we should be able to call "identityPacketReceived"
             //       here, since we already have all the info we need to start a connection
             //       and the remaining identity info will be exchanged later.
-            lanLinkProvider.sendUdpIdentityPacket(mutableListOf(remoteAddress), null)
+            runBlocking {
+                lanLinkProvider.sendUdpIdentityPacket(mutableListOf(remoteAddress), null)
+            }
         }
     }
 

@@ -19,6 +19,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.ui.AppTheme.*
 import org.koin.compose.koinInject
@@ -26,7 +28,7 @@ import org.koin.compose.koinInject
 @Composable
 fun KdeTheme(dataStore: SettingsDataStore = koinInject(), content: @Composable () -> Unit) {
     val context = LocalContext.current
-    val theme by dataStore.theme.collectAsState(dataStore.getThemeBlocking())
+    val theme by dataStore.theme.collectAsState(runBlocking { dataStore.theme.first() })
     val colorScheme = when (theme) {
         Light -> getColorScheme(context, false)
         Dark -> getColorScheme(context, true)

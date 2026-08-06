@@ -35,7 +35,9 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.BackgroundService
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.SettingsDataStore
@@ -84,7 +86,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
             if (!offScreenControlsSupported) {
                 val keyCode = event.keyCode
                 val action = event.action
-                val volumeKeysEnabled = settingsDataStore.isPresenterVolumeKeysEnabledBlocking()
+                val volumeKeysEnabled = runBlocking { settingsDataStore.presenterVolumeKeysEnabled.first() }
 
                 if (volumeKeysEnabled) {
                     if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN && action == KeyEvent.ACTION_UP) {
@@ -125,7 +127,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        deviceHelper.initializeDeviceId()
+        runBlocking { deviceHelper.initializeDeviceId() }
 
         setContent {
             val imageLoader: ImageLoader = koinInject()
