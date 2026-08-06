@@ -9,6 +9,7 @@ package org.kde.kdeconnect.ui.compose.screen.device
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,16 +17,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -33,7 +32,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
 import org.kde.kdeconnect_tp.R
@@ -44,46 +42,28 @@ fun PluginsScreen(
     onButtonClick: (Plugin.PluginUiButton) -> Unit,
 ) {
     PluginsScreenContent(
-        pluginsWithButtons = pluginsWithButtons,
+        buttons = pluginsWithButtons,
         onButtonClick = onButtonClick,
     )
 }
 
 @Composable
 private fun PluginsScreenContent(
-    pluginsWithButtons: List<Plugin.PluginUiButton>,
-    onButtonClick: (Plugin.PluginUiButton) -> Unit,
-) {
-    Column {
-        val numColumns = LocalResources.current.getInteger(R.integer.plugins_columns)
-        PluginButtons(
-            buttons = pluginsWithButtons,
-            numColumns = numColumns,
-            onButtonClick = onButtonClick
-        )
-    }
-}
-
-@Composable
-private fun PluginButtons(
     buttons: List<Plugin.PluginUiButton>,
-    numColumns: Int,
     onButtonClick: (Plugin.PluginUiButton) -> Unit
 ) {
     val (sendButtons, controlButtons) = buttons.partition {
         it.category == Plugin.ButtonCategory.SEND
     }
 
-    Column {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (sendButtons.isNotEmpty()) {
             CategoryTitleTextSmall(text = stringResource(R.string.category_send))
-            Spacer(Modifier.height(8.dp))
-            PluginButtonsGrid(sendButtons, numColumns, onButtonClick)
+            PluginButtonsGrid(sendButtons, onButtonClick)
         }
         if (controlButtons.isNotEmpty()) {
             CategoryTitleTextSmall(text = stringResource(R.string.category_control))
-            Spacer(Modifier.height(8.dp))
-            PluginButtonsGrid(controlButtons, numColumns, onButtonClick)
+            PluginButtonsGrid(controlButtons, onButtonClick)
         }
     }
 }
@@ -91,26 +71,32 @@ private fun PluginButtons(
 @Composable
 private fun PluginButtonsGrid(
     buttons: List<Plugin.PluginUiButton>,
-    numColumns: Int,
     onButtonClick: (Plugin.PluginUiButton) -> Unit
 ) {
-    Column {
-        buttons.chunked(numColumns).forEach { rowButtons ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                rowButtons.forEach { button ->
-                    PluginButton(
-                        button = button,
-                        modifier = Modifier.weight(1f),
-                        onClick = { onButtonClick(button) }
-                    )
-                }
-                repeat(numColumns - rowButtons.size) {
-                    Spacer(modifier = Modifier.weight(1f))
+    BoxWithConstraints {
+        val minWidth = 178.dp
+        val spacing = 8.dp
+        val columns = ((maxWidth + spacing) / (minWidth + spacing)).toInt().coerceAtLeast(1)
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(spacing),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            buttons.chunked(columns).forEach { rowButtons ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(spacing)
+                ) {
+                    rowButtons.forEach { button ->
+                        PluginButton(
+                            modifier = Modifier.weight(1f),
+                            button = button,
+                            onClick = { onButtonClick(button) }
+                        )
+                    }
+                    repeat(columns - rowButtons.size) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
             }
         }
@@ -120,16 +106,17 @@ private fun PluginButtonsGrid(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PluginButton(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     button: Plugin.PluginUiButton,
     onClick: () -> Unit
 ) {
     Row(
         modifier = modifier
             .height(64.dp)
+            .widthIn(min = 152.dp)
             .background(MaterialTheme.colorScheme.primary, MaterialTheme.shapes.large)
             .padding(vertical = 4.dp, horizontal = 16.dp)
-            .clickable {onClick()},
+            .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -154,10 +141,29 @@ private fun PluginButton(
 @KdeThemePreviews
 @Composable
 private fun PluginsScreenPreview() {
-    KdeTheme(context = LocalContext.current) {
-        PluginsScreenContent(
-            pluginsWithButtons = emptyList(),
-            onButtonClick = { /* Do nothing */ },
-        )
-    }
+    PluginsScreenContent(
+        buttons = buildList {
+            repeat(3) {
+                add(
+                    Plugin.PluginUiButton(
+                        name = "Send Stuff",
+                        iconRes = R.drawable.music_cast,
+                        category = Plugin.ButtonCategory.SEND,
+                        onClick = { }
+                    )
+                )
+            }
+            repeat(5) {
+                add(
+                    Plugin.PluginUiButton(
+                        name = "Presentation Remote",
+                        iconRes = R.drawable.play_arrow,
+                        category = Plugin.ButtonCategory.CONTROL,
+                        onClick = { }
+                    )
+                )
+            }
+        },
+        onButtonClick = { },
+    )
 }

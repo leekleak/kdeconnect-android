@@ -15,13 +15,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.kde.kdeconnect.ui.compose.KdeTheme
 
 @Composable
 private fun KdeText(
@@ -137,27 +135,25 @@ fun KdeTitleMediumText(
 @KdePortraitThemePreviews
 @Composable
 private fun KdeTextsPreview() {
-    KdeTheme(context = LocalContext.current) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            KdeBodySmallText(
-                text = "KdeBodySmallText",
-                color = Color(0xFFCC2222),
-                fontSize = 14.sp,
-                maxLines = 1,
-                modifier = Modifier.padding(all = 16.dp),
-            )
-            KdeBodyMediumText(
-                text = "KdeBodyMediumText",
-                modifier = Modifier.padding(all = 16.dp),
-            )
-            KdeBodyLargeText(
-                text = "KdeBodyLargeText",
-                modifier = Modifier.padding(all = 16.dp),
-            )
-            KdeTitleMediumText(
-                text = "KdeTitleMediumText",
-                modifier = Modifier.padding(all = 16.dp),
-            )
-        }
+    Column(modifier = Modifier.fillMaxWidth()) {
+        KdeBodySmallText(
+            text = "KdeBodySmallText",
+            color = Color(0xFFCC2222),
+            fontSize = 14.sp,
+            maxLines = 1,
+            modifier = Modifier.padding(all = 16.dp),
+        )
+        KdeBodyMediumText(
+            text = "KdeBodyMediumText",
+            modifier = Modifier.padding(all = 16.dp),
+        )
+        KdeBodyLargeText(
+            text = "KdeBodyLargeText",
+            modifier = Modifier.padding(all = 16.dp),
+        )
+        KdeTitleMediumText(
+            text = "KdeTitleMediumText",
+            modifier = Modifier.padding(all = 16.dp),
+        )
     }
 }

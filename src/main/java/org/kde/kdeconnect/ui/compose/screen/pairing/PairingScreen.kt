@@ -51,7 +51,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.helpers.DeviceHelper
-import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.IconHero
 import org.kde.kdeconnect.ui.compose.components.KdeBodyMediumText
@@ -335,35 +334,33 @@ private fun DeviceCard(
 @KdeThemePreviews
 @Composable
 private fun PreviewCompose() {
-    KdeTheme(context = LocalContext.current) {
-        PairingScreen(
-            uiState = PairingUiState(
-                isWifiAvailable = true,
-                isTrustedNetwork = true,
-                hasDuplicateNames = true,
-                connected = emptyList(),
-                available = listOf(
-                    DeviceUiModel(
-                        id = "_2504584b_6aa2_3cd6_bd1b_5e958aa6cd23_",
-                        icon = R.drawable.ic_device_laptop_32dp,
-                        name = "Device 1",
-                        summaryRes = 0,
-                        isReachable = true,
-                        isPaired = false
-                    ), DeviceUiModel(
-                        id = "_2504584b_6aa2_3cd6_bd1b_5e958aa6cd24_",
-                        icon = R.drawable.ic_device_desktop_32dp,
-                        name = "Device 2",
-                        summaryRes = R.string.protocol_version_newer,
-                        isReachable = true,
-                        isPaired = false
-                    )
-                ),
-                remembered = emptyList(),
-                isRefreshing = false
+    PairingScreen(
+        uiState = PairingUiState(
+            isWifiAvailable = true,
+            isTrustedNetwork = true,
+            hasDuplicateNames = true,
+            connected = emptyList(),
+            available = listOf(
+                DeviceUiModel(
+                    id = "_2504584b_6aa2_3cd6_bd1b_5e958aa6cd23_",
+                    icon = R.drawable.ic_device_laptop_32dp,
+                    name = "Device 1",
+                    summaryRes = 0,
+                    isReachable = true,
+                    isPaired = false
+                ), DeviceUiModel(
+                    id = "_2504584b_6aa2_3cd6_bd1b_5e958aa6cd24_",
+                    icon = R.drawable.ic_device_desktop_32dp,
+                    name = "Device 2",
+                    summaryRes = R.string.protocol_version_newer,
+                    isReachable = true,
+                    isPaired = false
+                )
             ),
-            onClick = { /* Do nothing */ },
-            onRefresh = { /* Do nothing */ }
-        )
-    }
+            remembered = emptyList(),
+            isRefreshing = false
+        ),
+        onClick = { /* Do nothing */ },
+        onRefresh = { /* Do nothing */ }
+    )
 }

@@ -83,7 +83,7 @@ class ShareActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            KdeTheme(this) {
+            KdeTheme {
                 val scope = rememberCoroutineScope()
                 ShareScreen(
                     devices = uiDevices,

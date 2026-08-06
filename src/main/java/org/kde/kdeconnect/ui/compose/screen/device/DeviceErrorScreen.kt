@@ -17,11 +17,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.compose.components.KdeBodyMediumText
 import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
 import org.kde.kdeconnect_tp.R
@@ -71,10 +69,8 @@ private fun DeviceErrorScreenContent(
 @KdeThemePreviews
 @Composable
 private fun DeviceErrorScreenPreview() {
-    KdeTheme(context = LocalContext.current) {
-        DeviceErrorScreenContent(
-            isRefreshing = false,
-            onRefresh = { /* Do nothing */ }
-        )
-    }
+    DeviceErrorScreenContent(
+        isRefreshing = false,
+        onRefresh = { /* Do nothing */ }
+    )
 }

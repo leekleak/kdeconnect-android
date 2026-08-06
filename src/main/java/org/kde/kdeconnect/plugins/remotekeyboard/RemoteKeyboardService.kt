@@ -98,7 +98,7 @@ class RemoteKeyboardService: InputMethodService(), LifecycleOwner, SavedStateReg
             setViewTreeSavedStateRegistryOwner(this@RemoteKeyboardService)
 
             setContent {
-                KdeTheme(context = this@RemoteKeyboardService) {
+                KdeTheme {
                     RemoteKeyboardContent(
                         isConnected = isConnectedState.value,
                         onKeyPress = { onPress(it) }

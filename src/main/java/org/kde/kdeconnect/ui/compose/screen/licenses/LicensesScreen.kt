@@ -25,7 +25,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -33,7 +32,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.withContext
-import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
 import org.kde.kdeconnect_tp.R
@@ -115,7 +113,5 @@ fun LicensesScreen(
 @KdeThemePreviews
 @Composable
 private fun LicensesScreenPreview() {
-    KdeTheme(context = LocalContext.current) {
-        LicensesScreen(eventFlow = remember { MutableSharedFlow() })
-    }
+    LicensesScreen(eventFlow = remember { MutableSharedFlow() })
 }

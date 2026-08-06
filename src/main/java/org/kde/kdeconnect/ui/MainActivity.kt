@@ -156,7 +156,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
             }
         }
 
-        KdeTheme(this) {
+        KdeTheme {
             NavDisplay(
                 modifier = Modifier.hazeSource(hazeState),
                 backStack = navigator.backStack,

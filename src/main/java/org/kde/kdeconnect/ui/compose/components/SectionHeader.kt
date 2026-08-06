@@ -41,7 +41,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -57,7 +56,6 @@ import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
-import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.koinInject
@@ -70,9 +68,7 @@ fun SectionHeader(title: String) {
 @KdePortraitThemePreviews
 @Composable
 private fun SectionHeaderPreview() {
-    KdeTheme(context = LocalContext.current) {
-        SectionHeader(title = stringResource(id = R.string.category_connected_devices))
-    }
+    SectionHeader(title = stringResource(id = R.string.category_connected_devices))
 }
 
 /**

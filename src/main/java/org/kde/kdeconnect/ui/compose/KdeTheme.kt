@@ -24,8 +24,7 @@ import org.kde.kdeconnect.ui.AppTheme.*
 import org.koin.compose.koinInject
 
 @Composable
-fun KdeTheme(context: Context? = null, content: @Composable () -> Unit) {
-    val dataStore: SettingsDataStore = koinInject()
+fun KdeTheme(dataStore: SettingsDataStore = koinInject(), content: @Composable () -> Unit) {
     val context = LocalContext.current
     val theme by dataStore.theme.collectAsState(dataStore.getThemeBlocking())
     val colorScheme = when (theme) {

@@ -30,7 +30,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.kde.kdeconnect.DeviceManager
-import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
 import org.kde.kdeconnect.ui.navigation.MousePadPluginSettingsKey
@@ -276,21 +275,19 @@ private fun BigscreenPreview() {
             single { Navigator() }
         })
     }), content = {
-        KdeTheme(LocalContext.current) {
-            BigscreenContent(
-                showHome = true,
-                showBack = true,
-                micEnabled = true,
-                onHomeClick = {},
-                onUpClick = {},
-                onMicClick = {},
-                onLeftClick = {},
-                onSelectClick = {},
-                onRightClick = {},
-                onBackClick = {},
-                onDownClick = {},
-                onNavigateToSettings = {}
-            )
-        }
+        BigscreenContent(
+            showHome = true,
+            showBack = true,
+            micEnabled = true,
+            onHomeClick = {},
+            onUpClick = {},
+            onMicClick = {},
+            onLeftClick = {},
+            onSelectClick = {},
+            onRightClick = {},
+            onBackClick = {},
+            onDownClick = {},
+            onNavigateToSettings = {}
+        )
     })
 }

@@ -33,12 +33,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.KdeCard
 import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
@@ -175,32 +173,30 @@ private fun ShareScreenCardContent(device: DeviceUiModel) {
 @KdeThemePreviews
 @Composable
 private fun ShareScreenPreview() {
-    KdeTheme(context = LocalContext.current) {
-        ShareScreenContent(
-            paddingValues = PaddingValues(),
-            state = rememberLazyListState(),
-            isRefreshing = false,
-            sectionTitle = stringResource(id = R.string.share_to),
-            devices = listOf(
-                DeviceUiModel(
-                    id = "_2504584b_6aa2_3cd6_bd1b_5e958aa6cd23_",
-                    icon = R.drawable.ic_device_laptop_32dp,
-                    name = "Device 1",
-                    summaryRes = 0,
-                    isReachable = true,
-                    isPaired = true,
-                ),
-                DeviceUiModel(
-                    id = "_2504584b_6aa2_3cd6_bd1b_5e958aa6cd24_",
-                    icon = R.drawable.ic_device_phone_32dp,
-                    name = "Device 2",
-                    summaryRes = 0,
-                    isReachable = true,
-                    isPaired = true,
-                )
+    ShareScreenContent(
+        paddingValues = PaddingValues(),
+        state = rememberLazyListState(),
+        isRefreshing = false,
+        sectionTitle = stringResource(id = R.string.share_to),
+        devices = listOf(
+            DeviceUiModel(
+                id = "_2504584b_6aa2_3cd6_bd1b_5e958aa6cd23_",
+                icon = R.drawable.ic_device_laptop_32dp,
+                name = "Device 1",
+                summaryRes = 0,
+                isReachable = true,
+                isPaired = true,
             ),
-            onDeviceClick = { /* Do nothing */ },
-            onRefresh = { /* Do nothing */ }
-        )
-    }
+            DeviceUiModel(
+                id = "_2504584b_6aa2_3cd6_bd1b_5e958aa6cd24_",
+                icon = R.drawable.ic_device_phone_32dp,
+                name = "Device 2",
+                summaryRes = 0,
+                isReachable = true,
+                isPaired = true,
+            )
+        ),
+        onDeviceClick = { /* Do nothing */ },
+        onRefresh = { /* Do nothing */ }
+    )
 }
