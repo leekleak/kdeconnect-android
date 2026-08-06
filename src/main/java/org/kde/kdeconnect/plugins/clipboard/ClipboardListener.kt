@@ -6,14 +6,16 @@
 */
 package org.kde.kdeconnect.plugins.clipboard
 
+import android.content.ClipData
+import android.content.ClipDescription
+import android.content.ClipDescription.MIMETYPE_TEXT_PLAIN
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import androidx.core.content.ContextCompat
-import org.kde.kdeconnect.helpers.ThreadHelper.execute
-import org.kde.kdeconnect.plugins.mousereceiver.MouseReceiverService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect_tp.BuildConfig
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -22,14 +24,13 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class ClipboardListener {
+class ClipboardListener(private val context: Context) {
     interface ClipboardObserver {
         fun clipboardChanged(content: String)
     }
 
     private val observers: HashSet<ClipboardObserver> = HashSet()
 
-    private val context: Context
     var currentContent: String? = null
         private set
     var updateTimestamp: Long = 0
@@ -37,14 +38,11 @@ class ClipboardListener {
 
     private lateinit var cm: ClipboardManager
 
-    private constructor(ctx: Context) {
-        context = ctx.applicationContext
-        Handler(Looper.getMainLooper()).post {
+    init {
+        CoroutineScope(Dispatchers.IO).launch {
             cm = ContextCompat.getSystemService(context, ClipboardManager::class.java)!!
-            cm.addPrimaryClipChangedListener { this.onClipboardChanged() }
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && ClipboardPlugin.canSyncAutomatically(context)) {
-            execute {
+            cm.addPrimaryClipChangedListener { this@ClipboardListener.onClipboardChanged() }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && ClipboardPlugin.canSyncAutomatically(context)) {
                 try {
                     val timeStamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US).format(Date())
                     // Listen only ClipboardService errors after now
@@ -92,7 +90,7 @@ class ClipboardListener {
         if (this::cm.isInitialized) {
             updateTimestamp = System.currentTimeMillis()
             currentContent = text
-            cm.text = text
+            cm.setPrimaryClip(ClipData(ClipDescription("KDE Connect Clipboard Sync", arrayOf(MIMETYPE_TEXT_PLAIN)), ClipData.Item(text) ))
         }
     }
 
