@@ -52,7 +52,6 @@ import org.koin.core.scope.Scope
 import java.io.IOException
 import java.security.cert.Certificate
 import java.util.Vector
-import java.util.concurrent.CopyOnWriteArrayList
 
 class Device(
     private val context: Context,
@@ -74,7 +73,8 @@ class Device(
         verificationKey = null,
         loadedPlugins = emptyMap(),
         pluginsWithoutPermissions = emptyMap(),
-        supportedPlugins = Vector(PluginFactory.availablePlugins)
+        supportedPlugins = Vector(PluginFactory.availablePlugins),
+        links = emptyList()
     ))
     val state: StateFlow<DeviceState> = _state.asStateFlow()
     private fun updateState(transform: (DeviceState) -> DeviceState) = _state.update(transform)
@@ -95,7 +95,6 @@ class Device(
         startState = if (link == null) PairState.Paired else PairState.NotPaired
     )
 
-    private val links = CopyOnWriteArrayList<BaseLink>()
 
     /**
      * Same as loadedPlugins but indexed by incoming packet type
@@ -216,34 +215,30 @@ class Device(
             }
         }
 
-        // FilesHelper.LogOpenFileCount();
-        links.add(link)
-
-        links.sortWith { o1, o2 ->
-            o2.linkProvider.priority compareTo o1.linkProvider.priority
+        updateState { state ->
+            state.copy(
+                links = (state.links + link).sortedByDescending { it.linkProvider.priority },
+                isReachable = true
+            )
         }
 
         link.addPacketReceiver(this)
-
-        if (!state.value.isReachable) {
-            updateState { it.copy(isReachable = true) }
-        }
     }
 
     @WorkerThread
     fun removeLink(link: BaseLink) {
         link.removePacketReceiver(this)
-        links.remove(link)
-        Log.i(
-            "KDE/Device",
-            "removeLink: ${link.linkProvider.name} -> $name active links: ${links.size}"
-        )
-        if (links.isEmpty()) {
-            updateState { it.copy(isReachable = false) }
-            synchronized(sendChannel) {
-                sendCoroutine?.cancel(CancellationException("Device disconnected"))
-                sendCoroutine = null
+        updateState { state ->
+            val newLinks = state.links.minus(link)
+            val isReachable = newLinks.isNotEmpty()
+            if (!isReachable) {
+                synchronized(sendChannel) {
+                    sendCoroutine?.cancel(CancellationException("Device disconnected"))
+                    sendCoroutine = null
+                }
             }
+            Log.i("KDE/Device", "removeLink: ${link.linkProvider.name} -> $name active links: ${newLinks.size}")
+            state.copy(links = newLinks, isReachable = isReachable)
         }
     }
 
@@ -355,7 +350,7 @@ class Device(
     fun sendPacketBlocking(np: NetworkPacket): Boolean = sendPacketBlocking(np, defaultCallback, false)
 
     /**
-     * Send `np` over one of this device's connected [.links].
+     * Send `np` over one of this device's connected [DeviceState.links].
      *
      * @param np                        the packet to send
      * @param callback                  a callback that can receive realtime updates
@@ -376,7 +371,8 @@ class Device(
             return false
         }
 
-        val success = links.any { link ->
+        val currentLinks = state.value.links
+        val success = currentLinks.any { link ->
             try {
                 runBlocking { link.sendPacket(np, callback, sendPayloadFromSameThread) }
             } catch (e: IOException) {
@@ -390,7 +386,7 @@ class Device(
         if (!success) {
             Log.e(
                 "KDE/sendPacket",
-                "No device link (of ${links.size} available) could send the packet. Packet ${np.type} to ${deviceInfo.name} lost!"
+                "No device link (of ${currentLinks.size} available) could send the packet. Packet ${np.type} to ${deviceInfo.name} lost!"
             )
         }
 
@@ -511,4 +507,5 @@ data class DeviceState(
     val loadedPlugins: Map<String, Plugin>,
     val pluginsWithoutPermissions: Map<String, Plugin>,
     val supportedPlugins: List<String>,
+    val links: List<BaseLink>,
 )

@@ -10,7 +10,7 @@ import org.kde.kdeconnect_tp.R
 
 data class DeviceUiModel(
     val id: String = "",
-    val icon: Int = R.drawable.ic_device_laptop_32dp,
+    val icon: Int = R.drawable.desktop_windows,
     val name: String = "",
     val summaryRes: Int = 0,
     val isReachable: Boolean = false,

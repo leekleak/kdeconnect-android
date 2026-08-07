@@ -140,11 +140,11 @@ enum class DeviceType {
     @DrawableRes
     fun toDrawableId() =
         when (this) {
-            PHONE -> R.drawable.ic_device_phone_32dp
-            TABLET -> R.drawable.ic_device_tablet_32dp
-            TV -> R.drawable.ic_device_tv_32dp
-            LAPTOP -> R.drawable.ic_device_laptop_32dp
-            else -> R.drawable.ic_device_desktop_32dp
+            PHONE -> R.drawable.mobile
+            TABLET -> R.drawable.tablet
+            TV -> R.drawable.tv
+            LAPTOP -> R.drawable.laptop_windows
+            else -> R.drawable.desktop_windows
         }
 
     fun toShortcutDrawableId() =

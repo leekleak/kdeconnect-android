@@ -32,7 +32,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
                 android:layout_height="match_parent"
                 android:layout_gravity="center_vertical"
                 android:layout_marginStart="12dp"
-                android:src="@drawable/ic_device_laptop_32dp"
+                android:src="@drawable/laptop_windows"
                 android:importantForAccessibility="no"
                 app:tint="?attr/colorControlNormal"/>
 

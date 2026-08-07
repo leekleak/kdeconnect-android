@@ -181,7 +181,7 @@ private fun ShareScreenPreview() {
         devices = listOf(
             DeviceUiModel(
                 id = "_2504584b_6aa2_3cd6_bd1b_5e958aa6cd23_",
-                icon = R.drawable.ic_device_laptop_32dp,
+                icon = R.drawable.laptop_windows,
                 name = "Device 1",
                 summaryRes = 0,
                 isReachable = true,
@@ -189,7 +189,7 @@ private fun ShareScreenPreview() {
             ),
             DeviceUiModel(
                 id = "_2504584b_6aa2_3cd6_bd1b_5e958aa6cd24_",
-                icon = R.drawable.ic_device_phone_32dp,
+                icon = R.drawable.mobile,
                 name = "Device 2",
                 summaryRes = 0,
                 isReachable = true,

@@ -11,9 +11,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -94,46 +96,39 @@ fun DeviceCard(
 ) {
     val deviceManager = koinInject<DeviceManager>()
     val font = remember { googleSans(weight = 600f) }
-    Column(
+    Column (
         modifier = Modifier
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.large)
             .background(colorScheme.surfaceContainerLowest)
             .clickable { onClick(device.id) }
-            .border(BorderStroke(1.5.dp, colorScheme.outline), MaterialTheme.shapes.large)
+            .border(BorderStroke(1.dp, colorScheme.outline), MaterialTheme.shapes.large)
+            .padding(16.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            IconHero(
-                backgroundSize = 96.dp,
-                iconSize = 54.dp,
-                icon = device.icon
-            )
-            Column(Modifier.weight(1f)) {
-                val deviceReal = remember { deviceManager.getDevice(device.id) }
-                Text(
-                    fontSize = 42.sp,
-                    lineHeight = 42.sp,
-                    text = device.name,
-                    fontFamily = font
-                )
-                if (deviceReal != null) {
-                    val deviceHelper: DeviceHelper = koinInject()
-                    val batteryInfo = deviceHelper.getBattery(deviceReal)?.collectAsStateWithLifecycle()
-                    batteryInfo?.value?.let { battery ->
-                        BatteryComponent(battery)
-                    }
+        Icon(
+            modifier = Modifier.size(40.dp),
+            painter = painterResource(device.icon),
+            contentDescription = null
+        )
+        val deviceReal = remember { deviceManager.getDevice(device.id) }
+        Text(
+            fontSize = 42.sp,
+            lineHeight = 42.sp,
+            text = device.name,
+            fontFamily = font
+        )
+        Row(modifier = Modifier.fillMaxWidth()) {
+            if (deviceReal != null) {
+                val deviceHelper: DeviceHelper = koinInject()
+                val batteryInfo = deviceHelper.getBattery(deviceReal)?.collectAsStateWithLifecycle()
+                batteryInfo?.value?.let { battery ->
+                    BatteryComponent(battery)
                 }
             }
+            Spacer(modifier = Modifier.weight(1f))
             Icon(
-                modifier = Modifier.size(36.dp),
                 painter = actionIcon,
                 contentDescription = actionDescription,
-                tint = colorScheme.primary
             )
         }
     }

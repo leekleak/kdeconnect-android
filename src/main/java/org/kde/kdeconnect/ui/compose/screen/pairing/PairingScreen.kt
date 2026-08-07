@@ -217,14 +217,14 @@ private fun PreviewCompose() {
             available = listOf(
                 DeviceUiModel(
                     id = "_2504584b_6aa2_3cd6_bd1b_5e958aa6cd23_",
-                    icon = R.drawable.ic_device_laptop_32dp,
+                    icon = R.drawable.laptop_windows,
                     name = "Device 1",
                     summaryRes = 0,
                     isReachable = true,
                     isPaired = false
                 ), DeviceUiModel(
                     id = "_2504584b_6aa2_3cd6_bd1b_5e958aa6cd24_",
-                    icon = R.drawable.ic_device_desktop_32dp,
+                    icon = R.drawable.desktop_windows,
                     name = "Device 2",
                     summaryRes = R.string.protocol_version_newer,
                     isReachable = true,
