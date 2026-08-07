@@ -195,7 +195,7 @@ private fun BigscreenContent(
                 iconRes = R.drawable.keyboard_arrow_down,
                 contentDescription = R.string.bigscreen_down,
             )
-            
+
             Spacer(Modifier.height(54.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 BigscreenButton(

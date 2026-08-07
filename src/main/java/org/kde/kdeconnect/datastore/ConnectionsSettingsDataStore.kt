@@ -9,9 +9,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
 
 class ConnectionsSettingsDataStore(private val context: Context) {
 
@@ -34,10 +32,6 @@ class ConnectionsSettingsDataStore(private val context: Context) {
     val customDeviceList: Flow<String> = context.dataStore.data
         .map { preferences -> preferences[KEY_CUSTOM_DEVICE_LIST] ?: "" }
         .distinctUntilChanged()
-
-    fun getTrustedNetworksRawBlocking(): String = runBlocking { trustedNetworksRaw.first() }
-    fun areAllNetworksAllowedBlocking(): Boolean = runBlocking { allNetworksAllowed.first() }
-    fun getCustomDeviceListBlocking(): String = runBlocking { customDeviceList.first() }
 
     suspend fun setTrustedNetworksRaw(serialized: String) {
         context.dataStore.edit { it[KEY_TRUSTED_NETWORKS] = serialized }

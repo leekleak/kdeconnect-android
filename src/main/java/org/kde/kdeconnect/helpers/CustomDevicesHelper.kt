@@ -1,5 +1,8 @@
 package org.kde.kdeconnect.helpers
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import org.kde.kdeconnect.DeviceHost
 import org.kde.kdeconnect.datastore.ConnectionsSettingsDataStore
 import java.util.ArrayList
@@ -21,10 +24,10 @@ class CustomDevicesHelper(private val dataStore: ConnectionsSettingsDataStore) {
         return ipList
     }
 
-    fun getCustomDeviceList(): ArrayList<DeviceHost> {
-        val deviceListPrefs = dataStore.getCustomDeviceListBlocking()
+    suspend fun getCustomDeviceList(): ArrayList<DeviceHost> = withContext(Dispatchers.IO) {
+        val deviceListPrefs = dataStore.customDeviceList.first()
         val list = deserializeIpList(deviceListPrefs)
         list.sortWith(Comparator.comparing { it.toString() })
-        return list
+        return@withContext list
     }
 }

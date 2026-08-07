@@ -45,7 +45,7 @@ class PairingViewModel(
                 _pairingUiState.update {
                     it.copy(
                         isWifiAvailable = isConnectedToNonCellularNetwork,
-                        isTrustedNetwork = trustedNetworkHelper.isTrustedNetwork
+                        isTrustedNetwork = trustedNetworkHelper.getIsTrustedNetwork()
                     )
                 }
             }

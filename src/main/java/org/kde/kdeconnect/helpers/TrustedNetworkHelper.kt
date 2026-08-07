@@ -12,6 +12,7 @@ import android.net.wifi.SupplicantState
 import android.net.wifi.WifiManager
 import android.util.Log
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.datastore.ConnectionsSettingsDataStore
 
@@ -19,28 +20,6 @@ class TrustedNetworkHelper(
     private val context: Context,
     private val dataStore: ConnectionsSettingsDataStore
 ) {
-
-    var trustedNetworks: List<String>
-        get() {
-            val serializedNetworks = dataStore.getTrustedNetworksRawBlocking()
-            return serializedNetworks.split(NETWORK_SSID_DELIMITER).filter { it.isNotEmpty() }
-        }
-        set(value) {
-            runBlocking {
-                dataStore.setTrustedNetworksRaw(
-                    value.joinToString(NETWORK_SSID_DELIMITER) { it.cleanSsid() }
-                )
-            }
-        }
-
-    var allNetworksAllowed: Boolean
-        get() = !hasPermissions || dataStore.areAllNetworksAllowedBlocking()
-        set(value) {
-            runBlocking {
-                dataStore.setAllNetworksAllowed(value)
-            }
-        }
-
     val hasPermissions: Boolean
         get() = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
 
@@ -62,8 +41,9 @@ class TrustedNetworkHelper(
             }
         }
 
-    val isTrustedNetwork: Boolean
-        get() = this.allNetworksAllowed || this.currentSSID in this.trustedNetworks
+    suspend fun getIsTrustedNetwork(): Boolean {
+        return dataStore.allNetworksAllowed.first() || this.currentSSID in dataStore.trustedNetworks.first()
+    }
 
     private fun String.cleanSsid(): String {
         return if (startsWith("\"") && endsWith("\"") && length >= 2) {
