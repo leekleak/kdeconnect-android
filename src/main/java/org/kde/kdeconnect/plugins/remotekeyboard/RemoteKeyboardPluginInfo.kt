@@ -18,7 +18,7 @@ object RemoteKeyboardPluginInfo : PluginInfo(
     supportedPacketTypes = arrayOf(PACKET_TYPE_MOUSEPAD_REQUEST),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_MOUSEPAD_ECHO, PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE)
 ) {
-    override fun checkRequiredPermissions(context: Context): Boolean {
+    override suspend fun checkRequiredPermissions(context: Context): Boolean {
         val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         val inputMethodList = inputMethodManager.enabledInputMethodList
         return inputMethodList.stream().anyMatch { info -> context.packageName.equals(info.packageName) }

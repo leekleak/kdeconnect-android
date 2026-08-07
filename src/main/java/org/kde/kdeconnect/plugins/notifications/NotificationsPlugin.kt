@@ -63,7 +63,7 @@ object NotificationsPluginInfo: PluginInfo(
     ),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_NOTIFICATION),
 ) {
-    override fun checkRequiredPermissions(context: Context): Boolean {
+    override suspend fun checkRequiredPermissions(context: Context): Boolean {
         return NotificationReceiver.hasReadNotificationsPermission(context)
     }
 

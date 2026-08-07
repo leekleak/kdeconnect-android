@@ -17,6 +17,7 @@ import androidx.core.net.toUri
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONException
@@ -63,6 +64,7 @@ class SftpPlugin(
     }
 
     override suspend fun onDestroy() {
+        super.onDestroy()
         server.stop()
         job?.cancel()
         job = null
@@ -232,7 +234,7 @@ object SftpPluginInfo : PluginInfo(
 ), KoinComponent {
     private val dataStore: SftpSettingsDataStore by inject()
 
-    override fun checkRequiredPermissions(context: Context): Boolean {
+    override suspend fun checkRequiredPermissions(context: Context): Boolean {
         return if (SimpleSftpServer.SUPPORTS_NATIVEFS) {
             Environment.isExternalStorageManager()
         } else {
@@ -255,10 +257,10 @@ object SftpPluginInfo : PluginInfo(
         }
     }
 
-    fun getStorageInfoList(): MutableList<StorageInfo> {
+    suspend fun getStorageInfoList(): MutableList<StorageInfo> {
         val storageInfoList = mutableListOf<StorageInfo>()
 
-        val jsonString = dataStore.getStorageInfoListJsonBlocking()
+        val jsonString = dataStore.storageInfoListJson.first()
 
         try {
             val jsonArray = JSONArray(jsonString)

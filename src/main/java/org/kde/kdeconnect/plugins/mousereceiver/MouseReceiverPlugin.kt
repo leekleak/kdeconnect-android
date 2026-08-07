@@ -128,7 +128,7 @@ object MouseReceiverPluginInfo : PluginInfo(
     supportedPacketTypes = arrayOf(PACKET_TYPE_MOUSEPAD_REQUEST),
     outgoingPacketTypes = emptyArray(),
 ) {
-    override fun checkRequiredPermissions(context: Context): Boolean {
+    override suspend fun checkRequiredPermissions(context: Context): Boolean {
         return MouseReceiverService.instance != null
     }
 

@@ -42,14 +42,14 @@ open class PluginInfo(
     }
 
 
-    open fun checkRequiredPermissions(context: Context): Boolean {
+    open suspend fun checkRequiredPermissions(context: Context): Boolean {
         return arePermissionsGranted(context, requiredPermissions)
     }
 
     /**
      * Shows the permissionExplanationDialog if required permissions are not granted.
      */
-    fun showPermissionExplanation(context: Context, helper: PermissionRequestHelper) {
+    suspend fun showPermissionExplanation(context: Context, helper: PermissionRequestHelper) {
         if (!checkRequiredPermissions(context)) {
             if (helper.isExplanationShown(pluginKey)) return
 
