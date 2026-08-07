@@ -86,14 +86,6 @@ class Device(
     val supportedPlugins: List<String> get() = state.value.supportedPlugins
     val pluginsWithoutPermissions: Map<String, Plugin> get() = state.value.pluginsWithoutPermissions
     val isReachable: Boolean get() = state.value.isReachable
-    val verificationKey: String? get() = state.value.verificationKey
-
-    /**
-     * The notification ID for the pairing notification.
-     * This ID should be only set once, and it should be unique for each device.
-     * We use the current time in milliseconds as the ID as default.
-     */
-    private var notificationId = 0
 
     @VisibleForTesting
     var pairingHandler: PairingHandler = PairingHandler(

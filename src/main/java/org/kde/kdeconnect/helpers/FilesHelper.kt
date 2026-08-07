@@ -98,10 +98,6 @@ object FilesHelper {
 
     private fun getOpenFileCount(): Int? = File("/proc/self/fd").listFiles()?.size
 
-    fun logOpenFileCount() {
-        Log.e("KDE/FileCount", "" + getOpenFileCount())
-    }
-
     /**
      * Creates a network packet from the given URI
      */

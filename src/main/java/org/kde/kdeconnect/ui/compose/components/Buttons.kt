@@ -28,30 +28,6 @@ import androidx.compose.ui.unit.dp
 import org.kde.kdeconnect_tp.R
 
 @Composable
-fun KdeTextButton(
-    onClick: () -> Unit,
-    modifier: Modifier,
-    text: String,
-    enabled: Boolean = true,
-    contentPadding: PaddingValues = PaddingValues(16.dp),
-    iconLeft: Painter? = null,
-) {
-    TextButton(
-        onClick = onClick,
-        modifier = modifier,
-        enabled = enabled,
-        contentPadding = contentPadding,
-        content = {
-            iconLeft?.let {
-                Icon(painter = it, contentDescription = null)
-                Spacer(Modifier.width(16.dp))
-            }
-            Text(text = text)
-        }
-    )
-}
-
-@Composable
 fun KdeButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,

@@ -7,25 +7,20 @@ package org.kde.kdeconnect.plugins.findmyphone
 
 import android.Manifest
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.MediaPlayer
-import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
-import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
-import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo.Companion.isPermissionGranted
-import org.kde.kdeconnect_tp.R
 import java.io.IOException
 
 class FindMyPhonePlugin(
@@ -39,7 +34,6 @@ class FindMyPhonePlugin(
     private val audioManager: AudioManager = context.getSystemService(AudioManager::class.java)
     private val mediaPlayer: MediaPlayer = MediaPlayer()
     private var previousVolume = -1
-    private val powerManager: PowerManager = context.getSystemService(PowerManager::class.java)
     private val flashlightManager: FlashlightManager = FlashlightManager(context)
 
     override val pluginInfo: FindMyPhonePluginInfo = FindMyPhonePluginInfo
@@ -90,51 +84,6 @@ class FindMyPhonePlugin(
         return true
     }
 
-    private fun showBroadcastNotification() {
-        val intent = Intent(context, FindMyPhoneReceiver::class.java)
-        intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
-        intent.action = FindMyPhoneReceiver.ACTION_FOUND_IT
-        intent.putExtra(FindMyPhoneReceiver.EXTRA_DEVICE_ID, device.deviceId)
-
-        val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            0,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        createNotification(pendingIntent)
-    }
-
-    private fun showActivityNotification() {
-        val intent = Intent(context, FindMyPhoneActivity::class.java)
-        intent.putExtra(FindMyPhoneActivity.EXTRA_DEVICE_ID, device.deviceId)
-
-        val pi = PendingIntent.getActivity(
-            context,
-            0,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        createNotification(pi)
-    }
-
-    private fun createNotification(pendingIntent: PendingIntent?) {
-        val notification =
-            NotificationCompat.Builder(context, NotificationHelper.Channels.HIGHPRIORITY)
-        notification
-            .setSmallIcon(R.drawable.ic_notification)
-            .setOngoing(false)
-            .setFullScreenIntent(pendingIntent, true)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setAutoCancel(true)
-            .setOngoing(true)
-            .setContentTitle(context.getString(R.string.findmyphone_found))
-        notification.setGroup("BackgroundService")
-
-        notificationManager.notify(notificationId, notification.build())
-    }
-
     fun startPlaying() {
         if (!mediaPlayer.isPlaying) {
             // Make sure we are heard even when the phone is silent, restore original volume later
@@ -178,9 +127,6 @@ class FindMyPhonePlugin(
     fun stopFlashing() {
         flashlightManager.stopFlashing()
     }
-
-    val isPlaying: Boolean
-        get() = mediaPlayer.isPlaying
 
     private val isFlashlightEnabledInSettings: Boolean
         get() = telephonySettingsDataStore.getFlashlightEnabledBlockingBlocking()
