@@ -7,7 +7,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.junit.After
@@ -39,7 +38,6 @@ class RunCommandPluginTest {
                 val sentPacket = arg<NetworkPacket>(0)
                 packet = sentPacket
             }
-            every { onPluginsChanged() } returns Unit
         }
         settingsDataStore = mockk(relaxed = true)
         runCommandPlugin = RunCommandPlugin(context, device, settingsDataStore)
@@ -91,7 +89,7 @@ class RunCommandPluginTest {
 
         assertTrue(runCommandPlugin.onPacketReceived(commandListPacket))
 
-        val commandList = runCommandPlugin.commandList
+        val commandList = runCommandPlugin.commandList.value
         assertEquals(2, commandList.size)
 
         val command1 = commandList[0]
@@ -101,8 +99,6 @@ class RunCommandPluginTest {
         val command2 = commandList[1]
         assertEquals("command2", command2.key)
         assertEquals("Command 2", command2.name)
-
-        verify(exactly = 1) { device.onPluginsChanged() }
     }
 
     @Test
@@ -134,7 +130,7 @@ class RunCommandPluginTest {
         assertTrue(runCommandPlugin.onPacketReceived(updatedCommandPacket))
 
         // Afterward we check the list has been updated appropriately
-        val commandList = runCommandPlugin.commandList
+        val commandList = runCommandPlugin.commandList.value
         assertEquals(2, commandList.size)
 
         val command2 = commandList[0]
@@ -144,26 +140,6 @@ class RunCommandPluginTest {
         val updatedCommand1 = commandList[1]
         assertEquals("command1", updatedCommand1.key)
         assertEquals("Updated Command 1", updatedCommand1.name)
-
-        verify { device.onPluginsChanged() }
-    }
-
-    @Test
-    fun testCallbacksOnCommandListUpdate() = runBlocking {
-        val listener = mockk<RunCommandPlugin.CommandsChangedCallback>(relaxed = true)
-        runCommandPlugin.addCommandsUpdatedCallback(listener)
-
-        val commandListPacket = NetworkPacket("kdeconnect.runcommand").apply {
-            set("commandList", JSONObject().apply {
-                put("command1", JSONObject().apply {
-                    put("name", "Command 1")
-                    put("key", "command1")
-                })
-            })
-        }
-
-        runCommandPlugin.onPacketReceived(commandListPacket)
-        verify { listener.update() }
     }
 
     @Test

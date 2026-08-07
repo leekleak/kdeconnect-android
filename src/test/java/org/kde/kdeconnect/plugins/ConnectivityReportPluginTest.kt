@@ -43,7 +43,6 @@ class ConnectivityReportPluginTest {
             coEvery { sendPacket(capture(packetSlot)) } answers {
                 packet = packetSlot.captured
             }
-            every { onPluginsChanged() } returns Unit
         }
 
         plugin = ConnectivityReportPlugin(context, device)
@@ -116,8 +115,6 @@ class ConnectivityReportPluginTest {
     fun testIgnoresReceivedPackets() = runBlocking {
         assertFalse(plugin.onPacketReceived(NetworkPacket("kdeconnect.connectivity_report")))
         assertFalse(plugin.onPacketReceived(NetworkPacket("some.other.type")))
-
-        verify(exactly = 0) { device.onPluginsChanged() }
     }
 
     @Test

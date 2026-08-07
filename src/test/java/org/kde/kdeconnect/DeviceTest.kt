@@ -122,7 +122,7 @@ class DeviceTest {
                     single { deviceSettings }
                     single { sslHelper }
                     single { mockk<DeviceHelper>(relaxed = true) }
-                    factory { (deviceId: String?, link: org.kde.kdeconnect.backends.BaseLink?) ->
+                    factory { (deviceId: String, link: org.kde.kdeconnect.backends.BaseLink?) ->
                         Device(context, get(), get(), deviceId, link)
                     }
                 }
@@ -257,7 +257,7 @@ class DeviceTest {
         every { link.deviceId } returns deviceId
         every { link.deviceInfo } returns deviceInfo
         every { link.addPacketReceiver(any()) } returns Unit
-        val device = Device(context, deviceSettings, sslHelper, null, link)
+        val device = Device(context, deviceSettings, sslHelper, deviceId, link)
 
         Assert.assertNotNull(device)
         Assert.assertEquals(device.deviceId, deviceId)

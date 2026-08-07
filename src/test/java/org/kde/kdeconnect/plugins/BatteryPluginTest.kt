@@ -38,7 +38,6 @@ class BatteryPluginTest {
             coEvery { sendPacket(capture(packetSlot)) } answers {
                 packet = packetSlot.captured
             }
-            every { onPluginsChanged() } returns Unit
         }
         batteryPlugin = BatteryPlugin(context, device)
     }
@@ -241,7 +240,6 @@ class BatteryPluginTest {
         Assert.assertFalse(batteryPlugin.onPacketReceived(NetworkPacket("invalid type")))
 
         Assert.assertTrue(batteryPlugin.onPacketReceived(NetworkPacket("kdeconnect.battery")))
-        verify(exactly = 1) { device.onPluginsChanged() }
     }
 
     @Test
@@ -253,12 +251,11 @@ class BatteryPluginTest {
 
         runBlocking { batteryPlugin.onPacketReceived(packet) }
 
-        val batteryInfo = batteryPlugin.remoteBatteryInfo
+        val batteryInfo = batteryPlugin.remoteBatteryInfo.value
         checkNotNull(batteryInfo)
         Assert.assertEquals(75, batteryInfo.currentCharge)
         Assert.assertEquals(true, batteryInfo.isCharging)
         Assert.assertEquals(0, batteryInfo.thresholdEvent)
 
-        verify(exactly = 1) { device.onPluginsChanged() }
     }
 }
