@@ -24,20 +24,7 @@
     <item>Stronger</item>
     <item>Strongest</item>
   </string-array>
-  <string-array name="mpris_time_entries">
-    <item>10 seconds</item>
-    <item>20 seconds</item>
-    <item>30 seconds</item>
-    <item>1 minute</item>
-    <item>2 minutes</item>
-  </string-array>
-  <string-array name="digitizer_preference_entries_draw_button_side">
-    <item>Top left</item>
-    <item>Top right</item>
-    <item>Bottom left</item>
-    <item>Bottom right</item>
-  </string-array>
-  <string-array name="convert_to_mms_after_entries">
+    <string-array name="convert_to_mms_after_entries">
     <item>After one message</item>
     <item>After two messages</item>
     <item>After three messages</item>
@@ -46,11 +33,6 @@
   </string-array>
   <string-array name="theme_list">
     <item>Set by Battery Saver</item>
-    <item>Light</item>
-    <item>Dark</item>
-  </string-array>
-  <string-array name="theme_list_v28">
-    <item>System Default</item>
     <item>Light</item>
     <item>Dark</item>
   </string-array>
