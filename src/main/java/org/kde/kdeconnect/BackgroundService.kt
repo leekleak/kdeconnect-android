@@ -25,6 +25,11 @@ import androidx.annotation.MainThread
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.backends.BaseLinkProvider.ConnectionReceiver
@@ -42,6 +47,8 @@ import org.kde.kdeconnect_tp.R
 import org.koin.android.ext.android.get
 import org.koin.android.ext.android.inject
 import org.koin.core.parameter.parametersOf
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 /**
  * This class (still) does 3 things:
@@ -50,9 +57,11 @@ import org.koin.core.parameter.parametersOf
  * - Listens for network connectivity changes and tells the LinkProviders to re-check for devices.
  * It can be started by the KdeConnectBroadcastReceiver on some events or when the MainActivity is launched.
  */
+@OptIn(ExperimentalAtomicApi::class)
 class BackgroundService : Service() {
     private val data: BackgroundServiceData by inject()
     private val deviceManager: DeviceManager by inject()
+    val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val linkProviders = mutableListOf<BaseLinkProvider>()
 
@@ -68,8 +77,9 @@ class BackgroundService : Service() {
         linkProviders.add(get<BluetoothLinkProvider> { parametersOf(this) })
     }
 
+    @OptIn(ExperimentalAtomicApi::class)
     suspend fun onNetworkChange(network: Network?) {
-        if (!initialized) {
+        if (!initialized.load()) {
             Log.d(LOG_TAG, "ignoring onNetworkChange called before the service is initialized")
             return
         }
@@ -120,14 +130,14 @@ class BackgroundService : Service() {
             }
         })
 
-        registerLinkProviders()
-        addConnectionListener(deviceManager.connectionListener) // Link Providers need to be already registered
-        for (linkProvider in linkProviders) {
-            runBlocking {
+        serviceScope.launch {
+            registerLinkProviders()
+            addConnectionListener(deviceManager.connectionListener) // Link Providers need to be already registered
+            for (linkProvider in linkProviders) {
                 linkProvider.onStart()
             }
+            initialized.store(true)
         }
-        initialized = true
     }
 
     private fun createForegroundNotification(): Notification {
@@ -201,10 +211,11 @@ class BackgroundService : Service() {
 
     override fun onDestroy() {
         Log.d("KdeConnect/BgService", "onDestroy")
-        initialized = false
+        initialized.store(false)
         for (linkProvider in linkProviders) {
             linkProvider.onStop()
         }
+        serviceScope.cancel()
         deviceManager.removeDeviceListChangedCallback("BackgroundService")
         super.onDestroy()
     }
@@ -247,7 +258,7 @@ class BackgroundService : Service() {
         var instance: BackgroundService? = null
             private set
 
-        private var initialized = false
+        private var initialized = AtomicBoolean(false)
 
         private fun createNonCellularNetworkRequestBuilder(): NetworkRequest.Builder {
             return NetworkRequest.Builder().apply {

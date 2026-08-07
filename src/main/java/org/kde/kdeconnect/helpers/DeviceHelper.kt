@@ -74,24 +74,25 @@ class DeviceHelper(
         )
     }
 
-    fun getBatterySubtitle(context: Context, device: Device): String? {
-        val batteryPlugin = device.getPlugin(BatteryPlugin::class.java)
-        val info = batteryPlugin?.remoteBatteryInfo ?: return null
-
-        @StringRes
-        val resId = when {
-            info.isCharging -> R.string.battery_status_charging_format
-            BatteryPlugin.isLowBattery(info) -> R.string.battery_status_low_format
-            else -> R.string.battery_status_format
-        }
-
-        return context.getString(resId, info.currentCharge)
-    }
-
-    fun getBattery(device: Device): DeviceBatteryInfo? {
-        val batteryPlugin = device.getPlugin(BatteryPlugin::class.java)
-        return batteryPlugin?.remoteBatteryInfo
-    }
+    //Todo: Rework this entire battery logic
+//    fun getBatterySubtitle(context: Context, device: Device): String? {
+//        val batteryPlugin = device.getPlugin(BatteryPlugin::class.java)
+//        val info = batteryPlugin?.remoteBatteryInfo ?: return null
+//
+//        @StringRes
+//        val resId = when {
+//            info.isCharging -> R.string.battery_status_charging_format
+//            BatteryPlugin.isLowBattery(info) -> R.string.battery_status_low_format
+//            else -> R.string.battery_status_format
+//        }
+//
+//        return context.getString(resId, info.currentCharge)
+//    }
+//
+//    fun getBattery(device: Device): DeviceBatteryInfo? {
+//        val batteryPlugin = device.getPlugin(BatteryPlugin::class.java)
+//        return batteryPlugin?.remoteBatteryInfo
+//    }
 
     companion object {
         const val PROTOCOL_VERSION = 8

@@ -11,8 +11,10 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
 import androidx.annotation.VisibleForTesting
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
@@ -35,8 +37,8 @@ class BatteryPlugin(context: Context, device: Device) : Plugin(context, device) 
      *
      * @return the most recent packet received from the remote device. May be null
      */
-    var remoteBatteryInfo: DeviceBatteryInfo? = null
-        private set
+    private val _remoteBatteryInfo: MutableStateFlow<DeviceBatteryInfo?> = MutableStateFlow(null)
+    val remoteBatteryInfo: StateFlow<DeviceBatteryInfo?> = _remoteBatteryInfo.asStateFlow()
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     internal val receiver: BroadcastReceiver = object : BroadcastReceiver() {
@@ -98,6 +100,7 @@ class BatteryPlugin(context: Context, device: Device) : Plugin(context, device) 
     }
 
     override suspend fun onDestroy() {
+        super.onDestroy()
         // It's okay to call this only once, even though we registered it for two filters
         context.unregisterReceiver(receiver)
     }
@@ -106,8 +109,7 @@ class BatteryPlugin(context: Context, device: Device) : Plugin(context, device) 
         if (PACKET_TYPE_BATTERY != np.type) {
             return false
         }
-        remoteBatteryInfo = DeviceBatteryInfo.fromPacket(np)
-        device.onPluginsChanged()
+        _remoteBatteryInfo.value = DeviceBatteryInfo.fromPacket(np)
         return true
     }
 

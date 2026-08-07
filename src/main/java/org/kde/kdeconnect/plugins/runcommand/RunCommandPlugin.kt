@@ -15,6 +15,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
@@ -36,7 +39,8 @@ class RunCommandPlugin(
     private val callbacks = ArrayList<CommandsChangedCallback>()
     val output: SnapshotStateList<RunCommandOutput> = SnapshotStateList()
 
-    private var canAddCommand = false
+    private val _canAddCommand: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val canAddCommand: StateFlow<Boolean> = _canAddCommand.asStateFlow()
 
     override val pluginInfo: RunCommandPluginInfo = RunCommandPluginInfo
 
@@ -101,9 +105,7 @@ class RunCommandPlugin(
                 aCallback.update()
             }
 
-            device.onPluginsChanged()
-
-            canAddCommand = np.getBoolean("canAddCommand", false)
+            _canAddCommand.value = np.getBoolean("canAddCommand", false)
 
             return true
         } else if (np.has("stdout")) {
@@ -156,7 +158,7 @@ class RunCommandPlugin(
     }
 
     fun canAddCommand(): Boolean {
-        return canAddCommand
+        return canAddCommand.value
     }
 
     suspend fun sendSetupPacket() {

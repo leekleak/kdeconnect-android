@@ -206,11 +206,6 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
-            RESULT_NEEDS_RELOAD -> {
-                CoroutineScope(Dispatchers.IO).launch {
-                    deviceManager.devices.values.forEach { it.reloadPluginsFromSettings() }
-                }
-            }
             else -> super.onActivityResult(requestCode, resultCode, data)
         }
     }
@@ -218,29 +213,6 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
     fun isPermissionGranted(permissions: Array<String>, grantResults: IntArray, permission : String) : Boolean {
         val index = permissions.indexOf(permission)
         return index != -1 && grantResults[index] == PackageManager.PERMISSION_GRANTED
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        val permissionsGranted = grantResults.contains(PackageManager.PERMISSION_GRANTED)
-        if (permissionsGranted) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && isPermissionGranted(permissions, grantResults, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
-                startActivityForResult(intent, STORAGE_LOCATION_CONFIGURED)
-            }
-
-            if (isPermissionGranted(permissions, grantResults, Manifest.permission.BLUETOOTH_CONNECT) &&
-                isPermissionGranted(permissions, grantResults, Manifest.permission.BLUETOOTH_SCAN)) {
-                CoroutineScope(Dispatchers.IO).launch {
-                    settingsDataStore.setBluetoothEnabled(true)
-                }
-                mNavigator.goTo(SettingsKey)
-            }
-
-            CoroutineScope(Dispatchers.IO).launch {
-                deviceManager.devices.values.forEach { it.reloadPluginsFromSettings() }
-            }
-        }
     }
 
     companion object {

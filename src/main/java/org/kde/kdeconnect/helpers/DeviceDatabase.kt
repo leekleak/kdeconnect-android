@@ -9,10 +9,16 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import androidx.room.Upsert
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import org.kde.kdeconnect.DeviceInfo
+import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.helpers.security.SslHelper
+import org.kde.kdeconnect.plugins.PluginFactory
 import java.security.cert.Certificate
+import java.security.cert.CertificateException
 
 @Entity(tableName = "devices")
 data class DeviceEntity(
@@ -22,7 +28,7 @@ data class DeviceEntity(
     val protocolVersion: Int,
     val certificate: ByteArray,
     val trusted: Boolean = true,
-    val settings: Map<String, String> = emptyMap()
+    val settings: Map<String, Boolean> = emptyMap()
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -48,11 +54,24 @@ data class DeviceEntity(
         result = 31 * result + settings.hashCode()
         return result
     }
+
+    fun toDeviceInfo(sslHelper: SslHelper): DeviceInfo {
+        return DeviceInfo(
+            id = deviceId,
+            certificate = sslHelper.parseCertificate(certificate),
+            name = name,
+            type = DeviceType.fromString(type),
+            protocolVersion = protocolVersion,
+            incomingCapabilities = emptySet(),
+            outgoingCapabilities = emptySet(),
+            settings = settings
+        )
+    }
 }
 
 class MapTypeConverter {
     @TypeConverter
-    fun fromString(value: String): Map<String, String> {
+    fun fromString(value: String): Map<String, Boolean> {
         return try {
             Json.decodeFromString(value)
         } catch (_: Exception) {
@@ -61,7 +80,7 @@ class MapTypeConverter {
     }
 
     @TypeConverter
-    fun fromMap(map: Map<String, String>): String {
+    fun fromMap(map: Map<String, Boolean>): String {
         return Json.encodeToString(map)
     }
 }
@@ -89,6 +108,9 @@ interface DeviceDao {
     @Query("SELECT * FROM devices WHERE deviceId = :deviceId")
     suspend fun getDevice(deviceId: String): DeviceEntity?
 
+    @Query("SELECT * FROM devices WHERE deviceId = :deviceId")
+    fun getDeviceFlow(deviceId: String): Flow<DeviceEntity?>
+
     @Query("SELECT deviceId FROM devices WHERE trusted = 1")
     suspend fun getAllTrustedIds(): List<String>
 }
@@ -109,7 +131,15 @@ class DeviceSettings(
     }
 
     suspend fun addTrustedDevice(device: DeviceEntity) {
-        deviceDao.upsert(device)
+        if (device.settings.size == PluginFactory.availablePlugins.size) {
+            deviceDao.upsert(device)
+        } else {
+            val missingSettings = PluginFactory.availablePlugins.toSet().minus(device.settings.keys)
+            val newDevice = device.copy(
+                settings = device.settings.plus(missingSettings.map { it to PluginFactory.getPluginInfo(it).isEnabledByDefault })
+            )
+            deviceDao.upsert(newDevice)
+        }
     }
 
     suspend fun removeTrustedDevice(deviceId: String) {
@@ -126,7 +156,7 @@ class DeviceSettings(
 
     suspend fun getDeviceCertificate(deviceId: String): Certificate {
         val certificateBytes = deviceDao.getCertificate(deviceId)
-            ?: throw java.security.cert.CertificateException("No certificate stored for device $deviceId")
+            ?: throw CertificateException("No certificate stored for device $deviceId")
         return sslHelper.parseCertificate(certificateBytes)
     }
 
@@ -134,27 +164,20 @@ class DeviceSettings(
         return deviceDao.getCertificate(deviceId) != null
     }
 
-    suspend fun getSetting(deviceId: String, key: String, defaultValue: String?): String? {
-        val device = deviceDao.getDevice(deviceId) ?: return defaultValue
-        return device.settings[key] ?: defaultValue
+    suspend fun getBooleanSetting(deviceId: String, key: String, defaultValue: Boolean): Boolean = withContext(Dispatchers.IO) {
+        val device = deviceDao.getDevice(deviceId) ?: return@withContext defaultValue
+        return@withContext device.settings[key] ?: defaultValue
     }
 
-    suspend fun setSetting(deviceId: String, key: String, value: String) {
-        val device = deviceDao.getDevice(deviceId) ?: return
+    suspend fun setBooleanSetting(deviceId: String, key: String, value: Boolean) = withContext(Dispatchers.IO) {
+        val device = deviceDao.getDevice(deviceId) ?: return@withContext
         val updatedSettings = device.settings.toMutableMap().apply { put(key, value) }
         deviceDao.upsert(device.copy(settings = updatedSettings))
-    }
-
-    suspend fun getBooleanSetting(deviceId: String, key: String, defaultValue: Boolean): Boolean {
-        val value = getSetting(deviceId, key, null)
-        return value?.toBoolean() ?: defaultValue
-    }
-
-    suspend fun setBooleanSetting(deviceId: String, key: String, value: Boolean) {
-        setSetting(deviceId, key, value.toString())
     }
 
     suspend fun getDeviceEntity(deviceId: String): DeviceEntity? {
         return deviceDao.getDevice(deviceId)
     }
+
+    fun getDeviceEntityFlow(deviceId: String): Flow<DeviceEntity?> = deviceDao.getDeviceFlow(deviceId)
 }

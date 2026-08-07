@@ -57,7 +57,6 @@ class SftpSettingsViewModel(
 
         viewModelScope.launch {
             dataStore.setStorageInfoListJson(jsonArray.toString())
-            deviceManager.devices.values.forEach { it.launchBackgroundReloadPluginsFromSettings() }
         }
     }
 

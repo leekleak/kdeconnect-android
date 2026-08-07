@@ -62,7 +62,7 @@ class DeviceViewModel(
                             verificationKey = deviceState.verificationKey,
                             pluginsWithButtons = pluginsWithButtons,
                             pluginsNeedPermissions = pluginsNeedPermissions,
-                            batteryInfo = deviceHelper.getBattery(device)
+                            batteryInfo = null//deviceHelper.getBattery(device)
                         )
                     }
                 }

@@ -122,7 +122,7 @@ fun DeviceCard(
                 )
                 if (deviceReal != null) {
                     val deviceHelper: DeviceHelper = koinInject()
-                    val batteryString = deviceHelper.getBatterySubtitle(context, deviceReal)
+                    val batteryString = "null"//deviceHelper.getBatterySubtitle(context, deviceReal)
                     if (batteryString != null) {
                         Text(
                             text = batteryString,

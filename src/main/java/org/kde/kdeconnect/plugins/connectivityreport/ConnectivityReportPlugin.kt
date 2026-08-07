@@ -73,6 +73,7 @@ class ConnectivityReportPlugin(context: Context, device: Device) : Plugin(contex
     }
 
     override suspend fun onDestroy() {
+        super.onDestroy()
         getInstance(context).cancelActiveListener(listener)
     }
 

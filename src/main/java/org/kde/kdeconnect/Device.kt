@@ -12,7 +12,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.util.Log
-import androidx.annotation.AnyThread
 import androidx.annotation.DrawableRes
 import androidx.annotation.VisibleForTesting
 import androidx.annotation.WorkerThread
@@ -29,6 +28,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -64,7 +65,7 @@ class Device(
     private val context: Context,
     private val deviceSettings: DeviceSettings,
     private val sslHelper: SslHelper,
-    @InjectedParam deviceId: String?,
+    @InjectedParam deviceId: String,
     @InjectedParam link: BaseLink? = null
 ) : PacketReceiver, KoinScopeComponent {
 
@@ -74,7 +75,7 @@ class Device(
     val jobScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _state: MutableStateFlow<DeviceState> = MutableStateFlow(DeviceState(
-        deviceInfo = link?.deviceInfo ?: runBlocking { loadFromSettings(deviceSettings, deviceId!!) },
+        deviceInfo = link?.deviceInfo ?: runBlocking { loadFromSettings(deviceSettings, deviceId) },
         pairStatus = if (link == null) PairState.Paired else PairState.NotPaired,
         isReachable = false,
         verificationKey = null,
@@ -116,20 +117,11 @@ class Device(
      */
     private var pluginsByIncomingInterface: Map<String, List<String>> = emptyMap()
 
-    private val pluginsChangedListeners = CopyOnWriteArrayList<PluginsChangedListener>()
-
     private val sendChannel = Channel<NetworkPacketWithCallback>(Channel.UNLIMITED)
     private var sendCoroutine : Job? = null
 
     fun supportsPacketType(type: String): Boolean =
         NetworkPacket.PROTOCOL_PACKET_TYPES.contains(type) || deviceInfo.incomingCapabilities?.contains(type) ?: true
-
-    fun interface PluginsChangedListener {
-        fun onPluginsChanged(device: Device)
-    }
-
-    val connectivityType: String?
-        get() = links.firstOrNull()?.name
 
     val name: String
         get() = deviceInfo.name
@@ -147,6 +139,8 @@ class Device(
     val protocolVersion: Int
         get() = deviceInfo.protocolVersion
 
+    private val reloadPluginsMutex = Mutex()
+
     init {
         jobScope.launch {
             combine(pairingHandler.state, pairingHandler.verificationKey) { a, b ->
@@ -157,6 +151,19 @@ class Device(
         }
         jobScope.launch {
             link?.let { addLink(it) }
+        }
+        jobScope.launch {
+            state.map { it.isReachable }.distinctUntilChanged().collect {
+                reloadPluginsFromSettings()
+            }
+        }
+        jobScope.launch {
+            deviceSettings.getDeviceEntityFlow(deviceId).collect { deviceEntity ->
+                deviceEntity?.let {
+                    updateState { state -> state.copy(deviceInfo = it.toDeviceInfo(sslHelper)) }
+                    reloadPluginsFromSettings()
+                }
+            }
         }
     }
 
@@ -196,13 +203,7 @@ class Device(
 
                 hidePairingNotification()
 
-                runBlocking { deviceInfo.saveInSettings(deviceSettings) }
-
-                try {
-                    runBlocking { reloadPluginsFromSettings() }
-                } catch (e: Exception) {
-                    Log.e("Device", "Exception in pairingSuccessful. Not unpairing because saving the trusted device succeeded", e)
-                }
+                jobScope.launch { deviceInfo.saveInSettings(deviceSettings) }
             }
 
             override fun pairingFailed(error: Int) {
@@ -212,11 +213,7 @@ class Device(
             override fun unpaired(device: Device) {
                 assert(device == this@Device)
                 Log.i("Device", "unpaired, removing from trusted devices list")
-                runBlocking { deviceSettings.removeTrustedDevice(deviceInfo.id) }
-
-                notifyPluginsOfDeviceUnpaired(context, deviceInfo.id)
-
-                runBlocking { reloadPluginsFromSettings() }
+                jobScope.launch {  deviceSettings.removeTrustedDevice(deviceInfo.id) }
             }
         }
     }
@@ -287,7 +284,7 @@ class Device(
         notificationManager.cancel(notificationId)
     }
 
-    suspend fun addLink(link: BaseLink) {
+    fun addLink(link: BaseLink) {
         synchronized(sendChannel) {
             if (sendCoroutine == null) {
                 sendCoroutine = CoroutineScope(Dispatchers.IO).launch {
@@ -307,17 +304,13 @@ class Device(
 
         link.addPacketReceiver(this)
 
-        updateState { it.copy(isReachable = true) }
-
-        val hasChanges = updateDeviceInfo(link.deviceInfo)
-
-        if (hasChanges || links.size == 1) {
-            reloadPluginsFromSettings()
+        if (!state.value.isReachable) {
+            updateState { it.copy(isReachable = true) }
         }
     }
 
     @WorkerThread
-    suspend fun removeLink(link: BaseLink) {
+    fun removeLink(link: BaseLink) {
         link.removePacketReceiver(this)
         links.remove(link)
         Log.i(
@@ -326,7 +319,6 @@ class Device(
         )
         if (links.isEmpty()) {
             updateState { it.copy(isReachable = false) }
-            reloadPluginsFromSettings()
             synchronized(sendChannel) {
                 sendCoroutine?.cancel(CancellationException("Device disconnected"))
                 sendCoroutine = null
@@ -396,11 +388,6 @@ class Device(
             Log.i("KDE/Device", "Pair packet")
             pairingHandler.packetReceived(np)
             return
-        }
-
-        // pluginsByIncomingInterface may not be built yet
-        if (pluginsByIncomingInterface.isEmpty()) {
-            reloadPluginsFromSettings()
         }
 
         if (!isPaired) {
@@ -536,35 +523,18 @@ class Device(
         return loadedPlugins[pluginKey] ?: pluginsWithoutPermissions[pluginKey]
     }
 
-    suspend fun setPluginEnabled(pluginKey: String, value: Boolean) {
-        deviceSettings.setBooleanSetting(deviceId, pluginKey, value)
-        reloadPluginsFromSettings()
-    }
-
-    fun isPluginEnabled(pluginKey: String): Boolean {
-        val enabledByDefault = PluginFactory.getPluginInfo(pluginKey).isEnabledByDefault
-        return runBlocking { deviceSettings.getBooleanSetting(deviceId, pluginKey, enabledByDefault) }
-    }
-
-    fun notifyPluginsOfDeviceUnpaired(context: Context, deviceId: String) {
-        for (pluginKey in supportedPlugins) {
-            // This is a hacky way to temporarily create plugins just so that they can be notified of the
-            // device being unpaired. This else part will only come into picture when 1) the user tries to
-            // unpair a device while that device is not reachable or 2) the plugin was never initialized
-            // for this device, e.g., the plugins that need additional permissions from the user, and those
-            // permissions were never granted.
-            val plugin = getPlugin(pluginKey) ?: PluginFactory.instantiatePluginForDevice(pluginKey, this)
-            plugin?.onDeviceUnpaired(context, deviceId)
-        }
-    }
-
-    fun launchBackgroundReloadPluginsFromSettings() {
-        CoroutineScope(Dispatchers.IO).launch {
+    fun setPluginEnabled(pluginKey: String, value: Boolean) {
+        runBlocking(Dispatchers.IO) {
+            deviceSettings.setBooleanSetting(deviceId, pluginKey, value)
             reloadPluginsFromSettings()
         }
     }
 
-    private val reloadPluginsMutex = Mutex()
+    suspend fun isPluginEnabled(pluginKey: String): Boolean {
+        val enabledByDefault = PluginFactory.getPluginInfo(pluginKey).isEnabledByDefault
+        return deviceSettings.getBooleanSetting(deviceId, pluginKey, enabledByDefault)
+    }
+
     @WorkerThread
     suspend fun reloadPluginsFromSettings() = reloadPluginsMutex.withLock {
         Log.i("Device", "${deviceInfo.name}: reloading plugins")
@@ -622,18 +592,6 @@ class Device(
         ) }
 
         pluginsByIncomingInterface = newPluginsByIncomingInterface
-
-        onPluginsChanged()
-    }
-
-    fun onPluginsChanged() = pluginsChangedListeners.forEach { it.onPluginsChanged(this) }
-
-    fun addPluginsChangedListener(listener: PluginsChangedListener) = pluginsChangedListeners.add(listener)
-
-    fun removePluginsChangedListener(listener: PluginsChangedListener) = pluginsChangedListeners.remove(listener)
-
-    suspend fun disconnect() {
-        links.forEach { it.disconnect() }
     }
 
     fun close() {

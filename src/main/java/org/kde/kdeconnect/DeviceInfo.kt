@@ -28,6 +28,7 @@ data class DeviceInfo(
     @JvmField val protocolVersion: Int = 0,
     @JvmField val incomingCapabilities: Set<String>? = null,
     @JvmField val outgoingCapabilities: Set<String>? = null,
+    val settings: Map<String, Boolean> = emptyMap()
 ) {
 
     /**
@@ -71,7 +72,6 @@ data class DeviceInfo(
         /**
          * Recreates a DeviceInfo object that was persisted using saveInSettings()
          */
-        @JvmStatic
         @Throws(CertificateException::class)
         suspend fun loadFromSettings(deviceSettings: DeviceSettings, deviceId: String): DeviceInfo {
             val device = deviceSettings.getDeviceEntity(deviceId)
@@ -88,7 +88,6 @@ data class DeviceInfo(
         /**
          * Reads the stored
          */
-        @JvmStatic
         suspend fun loadProtocolVersionFromSettings(deviceSettings: DeviceSettings, deviceId: String): Int {
             val device = deviceSettings.getDeviceEntity(deviceId)
             return device?.protocolVersion ?: 0
@@ -98,7 +97,6 @@ data class DeviceInfo(
          * Recreates a DeviceInfo object that was serialized using toIdentityPacket().
          * Since toIdentityPacket() doesn't serialize the certificate, this needs to be passed separately.
          */
-        @JvmStatic
         fun fromIdentityPacketAndCert(identityPacket: NetworkPacket, certificate: Certificate) =
             with(identityPacket) {
                 DeviceInfo(
@@ -112,7 +110,6 @@ data class DeviceInfo(
                 )
             }
 
-        @JvmStatic
         fun isValidIdentityPacket(identityPacket: NetworkPacket): Boolean = with(identityPacket) {
             type == NetworkPacket.PACKET_TYPE_IDENTITY &&
                     DeviceHelper.filterInvalidCharactersFromDeviceNameAndLimitLength(getString("deviceName", "")).isNotBlank() &&
@@ -121,7 +118,6 @@ data class DeviceInfo(
 
         private val DEVICE_ID_REGEX = "^[a-zA-Z0-9_-]{32,38}$".toRegex()
 
-        @JvmStatic
         fun isValidDeviceId(deviceId: String): Boolean = deviceId.matches(DEVICE_ID_REGEX)
     }
 }
