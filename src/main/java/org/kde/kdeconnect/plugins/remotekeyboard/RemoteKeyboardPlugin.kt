@@ -44,6 +44,7 @@ class RemoteKeyboardPlugin(
     }
 
     override suspend fun onDestroy() {
+        super.onDestroy()
         acquireInstances()
         try {
             if (instances.contains(this)) {

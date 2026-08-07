@@ -109,6 +109,7 @@ class NotificationsPlugin(
     }
 
     override suspend fun onDestroy() {
+        super.onDestroy()
         currentNotifications.clear()
         notificationsIcons.clear()
         pendingIntents.clear()

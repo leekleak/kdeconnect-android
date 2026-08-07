@@ -174,6 +174,7 @@ class TelephonyPlugin(
     }
 
     override suspend fun onDestroy() {
+        super.onDestroy()
         context.unregisterReceiver(receiver)
     }
 

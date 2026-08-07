@@ -50,6 +50,7 @@ class InputDevicesReceiverPlugin(
     }
 
     override suspend fun onDestroy() {
+        super.onDestroy()
         displayManager.unregisterDisplayListener(displayListener)
     }
 

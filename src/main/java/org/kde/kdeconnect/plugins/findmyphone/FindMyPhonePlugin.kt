@@ -71,6 +71,7 @@ class FindMyPhonePlugin(
     }
 
     override suspend fun onDestroy() {
+        super.onDestroy()
         if (mediaPlayer.isPlaying) {
             stopPlaying()
         }
