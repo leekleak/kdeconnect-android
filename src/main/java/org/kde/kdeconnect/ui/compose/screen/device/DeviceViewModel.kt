@@ -45,8 +45,7 @@ class DeviceViewModel(
     private val _uiState = MutableStateFlow(DeviceUiState())
     val uiState: StateFlow<DeviceUiState> = _uiState.asStateFlow()
 
-    private val device: Device?
-        get() = deviceManager.getDevice(deviceId)
+    private val device: Device = deviceManager.getDevice(deviceId)!!
 
     init {
         viewModelScope.launch {
@@ -62,9 +61,17 @@ class DeviceViewModel(
                             verificationKey = deviceState.verificationKey,
                             pluginsWithButtons = pluginsWithButtons,
                             pluginsNeedPermissions = pluginsNeedPermissions,
-                            batteryInfo = null//deviceHelper.getBattery(device)
                         )
                     }
+                }
+            }
+        }
+        viewModelScope.launch {
+            deviceHelper.getBattery(device)?.collect { batteryInfo ->
+                _uiState.update {
+                    it.copy(
+                        batteryInfo = batteryInfo
+                    )
                 }
             }
         }

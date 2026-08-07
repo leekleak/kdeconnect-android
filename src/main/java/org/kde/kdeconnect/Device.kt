@@ -135,6 +135,7 @@ class Device(
     private val reloadPluginsMutex = Mutex()
 
     init {
+        runBlocking { reloadPluginsFromSettings() }
         jobScope.launch {
             combine(pairingHandler.state, pairingHandler.verificationKey) { a, b ->
                 a to b
@@ -310,27 +311,29 @@ class Device(
     }
 
     override suspend fun onPacketReceived(np: NetworkPacket) {
-        countReceived(deviceId, np.type)
+        reloadPluginsMutex.withLock {
+            countReceived(deviceId, np.type)
 
-        if (NetworkPacket.PACKET_TYPE_PAIR == np.type) {
-            Log.i("KDE/Device", "Pair packet")
-            pairingHandler.packetReceived(np)
-            return
+            if (NetworkPacket.PACKET_TYPE_PAIR == np.type) {
+                Log.i("KDE/Device", "Pair packet")
+                pairingHandler.packetReceived(np)
+                return
+            }
+
+            if (!isPaired) {
+                // If it is pair packet, it should be captured by "if" at start
+                // If not and device is paired, it should be captured by isPaired
+                // Else unpair, this handles the situation when one device unpairs,
+                // but other don't know like unpairing when wi-fi is off.
+
+                unpair()
+            }
+
+            // The following code when `isPaired == false` is NOT USED.
+            // It adds support for receiving packets from not trusted devices,
+            // but as of March 2023 no plugin implements "onUnpairedDevicePacketReceived".
+            notifyPluginPacketReceived(np)
         }
-
-        if (!isPaired) {
-            // If it is pair packet, it should be captured by "if" at start
-            // If not and device is paired, it should be captured by isPaired
-            // Else unpair, this handles the situation when one device unpairs,
-            // but other don't know like unpairing when wi-fi is off.
-
-            unpair()
-        }
-
-        // The following code when `isPaired == false` is NOT USED.
-        // It adds support for receiving packets from not trusted devices,
-        // but as of March 2023 no plugin implements "onUnpairedDevicePacketReceived".
-        notifyPluginPacketReceived(np)
     }
 
     private suspend fun notifyPluginPacketReceived(np: NetworkPacket) {

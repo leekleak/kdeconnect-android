@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.kde.kdeconnect.PairingHandler
+import org.kde.kdeconnect.ui.compose.components.BatteryComponent
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.IconHero
 import org.kde.kdeconnect.ui.compose.components.googleSans
@@ -55,17 +56,18 @@ fun DeviceScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically)
         ) {
             val font = remember { googleSans(weight = 600f) }
-            val batterySubtitle = uiState.batteryInfo?.let { " · ${it.currentCharge}%" }
+            val batteryInfo = uiState.batteryInfo
             IconHero(
                 backgroundSize = 164.dp,
                 iconSize = 88.dp,
                 icon = uiState.deviceUiModel.icon
             )
             Text(
-                text = uiState.deviceUiModel.name + (batterySubtitle ?: ""),
+                text = uiState.deviceUiModel.name,
                 fontFamily = font,
                 fontSize = 32.sp
             )
+            batteryInfo?.let { BatteryComponent(it) }
         }
         when (uiState.pairStatus) {
             PairingHandler.PairState.NotPaired,

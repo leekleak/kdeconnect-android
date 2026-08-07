@@ -24,20 +24,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.helpers.DeviceHelper
+import org.kde.kdeconnect.plugins.battery.DeviceBatteryInfo
 import org.kde.kdeconnect.ui.compose.model.device.DeviceUiModel
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.koinInject
@@ -91,7 +93,6 @@ fun DeviceCard(
     onClick: (String) -> Unit
 ) {
     val deviceManager = koinInject<DeviceManager>()
-    val context = LocalContext.current
     val font = remember { googleSans(weight = 600f) }
     Column(
         modifier = Modifier
@@ -99,7 +100,7 @@ fun DeviceCard(
             .clip(MaterialTheme.shapes.large)
             .background(colorScheme.surfaceContainerLowest)
             .clickable { onClick(device.id) }
-            .border(BorderStroke(2.dp,colorScheme.outline), MaterialTheme.shapes.large)
+            .border(BorderStroke(1.5.dp, colorScheme.outline), MaterialTheme.shapes.large)
     ) {
         Row(
             modifier = Modifier
@@ -122,12 +123,9 @@ fun DeviceCard(
                 )
                 if (deviceReal != null) {
                     val deviceHelper: DeviceHelper = koinInject()
-                    val batteryString = "null"//deviceHelper.getBatterySubtitle(context, deviceReal)
-                    if (batteryString != null) {
-                        Text(
-                            text = batteryString,
-                            fontFamily = font
-                        )
+                    val batteryInfo = deviceHelper.getBattery(deviceReal)?.collectAsStateWithLifecycle()
+                    batteryInfo?.value?.let { battery ->
+                        BatteryComponent(battery)
                     }
                 }
             }
@@ -138,5 +136,44 @@ fun DeviceCard(
                 tint = colorScheme.primary
             )
         }
+    }
+}
+
+@Composable
+fun BatteryComponent(battery: DeviceBatteryInfo) {
+    val font = remember { googleSans(weight = 600f) }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        val icon = if (battery.isCharging) {
+            when (battery.currentCharge) {
+                in 20..30 -> R.drawable.battery_charging_20
+                in 30..50 -> R.drawable.battery_charging_30
+                in 50..60 -> R.drawable.battery_charging_50
+                in 60..80 -> R.drawable.battery_charging_60
+                in 80..90 -> R.drawable.battery_charging_80
+                in 90..99 -> R.drawable.battery_charging_90
+                else -> R.drawable.battery_charging_full
+            }
+        } else {
+            when (battery.currentCharge) {
+                in 20..30 -> R.drawable.battery_1_bar
+                in 30..50 -> R.drawable.battery_2_bar
+                in 50..60 -> R.drawable.battery_3_bar
+                in 60..80 -> R.drawable.battery_4_bar
+                in 80..90 -> R.drawable.battery_5_bar
+                in 90..99 -> R.drawable.battery_6_bar
+                else -> R.drawable.battery_full
+            }
+        }
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = if (battery.isCharging) stringResource(R.string.charging) else null
+        )
+        Text(
+            text = "${battery.currentCharge}%",
+            fontFamily = font
+        )
     }
 }
