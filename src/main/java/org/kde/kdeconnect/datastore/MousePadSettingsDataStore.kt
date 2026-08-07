@@ -71,36 +71,6 @@ class MousePadSettingsDataStore(private val context: Context) {
         .map { it[KEY_SEND_SAFE_TEXT_IMMEDIATELY] ?: true }
         .distinctUntilChanged()
 
-    val showBack: Flow<Boolean> = context.dataStore.data
-        .map { it[KEY_SHOW_BACK] ?: true }
-        .distinctUntilChanged()
-
-    val showHome: Flow<Boolean> = context.dataStore.data
-        .map { it[KEY_SHOW_HOME] ?: false }
-        .distinctUntilChanged()
-
-    val hideMouseInput: Flow<Boolean> = context.dataStore.data
-        .map { it[KEY_HIDE_MOUSE_INPUT] ?: false }
-        .distinctUntilChanged()
-
-    // Blocking getters
-    fun getSingleTapBlocking(): String = runBlocking { singleTap.first() }
-    fun getDoubleTapBlocking(): String = runBlocking { doubleTap.first() }
-    fun getTripleTapBlocking(): String = runBlocking { tripleTap.first() }
-    fun getSensitivityBlocking(): String = runBlocking { sensitivity.first() }
-    fun getAccelerationProfileBlocking(): String = runBlocking { accelerationProfile.first() }
-    fun isScrollDirectionReversedBlocking(): Boolean = runBlocking { scrollDirection.first() }
-    fun getScrollSensitivityBlocking(): Int = runBlocking { scrollSensitivity.first() }
-    fun isGyroEnabledBlocking(): Boolean = runBlocking { gyroEnabled.first() }
-    fun getGyroSensitivityBlocking(): Int = runBlocking { gyroSensitivity.first() }
-    fun isMouseButtonsEnabledBlocking(): Boolean = runBlocking { mouseButtonsEnabled.first() }
-    fun isDoubleTapDragEnabledBlocking(): Boolean = runBlocking { doubleTapDragEnabled.first() }
-    fun isSendKeystrokesEnabledBlocking(): Boolean = runBlocking { sendKeystrokesEnabled.first() }
-    fun isSendSafeTextImmediatelyBlocking(): Boolean = runBlocking { sendSafeTextImmediately.first() }
-    fun isShowBackBlocking(): Boolean = runBlocking { showBack.first() }
-    fun isShowHomeBlocking(): Boolean = runBlocking { showHome.first() }
-    fun isHideMouseInputBlocking(): Boolean = runBlocking { hideMouseInput.first() }
-
     // Setters
     suspend fun setSingleTap(value: String) = context.dataStore.edit { it[KEY_SINGLE_TAP] = value }
     suspend fun setDoubleTap(value: String) = context.dataStore.edit { it[KEY_DOUBLE_TAP] = value }
@@ -115,9 +85,6 @@ class MousePadSettingsDataStore(private val context: Context) {
     suspend fun setDoubleTapDragEnabled(value: Boolean) = context.dataStore.edit { it[KEY_DOUBLE_TAP_DRAG_ENABLED] = value }
     suspend fun setSendKeystrokesEnabled(value: Boolean) = context.dataStore.edit { it[KEY_SEND_KEYSTROKES_ENABLED] = value }
     suspend fun setSendSafeTextImmediately(value: Boolean) = context.dataStore.edit { it[KEY_SEND_SAFE_TEXT_IMMEDIATELY] = value }
-    suspend fun setShowBack(value: Boolean) = context.dataStore.edit { it[KEY_SHOW_BACK] = value }
-    suspend fun setShowHome(value: Boolean) = context.dataStore.edit { it[KEY_SHOW_HOME] = value }
-    suspend fun setHideMouseInput(value: Boolean) = context.dataStore.edit { it[KEY_HIDE_MOUSE_INPUT] = value }
 
     companion object {
         private val KEY_SINGLE_TAP = stringPreferencesKey("mousepad_single_tap_key")
@@ -133,8 +100,5 @@ class MousePadSettingsDataStore(private val context: Context) {
         private val KEY_DOUBLE_TAP_DRAG_ENABLED = booleanPreferencesKey("doubletap_drag_enabled")
         private val KEY_SEND_KEYSTROKES_ENABLED = booleanPreferencesKey("pref_sendkeystrokes_enabled")
         private val KEY_SEND_SAFE_TEXT_IMMEDIATELY = booleanPreferencesKey("pref_send_safe_text_immediately")
-        private val KEY_SHOW_BACK = booleanPreferencesKey("bigscreen_show_back")
-        private val KEY_SHOW_HOME = booleanPreferencesKey("bigscreen_show_home")
-        private val KEY_HIDE_MOUSE_INPUT = booleanPreferencesKey("bigscreen_hide_mouse_input")
     }
 }

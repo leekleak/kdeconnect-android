@@ -32,9 +32,6 @@ fun MousePadSettingsScreen(
         onDoubleTapDragEnabledChanged = viewModel::setDoubleTapDragEnabled,
         onSendKeystrokesEnabledChanged = viewModel::setSendKeystrokesEnabled,
         onSendSafeTextImmediatelyChanged = viewModel::setSendSafeTextImmediately,
-        onShowBackChanged = viewModel::setShowBack,
-        onShowHomeChanged = viewModel::setShowHome,
-        onHideMouseInputChanged = viewModel::setHideMouseInput
     )
 }
 
@@ -53,9 +50,6 @@ fun MousePadSettingsScreenContent(
     onDoubleTapDragEnabledChanged: (Boolean) -> Unit,
     onSendKeystrokesEnabledChanged: (Boolean) -> Unit,
     onSendSafeTextImmediatelyChanged: (Boolean) -> Unit,
-    onShowBackChanged: (Boolean) -> Unit,
-    onShowHomeChanged: (Boolean) -> Unit,
-    onHideMouseInputChanged: (Boolean) -> Unit
 ) {
     val tapEntries = stringArrayResource(R.array.mousepad_tap_entries)
     val tapValues = stringArrayResource(R.array.mousepad_tap_values)
@@ -75,23 +69,6 @@ fun MousePadSettingsScreenContent(
         title = stringResource(R.string.plugin_settings_with_name, stringResource(R.string.pref_plugin_mousepad)),
         backButton = true,
     ) {
-        SectionHeader(title = stringResource(R.string.pref_plugin_bigscreen))
-        SwitchPreference(
-            title = stringResource(R.string.bigscreen_show_back_title),
-            value = uiState.showBack,
-            onValueChanged = onShowBackChanged
-        )
-        SwitchPreference(
-            title = stringResource(R.string.bigscreen_show_home_title),
-            value = uiState.showHome,
-            onValueChanged = onShowHomeChanged
-        )
-        SwitchPreference(
-            title = stringResource(R.string.bigscreen_hide_mouse_input),
-            value = uiState.hideMouseInput,
-            onValueChanged = onHideMouseInputChanged
-        )
-        SectionHeader(title = stringResource(R.string.pref_plugin_mousepad))
         DialogItemSelectPreference(
             title = stringResource(R.string.mousepad_single_tap_settings_title),
             value = uiState.singleTap,

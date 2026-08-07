@@ -39,7 +39,7 @@ class MousePadPlugin(
             val navigator: Navigator = (parentActivity as MainActivity).scope.get(Navigator::class, null, null)
             device.let { navigator.goTo(MousePadKey(it.deviceId)) }
         }
-        return if (device.deviceType == DeviceType.TV) {
+        return if (device.deviceType == DeviceType.TV || true) {
             val tvInput = PluginUiButton(
                 name = context.getString(R.string.open_mousepad_tv),
                 iconRes = R.drawable.tv_remote,
@@ -48,11 +48,7 @@ class MousePadPlugin(
                 val navigator: Navigator = (parentActivity as MainActivity).scope.get(Navigator::class, null, null)
                 navigator.goTo(BigscreenKey(device.deviceId))
             }
-            if (dataStore.isHideMouseInputBlocking()) {
-                listOf(tvInput)
-            } else {
-                listOf(mouseAndKeyboardInput, tvInput)
-            }
+            listOf(mouseAndKeyboardInput, tvInput)
         } else {
             listOf(mouseAndKeyboardInput)
         }

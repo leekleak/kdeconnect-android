@@ -24,10 +24,6 @@ data class MousePadSettingsUiState(
     val sendKeystrokesEnabled: Boolean = true,
     val sendSafeTextImmediately: Boolean = true,
     val showKeyboard: Boolean = false,
-    // TV settings
-    val showBack: Boolean = true,
-    val showHome: Boolean = false,
-    val hideMouseInput: Boolean = false
 )
 
 class MousePadSettingsViewModel(
@@ -48,9 +44,6 @@ class MousePadSettingsViewModel(
         dataStore.doubleTapDragEnabled,
         dataStore.sendKeystrokesEnabled,
         dataStore.sendSafeTextImmediately,
-        dataStore.showBack,
-        dataStore.showHome,
-        dataStore.hideMouseInput
     ) { params: Array<Any> ->
         MousePadSettingsUiState(
             singleTap = params[0] as String,
@@ -66,9 +59,6 @@ class MousePadSettingsViewModel(
             doubleTapDragEnabled = params[10] as Boolean,
             sendKeystrokesEnabled = params[11] as Boolean,
             sendSafeTextImmediately = params[12] as Boolean,
-            showBack = params[13] as Boolean,
-            showHome = params[14] as Boolean,
-            hideMouseInput = params[15] as Boolean
         )
     }.stateIn(
         scope = viewModelScope,
@@ -88,8 +78,4 @@ class MousePadSettingsViewModel(
     fun setDoubleTapDragEnabled(value: Boolean) = viewModelScope.launch { dataStore.setDoubleTapDragEnabled(value) }
     fun setSendKeystrokesEnabled(value: Boolean) = viewModelScope.launch { dataStore.setSendKeystrokesEnabled(value) }
     fun setSendSafeTextImmediately(value: Boolean) = viewModelScope.launch { dataStore.setSendSafeTextImmediately(value) }
-    // TV settings
-    fun setShowBack(value: Boolean) = viewModelScope.launch { dataStore.setShowBack(value) }
-    fun setShowHome(value: Boolean) = viewModelScope.launch { dataStore.setShowHome(value) }
-    fun setHideMouseInput(value: Boolean) = viewModelScope.launch { dataStore.setHideMouseInput(value) }
 }

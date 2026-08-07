@@ -1,38 +1,45 @@
 package org.kde.kdeconnect.plugins.mousepad
 
 import android.Manifest
-import android.app.Activity
+import android.app.Activity.RESULT_OK
+import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.speech.RecognizerIntent
+import android.widget.Toast
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.IconButtonColors
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import kotlinx.serialization.json.Json
 import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.ui.PermissionExplanationActivity
+import org.kde.kdeconnect.ui.PermissionRequest
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
-import org.kde.kdeconnect.ui.navigation.MousePadPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 import org.koin.androidx.compose.koinViewModel
@@ -45,18 +52,15 @@ import org.koin.dsl.module
 @Composable
 fun BigscreenScreen(
     deviceId: String,
-) { //Todo: Test all this with an actual TV when I have time to emulate one.
+) {
     val viewModel: BigscreenViewModel = koinViewModel(parameters = { parametersOf(deviceId) })
-    val navigator = koinInject<Navigator>()
     val deviceManager = koinInject<DeviceManager>()
     val context = LocalContext.current
-
-    var showRationale by remember { mutableStateOf(false) }
 
     val sttLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
+        if (result.resultCode == RESULT_OK) {
             val firstResult = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
             if (firstResult != null) {
                 viewModel.sendText(firstResult)
@@ -64,57 +68,39 @@ fun BigscreenScreen(
         }
     }
 
+
     val extraPrompt = stringResource(R.string.bigscreen_speech_extra_prompt)
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                putExtra(RecognizerIntent.EXTRA_PROMPT, extraPrompt)
-            }
-            sttLauncher.launch(intent)
+
+    val sttPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            launchStt(extraPrompt, sttLauncher, context)
         }
     }
 
-    if (showRationale) {
-        AlertDialog(
-            onDismissRequest = { showRationale = false },
-            title = { Text(stringResource(R.string.pref_plugin_bigscreen)) },
-            text = { Text(stringResource(R.string.bigscreen_optional_permission_explanation)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    showRationale = false
-                    permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                }) {
-                    Text(stringResource(R.string.ok))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showRationale = false }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            }
-        )
-    }
-
     BigscreenContent(
-        showHome = viewModel.showHome,
-        showBack = viewModel.showBack,
-        micEnabled = viewModel.micEnabled,
         onHomeClick = viewModel::sendHome,
         onUpClick = viewModel::sendUp,
         onMicClick = {
             val plugin = deviceManager.getDevicePlugin(deviceId, MousePadPlugin::class.java)
             if (plugin != null) {
-                if (plugin.hasMicPermission(context)) {
-                    val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                        putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                        putExtra(RecognizerIntent.EXTRA_PROMPT, extraPrompt)
-                    }
-                    sttLauncher.launch(intent)
+                val missingPermissionRequests = arrayOf(Manifest.permission.RECORD_AUDIO).filter {
+                    ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
+                }.map { permission ->
+                    PermissionRequest(
+                        title = R.string.kde_connect,
+                        description = R.string.unreachable_description,
+                        intentAction = permission,
+                        positiveButton = R.string.grant
+                    )
+                }
+                if (missingPermissionRequests.isEmpty()) {
+                    launchStt(extraPrompt, sttLauncher, context)
                 } else {
-                    showRationale = true
+                    sttPermissionLauncher.launch(Intent(context, PermissionExplanationActivity::class.java).apply {
+                        putExtra("permissionRequests", Json.encodeToString(missingPermissionRequests.take(1)))
+                    })
                 }
             }
         },
@@ -123,17 +109,34 @@ fun BigscreenScreen(
         onRightClick = viewModel::sendRight,
         onBackClick = viewModel::sendBack,
         onDownClick = viewModel::sendDown,
-        onNavigateToSettings = {
-            navigator.goTo(MousePadPluginSettingsKey)
-        }
     )
+}
+
+private fun launchStt(
+    extraPrompt: String,
+    sttLauncher: ManagedActivityResultLauncher<Intent, ActivityResult>,
+    context: Context
+) {
+    try {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+            )
+            putExtra(RecognizerIntent.EXTRA_PROMPT, extraPrompt)
+        }
+        sttLauncher.launch(intent)
+    } catch (_: ActivityNotFoundException) {
+        Toast.makeText(
+            context,
+            R.string.speech_to_text_provider_not_found,
+            Toast.LENGTH_LONG
+        ).show()
+    }
 }
 
 @Composable
 private fun BigscreenContent(
-    showHome: Boolean,
-    showBack: Boolean,
-    micEnabled: Boolean,
     onHomeClick: () -> Unit,
     onUpClick: () -> Unit,
     onMicClick: () -> Unit,
@@ -142,98 +145,78 @@ private fun BigscreenContent(
     onRightClick: () -> Unit,
     onBackClick: () -> Unit,
     onDownClick: () -> Unit,
-    onNavigateToSettings: () -> Unit
 ) {
     HazeScaffold(
         title = stringResource(R.string.pref_plugin_bigscreen),
         backButton = true,
         scrollState = null,
-        actions = {
-            IconButton(
-                onClick = onNavigateToSettings
-            ) {
-                Icon(painterResource(R.drawable.ic_settings_24dp), stringResource(R.string.settings))
-            }
-        }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            verticalArrangement = Arrangement.SpaceEvenly,
+            verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val buttonModifier = Modifier
-                .weight(1f)
-                .fillMaxSize()
-            val iconSize = 42.dp
-            val secondaryIconSize = 32.dp
-
-            Row(modifier = Modifier.weight(1f)) {
+            BigscreenButton(
+                onClick = onUpClick,
+                shape = RoundedCornerShape(16.dp, 16.dp, 8.dp, 8.dp),
+                iconRes = R.drawable.keyboard_arrow_up,
+                contentDescription = R.string.bigscreen_up,
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 BigscreenButton(
-                    modifier = buttonModifier,
-                    visible = showHome,
-                    onClick = onHomeClick,
-                    iconRes = R.drawable.ic_home_black_24dp,
-                    contentDescription = R.string.bigscreen_home,
-                    iconSize = secondaryIconSize
-                )
-                BigscreenButton(
-                    modifier = buttonModifier,
-                    onClick = onUpClick,
-                    iconRes = R.drawable.keyboard_arrow_up,
-                    contentDescription = R.string.bigscreen_up,
-                    iconSize = iconSize
-                )
-                BigscreenButton(
-                    modifier = buttonModifier,
-                    visible = micEnabled,
-                    onClick = onMicClick,
-                    iconRes = R.drawable.ic_mic_black,
-                    contentDescription = R.string.bigscreen_mic,
-                    iconSize = secondaryIconSize
-                )
-            }
-            Row(modifier = Modifier.weight(1f)) {
-                BigscreenButton(
-                    modifier = buttonModifier,
                     onClick = onLeftClick,
+                    shape = RoundedCornerShape(16.dp, 8.dp, 8.dp, 16.dp),
                     iconRes = R.drawable.keyboard_arrow_left,
                     contentDescription = R.string.bigscreen_left,
-                    iconSize = iconSize
                 )
                 BigscreenButton(
-                    modifier = buttonModifier,
                     onClick = onSelectClick,
-                    iconRes = R.drawable.ic_keyboard_return_black_24dp,
+                    shape = RoundedCornerShape(8.dp),
+                    colors = IconButtonDefaults.filledIconButtonColors(),
+                    iconRes = R.drawable.circle,
                     contentDescription = R.string.bigscreen_select,
-                    iconSize = secondaryIconSize
                 )
                 BigscreenButton(
-                    modifier = buttonModifier,
                     onClick = onRightClick,
+                    shape = RoundedCornerShape(8.dp, 16.dp, 16.dp, 8.dp),
                     iconRes = R.drawable.keyboard_arrow_right,
                     contentDescription = R.string.bigscreen_right,
-                    iconSize = iconSize
                 )
             }
-            Row(modifier = Modifier.weight(1f)) {
+
+            BigscreenButton(
+                onClick = onDownClick,
+                shape = RoundedCornerShape(8.dp, 8.dp, 16.dp, 16.dp),
+                iconRes = R.drawable.keyboard_arrow_down,
+                contentDescription = R.string.bigscreen_down,
+            )
+            
+            Spacer(Modifier.height(54.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 BigscreenButton(
-                    modifier = buttonModifier,
-                    visible = showBack,
                     onClick = onBackClick,
+                    shape = RoundedCornerShape(16.dp, 8.dp, 8.dp, 16.dp),
                     iconRes = R.drawable.ic_arrow_back_black_24dp,
                     contentDescription = R.string.bigscreen_back,
-                    iconSize = secondaryIconSize
                 )
                 BigscreenButton(
-                    modifier = buttonModifier,
-                    onClick = onDownClick,
-                    iconRes = R.drawable.keyboard_arrow_down,
-                    contentDescription = R.string.bigscreen_down,
-                    iconSize = iconSize
+                    onClick = onHomeClick,
+                    shape = RoundedCornerShape(8.dp),
+                    colors = IconButtonDefaults.filledIconButtonColors(),
+                    iconRes = R.drawable.ic_home_black_24dp,
+                    contentDescription = R.string.bigscreen_home,
                 )
-                Box(modifier = buttonModifier) // Empty space
+                BigscreenButton(
+                    onClick = onMicClick,
+                    shape = RoundedCornerShape(8.dp, 16.dp, 16.dp, 8.dp),
+                    iconRes = R.drawable.ic_mic_black,
+                    contentDescription = R.string.bigscreen_mic,
+                )
             }
         }
     }
@@ -242,28 +225,23 @@ private fun BigscreenContent(
 @Composable
 private fun BigscreenButton(
     modifier: Modifier = Modifier,
-    visible: Boolean = true,
     onClick: () -> Unit,
+    shape: Shape = RoundedCornerShape(16.dp),
+    colors: IconButtonColors = IconButtonDefaults.filledTonalIconButtonColors(),
     iconRes: Int,
     contentDescription: Int,
-    iconSize: androidx.compose.ui.unit.Dp
 ) {
-    Box(
-        modifier = modifier,
-        contentAlignment = Alignment.Center
+    FilledIconButton(
+        modifier = modifier.size(72.dp),
+        shape = shape,
+        colors = colors,
+        onClick = onClick,
     ) {
-        if (visible) {
-            IconButton(
-                onClick = onClick,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Icon(
-                    painter = painterResource(iconRes),
-                    contentDescription = stringResource(contentDescription),
-                    modifier = Modifier.size(iconSize)
-                )
-            }
-        }
+        Icon(
+            modifier = Modifier.size(32.dp),
+            painter = painterResource(iconRes),
+            contentDescription = stringResource(contentDescription),
+        )
     }
 }
 
@@ -276,9 +254,6 @@ private fun BigscreenPreview() {
         })
     }), content = {
         BigscreenContent(
-            showHome = true,
-            showBack = true,
-            micEnabled = true,
             onHomeClick = {},
             onUpClick = {},
             onMicClick = {},
@@ -287,7 +262,6 @@ private fun BigscreenPreview() {
             onRightClick = {},
             onBackClick = {},
             onDownClick = {},
-            onNavigateToSettings = {}
         )
     })
 }
