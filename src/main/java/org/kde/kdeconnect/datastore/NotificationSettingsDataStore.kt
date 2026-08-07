@@ -8,9 +8,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
 
 class NotificationSettingsDataStore(private val context: Context) {
 
@@ -29,11 +27,6 @@ class NotificationSettingsDataStore(private val context: Context) {
     val mprisKeepWatchingEnabled: Flow<Boolean> = context.dataStore.data
         .map { it[KEY_MPRIS_KEEP_WATCHING_ENABLED] ?: false }
         .distinctUntilChanged()
-
-    // Blocking getters for legacy interop
-    fun isScreenOffNotificationEnabledBlocking(): Boolean = runBlocking { screenOffNotification.first() }
-    fun isMprisNotificationEnabledBlocking(): Boolean = runBlocking { mprisNotificationEnabled.first() }
-    fun isMprisKeepWatchingEnabledBlocking(): Boolean = runBlocking { mprisKeepWatchingEnabled.first() }
 
     suspend fun setScreenOffNotification(enabled: Boolean) {
         context.dataStore.edit { it[KEY_SCREEN_OFF_NOTIFICATION] = enabled }

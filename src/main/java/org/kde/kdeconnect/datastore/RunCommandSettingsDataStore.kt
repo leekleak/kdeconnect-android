@@ -34,8 +34,6 @@ class RunCommandSettingsDataStore(private val context: Context) {
             }
         }
 
-    fun getCommandsBlocking(deviceId: String): List<RunCommand> = runBlocking { getCommands(deviceId).first() }
-
     suspend fun setCommands(deviceId: String, commands: List<RunCommand>) {
         val serialized = serializer.encodeToString(commands)
         context.dataStore.edit { it[stringPreferencesKey(KEY_COMMANDS_PREFIX + deviceId)] = serialized }
@@ -44,8 +42,6 @@ class RunCommandSettingsDataStore(private val context: Context) {
     fun getWidgetDeviceId(appWidgetId: Int): Flow<String?> = context.dataStore.data
         .map { it[stringPreferencesKey(KEY_WIDGET_PREFIX + appWidgetId)] }
         .distinctUntilChanged()
-
-    fun getWidgetDeviceIdBlocking(appWidgetId: Int): String? = runBlocking { getWidgetDeviceId(appWidgetId).first() }
 
     suspend fun setWidgetDeviceId(appWidgetId: Int, deviceId: String) {
         context.dataStore.edit { it[stringPreferencesKey(KEY_WIDGET_PREFIX + appWidgetId)] = deviceId }

@@ -15,6 +15,8 @@ import android.view.View
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 import android.widget.RemoteViewsService.RemoteViewsFactory
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
 import org.kde.kdeconnect_tp.R
@@ -33,11 +35,11 @@ internal class RunCommandWidgetDataProvider(private val context: Context, val in
             Log.e("KDEConnect/Widget", "RunCommandWidgetDataProvider: No widget id extra was set")
             return
         }
-        deviceId = runCommandSettingsDataStore.getWidgetDeviceIdBlocking(widgetId)
+        deviceId = runBlocking { runCommandSettingsDataStore.getWidgetDeviceId(widgetId).first() }
     }
 
     override fun onDataSetChanged() {
-        deviceId = runCommandSettingsDataStore.getWidgetDeviceIdBlocking(widgetId)
+        deviceId = runBlocking { runCommandSettingsDataStore.getWidgetDeviceId(widgetId).first() }
     }
 
     override fun onDestroy() {}

@@ -16,6 +16,9 @@ import android.content.Intent
 import android.util.Log
 import android.widget.RemoteViews
 import androidx.core.net.toUri
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
@@ -36,7 +39,9 @@ class RunCommandWidgetProvider : AppWidgetProvider(), KoinComponent {
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         for (appWidgetId in appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId, runCommandSettingsDataStore, deviceManager)
+            CoroutineScope(Dispatchers.IO).launch {
+                updateAppWidget(context, appWidgetManager, appWidgetId, runCommandSettingsDataStore, deviceManager)
+            }
         }
     }
 
@@ -111,7 +116,7 @@ fun forceRefreshWidgets(context : Context) {
  *
  * See also [RunCommandWidgetDataProvider.onDataSetChanged].
  */
-internal fun updateAppWidget(
+internal suspend fun updateAppWidget(
     context: Context,
     appWidgetManager: AppWidgetManager,
     appWidgetId: Int,
@@ -121,7 +126,7 @@ internal fun updateAppWidget(
     Log.d("WidgetProvider", "updateAppWidget: $appWidgetId")
 
     // Determine which device provided these commands
-    val deviceId = runCommandSettingsDataStore.getWidgetDeviceIdBlocking(appWidgetId)
+    val deviceId = runCommandSettingsDataStore.getWidgetDeviceId(appWidgetId).first()
     val device: Device? = if (deviceId != null) deviceManager.getDevice(deviceId) else null
 
     val views = RemoteViews(BuildConfig.APPLICATION_ID, R.layout.widget_remotecommandplugin)

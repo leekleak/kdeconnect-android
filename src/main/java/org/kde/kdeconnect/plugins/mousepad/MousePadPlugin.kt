@@ -5,13 +5,11 @@
  */
 package org.kde.kdeconnect.plugins.mousepad
 
-import android.Manifest
 import android.content.Context
 import android.view.KeyEvent
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.NetworkPacket
-import org.kde.kdeconnect.datastore.MousePadSettingsDataStore
 import org.kde.kdeconnect.helpers.SPECIAL_KEY_ENCODING_MAP
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
@@ -26,7 +24,6 @@ import org.kde.kdeconnect_tp.R
 class MousePadPlugin(
     context: Context,
     device: Device,
-    private val dataStore: MousePadSettingsDataStore
 ) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = MousePadPluginSettings
 
@@ -39,7 +36,7 @@ class MousePadPlugin(
             val navigator: Navigator = (parentActivity as MainActivity).scope.get(Navigator::class, null, null)
             device.let { navigator.goTo(MousePadKey(it.deviceId)) }
         }
-        return if (device.deviceType == DeviceType.TV || true) {
+        return if (device.deviceType == DeviceType.TV) {
             val tvInput = PluginUiButton(
                 name = context.getString(R.string.open_mousepad_tv),
                 iconRes = R.drawable.tv_remote,
@@ -67,10 +64,6 @@ class MousePadPlugin(
         np["dx"] = dx.toDouble()
         np["dy"] = dy.toDouble()
         sendPacket(np)
-    }
-
-    fun hasMicPermission(context: Context): Boolean {
-        return PluginInfo.isPermissionGranted(context,Manifest.permission.RECORD_AUDIO)
     }
 
     suspend fun sendLeftClick() {

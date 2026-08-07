@@ -31,6 +31,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
@@ -159,10 +160,12 @@ class NotificationsPlugin(
             postedNotifications.add(key)
         }
 
-        val sendOnlyIfLocked = dataStore.isScreenOffNotificationEnabledBlocking()
-        val isLocked = keyguardManager.isKeyguardLocked
-        if (!sendOnlyIfLocked || isLocked) {
-            sendNotification(statusBarNotification)
+        scope.launch {
+            val sendOnlyIfLocked = dataStore.screenOffNotification.first()
+            val isLocked = keyguardManager.isKeyguardLocked
+            if (!sendOnlyIfLocked || isLocked) {
+                sendNotification(statusBarNotification)
+            }
         }
     }
 

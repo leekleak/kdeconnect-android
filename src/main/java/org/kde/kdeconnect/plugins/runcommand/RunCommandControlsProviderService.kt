@@ -17,11 +17,15 @@ import android.service.controls.actions.CommandAction
 import android.service.controls.actions.ControlAction
 import android.service.controls.templates.StatelessTemplate
 import androidx.annotation.RequiresApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.jdk9.asPublisher
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
@@ -54,7 +58,7 @@ class RunCommandControlsProviderService : ControlsProviderService() {
 
     override fun createPublisherFor(controlIds: MutableList<String>): Flow.Publisher<Control> {
         for (controlId in controlIds) {
-            val commandEntry = getCommandByControlId(controlId)
+            val commandEntry = runBlocking { getCommandByControlId(controlId) }
             if (commandEntry != null && commandEntry.device.isReachable) {
                 updateFlow.tryEmit(createStatefulBuilder(commandEntry, controlId)
                         .setStatus(Control.STATUS_OK)
@@ -76,7 +80,7 @@ class RunCommandControlsProviderService : ControlsProviderService() {
 
     override fun performControlAction(controlId: String, action: ControlAction, consumer: Consumer<Int>) {
         if (action is CommandAction) {
-            val commandEntry = getCommandByControlId(controlId)
+            val commandEntry = runBlocking { getCommandByControlId(controlId) }
             if (commandEntry != null) {
                 val deviceId = controlId.split(":")[0]
                 val plugin = deviceManager.getDevicePlugin(deviceId, RunCommandPlugin::class.java)
@@ -97,18 +101,18 @@ class RunCommandControlsProviderService : ControlsProviderService() {
         }
     }
 
-    private fun getSavedCommandsList(device: Device): List<CommandEntryWithDevice> {
-        val commandList = mutableListOf<CommandEntryWithDevice>()
+    private suspend fun getSavedCommandsList(device: Device): List<CommandEntryWithDevice> = withContext(Dispatchers.IO) {
+            val commandList = mutableListOf<CommandEntryWithDevice>()
 
-        val savedCommands = settingsDataStore.getCommandsBlocking(device.deviceId)
-        for (command in savedCommands) {
-            commandList.add(CommandEntryWithDevice(command, device))
+            val savedCommands = settingsDataStore.getCommands(device.deviceId).first()
+            for (command in savedCommands) {
+                commandList.add(CommandEntryWithDevice(command, device))
+            }
+
+            return@withContext commandList
         }
 
-        return commandList
-    }
-
-    private fun getAllCommandsList(): List<CommandEntryWithDevice> {
+    private suspend fun getAllCommandsList(): List<CommandEntryWithDevice> {
         val commandList = mutableListOf<CommandEntryWithDevice>()
 
         for (device in deviceManager.devices.values) {
@@ -130,7 +134,7 @@ class RunCommandControlsProviderService : ControlsProviderService() {
         return commandList
     }
 
-    private fun getCommandByControlId(controlId: String): CommandEntryWithDevice? {
+    private suspend fun getCommandByControlId(controlId: String): CommandEntryWithDevice? {
         val controlIdParts = controlId.split(":")
 
         val device = deviceManager.getDevice(controlIdParts[0])

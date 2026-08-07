@@ -418,7 +418,7 @@ val appModule = module {
         scoped { FindMyPhonePlugin(get(), get(), get(), get()) }
         scoped { FindRemoteDevicePlugin(get(), get()) }
         scoped { InputDevicesReceiverPlugin(get(), get(), get()) }
-        scoped { MousePadPlugin(get(), get(), get()) }
+        scoped { MousePadPlugin(get(), get()) }
         scoped { MouseReceiverPlugin(get(), get(), get()) }
         scoped { MprisPlugin(get(), get(), get(), get(), get()) }
         scoped { MprisReceiverPlugin(get(), get()) }
