@@ -39,10 +39,7 @@ import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.helpers.PermissionHelper
 import org.kde.kdeconnect.plugins.clipboard.ClipboardFloatingActivity
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin
-import org.kde.kdeconnect.plugins.runcommand.RunCommandPlugin
-import org.kde.kdeconnect.plugins.share.SendFileActivity
 import org.kde.kdeconnect.ui.MainActivity
-import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import org.kde.kdeconnect_tp.R
 import org.koin.android.ext.android.get
 import org.koin.android.ext.android.inject
@@ -181,29 +178,6 @@ class BackgroundService : Service() {
                 val sendClipboard = ClipboardFloatingActivity.getIntent(this, true)
                 val sendPendingClipboard = PendingIntent.getActivity(this, 3, sendClipboard, UPDATE_IMMUTABLE_FLAGS)
                 notification.addAction(0, getString(R.string.foreground_notification_send_clipboard), sendPendingClipboard)
-            }
-
-            if (connectedDeviceIds.size == 1) {
-                val deviceId = connectedDeviceIds[0]
-                val device = deviceManager.getDevice(deviceId)
-                if (device != null) {
-                    // Adding two action buttons only when there is a single device connected.
-                    // Setting up Send File Intent.
-                    val sendFile = Intent(this, SendFileActivity::class.java)
-                    sendFile.putExtra("deviceId", deviceId)
-                    val sendPendingFile = PendingIntent.getActivity(this, 1, sendFile, UPDATE_IMMUTABLE_FLAGS)
-                    notification.addAction(0, getString(R.string.send_files), sendPendingFile)
-
-                    // Checking if there are registered commands and adding the button.
-                    val plugin = device.getPlugin("RunCommandPlugin") as RunCommandPlugin?
-                    if (plugin != null && plugin.commandList.value.isNotEmpty()) {
-                        val runCommand = Intent(this, MainActivity::class.java)
-                        runCommand.putExtra(MainActivity.EXTRA_DEVICE_ID, connectedDeviceIds[0])
-                        runCommand.putExtra(KdeConnectKeyConstants.EXTRA_PLUGIN_KEY, "RunCommandPlugin")
-                        val runPendingCommand = PendingIntent.getActivity(this, 2, runCommand, UPDATE_IMMUTABLE_FLAGS)
-                        notification.addAction(0, getString(R.string.pref_plugin_runcommand), runPendingCommand)
-                    }
-                }
             }
         }
         return notification.build()

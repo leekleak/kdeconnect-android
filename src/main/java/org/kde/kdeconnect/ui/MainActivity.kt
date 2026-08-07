@@ -9,11 +9,15 @@ package org.kde.kdeconnect.ui
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.KeyEvent
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts.GetMultipleContents
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -46,6 +50,7 @@ import org.kde.kdeconnect.plugins.mousepad.MousePadViewModel
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
 import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.plugins.mpris.MprisViewModel
+import org.kde.kdeconnect.plugins.share.SharePlugin
 import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.DigitizerKey
 import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
@@ -214,6 +219,16 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
         val index = permissions.indexOf(permission)
         return index != -1 && grantResults[index] == PackageManager.PERMISSION_GRANTED
     }
+
+    var shareGetResultCallback: ((List<Uri>) -> Unit)? = null
+    val shareGetResult = registerForActivityResult(GetMultipleContents()) { uris: List<Uri> ->
+            if (uris.isEmpty()) {
+                Log.w("SendFileActivity", "No files to send?")
+            } else {
+                shareGetResultCallback?.invoke(uris)
+            }
+            shareGetResultCallback = null
+        }
 
     companion object {
         const val EXTRA_DEVICE_ID = KdeConnectKeyConstants.EXTRA_DEVICE_ID

@@ -151,15 +151,6 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
             <meta-data android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts" />
         </activity>
-        <activity
-            android:name="org.kde.kdeconnect.plugins.share.SendFileActivity"
-            android:label="KDE Connect"
-            android:exported="true"
-            android:parentActivityName="org.kde.kdeconnect.ui.MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="org.kde.kdeconnect.ui.MainActivity" />
-        </activity>
 
         <receiver android:name="org.kde.kdeconnect.KdeConnectBroadcastReceiver"
             android:exported="true">

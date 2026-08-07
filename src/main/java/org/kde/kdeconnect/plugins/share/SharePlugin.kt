@@ -130,9 +130,10 @@ class SharePlugin(
                 R.drawable.description,
                 ButtonCategory.SEND
             ) { parentActivity: Activity ->
-                val intent = Intent(parentActivity, SendFileActivity::class.java)
-                intent.putExtra("deviceId", device.deviceId)
-                parentActivity.startActivity(intent)
+                if (parentActivity is MainActivity && parentActivity.shareGetResultCallback == null) {
+                    parentActivity.shareGetResultCallback = { sendUriList(it) }
+                    parentActivity.shareGetResult.launch("*/*")
+                }
             })
     }
 
