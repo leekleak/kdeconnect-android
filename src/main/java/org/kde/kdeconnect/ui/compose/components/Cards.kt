@@ -11,7 +11,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -26,7 +25,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -92,6 +90,7 @@ fun DeviceCard(
     device: DeviceUiModel,
     actionIcon: Painter = painterResource(R.drawable.arrow_forward_ios),
     actionDescription: String = stringResource(R.string.open),
+    actionDescriptionVisible: Boolean = false,
     onClick: (String) -> Unit
 ) {
     val deviceManager = koinInject<DeviceManager>()
@@ -117,7 +116,11 @@ fun DeviceCard(
             text = device.name,
             fontFamily = font
         )
-        Row(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             if (deviceReal != null) {
                 val deviceHelper: DeviceHelper = koinInject()
                 val batteryInfo = deviceHelper.getBattery(deviceReal)?.collectAsStateWithLifecycle()
@@ -128,8 +131,14 @@ fun DeviceCard(
             Spacer(modifier = Modifier.weight(1f))
             Icon(
                 painter = actionIcon,
-                contentDescription = actionDescription,
+                contentDescription = if (actionDescriptionVisible) null else actionDescription,
             )
+            if (actionDescriptionVisible) {
+                Text(
+                    text = actionDescription,
+                    fontFamily = font
+                )
+            }
         }
     }
 }

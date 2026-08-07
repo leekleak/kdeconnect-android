@@ -47,6 +47,7 @@ fun SavedDevices(
                     device = device,
                     actionIcon = painterResource(R.drawable.link_off),
                     actionDescription = stringResource(R.string.device_menu_unpair),
+                    actionDescriptionVisible = true,
                     onClick = { viewModel.queueUnpair(device) }
                 )
             }

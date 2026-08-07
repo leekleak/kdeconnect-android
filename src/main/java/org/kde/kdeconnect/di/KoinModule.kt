@@ -274,9 +274,8 @@ val deviceModule = module {
         val navigator = koinInject<Navigator>()
         DeviceScreen(
             deviceId = key.deviceId,
-            onNavigateToPluginsSettings = {
-                navigator.goTo(PluginSettingsKey(key.deviceId))
-            }
+            onNavigateToPluginsSettings = { navigator.goTo(PluginSettingsKey(key.deviceId)) },
+            onNavigateToPairingScreen = { navigator.setTo(PairingKey) }
         )
     }
 }

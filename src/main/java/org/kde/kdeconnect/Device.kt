@@ -10,7 +10,6 @@ import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.annotation.DrawableRes
-import androidx.annotation.VisibleForTesting
 import androidx.annotation.WorkerThread
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -64,7 +63,7 @@ class Device(
     override val scope: Scope by lazy { createScope(this) }
 
     data class NetworkPacketWithCallback(val np : NetworkPacket, val callback: SendPacketStatusCallback)
-    val jobScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val jobScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _state: MutableStateFlow<DeviceState> = MutableStateFlow(DeviceState(
         deviceInfo = link?.deviceInfo ?: runBlocking { loadFromSettings(deviceSettings, deviceId) },
@@ -86,15 +85,18 @@ class Device(
     val supportedPlugins: List<String> get() = state.value.supportedPlugins
     val pluginsWithoutPermissions: Map<String, Plugin> get() = state.value.pluginsWithoutPermissions
     val isReachable: Boolean get() = state.value.isReachable
+    val name: String get() = deviceInfo.name
+    val icon: Drawable get() = deviceInfo.type.getIcon(context)
+    val iconDrawable: Int @DrawableRes get() = deviceInfo.type.toDrawableId()
+    val deviceType: DeviceType get() = deviceInfo.type
+    val protocolVersion: Int get() = deviceInfo.protocolVersion
 
-    @VisibleForTesting
-    var pairingHandler: PairingHandler = PairingHandler(
+    private var pairingHandler: PairingHandler = PairingHandler(
         device = this,
         sslHelper = sslHelper,
         callback = createDefaultPairingCallback(),
         startState = if (link == null) PairState.Paired else PairState.NotPaired
     )
-
 
     /**
      * Same as loadedPlugins but indexed by incoming packet type
@@ -104,24 +106,8 @@ class Device(
     private val sendChannel = Channel<NetworkPacketWithCallback>(Channel.UNLIMITED)
     private var sendCoroutine : Job? = null
 
-    fun supportsPacketType(type: String): Boolean =
+    private fun supportsPacketType(type: String): Boolean =
         NetworkPacket.PROTOCOL_PACKET_TYPES.contains(type) || deviceInfo.incomingCapabilities.contains(type)
-
-    val name: String
-        get() = deviceInfo.name
-
-    val icon: Drawable
-        get() = deviceInfo.type.getIcon(context)
-
-    val iconDrawable: Int
-        @DrawableRes
-        get() = deviceInfo.type.toDrawableId()
-
-    val deviceType: DeviceType
-        get() = deviceInfo.type
-
-    val protocolVersion: Int
-        get() = deviceInfo.protocolVersion
 
     private val reloadPluginsMutex = Mutex()
 

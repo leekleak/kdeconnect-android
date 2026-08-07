@@ -3,15 +3,15 @@ package org.kde.kdeconnect.ui.compose.screen.device.settings
 import android.app.Activity.RESULT_OK
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.helpers.DeviceSettings
-import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.PairingKey
 import org.koin.core.annotation.InjectedParam
@@ -22,32 +22,25 @@ data class DeviceSettingsUiState(
 )
 
 class DeviceSettingsViewModel(
+    deviceSettings: DeviceSettings,
     private val deviceManager: DeviceManager,
-    private val deviceSettings: DeviceSettings,
     private val navigator: Navigator,
     @InjectedParam private val deviceId: String
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(DeviceSettingsUiState())
-    val uiState: StateFlow<DeviceSettingsUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<DeviceSettingsUiState> = deviceSettings.getDeviceEntityFlow(deviceId).filterNotNull().map { entity ->
+        DeviceSettingsUiState(
+            deviceName = entity.name,
+            plugins = entity.settings
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = DeviceSettingsUiState()
+    )
 
     private val device: Device?
         get() = deviceManager.getDevice(deviceId)
-
-    init {
-        viewModelScope.launch {
-            deviceSettings.getDeviceEntityFlow(deviceId).collect { deviceEntity ->
-                deviceEntity?.let { entity ->
-                    _uiState.update { state ->
-                        state.copy(
-                            deviceName = entity.name,
-                            plugins = entity.settings
-                        )
-                    }
-                }
-            }
-        }
-    }
 
     private var pendingPluginKey: String? = null
     private var pendingIsEnabled: Boolean = false
@@ -57,7 +50,7 @@ class DeviceSettingsViewModel(
      *
      * @return True - Everything went fine. False - unable to set plugin state, probably due to missing permission
      */
-    suspend fun setPluginEnabled(pluginKey: String, isEnabled: Boolean): Boolean {
+    fun setPluginEnabled(pluginKey: String, isEnabled: Boolean): Boolean {
         val device = device ?: return false
         device.setPluginEnabled(pluginKey, isEnabled)
         if (!isEnabled) return true // If we're disabling, we don't care about permissions

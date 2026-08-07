@@ -13,7 +13,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -32,11 +31,11 @@ import org.koin.core.parameter.parametersOf
 fun DeviceScreen(
     deviceId: String,
     viewModel: DeviceViewModel = koinViewModel(key = "DeviceViewModel_$deviceId") { parametersOf(deviceId) },
-    onNavigateToPluginsSettings: () -> Unit
+    onNavigateToPluginsSettings: () -> Unit,
+    onNavigateToPairingScreen: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val activity = LocalActivity.current
-    val context = LocalContext.current
 
     HazeScaffold(
         backButton = true,
@@ -88,10 +87,7 @@ fun DeviceScreen(
                         onButtonClick = { button -> activity?.let { button.onClick(it) } },
                     )
                 } else {
-                    DeviceErrorScreen(
-                        isRefreshing = uiState.isRefreshing,
-                        onRefresh = { viewModel.refreshDevicesAction(context) }
-                    )
+                    onNavigateToPairingScreen()
                 }
             }
         }
