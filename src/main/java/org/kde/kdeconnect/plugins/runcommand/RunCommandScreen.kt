@@ -1,5 +1,7 @@
 package org.kde.kdeconnect.plugins.runcommand
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,9 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -21,8 +21,8 @@ import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,20 +31,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
+import org.kde.kdeconnect.ui.compose.components.FancyDialog
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.Preference
-import org.kde.kdeconnect.ui.compose.components.px
-import org.kde.kdeconnect.ui.compose.components.smartDashBorder
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -54,36 +53,21 @@ fun RunCommandScreen(
     deviceId: String,
     viewModel: RunCommandViewModel = koinViewModel(key = "RunCommandViewModel_$deviceId") { parametersOf(deviceId) }
 ) {
-    val plugin = viewModel.plugin ?: return
-    val commandList = viewModel.commandList
+    val plugin = viewModel.plugin
+    val uiState by viewModel.uiState.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
     val context = LocalContext.current
-
-    DisposableEffect(plugin) {
-        val callback = RunCommandPlugin.CommandsChangedCallback {
-            scope.launch(Dispatchers.Main.immediate) {
-                viewModel.updateList()
-            }
-        }
-        plugin.addCommandsUpdatedCallback(callback)
-
-        onDispose {
-            plugin.removeCommandsUpdatedCallback(callback)
-        }
-    }
 
     HazeScaffold(
         title = stringResource(R.string.pref_plugin_runcommand),
         backButton = true,
         actions = {
-            if (plugin.canAddCommand()) {
-                FloatingActionButton(
+            if (uiState.canAddCommands) {
+                IconButton (
                     onClick = {
                         viewModel.sendSetupPacket()
                         showDialog = true
                     },
-                    modifier = Modifier.size(40.dp)
                 ) {
                     Icon(
                         painterResource(R.drawable.ic_action_image_edit_24dp),
@@ -95,29 +79,22 @@ fun RunCommandScreen(
         }
     ) {
         if (showDialog) {
-            AlertDialog(
-                title = {
-                    Text(
-                        stringResource(R.string.add_command),
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                },
-                text = {
+            FancyDialog(
+                title = stringResource(R.string.add_command),
+                icon = painterResource(R.drawable.ic_action_image_edit_24dp),
+                content = {
                     Text(stringResource(R.string.add_command_description))
                 },
-                onDismissRequest = {
-                    showDialog = false
-                    viewModel.updateList()
-                },
-                confirmButton = {
+                actionButton = {
                     TextButton(onClick = {
                         showDialog = false
-                        viewModel.updateList()
                     }) {
                         Text(stringResource(R.string.ok))
                     }
                 },
-                dismissButton = {},
+                onDismissRequest = {
+                    showDialog = false
+                }
             )
         }
 
@@ -125,9 +102,9 @@ fun RunCommandScreen(
         OutputCard(plugin.output, plugin, onStopClick = { viewModel.sendStop() })
 
         CategoryTitleTextSmall(stringResource(R.string.commands))
-        if (!commandList.isEmpty()) {
-            commandList.forEach { command ->
-                val clipboardManager = androidx.compose.ui.platform.LocalClipboard.current
+        if (!uiState.commandList.isEmpty()) {
+            uiState.commandList.forEach { command ->
+                val clipboardManager = LocalClipboard.current
                 Preference(
                     title = command.name,
                     summary = command.command,
@@ -163,15 +140,12 @@ private fun OutputCard(
     val coroutineScope = rememberCoroutineScope()
     val showStopButton by remember { plugin.commandRunning }
 
-    val width = 2.dp.px
-    val dashLength = 8.dp.px
-    val cornerRadius = 16.dp.px
-    val outlineColor = colorScheme.outline
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(300.dp)
-            .drawBehind { smartDashBorder(cornerRadius, dashLength, width, outlineColor) }
+            .clip(MaterialTheme.shapes.medium)
+            .border(BorderStroke(1.5.dp, colorScheme.outline), MaterialTheme.shapes.medium)
     ) {
         if (outputList.isNotEmpty()) {
             Box {

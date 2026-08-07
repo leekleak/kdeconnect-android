@@ -114,7 +114,7 @@ class Device(
     private var sendCoroutine : Job? = null
 
     fun supportsPacketType(type: String): Boolean =
-        NetworkPacket.PROTOCOL_PACKET_TYPES.contains(type) || deviceInfo.incomingCapabilities?.contains(type) ?: true
+        NetworkPacket.PROTOCOL_PACKET_TYPES.contains(type) || deviceInfo.incomingCapabilities.contains(type)
 
     val name: String
         get() = deviceInfo.name
@@ -255,59 +255,24 @@ class Device(
         }
     }
 
-    fun updateDeviceInfo(newDeviceInfo: DeviceInfo): Boolean {
-        var hasChanges = false
-        val currentInfo = deviceInfo
+    fun updateDeviceInfo(newDeviceInfo: DeviceInfo) {
+        val updatedSupportedPlugins: List<String> = PluginFactory.pluginsForCapabilities(
+            newDeviceInfo.incomingCapabilities,
+            newDeviceInfo.outgoingCapabilities
+        ).toList()
 
-        var updatedInfo = currentInfo
-        if (currentInfo.name != newDeviceInfo.name || currentInfo.type != newDeviceInfo.type || currentInfo.protocolVersion != newDeviceInfo.protocolVersion) {
-            hasChanges = true
-            updatedInfo = updatedInfo.copy(
-                name = newDeviceInfo.name,
-                type = newDeviceInfo.type,
-                protocolVersion = newDeviceInfo.protocolVersion
+        updateState { state ->
+            state.copy(
+                deviceInfo = state.deviceInfo.copy(
+                    name = newDeviceInfo.name,
+                    type = newDeviceInfo.type,
+                    protocolVersion = newDeviceInfo.protocolVersion,
+                    outgoingCapabilities = newDeviceInfo.outgoingCapabilities,
+                    incomingCapabilities = newDeviceInfo.incomingCapabilities,
+                ),
+                supportedPlugins = updatedSupportedPlugins
             )
         }
-
-        val oldIncomingCapabilities = currentInfo.incomingCapabilities
-        val oldOutgoingCapabilities = currentInfo.outgoingCapabilities
-        val newIncomingCapabilities = newDeviceInfo.incomingCapabilities
-        val newOutgoingCapabilities = newDeviceInfo.outgoingCapabilities
-        var updatedSupportedPlugins: List<String>? = null
-
-        if (
-            !newIncomingCapabilities.isNullOrEmpty() &&
-            !newOutgoingCapabilities.isNullOrEmpty() &&
-            (
-                oldIncomingCapabilities != newIncomingCapabilities ||
-                oldOutgoingCapabilities != newOutgoingCapabilities
-            )
-        ) {
-            hasChanges = true
-            Log.i("updateDeviceInfo", "Updating supported plugins according to new capabilities")
-            updatedInfo = updatedInfo.copy(
-                outgoingCapabilities = newOutgoingCapabilities,
-                incomingCapabilities = newIncomingCapabilities
-            )
-            updatedSupportedPlugins = PluginFactory.pluginsForCapabilities(
-                newIncomingCapabilities,
-                newOutgoingCapabilities
-            ).toList()
-        }
-
-        if (hasChanges) {
-            updateState { state ->
-                state.copy(
-                    deviceInfo = updatedInfo,
-                    supportedPlugins = updatedSupportedPlugins ?: state.supportedPlugins
-                )
-            }
-            if (isPaired) {
-                runBlocking { updatedInfo.saveInSettings(deviceSettings) }
-            }
-        }
-
-        return hasChanges
     }
 
     override suspend fun onPacketReceived(np: NetworkPacket) {

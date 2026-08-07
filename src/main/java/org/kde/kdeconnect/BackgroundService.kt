@@ -196,7 +196,7 @@ class BackgroundService : Service() {
 
                     // Checking if there are registered commands and adding the button.
                     val plugin = device.getPlugin("RunCommandPlugin") as RunCommandPlugin?
-                    if (plugin != null && plugin.commandList.isNotEmpty()) {
+                    if (plugin != null && plugin.commandList.value.isNotEmpty()) {
                         val runCommand = Intent(this, MainActivity::class.java)
                         runCommand.putExtra(MainActivity.EXTRA_DEVICE_ID, connectedDeviceIds[0])
                         runCommand.putExtra(KdeConnectKeyConstants.EXTRA_PLUGIN_KEY, "RunCommandPlugin")

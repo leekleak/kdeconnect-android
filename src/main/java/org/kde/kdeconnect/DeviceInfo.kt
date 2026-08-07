@@ -26,8 +26,8 @@ data class DeviceInfo(
     @JvmField val name: String,
     @JvmField val type: DeviceType,
     @JvmField val protocolVersion: Int = 0,
-    @JvmField val incomingCapabilities: Set<String>? = null,
-    @JvmField val outgoingCapabilities: Set<String>? = null,
+    @JvmField val incomingCapabilities: Set<String> = emptySet(),
+    @JvmField val outgoingCapabilities: Set<String> = emptySet(),
     val settings: Map<String, Boolean> = emptyMap()
 ) {
 
@@ -64,8 +64,8 @@ data class DeviceInfo(
             np["deviceName"] = name
             np["protocolVersion"] = protocolVersion
             np["deviceType"] = type.toString()
-            np["incomingCapabilities"] = incomingCapabilities!!
-            np["outgoingCapabilities"] = outgoingCapabilities!!
+            np["incomingCapabilities"] = incomingCapabilities
+            np["outgoingCapabilities"] = outgoingCapabilities
         }
 
     companion object {
@@ -105,8 +105,8 @@ data class DeviceInfo(
                     type = DeviceType.fromString(getString("deviceType", "desktop")),
                     certificate = certificate,
                     protocolVersion = getInt("protocolVersion"),
-                    incomingCapabilities = getStringSet("incomingCapabilities"),
-                    outgoingCapabilities = getStringSet("outgoingCapabilities")
+                    incomingCapabilities = getStringSet("incomingCapabilities") ?: emptySet(),
+                    outgoingCapabilities = getStringSet("outgoingCapabilities") ?: emptySet()
                 )
             }
 

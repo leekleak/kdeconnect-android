@@ -122,6 +122,7 @@ class DeviceManager(
                 device = deviceFactory(link.deviceId, link)
                 devices[link.deviceId] = device
             }
+            device.updateDeviceInfo(link.deviceInfo)
         }
 
         @WorkerThread

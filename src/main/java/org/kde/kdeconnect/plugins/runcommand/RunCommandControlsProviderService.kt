@@ -121,7 +121,7 @@ class RunCommandControlsProviderService : ControlsProviderService() {
 
             val plugin = device.getPlugin(RunCommandPlugin::class.java)
             if (plugin != null) {
-                for (command in plugin.commandList) {
+                for (command in plugin.commandList.value) {
                     commandList.add(CommandEntryWithDevice(command, device))
                 }
             }
@@ -138,7 +138,7 @@ class RunCommandControlsProviderService : ControlsProviderService() {
         if (device == null || !device.isPaired) return null
 
         val commandList = if (device.isReachable) {
-            device.getPlugin(RunCommandPlugin::class.java)?.commandList?.map { command ->
+            device.getPlugin(RunCommandPlugin::class.java)?.commandList?.value?.map { command ->
                 CommandEntryWithDevice(command, device)
             }
         } else {

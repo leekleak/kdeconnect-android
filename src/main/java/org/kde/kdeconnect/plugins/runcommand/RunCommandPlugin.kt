@@ -27,7 +27,6 @@ import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.RunCommandKey
 import org.kde.kdeconnect_tp.R
-import java.util.Collections
 import java.util.stream.Collectors
 
 class RunCommandPlugin(
@@ -35,22 +34,15 @@ class RunCommandPlugin(
     device: Device,
     private val settingsDataStore: RunCommandSettingsDataStore
 ) : Plugin(context, device) {
-    val commandList: ArrayList<RunCommand> = ArrayList()
-    private val callbacks = ArrayList<CommandsChangedCallback>()
     val output: SnapshotStateList<RunCommandOutput> = SnapshotStateList()
+
+    private val _commandList: MutableStateFlow<List<RunCommand>> = MutableStateFlow(emptyList())
+    val commandList: StateFlow<List<RunCommand>> = _commandList.asStateFlow()
 
     private val _canAddCommand: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val canAddCommand: StateFlow<Boolean> = _canAddCommand.asStateFlow()
 
     override val pluginInfo: RunCommandPluginInfo = RunCommandPluginInfo
-
-    fun addCommandsUpdatedCallback(newCallback: CommandsChangedCallback) {
-        callbacks.add(newCallback)
-    }
-
-    fun removeCommandsUpdatedCallback(theCallback: CommandsChangedCallback) {
-        callbacks.remove(theCallback)
-    }
 
     fun interface CommandsChangedCallback {
         fun update()
@@ -79,30 +71,21 @@ class RunCommandPlugin(
 
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         if (np.has("commandList")) {
-            commandList.clear()
+            _commandList.value = ArrayList()
             try {
                 val parsedCommands = RunCommand.fromPacket(np.getString("commandList"))
-                commandList.addAll(parsedCommands)
-
-                Collections.sort(
-                    commandList,
-                    Comparator.comparing(RunCommand::name)
-                )
+                _commandList.value = parsedCommands.sortedBy { it.name }
 
                 // Used only by RunCommandControlsProviderService to display controls correctly even when device is not available
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     CoroutineScope(Dispatchers.IO).launch {
-                        settingsDataStore.setCommands(device.deviceId, commandList)
+                        settingsDataStore.setCommands(device.deviceId, commandList.value)
                     }
                 }
 
                 forceRefreshWidgets(context)
             } catch (e: Exception) {
                 Log.e("RunCommand", "Error parsing command list", e)
-            }
-
-            for (aCallback in callbacks) {
-                aCallback.update()
             }
 
             _canAddCommand.value = np.getBoolean("canAddCommand", false)

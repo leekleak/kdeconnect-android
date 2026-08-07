@@ -3,12 +3,17 @@ package org.kde.kdeconnect.plugins.runcommand
 import android.content.ClipData
 import android.content.Context
 import android.widget.Toast
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.toClipEntry
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
@@ -20,21 +25,25 @@ class RunCommandViewModel(
     @InjectedParam val deviceId: String
 ) : ViewModel() {
 
-    val commandList = mutableStateListOf<RunCommand>()
-    val plugin: RunCommandPlugin? = deviceManager.getDevicePlugin(deviceId, RunCommandPlugin::class.java)
+    private val _state: MutableStateFlow<RunCommandViewModeState> = MutableStateFlow(RunCommandViewModeState())
+    val state: StateFlow<RunCommandViewModeState> = _state.asStateFlow()
+
+    val plugin: RunCommandPlugin = deviceManager.getDevicePlugin(deviceId, RunCommandPlugin::class.java)!!
     val device: Device? = deviceManager.getDevice(deviceId)
 
-    init {
-        updateList()
-    }
-
-    fun updateList() {
-        commandList.clear()
-        val plugin = plugin ?: return
-
-        commandList.addAll(plugin.commandList)
-        commandList.sortBy { it.name.lowercase() }
-    }
+    val uiState: StateFlow<RunCommandViewModeState> = combine(
+        plugin.commandList,
+        plugin.canAddCommand
+    ) { commandList, canAdd ->
+        RunCommandViewModeState(
+            commandList = commandList,
+            canAddCommands = canAdd
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = RunCommandViewModeState()
+    )
 
     fun copyCommandToClipboard(
         context: Context,
@@ -55,7 +64,12 @@ class RunCommandViewModel(
         ).show()
     }
 
-    fun runCommand(cmdKey: String) = viewModelScope.launch { plugin?.runCommand(cmdKey) }
-    fun sendStop() = viewModelScope.launch { plugin?.sendStop() }
-    fun sendSetupPacket() = viewModelScope.launch { plugin?.sendSetupPacket() }
+    fun runCommand(cmdKey: String) = viewModelScope.launch { plugin.runCommand(cmdKey) }
+    fun sendStop() = viewModelScope.launch { plugin.sendStop() }
+    fun sendSetupPacket() = viewModelScope.launch { plugin.sendSetupPacket() }
 }
+
+data class RunCommandViewModeState(
+    val commandList: List<RunCommand> = emptyList(),
+    val canAddCommands: Boolean = false
+)

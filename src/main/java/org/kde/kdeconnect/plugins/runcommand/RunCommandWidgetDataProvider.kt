@@ -20,7 +20,6 @@ import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
 import org.kde.kdeconnect_tp.R
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.koin.core.context.GlobalContext
 
 internal class RunCommandWidgetDataProvider(private val context: Context, val intent: Intent?) : RemoteViewsFactory, KoinComponent {
     private val runCommandSettingsDataStore: RunCommandSettingsDataStore by inject()
@@ -48,7 +47,7 @@ internal class RunCommandWidgetDataProvider(private val context: Context, val in
     }
 
     override fun getCount(): Int {
-        return getPlugin()?.commandList?.size ?: 0
+        return getPlugin()?.commandList?.value?.size ?: 0
     }
 
     override fun getViewAt(i: Int): RemoteViews {
@@ -64,7 +63,7 @@ internal class RunCommandWidgetDataProvider(private val context: Context, val in
             return remoteView
         }
 
-        val listItem = plugin.commandList.getOrNull(i) ?: return remoteView
+        val listItem = plugin.commandList.value.getOrNull(i) ?: return remoteView
 
         remoteView.setTextViewText(R.id.list_item_entry_title, listItem.name)
         remoteView.setTextViewText(R.id.list_item_entry_summary, listItem.command)
@@ -89,7 +88,7 @@ internal class RunCommandWidgetDataProvider(private val context: Context, val in
     }
 
     override fun getItemId(i: Int): Long {
-        return getPlugin()?.commandList?.getOrNull(i)?.key?.hashCode()?.toLong() ?: 0
+        return getPlugin()?.commandList?.value?.getOrNull(i)?.key?.hashCode()?.toLong() ?: 0
     }
 
     override fun hasStableIds(): Boolean {
