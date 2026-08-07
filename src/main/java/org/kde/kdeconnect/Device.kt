@@ -5,9 +5,6 @@
 */
 package org.kde.kdeconnect
 
-import android.app.Notification
-import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Drawable
@@ -15,8 +12,6 @@ import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.annotation.VisibleForTesting
 import androidx.annotation.WorkerThread
-import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -45,13 +40,11 @@ import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLink.PacketReceiver
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.DeviceSettings
-import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.Plugin.Companion.getPluginKey
 import org.kde.kdeconnect.plugins.PluginFactory
-import org.kde.kdeconnect.ui.MainActivity
-import org.kde.kdeconnect_tp.R
+import org.kde.kdeconnect.ui.PairingActivity
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.component.KoinScopeComponent
 import org.koin.core.component.createScope
@@ -195,19 +188,20 @@ class Device(
     private fun createDefaultPairingCallback(): PairingCallback {
         return object : PairingCallback {
             override fun incomingPairRequest() {
-                displayPairingNotification()
+                val intent = Intent(context, PairingActivity::class.java).apply {
+                    putExtra("deviceId", deviceId)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(intent)
             }
 
             override fun pairingSuccessful() {
                 Log.i("Device", "pairing successful, adding to trusted devices list")
 
-                hidePairingNotification()
-
                 jobScope.launch { deviceInfo.saveInSettings(deviceSettings) }
             }
 
             override fun pairingFailed(error: Int) {
-                hidePairingNotification()
             }
 
             override fun unpaired(device: Device) {
@@ -216,72 +210,6 @@ class Device(
                 jobScope.launch {  deviceSettings.removeTrustedDevice(deviceInfo.id) }
             }
         }
-    }
-
-    //
-    // Notification related methods used during pairing
-    //
-    fun displayPairingNotification() {
-        hidePairingNotification()
-
-        notificationId = System.currentTimeMillis().toInt()
-
-        val intent = Intent(context, MainActivity::class.java).apply {
-            putExtra(MainActivity.EXTRA_DEVICE_ID, deviceId)
-            putExtra(MainActivity.PAIR_REQUEST_STATUS, MainActivity.PAIRING_PENDING)
-        }
-
-        val pendingIntent = PendingIntent.getActivity(
-            context,
-            1,
-            intent,
-            PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val acceptIntent = Intent(context, MainActivity::class.java).apply {
-            putExtra(MainActivity.EXTRA_DEVICE_ID, deviceId)
-            putExtra(MainActivity.PAIR_REQUEST_STATUS, MainActivity.PAIRING_ACCEPTED)
-        }
-        val rejectIntent = Intent(context, MainActivity::class.java).apply {
-            putExtra(MainActivity.EXTRA_DEVICE_ID, deviceId)
-            putExtra(MainActivity.PAIR_REQUEST_STATUS, MainActivity.PAIRING_REJECTED)
-        }
-
-        val acceptedPendingIntent = PendingIntent.getActivity(
-            context,
-            2,
-            acceptIntent,
-            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
-        )
-        val rejectedPendingIntent = PendingIntent.getActivity(
-            context,
-            4,
-            rejectIntent,
-            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val res = context.resources
-
-        val notificationManager = ContextCompat.getSystemService(context, NotificationManager::class.java)!!
-
-        val noti = NotificationCompat.Builder(context, NotificationHelper.Channels.DEFAULT)
-            .setContentTitle(res.getString(R.string.pairing_request_from, name))
-            .setContentText(res.getString(R.string.pairing_verification_code, verificationKey))
-            .setTicker(res.getString(R.string.pair_requested))
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentIntent(pendingIntent)
-            .addAction(R.drawable.ic_accept_pairing_24dp, res.getString(R.string.pairing_accept), acceptedPendingIntent)
-            .addAction(R.drawable.ic_reject_pairing_24dp, res.getString(R.string.pairing_reject), rejectedPendingIntent)
-            .setAutoCancel(true)
-            .setDefaults(Notification.DEFAULT_ALL)
-            .build()
-
-        notificationManager.notify(notificationId, noti)
-    }
-
-    fun hidePairingNotification() {
-        val notificationManager = ContextCompat.getSystemService(context, NotificationManager::class.java)!!
-        notificationManager.cancel(notificationId)
     }
 
     fun addLink(link: BaseLink) {

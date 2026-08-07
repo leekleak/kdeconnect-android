@@ -328,10 +328,6 @@ class SharePlugin(
         }
     }
 
-    override fun onDeviceUnpaired(context: Context, deviceId: String) {
-        Log.i("KDE/SharePlugin", "onDeviceUnpaired deviceId = $deviceId")
-    }
-
     companion object {
         const val ACTION_CANCEL_SHARE: String = "org.kde.kdeconnect.plugins.share.CancelShare"
         const val CANCEL_SHARE_DEVICE_ID_EXTRA: String = "deviceId"

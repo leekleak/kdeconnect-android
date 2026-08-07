@@ -1,14 +1,8 @@
 package org.kde.kdeconnect.ui
 
-import android.content.ActivityNotFoundException
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
 import androidx.activity.compose.LocalActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,21 +22,22 @@ import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.serialization.json.Json
-import org.kde.kdeconnect.plugins.PluginFactory
-import org.kde.kdeconnect.helpers.PermissionRequestHelper
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.compose.components.IconHero
 import org.kde.kdeconnect.ui.compose.components.card
@@ -50,61 +45,35 @@ import org.kde.kdeconnect.ui.compose.components.googleSans
 import org.kde.kdeconnect_tp.R
 import org.koin.android.ext.android.inject
 
-class PermissionExplanationActivity : AppCompatActivity() {
-    private val permissionRequestHelper: PermissionRequestHelper by inject()
-    private var pluginKey: String? = null
+class PairingActivity : AppCompatActivity() {
+    private val deviceHelper: DeviceManager by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val pluginKey = intent.getStringExtra("pluginKey")
-        val permissionRequests = intent.getStringExtra("permissionRequests")
-        val requestsDeserialized = permissionRequests?.let { Json.decodeFromString<List<PermissionRequest>>(it) }
-        this.pluginKey = pluginKey
+        val deviceId = intent.getStringExtra("deviceId")
+        val device = deviceHelper.getDevice(deviceId)
 
-        if (pluginKey == null && requestsDeserialized.isNullOrEmpty()) {
+        if (device == null) {
             finish()
             return
         }
 
-        val requests = if (pluginKey != null) {
-            permissionRequestHelper.markExplanationShown(pluginKey)
-            val pluginInfo = PluginFactory.getPluginInfo(pluginKey)
-            pluginInfo.getPermissionRequests()
-        } else {
-            requestsDeserialized!!
-        }
-
-        setResult(RESULT_CANCELED)
-
         setContent {
             KdeTheme {
-                var currentVisible by remember { mutableIntStateOf(0) }
-                LaunchedEffect(currentVisible) {
-                    if (currentVisible >= requests.size) {
-                        setResult(RESULT_OK)
-                        finish()
-                    }
-                }
-                requests.forEachIndexed { index, request ->
-                    PairingSheet(index == currentVisible, request) { granted ->
-                        if (!granted) finish()
-                        currentVisible += 1
-                    }
+                var currentVisible by remember { mutableStateOf(true) }
+                PairingSheet(lifecycleScope, currentVisible, device) {
+                    finish()
                 }
             }
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        pluginKey?.let { permissionRequestHelper.markExplanationDismissed(it) }
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PairingSheet(visible: Boolean, request: PermissionRequest, onDone: (Boolean) -> Unit) {
+private fun PairingSheet(scope: CoroutineScope, visible: Boolean, device: Device, onDone: () -> Unit) {
     val activity = LocalActivity.current
     val sheetState = rememberBottomSheetState(
         initialValue = SheetValue.Hidden,
@@ -126,7 +95,7 @@ private fun PairingSheet(visible: Boolean, request: PermissionRequest, onDone: (
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                BottomSheetContent(request, onDone)
+                BottomSheetContent(scope, device, onDone)
             }
         }
     }
@@ -134,27 +103,15 @@ private fun PairingSheet(visible: Boolean, request: PermissionRequest, onDone: (
 
 @Composable
 private fun BottomSheetContent(
-    request: PermissionRequest,
-    onDone: (Boolean) -> Unit
+    scope: CoroutineScope,
+    device: Device,
+    onDone: () -> Unit
 ) {
-    val context = LocalContext.current
-    val activity = LocalActivity.current
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { result ->
-        onDone(result)
-    }
-
     val font = remember { googleSans(weight = 600f) }
 
     IconHero(
         backgroundSize = 164.dp,
         iconSize = 88.dp,
-        /**
-         * Want to make it really clear that it's KDE Connect requesting this permission
-         * as this sheet may be overlaid on top of other apps.
-         **/
         icon = R.drawable.ic_kde_24dp
     )
     Spacer(Modifier.height(16.dp))
@@ -163,13 +120,13 @@ private fun BottomSheetContent(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Icon(
-            painter = painterResource(R.drawable.grant),
+            painter = painterResource(R.drawable.link),
             contentDescription = null
         )
         Text(
             fontFamily = font,
             fontSize = 22.sp,
-            text = stringResource(R.string.permission_request)
+            text = stringResource(R.string.pairing_request)
         )
     }
     Column(
@@ -180,14 +137,21 @@ private fun BottomSheetContent(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        val state by device.state.collectAsStateWithLifecycle()
         Text(
             fontFamily = font,
             fontSize = 18.sp,
-            text = stringResource(request.title)
+            text = state.deviceInfo.name
         )
-        Text(
-            text = stringResource(request.description)
-        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Icon(
+                painter = painterResource(R.drawable.key),
+                contentDescription = null
+            )
+            Text(
+                text = state.verificationKey ?: ""
+            )
+        }
     }
     Spacer(Modifier.height(8.dp))
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -196,7 +160,12 @@ private fun BottomSheetContent(
                 containerColor = MaterialTheme.colorScheme.errorContainer,
                 contentColor = MaterialTheme.colorScheme.error
             ),
-            onClick = { onDone(false) }
+            onClick = {
+                scope.launch {
+                    device.cancelPairing()
+                    onDone()
+                }
+            }
         ) {
             Text(
                 modifier = Modifier.padding(8.dp),
@@ -206,27 +175,16 @@ private fun BottomSheetContent(
         }
         Button(
             onClick = {
-                if (request.intentAction.startsWith("android.permission.")) {
-                    permissionLauncher.launch(request.intentAction)
-                } else {
-                    try {
-                        activity?.startActivity(Intent(request.intentAction))
-                    } catch (_: ActivityNotFoundException) {
-                        val intent =
-                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                data = Uri.fromParts("package", context.packageName, null)
-                            }
-                        activity?.startActivity(intent)
-                    }
-                    onDone(false) // Really annoying to check if the user actually granted permission,
-                    // so return with the assumption that they didn't.
+                scope.launch {
+                    device.acceptPairing()
+                    onDone()
                 }
             }
         ) {
             Text(
                 modifier = Modifier.padding(8.dp),
                 fontSize = 18.sp,
-                text = stringResource(request.positiveButton)
+                text = stringResource(R.string.pairing_accept)
             )
         }
     }
