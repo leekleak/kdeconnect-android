@@ -2,6 +2,7 @@
 
 package org.kde.kdeconnect.ui.compose.components
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,6 +39,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -110,7 +112,8 @@ fun BigPlaceholder(modifier: Modifier = Modifier, painter: Painter, text: String
     val font = remember { googleSans(weight = 600f, roundness = 100f) }
     Column(
         modifier = modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Icon(
             modifier = Modifier.size(256.dp),
@@ -120,7 +123,8 @@ fun BigPlaceholder(modifier: Modifier = Modifier, painter: Painter, text: String
         Text(
             text = text,
             fontSize = 22.sp,
-            fontFamily = font
+            fontFamily = font,
+            textAlign = TextAlign.Center
         )
     }
 }
