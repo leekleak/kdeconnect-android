@@ -210,7 +210,12 @@ private fun BottomSheetContent(
                     permissionLauncher.launch(request.intentAction)
                 } else {
                     try {
-                        activity?.startActivity(Intent(request.intentAction))
+                        val intent = Intent(request.intentAction).apply {
+                            if (request.intentAction == Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION) {
+                                data = Uri.fromParts("package", context.packageName, null)
+                            }
+                        }
+                        activity?.startActivity(intent)
                     } catch (_: ActivityNotFoundException) {
                         val intent =
                             Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {

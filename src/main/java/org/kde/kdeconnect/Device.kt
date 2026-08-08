@@ -92,8 +92,7 @@ class Device(
     val deviceType: DeviceType get() = deviceInfo.type
     val protocolVersion: Int get() = deviceInfo.protocolVersion
 
-    @VisibleForTesting
-    private var pairingHandler: PairingHandler = PairingHandler(
+    internal var pairingHandler: PairingHandler = PairingHandler(
         device = this,
         sslHelper = sslHelper,
         callback = createDefaultPairingCallback(),
