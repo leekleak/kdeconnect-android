@@ -15,18 +15,21 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.room.Room
 import coil3.ImageLoader
 import coil3.disk.DiskCache
 import coil3.disk.directory
 import coil3.memory.MemoryCache
 import coil3.request.crossfade
+import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.BackgroundServiceData
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.KdeConnect
+import org.kde.kdeconnect.backends.bluetooth.BluetoothLinkProvider
 import org.kde.kdeconnect.backends.lan.LanLinkProvider
 import org.kde.kdeconnect.backends.loopback.LoopbackLinkProvider
 import org.kde.kdeconnect.datastore.ConnectionsSettingsDataStore
@@ -37,6 +40,7 @@ import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.datastore.SftpSettingsDataStore
 import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 import org.kde.kdeconnect.helpers.AppIconFetcher
+import org.kde.kdeconnect.helpers.CustomDevicesHelper
 import org.kde.kdeconnect.helpers.DeviceDao
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.DeviceSettings
@@ -44,6 +48,8 @@ import org.kde.kdeconnect.helpers.DevicesRoomDatabase
 import org.kde.kdeconnect.helpers.PermissionHelper
 import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper
+import org.kde.kdeconnect.helpers.VideoUrlsHelper
+import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.plugins.battery.BatteryPlugin
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin
 import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityReportPlugin
@@ -62,7 +68,13 @@ import org.kde.kdeconnect.plugins.mousepad.MousePadSettingsScreen
 import org.kde.kdeconnect.plugins.mousepad.MousePadSettingsViewModel
 import org.kde.kdeconnect.plugins.mousepad.MousePadViewModel
 import org.kde.kdeconnect.plugins.mousereceiver.MouseReceiverPlugin
+import org.kde.kdeconnect.plugins.mpris.MprisAlbumArtFetcher
+import org.kde.kdeconnect.plugins.mpris.MprisMediaSession
 import org.kde.kdeconnect.plugins.mpris.MprisPlugin
+import org.kde.kdeconnect.plugins.mpris.MprisScreen
+import org.kde.kdeconnect.plugins.mpris.MprisViewModel
+import org.kde.kdeconnect.plugins.mpris.SinkSelector
+import org.kde.kdeconnect.plugins.mpris.SourceSelector
 import org.kde.kdeconnect.plugins.mprisreceiver.MprisReceiverPlugin
 import org.kde.kdeconnect.plugins.notifications.AppDatabase
 import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin
@@ -79,6 +91,7 @@ import org.kde.kdeconnect.plugins.share.SharePlugin
 import org.kde.kdeconnect.plugins.sms.SMSPlugin
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin
 import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin
+import org.kde.kdeconnect.ui.ThemeUtil
 import org.kde.kdeconnect.ui.about.getApplicationAboutData
 import org.kde.kdeconnect.ui.compose.screen.about.AboutScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceScreen
@@ -87,6 +100,8 @@ import org.kde.kdeconnect.ui.compose.screen.device.settings.DeviceSettingsScreen
 import org.kde.kdeconnect.ui.compose.screen.device.settings.DeviceSettingsViewModel
 import org.kde.kdeconnect.ui.compose.screen.licenses.LicensesEvent
 import org.kde.kdeconnect.ui.compose.screen.licenses.LicensesScreen
+import org.kde.kdeconnect.ui.compose.screen.pairing.HomeScreen
+import org.kde.kdeconnect.ui.compose.screen.pairing.HomeViewModel
 import org.kde.kdeconnect.ui.compose.screen.pairing.PairingScreen
 import org.kde.kdeconnect.ui.compose.screen.pairing.PairingViewModel
 import org.kde.kdeconnect.ui.compose.screen.permissions.PermissionsScreen
@@ -102,25 +117,20 @@ import org.kde.kdeconnect.ui.compose.screen.settings.advanced.filesystem.SftpSet
 import org.kde.kdeconnect.ui.compose.screen.settings.advanced.filesystem.SftpSettingsViewModel
 import org.kde.kdeconnect.ui.compose.screen.settings.advanced.notifications.NotificationSettings
 import org.kde.kdeconnect.ui.compose.screen.settings.advanced.notifications.NotificationSettingsViewModel
-import org.kde.kdeconnect.ui.ThemeUtil
-import org.kde.kdeconnect.helpers.security.SslHelper
-import org.kde.kdeconnect.helpers.CustomDevicesHelper
-import org.kde.kdeconnect.helpers.VideoUrlsHelper
-import org.kde.kdeconnect.plugins.mpris.MprisMediaSession
-import org.kde.kdeconnect.backends.bluetooth.BluetoothLinkProvider
-import org.koin.core.parameter.parametersOf
-import org.kde.kdeconnect.plugins.mpris.MprisAlbumArtFetcher
-import org.kde.kdeconnect.plugins.mpris.MprisScreen
-import org.kde.kdeconnect.plugins.mpris.MprisViewModel
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.paired.SavedDevices
+import org.kde.kdeconnect.ui.compose.screen.settings.advanced.paired.SavedDevicesViewModel
 import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.BigscreenKey
 import org.kde.kdeconnect.ui.navigation.ConnectionsSettingsKey
 import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.DigitizerKey
+import org.kde.kdeconnect.ui.navigation.HomeKey
 import org.kde.kdeconnect.ui.navigation.LicensesKey
 import org.kde.kdeconnect.ui.navigation.MousePadKey
 import org.kde.kdeconnect.ui.navigation.MousePadPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.MprisKey
+import org.kde.kdeconnect.ui.navigation.MprisSinkKey
+import org.kde.kdeconnect.ui.navigation.MprisSourceKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.NotificationSettingsKey
 import org.kde.kdeconnect.ui.navigation.PairingKey
@@ -129,6 +139,7 @@ import org.kde.kdeconnect.ui.navigation.PluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.PresenterKey
 import org.kde.kdeconnect.ui.navigation.PresenterPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.RunCommandKey
+import org.kde.kdeconnect.ui.navigation.SavedDevicesKey
 import org.kde.kdeconnect.ui.navigation.SettingsKey
 import org.kde.kdeconnect.ui.navigation.SftpPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.TelephonyPluginSettingsKey
@@ -136,32 +147,37 @@ import org.kde.kdeconnect_tp.R
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import org.koin.core.annotation.KoinExperimentalAPI
+import org.koin.core.parameter.parametersOf
 import org.koin.dsl.module
 import org.koin.dsl.navigation3.navigation
-import androidx.navigation3.scene.DialogSceneStrategy
-import dev.chrisbanes.haze.HazeState
-import org.kde.kdeconnect.plugins.mpris.SinkSelector
-import org.kde.kdeconnect.plugins.mpris.SourceSelector
-import org.kde.kdeconnect.ui.compose.screen.settings.advanced.paired.SavedDevices
-import org.kde.kdeconnect.ui.compose.screen.settings.advanced.paired.SavedDevicesViewModel
-import org.kde.kdeconnect.ui.navigation.MprisSinkKey
-import org.kde.kdeconnect.ui.navigation.MprisSourceKey
-import org.kde.kdeconnect.ui.navigation.SavedDevicesKey
 import org.koin.plugin.module.dsl.factory
 import org.koin.plugin.module.dsl.single
 import org.koin.plugin.module.dsl.viewModel
 
 
-val pairingModule = module {
+val homeModule = module {
+    viewModel<HomeViewModel>()
+    navigation<HomeKey> {
+        val viewModel: HomeViewModel = koinViewModel()
+        val state by viewModel.uiState.collectAsStateWithLifecycle()
+        val navigator = koinInject<Navigator>()
+        HomeScreen(
+            uiState = state,
+            onClick = { deviceId -> navigator.goTo(DeviceKey(deviceId, true)) },
+            onRefresh = { viewModel.onRefresh(get()) },
+            onNavigateToPairingScreen = { navigator.goTo(PairingKey) },
+            onNavigateToSettingsScreen = { navigator.goTo(SettingsKey) }
+        )
+    }
     viewModel<PairingViewModel>()
     navigation<PairingKey> {
         val viewModel: PairingViewModel = koinViewModel()
-        val state by viewModel.pairingUiState.collectAsStateWithLifecycle()
-        val navigator = koinInject<Navigator>()
+        val state by viewModel.uiState.collectAsStateWithLifecycle()
+        val context = LocalContext.current
         PairingScreen(
             uiState = state,
-            onClick = { deviceId -> navigator.goTo(DeviceKey(deviceId, true)) },
-            onRefresh = { viewModel.onRefresh(get()) }
+            onClick = { viewModel.pair(it) },
+            onRefresh = { viewModel.onRefresh(context) },
         )
     }
     navigation<PermissionsScreenKey> {
@@ -275,7 +291,7 @@ val deviceModule = module {
         DeviceScreen(
             deviceId = key.deviceId,
             onNavigateToPluginsSettings = { navigator.goTo(PluginSettingsKey(key.deviceId)) },
-            onNavigateToPairingScreen = { navigator.setTo(PairingKey) }
+            onNavigateToPairingScreen = { navigator.setTo(HomeKey) }
         )
     }
 }
@@ -375,12 +391,12 @@ fun buildImageLoader(context: Context, deviceManager: DeviceManager): ImageLoade
 val appModule = module {
     single<KdeConnect> { get<Context>() as KdeConnect }
     single<BackgroundServiceData>()
-    includes(pairingModule, deviceModule, pluginSettingsModule, presenterModule, mprisModule,
+    includes(homeModule, deviceModule, pluginSettingsModule, presenterModule, mprisModule,
         mousePadModule, runCommandModule, digitizerModule, settingsModule, aboutModule, hazeModule)
 
     single {
         val startDestination = if (PermissionHelper.hasRequiredPermissions(get())) {
-            PairingKey
+            HomeKey
         } else {
             PermissionsScreenKey
         }

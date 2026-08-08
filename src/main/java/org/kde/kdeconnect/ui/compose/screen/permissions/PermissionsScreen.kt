@@ -39,7 +39,7 @@ import org.kde.kdeconnect.ui.compose.components.IconPreference
 import org.kde.kdeconnect.ui.compose.components.Preference
 import org.kde.kdeconnect.ui.compose.components.googleSans
 import org.kde.kdeconnect.ui.navigation.Navigator
-import org.kde.kdeconnect.ui.navigation.PairingKey
+import org.kde.kdeconnect.ui.navigation.HomeKey
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.koinInject
 
@@ -80,7 +80,7 @@ fun PermissionsScreen() {
 
                 if (hasNotificationPermission && hasOverlayPermission && hasNetworkPermission) {
                     BackgroundService.start(context)
-                    navigator.setTo(PairingKey)
+                    navigator.setTo(HomeKey)
                 }
             }
         }

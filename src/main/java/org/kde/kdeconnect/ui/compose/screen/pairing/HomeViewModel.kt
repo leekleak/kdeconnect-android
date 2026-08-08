@@ -14,33 +14,33 @@ import kotlinx.coroutines.launch
 import org.kde.kdeconnect.BackgroundService.Companion.forceRefreshConnections
 import org.kde.kdeconnect.BackgroundServiceData
 import org.kde.kdeconnect.DeviceManager
-import org.kde.kdeconnect.DeviceState
-import org.kde.kdeconnect.PairingHandler.PairState
+import org.kde.kdeconnect.PairingHandler
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper
+import org.kde.kdeconnect.ui.compose.extensions.device.toUiModel
+import org.kde.kdeconnect.ui.compose.model.device.DeviceUiModel
 
-class PairingViewModel(
+class HomeViewModel(
+    deviceManager: DeviceManager,
     backgroundServiceData: BackgroundServiceData,
-    private val deviceManager: DeviceManager,
     private val trustedNetworkHelper: TrustedNetworkHelper,
 ) : ViewModel() {
     private val refreshing = MutableStateFlow(false)
-
     val uiState = combine(
         backgroundServiceData.isConnectedToNonCellularNetwork,
         deviceManager.allDeviceStatesMap.map { it.values },
         refreshing
     ) { isConnectedToNonCellularNetwork, devices, refreshing ->
-        PairingUiState(
+        HomeUiState(
             wifiAvailable = isConnectedToNonCellularNetwork,
             trustedNetwork = trustedNetworkHelper.getIsTrustedNetwork(),
-            available = devices.filter { it.isReachable && it.pairStatus != PairState.Paired },
+            connected = devices.filter { it.isReachable && it.pairStatus == PairingHandler.PairState.Paired }.map { it.toUiModel() },
+            availableCount = devices.count { it.isReachable && it.pairStatus != PairingHandler.PairState.Paired },
             refreshing = refreshing
         )
-
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = PairingUiState()
+        initialValue = HomeUiState()
     )
 
     fun onRefresh(context: Context) {
@@ -53,20 +53,12 @@ class PairingViewModel(
             refreshing.update { false }
         }
     }
-
-    fun pair(deviceId: String) {
-        val device = deviceManager.getDevice(deviceId) ?: return
-        viewModelScope.launch {
-            if (device.pairingHandler.state.value != PairState.Requested) {
-                device.requestPairing()
-            }
-        }
-    }
 }
 
-data class PairingUiState(
+data class HomeUiState(
     val wifiAvailable: Boolean = true,
     val trustedNetwork: Boolean = true,
-    val available: List<DeviceState> = emptyList(),
+    val connected: List<DeviceUiModel> = emptyList(),
+    val availableCount: Int = 0,
     val refreshing: Boolean = false
 )

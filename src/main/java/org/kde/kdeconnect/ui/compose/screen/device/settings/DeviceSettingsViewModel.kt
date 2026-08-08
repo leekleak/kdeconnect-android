@@ -13,7 +13,7 @@ import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.ui.navigation.Navigator
-import org.kde.kdeconnect.ui.navigation.PairingKey
+import org.kde.kdeconnect.ui.navigation.HomeKey
 import org.koin.core.annotation.InjectedParam
 
 data class DeviceSettingsUiState(
@@ -80,6 +80,6 @@ class DeviceSettingsViewModel(
         viewModelScope.launch {
             device?.unpair()
         }
-        navigator.setTo(PairingKey)
+        navigator.setTo(HomeKey)
     }
 }

@@ -41,6 +41,7 @@ class TrustedNetworkHelper(
             }
         }
 
+    @Deprecated("Should be a flow probably, so we can react")
     suspend fun getIsTrustedNetwork(): Boolean {
         return dataStore.allNetworksAllowed.first() || this.currentSSID in dataStore.trustedNetworks.first()
     }

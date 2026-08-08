@@ -12,6 +12,9 @@ object KdeConnectKeyConstants {
 }
 
 @Serializable
+data object HomeKey : KdeConnectKey
+
+@Serializable
 data object PairingKey : KdeConnectKey
 
 @Serializable

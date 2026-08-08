@@ -27,8 +27,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.BackgroundService
+import org.kde.kdeconnect.BackgroundServiceData
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.compose.extensions.device.toUiModel
 import org.kde.kdeconnect.ui.compose.model.device.DeviceUiModel
@@ -39,6 +41,8 @@ import kotlin.time.Duration.Companion.milliseconds
 
 class ShareActivity : AppCompatActivity() {
     private val deviceManager: DeviceManager by inject()
+    private val backgroundServiceData: BackgroundServiceData by inject()
+    private val trustedNetworkHelper: TrustedNetworkHelper by inject()
 
     private var isRefreshing by mutableStateOf(value = false)
     private var uiDevices: StateFlow<List<DeviceUiModel>> = deviceManager.devices.map { devices ->
@@ -49,6 +53,14 @@ class ShareActivity : AppCompatActivity() {
         scope = lifecycleScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
+    )
+
+    private val wifiToTrusted: StateFlow<Pair<Boolean, Boolean>> = backgroundServiceData.isConnectedToNonCellularNetwork.map {
+        it to trustedNetworkHelper.getIsTrustedNetwork()
+    }.stateIn(
+        scope = lifecycleScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = true to true
     )
 
     private suspend fun refreshDevicesAction() {
@@ -77,6 +89,7 @@ class ShareActivity : AppCompatActivity() {
             KdeTheme {
                 val scope = rememberCoroutineScope()
                 val devices by uiDevices.collectAsStateWithLifecycle()
+                val wifiToTrustedValue by wifiToTrusted.collectAsStateWithLifecycle()
                 DeviceSelectScreen(
                     devices = devices,
                     pageTitle = stringResource(R.string.share),
@@ -87,6 +100,8 @@ class ShareActivity : AppCompatActivity() {
                         val device = deviceManager.getDevice(id = deviceId) ?: return@DeviceSelectScreen
                         deviceClicked(device = device, intent = intent)
                     },
+                    wifiAvailable = wifiToTrustedValue.first,
+                    trustedNetwork = wifiToTrustedValue.second,
                     onRefresh = {
                         scope.launch {
                             refreshDevicesAction()

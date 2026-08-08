@@ -2,7 +2,7 @@ package org.kde.kdeconnect.ui.navigation
 
 import androidx.compose.runtime.mutableStateListOf
 
-class Navigator(startDestination: KdeConnectKey = PairingKey) {
+class Navigator(startDestination: KdeConnectKey = HomeKey) {
     val backStack = mutableStateListOf(startDestination)
 
     fun goTo(destination: KdeConnectKey) {
