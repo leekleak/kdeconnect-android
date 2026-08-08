@@ -181,7 +181,7 @@ internal class ReceiveNotification(private val device: Device, private val conte
             shareIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val shareAction = NotificationCompat.Action.Builder(
-            R.drawable.ic_share_white,
+            R.drawable.share,
             context.getString(R.string.share),
             sharePendingIntent
         )

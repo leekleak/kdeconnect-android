@@ -75,11 +75,6 @@ class DeviceHelper(
         )
     }
 
-    fun getBattery(device: Device): StateFlow<DeviceBatteryInfo?>? {
-        val batteryPlugin = device.getPlugin(BatteryPlugin::class.java)
-        return batteryPlugin?.remoteBatteryInfo
-    }
-
     companion object {
         const val PROTOCOL_VERSION = 8
 

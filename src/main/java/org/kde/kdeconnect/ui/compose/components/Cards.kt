@@ -36,13 +36,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import org.kde.kdeconnect.DeviceManager
-import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.plugins.battery.DeviceBatteryInfo
 import org.kde.kdeconnect.ui.compose.model.device.DeviceUiModel
 import org.kde.kdeconnect_tp.R
-import org.koin.compose.koinInject
 
 @Composable
 fun KdeCard(
@@ -93,7 +89,6 @@ fun DeviceCard(
     actionDescriptionVisible: Boolean = false,
     onClick: (String) -> Unit
 ) {
-    val deviceManager = koinInject<DeviceManager>()
     val font = remember { googleSans(weight = 600f) }
     Column (
         modifier = Modifier
@@ -109,7 +104,6 @@ fun DeviceCard(
             painter = painterResource(device.icon),
             contentDescription = null
         )
-        val deviceReal = remember { deviceManager.getDevice(device.id) }
         Text(
             fontSize = 42.sp,
             lineHeight = 42.sp,
@@ -121,12 +115,8 @@ fun DeviceCard(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (deviceReal != null) {
-                val deviceHelper: DeviceHelper = koinInject()
-                val batteryInfo = deviceHelper.getBattery(deviceReal)?.collectAsStateWithLifecycle()
-                batteryInfo?.value?.let { battery ->
-                    BatteryComponent(battery)
-                }
+            device.batteryInfo?.let { battery ->
+                BatteryComponent(battery)
             }
             Spacer(modifier = Modifier.weight(1f))
             Icon(

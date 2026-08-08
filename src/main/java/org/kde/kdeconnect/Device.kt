@@ -10,7 +10,6 @@ import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.annotation.DrawableRes
-import androidx.annotation.VisibleForTesting
 import androidx.annotation.WorkerThread
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -44,6 +43,7 @@ import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.Plugin.Companion.getPluginKey
 import org.kde.kdeconnect.plugins.PluginFactory
+import org.kde.kdeconnect.plugins.battery.DeviceBatteryInfo
 import org.kde.kdeconnect.ui.PairingActivity
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.component.KoinScopeComponent
@@ -70,6 +70,7 @@ class Device(
         deviceInfo = link?.deviceInfo ?: runBlocking { loadFromSettings(deviceSettings, deviceId) },
         pairStatus = if (link == null) PairState.Paired else PairState.NotPaired,
         isReachable = false,
+        batteryInfo = null,
         verificationKey = null,
         loadedPlugins = emptyMap(),
         pluginsWithoutPermissions = emptyMap(),
@@ -465,6 +466,10 @@ class Device(
         pluginsByIncomingInterface = newPluginsByIncomingInterface
     }
 
+    internal fun updateBatteryInfo(newInfo: DeviceBatteryInfo) {
+        updateState { it.copy(batteryInfo = newInfo) }
+    }
+
     fun close() {
         jobScope.cancel()
         scope.close()
@@ -490,6 +495,7 @@ data class DeviceState(
     val deviceInfo: DeviceInfo,
     val pairStatus: PairState,
     val isReachable: Boolean,
+    val batteryInfo: DeviceBatteryInfo?,
     val verificationKey: String?,
     val loadedPlugins: Map<String, Plugin>,
     val pluginsWithoutPermissions: Map<String, Plugin>,

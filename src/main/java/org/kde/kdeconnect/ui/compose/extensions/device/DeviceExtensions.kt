@@ -18,7 +18,8 @@ fun Device.toUiModel() = DeviceUiModel(
     name = name,
     summaryRes = if (compareProtocolVersion() > 0) R.string.protocol_version_newer else 0,
     isReachable = isReachable,
-    isPaired = isPaired
+    isPaired = isPaired,
+    batteryInfo = state.value.batteryInfo
 )
 
 fun DeviceState.toUiModel() = DeviceUiModel(
@@ -27,5 +28,6 @@ fun DeviceState.toUiModel() = DeviceUiModel(
     name = deviceInfo.name,
     summaryRes = 0,
     isReachable = isReachable,
-    isPaired = pairStatus == PairingHandler.PairState.Paired
+    isPaired = pairStatus == PairingHandler.PairState.Paired,
+    batteryInfo = batteryInfo
 )

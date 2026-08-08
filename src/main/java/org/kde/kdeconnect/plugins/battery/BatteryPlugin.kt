@@ -37,8 +37,6 @@ class BatteryPlugin(context: Context, device: Device) : Plugin(context, device) 
      *
      * @return the most recent packet received from the remote device. May be null
      */
-    private val _remoteBatteryInfo: MutableStateFlow<DeviceBatteryInfo?> = MutableStateFlow(null)
-    val remoteBatteryInfo: StateFlow<DeviceBatteryInfo?> = _remoteBatteryInfo.asStateFlow()
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     internal val receiver: BroadcastReceiver = object : BroadcastReceiver() {
@@ -109,7 +107,7 @@ class BatteryPlugin(context: Context, device: Device) : Plugin(context, device) 
         if (PACKET_TYPE_BATTERY != np.type) {
             return false
         }
-        _remoteBatteryInfo.value = DeviceBatteryInfo.fromPacket(np)
+        device.updateBatteryInfo(DeviceBatteryInfo.fromPacket(np))
         return true
     }
 

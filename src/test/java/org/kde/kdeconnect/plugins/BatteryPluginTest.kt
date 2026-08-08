@@ -11,7 +11,6 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert
@@ -21,6 +20,7 @@ import org.junit.runner.RunWith
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.battery.BatteryPlugin
+import org.kde.kdeconnect.plugins.battery.DeviceBatteryInfo
 
 @RunWith(AndroidJUnit4::class)
 class BatteryPluginTest {
@@ -32,7 +32,7 @@ class BatteryPluginTest {
     @Before
     fun setup() {
         context = ApplicationProvider.getApplicationContext<Application>()
-        device = mockk {
+        device = mockk(relaxed = true) {
             every { deviceId } returns "some_id"
             val packetSlot = slot<NetworkPacket>()
             coEvery { sendPacket(capture(packetSlot)) } answers {
@@ -249,13 +249,14 @@ class BatteryPluginTest {
         packet["isCharging"] = true
         packet["thresholdEvent"] = 0
 
+        val batteryInfoSlot = slot<DeviceBatteryInfo>()
+        every { device.updateBatteryInfo(capture(batteryInfoSlot)) } returns Unit
+
         runBlocking { batteryPlugin.onPacketReceived(packet) }
 
-        val batteryInfo = batteryPlugin.remoteBatteryInfo.value
-        checkNotNull(batteryInfo)
+        val batteryInfo = batteryInfoSlot.captured
         Assert.assertEquals(75, batteryInfo.currentCharge)
         Assert.assertEquals(true, batteryInfo.isCharging)
         Assert.assertEquals(0, batteryInfo.thresholdEvent)
-
     }
 }

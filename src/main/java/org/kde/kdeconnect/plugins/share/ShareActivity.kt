@@ -41,14 +41,13 @@ class ShareActivity : AppCompatActivity() {
     private var isRefreshing by mutableStateOf(value = false)
     private var uiDevices: StateFlow<List<DeviceUiModel>> = deviceManager.devices.map { devices ->
         devices.values
-            .filter { device -> device.isPaired && (intentHasUrl || device.isReachable) }
+            .filter { device -> device.isPaired && device.isReachable }
             .map { it.toUiModel() }
     }.stateIn(
         scope = lifecycleScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
-    private var intentHasUrl by mutableStateOf(value = false)
 
     private suspend fun refreshDevicesAction() {
         isRefreshing = true
@@ -78,7 +77,6 @@ class ShareActivity : AppCompatActivity() {
                 val devices by uiDevices.collectAsStateWithLifecycle()
                 ShareScreen(
                     devices = devices,
-                    intentHasUrl = intentHasUrl,
                     isRefreshing = isRefreshing,
                     onDeviceClick = { deviceId ->
                         val device = deviceManager.getDevice(id = deviceId) ?: return@ShareScreen

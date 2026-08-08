@@ -6,6 +6,7 @@
 
 package org.kde.kdeconnect.ui.compose.model.device
 
+import org.kde.kdeconnect.plugins.battery.DeviceBatteryInfo
 import org.kde.kdeconnect_tp.R
 
 data class DeviceUiModel(
@@ -14,5 +15,6 @@ data class DeviceUiModel(
     val name: String = "",
     val summaryRes: Int = 0,
     val isReachable: Boolean = false,
-    val isPaired: Boolean = false
+    val isPaired: Boolean = false,
+    val batteryInfo: DeviceBatteryInfo? = null
 )
