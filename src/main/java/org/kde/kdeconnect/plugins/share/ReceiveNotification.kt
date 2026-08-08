@@ -58,7 +58,7 @@ internal class ReceiveNotification(private val device: Device, private val conte
         )
 
         builder.addAction(
-            R.drawable.ic_reject_pairing_24dp,
+            R.drawable.cancel,
             context.getString(R.string.cancel),
             cancelPendingIntent
         )
@@ -90,7 +90,7 @@ internal class ReceiveNotification(private val device: Device, private val conte
 
     fun setFailed(message: String?) {
         setFinished(message)
-        builder.setSmallIcon(R.drawable.ic_error_outline_48dp)
+        builder.setSmallIcon(R.drawable.error)
             .setChannelId(NotificationHelper.Channels.FILETRANSFER_ERROR)
     }
 

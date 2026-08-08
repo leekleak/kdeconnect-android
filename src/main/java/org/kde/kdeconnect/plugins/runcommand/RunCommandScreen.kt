@@ -70,7 +70,7 @@ fun RunCommandScreen(
                     },
                 ) {
                     Icon(
-                        painterResource(R.drawable.ic_action_image_edit_24dp),
+                        painterResource(R.drawable.edit),
                         stringResource(R.string.add_command),
                         modifier = Modifier.size(20.dp)
                     )
@@ -81,7 +81,7 @@ fun RunCommandScreen(
         if (showDialog) {
             FancyDialog(
                 title = stringResource(R.string.add_command),
-                icon = painterResource(R.drawable.ic_action_image_edit_24dp),
+                icon = painterResource(R.drawable.edit),
                 content = {
                     Text(stringResource(R.string.add_command_description))
                 },
@@ -176,7 +176,7 @@ private fun OutputCard(
                         IconButton(onClick = onStopClick) {
                             CircularProgressIndicator()
                             Icon(
-                                painterResource(R.drawable.ic_stop),
+                                painterResource(R.drawable.stop),
                                 stringResource(R.string.runcommand_stop)
                             )
                         }

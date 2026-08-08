@@ -83,7 +83,7 @@ private fun DevicePairingScreenContent(
                 modifier = Modifier.padding(bottom = 8.dp)
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_key),
+                    painter = painterResource(id = R.drawable.key),
                     contentDescription = null,
                     modifier = Modifier.padding(end = 5.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant

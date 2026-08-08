@@ -139,7 +139,7 @@ private fun ActionButtons(
             list.add {
                 ActionIconTextButton(
                     textRes = R.string.report_bug,
-                    iconRes = R.drawable.ic_baseline_bug_report_24,
+                    iconRes = R.drawable.bug_report,
                     onClick = onReportBugClicked
                 )
             }
@@ -148,7 +148,7 @@ private fun ActionButtons(
             list.add {
                 ActionIconTextButton(
                     textRes = R.string.donate,
-                    iconRes = R.drawable.ic_baseline_attach_money_24,
+                    iconRes = R.drawable.attach_money,
                     onClick = onDonateClicked
                 )
             }
@@ -157,7 +157,7 @@ private fun ActionButtons(
             list.add {
                 ActionIconTextButton(
                     textRes = R.string.source_code,
-                    iconRes = R.drawable.ic_baseline_code_24,
+                    iconRes = R.drawable.code,
                     onClick = onSourceCodeClicked
                 )
             }
@@ -166,7 +166,7 @@ private fun ActionButtons(
         list.add {
             ActionIconTextButton(
                 textRes = R.string.licenses,
-                iconRes = R.drawable.ic_baseline_gavel_24,
+                iconRes = R.drawable.gavel,
                 onClick = onLicensesClicked
             )
         }
@@ -175,7 +175,7 @@ private fun ActionButtons(
             list.add {
                 ActionIconTextButton(
                     textRes = R.string.website,
-                    iconRes = R.drawable.ic_baseline_web_24,
+                    iconRes = R.drawable.web,
                     onClick = onWebsiteClicked
                 )
             }

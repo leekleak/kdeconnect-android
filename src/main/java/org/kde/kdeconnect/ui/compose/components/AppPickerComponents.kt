@@ -57,7 +57,7 @@ fun SearchField(textFieldState: TextFieldState) {
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Icon(
-            painter = painterResource(R.drawable.ic_search_24),
+            painter = painterResource(R.drawable.search),
             contentDescription = null
         )
         BasicTextField(

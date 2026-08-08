@@ -53,7 +53,7 @@ private fun DeviceErrorScreenContent(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                painter = painterResource(id = R.drawable.ic_error_outline_48dp),
+                painter = painterResource(id = R.drawable.error),
                 contentDescription = null,
                 colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onSurfaceVariant),
                 modifier = Modifier.padding(end = 8.dp)

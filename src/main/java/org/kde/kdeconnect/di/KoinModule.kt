@@ -215,7 +215,7 @@ val aboutModule = module {
                         }
                     }) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_arrow_upward_black_24dp),
+                            painter = painterResource(id = R.drawable.arrow_upward),
                             contentDescription = stringResource(R.string.scroll_to_top)
                         )
                     }
@@ -225,7 +225,7 @@ val aboutModule = module {
                         }
                     }) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_arrow_downward_black_24dp),
+                            painter = painterResource(id = R.drawable.arrow_downward),
                             contentDescription = stringResource(R.string.scroll_to_bottom)
                         )
                     }

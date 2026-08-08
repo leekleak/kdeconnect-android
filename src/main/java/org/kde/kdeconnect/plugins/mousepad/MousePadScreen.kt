@@ -111,7 +111,7 @@ fun MousePadScreen(
                     navigator.goTo(MousePadPluginSettingsKey)
                 }
             ) {
-                Icon(painterResource(R.drawable.ic_settings_24dp), stringResource(R.string.settings))
+                Icon(painterResource(R.drawable.settings), stringResource(R.string.settings))
             }
         }
     ) {
@@ -152,7 +152,7 @@ fun MousePadScreen(
                     }
                 },
             ) {
-                Icon(painterResource(R.drawable.ic_action_keyboard_24dp), stringResource(R.string.show_keyboard))
+                Icon(painterResource(R.drawable.keyboard), stringResource(R.string.show_keyboard))
             }
             FilledIconToggleButton(
                 modifier = Modifier.fillMaxHeight(),

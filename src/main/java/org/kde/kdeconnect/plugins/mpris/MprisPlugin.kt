@@ -275,7 +275,7 @@ class MprisPlugin(
                         val notificationManager = context.getSystemService<NotificationManager>()!!
                         val builder = NotificationCompat.Builder(context, NotificationHelper.Channels.CONTINUEWATCHING)
                             .setContentTitle(context.resources.getString(R.string.kde_connect))
-                            .setSmallIcon(R.drawable.ic_play_white)
+                            .setSmallIcon(R.drawable.play_arrow)
                             .setTimeoutAfter(3000)
                             .setContentIntent(pendingIntent)
                             .setContentText(context.resources.getString(R.string.mpris_keepwatching) + " " + playerStatus.title)

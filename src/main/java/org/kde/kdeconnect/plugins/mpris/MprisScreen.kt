@@ -177,7 +177,7 @@ fun PlayerIsland(viewModel: MprisViewModel) {
                 }
             },
             contentDescription = null,
-            error = painterResource(R.drawable.ic_album_art_placeholder),
+            error = painterResource(R.drawable.music_note),
             contentScale = ContentScale.Crop
         )
         Column {

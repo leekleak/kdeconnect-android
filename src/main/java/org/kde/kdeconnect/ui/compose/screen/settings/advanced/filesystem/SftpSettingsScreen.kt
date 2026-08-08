@@ -90,7 +90,7 @@ fun SftpSettingsScreen(
             item {
                 Preference(
                     title = stringResource(R.string.sftp_preference_add_storage_location_title),
-                    icon = painterResource(R.drawable.ic_add),
+                    icon = painterResource(R.drawable.add),
                     onClick = { launcher.launch(null) }
                 )
             }

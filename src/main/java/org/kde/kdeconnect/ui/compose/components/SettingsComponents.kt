@@ -748,7 +748,7 @@ fun NotificationTogglePreferencePreview() {
     NotificationTogglePreference(
         modifier = Modifier.width(150.dp),
         title = "Send",
-        icon = painterResource(R.drawable.ic_arrow_upward_black_24dp),
+        icon = painterResource(R.drawable.arrow_upward),
         value = true
     ) { }
 }

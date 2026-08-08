@@ -127,7 +127,7 @@ fun DigitizerScreen(
                         },
                     containerColor = if (buttonPressed) androidx.compose.material3.FloatingActionButtonDefaults.containerColor else androidx.compose.material3.MaterialTheme.colorScheme.primaryContainer
                 ) {
-                    Icon(painterResource(R.drawable.ic_draw_24dp), null)
+                    Icon(painterResource(R.drawable.draw), null)
                 }
             }
         }

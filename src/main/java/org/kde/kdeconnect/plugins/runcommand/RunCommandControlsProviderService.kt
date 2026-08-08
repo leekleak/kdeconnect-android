@@ -50,7 +50,7 @@ class RunCommandControlsProviderService : ControlsProviderService() {
                     .setTitle(commandEntry.command.name)
                     .setSubtitle(commandEntry.command.command)
                     .setStructure(commandEntry.device.name)
-                    .setCustomIcon(Icon.createWithResource(this@RunCommandControlsProviderService, R.drawable.run_command_plugin_icon_24dp))
+                    .setCustomIcon(Icon.createWithResource(this@RunCommandControlsProviderService, R.drawable.code))
                     .build())
             }
         }.asPublisher()
@@ -161,7 +161,7 @@ class RunCommandControlsProviderService : ControlsProviderService() {
                 .setStructure(commandEntry.device.name)
                 .setControlTemplate(StatelessTemplate(commandEntry.command.key))
                 .setDeviceType(DeviceTypes.TYPE_ROUTINE)
-                .setCustomIcon(Icon.createWithResource(this, R.drawable.run_command_plugin_icon_24dp))
+                .setCustomIcon(Icon.createWithResource(this, R.drawable.code))
     }
 
     private fun getIntent(device: Device?): PendingIntent {

@@ -18,7 +18,7 @@ import org.kde.kdeconnect_tp.R
 internal class UploadNotification(private val device: Device, private val context: Context, private val jobId: Long) {
     private val notificationManager: NotificationManager? = ContextCompat.getSystemService(context, NotificationManager::class.java)
     private var builder: NotificationCompat.Builder = NotificationCompat.Builder(context, NotificationHelper.Channels.FILETRANSFER_UPLOAD)
-        .setSmallIcon(R.drawable.ic_arrow_upward_black_24dp)
+        .setSmallIcon(R.drawable.arrow_upward)
         .setAutoCancel(true)
         .setOngoing(true)
         .setProgress(100, 0, true)
@@ -42,7 +42,7 @@ internal class UploadNotification(private val device: Device, private val contex
         )
 
         builder.addAction(
-            R.drawable.ic_reject_pairing_24dp,
+            R.drawable.cancel,
             context.getString(R.string.cancel),
             cancelPendingIntent
         )
@@ -73,7 +73,7 @@ internal class UploadNotification(private val device: Device, private val contex
 
     fun setFailed(message: String?) {
         setFinished(message)
-        builder.setSmallIcon(R.drawable.ic_error_outline_48dp)
+        builder.setSmallIcon(R.drawable.error)
             .setChannelId(NotificationHelper.Channels.FILETRANSFER_ERROR)
     }
 

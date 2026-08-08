@@ -61,6 +61,6 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
         android:paddingStart="8dip"
         android:text="@string/runcommand_notreachable"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:drawableStart="@drawable/ic_error_outline_48dp"
+        android:drawableStart="@drawable/error"
         tools:ignore="UseCompatTextViewDrawableXml" />  <!-- can't use app:drawableStart in RemoteView -->
 </LinearLayout>

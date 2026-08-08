@@ -65,7 +65,7 @@ fun PairingScreen(
                 onClick = { navigator.goTo(SettingsKey) }
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_settings_24dp),
+                    painter = painterResource(R.drawable.settings),
                     contentDescription = stringResource(id = R.string.open)
                 )
             }
@@ -152,13 +152,13 @@ private fun PairingExplanations(uiState: PairingUiState) {
             } else {
                 PairingExplanationRow(
                     text = stringResource(R.string.on_non_trusted_message),
-                    icon = R.drawable.ic_warning
+                    icon = R.drawable.warning
                 )
             }
         } else {
             PairingExplanationRow(
                 text = stringResource(R.string.no_wifi),
-                icon = R.drawable.ic_wifi,
+                icon = R.drawable.wifi,
             )
         }
     }
@@ -192,7 +192,7 @@ fun PairingExplanationRow(
 fun DuplicateNamesWarning() {
     PairingExplanationRow(
         text = stringResource(id = R.string.pairing_duplicate_names),
-        icon = R.drawable.ic_warning,
+        icon = R.drawable.warning,
     )
 }
 

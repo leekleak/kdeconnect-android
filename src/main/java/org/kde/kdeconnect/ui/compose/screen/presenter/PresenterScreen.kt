@@ -133,7 +133,7 @@ fun PresenterScreen(
                 onClick = { navigator.goTo(PresenterPluginSettingsKey) }
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_settings_24dp),
+                    painter = painterResource(R.drawable.settings),
                     contentDescription = stringResource(id = R.string.open)
                 )
             }

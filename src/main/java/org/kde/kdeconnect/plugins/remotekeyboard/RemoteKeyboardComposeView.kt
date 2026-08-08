@@ -44,7 +44,7 @@ fun RemoteKeyboardContent(
             }
             IconButton({ onKeyPress(KeyboardAction.SETTINGS) }) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_settings_24dp),
+                    painter = painterResource(R.drawable.settings),
                     contentDescription = stringResource(R.string.settings),
                     tint = tint
                 )

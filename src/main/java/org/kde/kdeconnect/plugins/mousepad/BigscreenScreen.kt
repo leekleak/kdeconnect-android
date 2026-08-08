@@ -201,20 +201,20 @@ private fun BigscreenContent(
                 BigscreenButton(
                     onClick = onBackClick,
                     shape = RoundedCornerShape(16.dp, 8.dp, 8.dp, 16.dp),
-                    iconRes = R.drawable.ic_arrow_back_black_24dp,
+                    iconRes = R.drawable.arrow_back_ios_new,
                     contentDescription = R.string.bigscreen_back,
                 )
                 BigscreenButton(
                     onClick = onHomeClick,
                     shape = RoundedCornerShape(8.dp),
                     colors = IconButtonDefaults.filledIconButtonColors(),
-                    iconRes = R.drawable.ic_home_black_24dp,
+                    iconRes = R.drawable.home,
                     contentDescription = R.string.bigscreen_home,
                 )
                 BigscreenButton(
                     onClick = onMicClick,
                     shape = RoundedCornerShape(8.dp, 16.dp, 16.dp, 8.dp),
-                    iconRes = R.drawable.ic_mic_black,
+                    iconRes = R.drawable.mic,
                     contentDescription = R.string.bigscreen_mic,
                 )
             }

@@ -71,7 +71,7 @@ private fun ManualDeviceComponent(
                 }
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_add),
+                    painter = painterResource(R.drawable.add),
                     contentDescription = stringResource(R.string.add)
                 )
             }
@@ -136,7 +136,7 @@ private fun ColumnScope.WhitelistComponent(
                                 }
                             ) {
                                 Icon(
-                                    painter = painterResource(R.drawable.ic_add),
+                                    painter = painterResource(R.drawable.add),
                                     contentDescription = stringResource(R.string.add)
                                 )
                             }
@@ -189,7 +189,7 @@ private fun CustomDeviceItem(
         controls = {
             IconButton(onClick = onDelete) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_delete),
+                    painter = painterResource(R.drawable.delete),
                     contentDescription = stringResource(R.string.delete)
                 )
             }

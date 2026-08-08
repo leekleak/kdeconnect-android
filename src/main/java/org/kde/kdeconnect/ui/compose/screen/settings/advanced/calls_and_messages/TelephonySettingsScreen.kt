@@ -180,7 +180,7 @@ private fun BlockedNumberComponent(
                 }
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_add),
+                    painter = painterResource(R.drawable.add),
                     contentDescription = stringResource(R.string.add)
                 )
             }

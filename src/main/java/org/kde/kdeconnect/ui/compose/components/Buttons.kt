@@ -66,6 +66,6 @@ fun IconButtonPreview() {
         modifier = Modifier.width(120.dp),
         colors = ButtonDefaults.buttonColors(Color.Gray, Color.DarkGray),
         text = "Button Text",
-        icon = painterResource(R.drawable.ic_baseline_bug_report_24),
+        icon = painterResource(R.drawable.bug_report),
     )
 }
