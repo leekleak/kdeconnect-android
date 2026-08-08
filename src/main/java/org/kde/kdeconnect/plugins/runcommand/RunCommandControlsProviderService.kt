@@ -115,7 +115,7 @@ class RunCommandControlsProviderService : ControlsProviderService() {
     private suspend fun getAllCommandsList(): List<CommandEntryWithDevice> {
         val commandList = mutableListOf<CommandEntryWithDevice>()
 
-        for (device in deviceManager.devices.values) {
+        for (device in deviceManager.devices.value.values) {
             if (!device.isReachable) {
                 commandList.addAll(getSavedCommandsList(device))
                 continue

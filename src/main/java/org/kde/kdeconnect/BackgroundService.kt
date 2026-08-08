@@ -62,10 +62,10 @@ class BackgroundService : Service() {
 
     private val linkProviders = mutableListOf<BaseLinkProvider>()
 
-    fun updateForegroundNotification() {
+    fun updateForegroundNotification(devices: Map<String, Device>) {
         // Update the foreground notification with the currently connected device list
         val notificationManager = getSystemService<NotificationManager>()
-        notificationManager?.notify(FOREGROUND_NOTIFICATION_ID, createForegroundNotification())
+        notificationManager?.notify(FOREGROUND_NOTIFICATION_ID, createForegroundNotification(devices))
     }
 
     private fun registerLinkProviders() {
@@ -99,7 +99,11 @@ class BackgroundService : Service() {
         Log.d("KdeConnect/BgService", "onCreate")
         instance = this
 
-        deviceManager.addDeviceListChangedCallback("BackgroundService", this::updateForegroundNotification)
+        serviceScope.launch {
+            deviceManager.devices.collect { devices ->
+                updateForegroundNotification(devices)
+            }
+        }
 
         // Register screen on listener
         val filter = IntentFilter(Intent.ACTION_SCREEN_ON)
@@ -137,12 +141,12 @@ class BackgroundService : Service() {
         }
     }
 
-    private fun createForegroundNotification(): Notification {
+    private fun createForegroundNotification(devices: Map<String, Device>): Notification {
         // Why is this needed: https://developer.android.com/guide/components/services#Foreground
 
         val connectedDevices = mutableListOf<String>()
         val connectedDeviceIds = mutableListOf<String>()
-        for (device in deviceManager.devices.values) {
+        for (device in devices.values) {
             if (device.isReachable && device.isPaired) {
                 connectedDeviceIds.add(device.deviceId)
                 connectedDevices.add(device.name)
@@ -190,7 +194,6 @@ class BackgroundService : Service() {
             linkProvider.onStop()
         }
         serviceScope.cancel()
-        deviceManager.removeDeviceListChangedCallback("BackgroundService")
         super.onDestroy()
     }
 
@@ -207,14 +210,14 @@ class BackgroundService : Service() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             try {
-                startForeground(FOREGROUND_NOTIFICATION_ID, createForegroundNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE)
+                startForeground(FOREGROUND_NOTIFICATION_ID, createForegroundNotification(emptyMap()), ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE)
             } catch (e: IllegalStateException) { // To catch ForegroundServiceStartNotAllowedException
                 Log.w("BackgroundService", "Couldn't startForeground", e)
                 return START_STICKY
             }
         }
         else {
-            startForeground(FOREGROUND_NOTIFICATION_ID, createForegroundNotification())
+            startForeground(FOREGROUND_NOTIFICATION_ID, createForegroundNotification(emptyMap()))
         }
         if (intent != null && intent.getBooleanExtra("refresh", false)) {
             runBlocking { onNetworkChange(null) }

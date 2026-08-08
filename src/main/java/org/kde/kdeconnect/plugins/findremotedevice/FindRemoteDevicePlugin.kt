@@ -32,6 +32,7 @@ class FindRemoteDevicePlugin(context: Context, device: Device) : Plugin(context,
 }
 
 object FindRemoteDevicePluginInfo: PluginInfo(
+    pluginKey = "FindRemoteDevicePlugin",
     instantiableClass = FindRemoteDevicePlugin::class.java,
     displayNameRes = R.string.pref_plugin_findremotedevice,
     descriptionRes = R.string.pref_plugin_findremotedevice_desc,

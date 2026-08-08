@@ -56,8 +56,8 @@ abstract class Plugin(
      * unique key to distinguish it.
      * Use the class name as `key`.
      */
-    val pluginKey: String = getPluginKey(this.javaClass)
-    val deviceId: String = device.deviceId
+    val pluginKey: String get() = pluginInfo.pluginKey
+    val deviceId: String get() = device.deviceId
 
     @get:CallSuper
     open val isCompatible: Boolean

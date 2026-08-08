@@ -78,6 +78,7 @@ class DigitizerPlugin(context: Context, device: Device) : Plugin(context, device
 }
 
 object DigitizerPluginInfo: PluginInfo(
+    pluginKey = "DigitizerPlugin",
     instantiableClass = DigitizerPlugin::class.java,
     displayNameRes = R.string.pref_plugin_digitizer,
     descriptionRes = R.string.pref_plugin_digitizer_desc,

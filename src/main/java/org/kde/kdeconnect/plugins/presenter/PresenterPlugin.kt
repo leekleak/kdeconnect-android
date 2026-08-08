@@ -21,6 +21,7 @@ import org.kde.kdeconnect_tp.R
 import org.koin.java.KoinJavaComponent.inject
 
 object PresenterPluginInfo : PluginInfo(
+    pluginKey = "PresenterPlugin",
     instantiableClass = PresenterPlugin::class.java,
     displayNameRes = R.string.pref_plugin_presenter,
     descriptionRes = R.string.pref_plugin_presenter_desc,

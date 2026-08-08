@@ -127,6 +127,7 @@ class BatteryPlugin(context: Context, device: Device) : Plugin(context, device) 
 }
 
 object BatteryPluginInfo : PluginInfo(
+    pluginKey = "BatteryPlugin",
     displayNameRes = R.string.pref_plugin_battery,
     descriptionRes = R.string.pref_plugin_battery_desc,
     supportedPacketTypes = arrayOf(PACKET_TYPE_BATTERY),

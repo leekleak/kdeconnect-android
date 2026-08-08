@@ -148,6 +148,7 @@ class ClipboardPlugin(context: Context, device: Device) : Plugin(context, device
 }
 
 object ClipboardPluginInfo: PluginInfo(
+    pluginKey = "ClipboardPlugin",
     displayNameRes = R.string.pref_plugin_clipboard,
     descriptionRes = R.string.pref_plugin_clipboard_desc,
     supportedPacketTypes = arrayOf(PACKET_TYPE_CLIPBOARD, PACKET_TYPE_CLIPBOARD_CONNECT),

@@ -7,6 +7,7 @@ import org.kde.kdeconnect.plugins.runcommand.RunCommandPlugin.Companion.PACKET_T
 import org.kde.kdeconnect_tp.R
 
 object RunCommandPluginInfo : PluginInfo(
+    pluginKey = "RunCommandPlugin",
     instantiableClass = RunCommandPlugin::class.java,
     displayNameRes = R.string.pref_plugin_runcommand,
     descriptionRes = R.string.pref_plugin_runcommand_desc,

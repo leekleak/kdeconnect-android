@@ -122,6 +122,7 @@ class MouseReceiverPlugin(
 }
 
 object MouseReceiverPluginInfo : PluginInfo(
+    pluginKey = "MouseReceiverPlugin",
     instantiableClass = MouseReceiverPlugin::class.java,
     displayNameRes = R.string.mouse_receiver_plugin_name,
     descriptionRes = R.string.mouse_receiver_plugin_description,

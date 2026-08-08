@@ -9,16 +9,20 @@ package org.kde.kdeconnect.plugins.share
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.webkit.URLUtil
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.BackgroundService
 import org.kde.kdeconnect.Device
@@ -35,7 +39,15 @@ class ShareActivity : AppCompatActivity() {
     private val deviceManager: DeviceManager by inject()
 
     private var isRefreshing by mutableStateOf(value = false)
-    private var uiDevices by mutableStateOf<List<DeviceUiModel>>(value = emptyList())
+    private var uiDevices: StateFlow<List<DeviceUiModel>> = deviceManager.devices.map { devices ->
+        devices.values
+            .filter { device -> device.isPaired && (intentHasUrl || device.isReachable) }
+            .map { it.toUiModel() }
+    }.stateIn(
+        scope = lifecycleScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
     private var intentHasUrl by mutableStateOf(value = false)
 
     private suspend fun refreshDevicesAction() {
@@ -44,20 +56,6 @@ class ShareActivity : AppCompatActivity() {
         BackgroundService.forceRefreshConnections(context = this)
         delay(1500.milliseconds)
         isRefreshing = false
-    }
-
-    private fun updateDeviceList() {
-        val intent = intent
-        val action = intent.action
-        if (Intent.ACTION_SEND != action && Intent.ACTION_SEND_MULTIPLE != action) {
-            finish()
-            return
-        }
-        val devices = deviceManager.devices.values.filter { it.isReachable }
-        this.intentHasUrl = doesIntentContainUrl(intent)
-        this.uiDevices = devices
-            .filter { device -> device.isPaired && (intentHasUrl || device.isReachable) }
-            .map { it.toUiModel() }
     }
 
     private fun deviceClicked(
@@ -71,22 +69,15 @@ class ShareActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun doesIntentContainUrl(intent: Intent?): Boolean {
-        intent?.extras?.let { extras ->
-            val url = extras.getString(Intent.EXTRA_TEXT)
-            return URLUtil.isHttpUrl(url) || URLUtil.isHttpsUrl(url)
-        }
-        return false
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
             KdeTheme {
                 val scope = rememberCoroutineScope()
+                val devices by uiDevices.collectAsStateWithLifecycle()
                 ShareScreen(
-                    devices = uiDevices,
+                    devices = devices,
                     intentHasUrl = intentHasUrl,
                     isRefreshing = isRefreshing,
                     onDeviceClick = { deviceId ->
@@ -112,6 +103,12 @@ class ShareActivity : AppCompatActivity() {
             deviceId = intent.getStringExtra(Intent.EXTRA_SHORTCUT_ID)
         }
 
+        val action = intent.action
+        if (Intent.ACTION_SEND != action && Intent.ACTION_SEND_MULTIPLE != action) {
+            finish()
+            return
+        }
+
         if (deviceId != null) {
             val plugin: SharePlugin? = deviceManager.getDevicePlugin(deviceId, SharePlugin::class.java)
             lifecycleScope.launch {
@@ -120,16 +117,11 @@ class ShareActivity : AppCompatActivity() {
             finish()
         } else {
             Toast.makeText(this, R.string.could_not_find_device, Toast.LENGTH_LONG).show()
-            deviceManager.addDeviceListChangedCallback(key = "ShareActivity") {
-                runOnUiThread { updateDeviceList() }
-            }
             BackgroundService.forceRefreshConnections(context = this) // force a network re-discover
-            updateDeviceList()
         }
     }
 
     override fun onStop() {
-        deviceManager.removeDeviceListChangedCallback(key = "ShareActivity")
         super.onStop()
     }
 }

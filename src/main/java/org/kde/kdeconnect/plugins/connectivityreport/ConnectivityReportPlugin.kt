@@ -87,6 +87,7 @@ class ConnectivityReportPlugin(context: Context, device: Device) : Plugin(contex
 }
 
 object ConnectivityReportPluginInfo : PluginInfo(
+    pluginKey = "ConnectivityReportPlugin",
     instantiableClass = ConnectivityReportPlugin::class.java,
     displayNameRes = R.string.pref_plugin_connectivity_report,
     descriptionRes = R.string.pref_plugin_connectivity_report_desc,

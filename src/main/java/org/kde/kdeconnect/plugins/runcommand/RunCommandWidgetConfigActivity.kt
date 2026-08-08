@@ -44,7 +44,7 @@ class RunCommandWidgetConfigActivity : AppCompatActivity() {
         val binding = WidgetRemoteCommandPluginDialogBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val pairedDevices = deviceManager.devices.values.asSequence().filter(Device::isPaired).toList()
+        val pairedDevices = deviceManager.devices.value.values.filter(Device::isPaired)
 
         val list = ListAdapter(this, pairedDevices.map { DeviceItem(it, ::deviceClicked) })
         binding.runCommandsDeviceList.adapter = list

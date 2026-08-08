@@ -10,6 +10,7 @@ import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.annotation.DrawableRes
+import androidx.annotation.VisibleForTesting
 import androidx.annotation.WorkerThread
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -91,6 +92,7 @@ class Device(
     val deviceType: DeviceType get() = deviceInfo.type
     val protocolVersion: Int get() = deviceInfo.protocolVersion
 
+    @VisibleForTesting
     private var pairingHandler: PairingHandler = PairingHandler(
         device = this,
         sslHelper = sslHelper,

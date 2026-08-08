@@ -23,7 +23,7 @@ class ClipboardTileService : TileService() {
         TileServiceCompat.startActivityAndCollapse(this, PendingIntentActivityWrapper(
             this, 0, Intent(this, ClipboardFloatingActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-                val ids = deviceManager.devices.values
+                val ids = deviceManager.devices.value.values
                     .asSequence()
                     .filter { it.isReachable && it.isPaired }
                     .map { it.deviceId }

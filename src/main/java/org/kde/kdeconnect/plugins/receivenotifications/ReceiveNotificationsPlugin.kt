@@ -98,6 +98,7 @@ class ReceiveNotificationsPlugin(context: Context, device: Device) : Plugin(cont
 }
 
 object ReceiveNotificationsPluginInfo : PluginInfo(
+    pluginKey = "ReceiveNotificationsPlugin",
     instantiableClass = ReceiveNotificationsPlugin::class.java,
     displayNameRes = R.string.pref_plugin_receive_notifications,
     descriptionRes = R.string.pref_plugin_receive_notifications_desc,
@@ -108,6 +109,4 @@ object ReceiveNotificationsPluginInfo : PluginInfo(
     },
     supportedPacketTypes = arrayOf(PACKET_TYPE_NOTIFICATION),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_NOTIFICATION_REQUEST),
-) {
-    //override val permissionExplanation: Int = R.string.receive_notifications_permission_explanation
-}
+)

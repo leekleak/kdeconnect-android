@@ -6,12 +6,12 @@ import android.content.pm.PackageManager
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import org.kde.kdeconnect.helpers.PermissionRequestHelper
-import org.kde.kdeconnect.plugins.Plugin.Companion.getPluginKey
 import org.kde.kdeconnect.ui.PermissionExplanationActivity
 import org.kde.kdeconnect.ui.PermissionRequest
 import org.kde.kdeconnect_tp.R
 
 open class PluginInfo(
+    val pluginKey: String,
     val instantiableClass: Class<out Plugin>,
     @StringRes val displayNameRes: Int,
     @StringRes val descriptionRes: Int,
@@ -20,7 +20,6 @@ open class PluginInfo(
     supportedPacketTypes: Array<String> = emptyArray(),
     outgoingPacketTypes: Array<String> = emptyArray(),
 ) {
-    val pluginKey: String = getPluginKey(instantiableClass)
     open fun getDisplayName(context: Context): String = context.getString(displayNameRes)
     open fun getDescription(context: Context): String = context.getString(descriptionRes)
     val supportedPacketTypes: Set<String> = supportedPacketTypes.toSet()

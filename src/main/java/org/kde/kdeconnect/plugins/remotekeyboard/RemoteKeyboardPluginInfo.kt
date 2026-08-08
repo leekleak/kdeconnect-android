@@ -12,6 +12,7 @@ import org.kde.kdeconnect_tp.R
 
 
 object RemoteKeyboardPluginInfo : PluginInfo(
+    pluginKey = "RemoteKeyboardPlugin",
     instantiableClass = RemoteKeyboardPlugin::class.java,
     displayNameRes = R.string.pref_plugin_remotekeyboard,
     descriptionRes = R.string.pref_plugin_remotekeyboard_desc,

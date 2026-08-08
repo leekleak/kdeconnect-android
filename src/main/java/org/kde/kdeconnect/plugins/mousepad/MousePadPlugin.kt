@@ -171,6 +171,7 @@ class MousePadPlugin(
 
 
 object MousePadPluginSettings: PluginInfo(
+    pluginKey = "MousePadPlugin",
     instantiableClass = MousePadPlugin::class.java,
     displayNameRes = R.string.pref_plugin_mousepad,
     descriptionRes = R.string.pref_plugin_mousepad_desc_nontv,

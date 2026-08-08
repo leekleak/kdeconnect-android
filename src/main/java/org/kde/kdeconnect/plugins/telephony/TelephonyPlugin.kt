@@ -216,14 +216,11 @@ class TelephonyPlugin(
 }
 
 object TelephonyPluginInfo : PluginInfo(
+    pluginKey = "TelephonyPlugin",
     instantiableClass = TelephonyPlugin::class.java,
     displayNameRes = R.string.pref_plugin_telephony,
     descriptionRes = R.string.pref_plugin_telephony_desc,
     requiredPermissions = arrayOf(READ_PHONE_STATE, READ_CALL_LOG, READ_CONTACTS),
     supportedPacketTypes = arrayOf(PACKET_TYPE_TELEPHONY_REQUEST_MUTE),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_TELEPHONY),
-) {
-    //override val permissionExplanation: Int = R.string.telephony_permission_explanation
-
-    //override val optionalPermissionExplanation: Int = R.string.telephony_optional_permission_explanation
-}
+)

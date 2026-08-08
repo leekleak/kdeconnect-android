@@ -138,6 +138,7 @@ class InputDevicesReceiverPlugin(
 }
 
 object InputDevicesReceiverPluginInfo : PluginInfo(
+    pluginKey = "InputDevicesReceiverPlugin",
     instantiableClass = InputDevicesReceiverPlugin::class.java,
     displayNameRes = R.string.pref_plugin_inputdevicesreceiver,
     descriptionRes = R.string.pref_plugin_inputdevicesreceiver_desc,

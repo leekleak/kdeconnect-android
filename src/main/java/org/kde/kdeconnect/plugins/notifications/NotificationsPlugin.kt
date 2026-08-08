@@ -52,6 +52,7 @@ import java.security.MessageDigest
 import java.util.Locale
 
 object NotificationsPluginInfo: PluginInfo(
+    pluginKey = "NotificationsPlugin",
     instantiableClass = NotificationsPlugin::class.java,
     displayNameRes = R.string.pref_plugin_notifications,
     descriptionRes = R.string.pref_plugin_notifications_desc,

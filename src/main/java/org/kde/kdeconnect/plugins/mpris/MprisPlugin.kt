@@ -91,7 +91,7 @@ class MprisPlugin(
     private val mprisMediaSession: MprisMediaSession,
     private val videoUrlsHelper: VideoUrlsHelper
 ) : Plugin(context, device) {
-    override val pluginInfo: PluginInfo = MprisPluginSettings
+    override val pluginInfo: PluginInfo = MprisPluginInfo
 
     private val _players = MutableStateFlow<Map<String, MprisPlayerState>>(emptyMap())
     val players: StateFlow<Map<String, MprisPlayerState>> = _players.asStateFlow()
@@ -441,7 +441,8 @@ class MprisPlugin(
     }
 }
 
-object MprisPluginSettings: PluginInfo(
+object MprisPluginInfo: PluginInfo(
+    pluginKey = "MprisPluginInfo",
     instantiableClass = MprisPlugin::class.java,
     displayNameRes = R.string.pref_plugin_mpris,
     descriptionRes = R.string.pref_plugin_mpris_desc,
@@ -452,6 +453,4 @@ object MprisPluginSettings: PluginInfo(
     },
     supportedPacketTypes = arrayOf(MprisPlugin.PACKET_TYPE_MPRIS),
     outgoingPacketTypes = arrayOf(MprisPlugin.PACKET_TYPE_MPRIS_REQUEST),
-) {
-    //override val optionalPermissionExplanation: Int = R.string.mpris_notifications_explanation
-}
+)

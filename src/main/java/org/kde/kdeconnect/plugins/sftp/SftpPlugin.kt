@@ -226,6 +226,7 @@ class SftpPlugin(
 }
 
 object SftpPluginInfo : PluginInfo(
+    pluginKey = "SftpPlugin",
     instantiableClass = SftpPlugin::class.java,
     displayNameRes = R.string.pref_plugin_sftp,
     descriptionRes = R.string.pref_plugin_sftp_desc,

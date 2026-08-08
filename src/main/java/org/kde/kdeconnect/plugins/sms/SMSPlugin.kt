@@ -538,6 +538,7 @@ class SMSPlugin(
 }
 
 object SMSPluginInfo : PluginInfo(
+    pluginKey = "SMSPlugin",
     instantiableClass = SMSPlugin::class.java,
     displayNameRes = R.string.pref_plugin_telepathy,
     descriptionRes = R.string.pref_plugin_telepathy_desc,

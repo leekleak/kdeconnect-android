@@ -21,6 +21,7 @@ import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin.Companion.PACK
 import org.kde.kdeconnect_tp.R
 
 object SystemVolumePluginInfo : PluginInfo(
+    pluginKey = "SystemVolumePlugin",
     instantiableClass = SystemVolumePlugin::class.java,
     displayNameRes = R.string.pref_plugin_systemvolume,
     descriptionRes = R.string.pref_plugin_systemvolume_desc,

@@ -6,6 +6,7 @@ import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect_tp.R
 
 object SharePluginInfo : PluginInfo(
+    pluginKey = "SharePlugin",
     instantiableClass = SharePlugin::class.java,
     displayNameRes = R.string.pref_plugin_sharereceiver,
     descriptionRes = R.string.pref_plugin_sharereceiver_desc,
@@ -18,11 +19,4 @@ object SharePluginInfo : PluginInfo(
     } else {
         arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
     }
-) {
-//    override val optionalPermissionExplanation: Int
-//        get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-//            R.string.share_notifications_explanation
-//        } else {
-//            R.string.share_optional_permission_explanation
-//        }
-}
+)

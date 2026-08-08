@@ -18,11 +18,13 @@ import android.widget.RemoteViews
 import androidx.core.net.toUri
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
-import kotlinx.coroutines.launch
 import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
 import org.kde.kdeconnect_tp.BuildConfig
 import org.kde.kdeconnect_tp.R
@@ -36,10 +38,11 @@ const val TARGET_DEVICE = "TARGET_DEVICE"
 class RunCommandWidgetProvider : AppWidgetProvider(), KoinComponent {
     private val runCommandSettingsDataStore: RunCommandSettingsDataStore by inject()
     private val deviceManager: DeviceManager by inject()
+    val providerScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         for (appWidgetId in appWidgetIds) {
-            CoroutineScope(Dispatchers.IO).launch {
+            providerScope.launch {
                 updateAppWidget(context, appWidgetManager, appWidgetId, runCommandSettingsDataStore, deviceManager)
             }
         }
@@ -55,13 +58,15 @@ class RunCommandWidgetProvider : AppWidgetProvider(), KoinComponent {
 
     override fun onEnabled(context: Context) {
         super.onEnabled(context)
-        deviceManager.addDeviceListChangedCallback("RunCommandWidget") {
-            forceRefreshWidgets(context)
+        providerScope.launch {
+            deviceManager.devices.collect {
+                forceRefreshWidgets(context)
+            }
         }
     }
 
     override fun onDisabled(context: Context) {
-        deviceManager.removeDeviceListChangedCallback("RunCommandWidget")
+        providerScope.cancel()
         super.onDisabled(context)
     }
 

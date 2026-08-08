@@ -6,15 +6,12 @@
 
 package org.kde.kdeconnect.ui
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts.GetMultipleContents
@@ -37,8 +34,6 @@ import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -47,20 +42,17 @@ import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.plugins.mousepad.MousePadViewModel
+import org.kde.kdeconnect.plugins.mpris.MprisViewModel
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
 import org.kde.kdeconnect.ui.compose.KdeTheme
-import org.kde.kdeconnect.plugins.mpris.MprisViewModel
-import org.kde.kdeconnect.plugins.share.SharePlugin
 import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.DigitizerKey
 import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import org.kde.kdeconnect.ui.navigation.MousePadKey
 import org.kde.kdeconnect.ui.navigation.MprisKey
 import org.kde.kdeconnect.ui.navigation.Navigator
-import org.kde.kdeconnect.ui.navigation.PairingKey
 import org.kde.kdeconnect.ui.navigation.PresenterKey
 import org.kde.kdeconnect.ui.navigation.RunCommandKey
-import org.kde.kdeconnect.ui.navigation.SettingsKey
 import org.koin.android.ext.android.inject
 import org.koin.android.scope.AndroidScopeComponent
 import org.koin.androidx.scope.activityRetainedScope
@@ -69,8 +61,6 @@ import org.koin.compose.navigation3.koinEntryProvider
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.parameter.parametersOf
 import org.koin.core.scope.Scope
-
-private const val STORAGE_LOCATION_CONFIGURED = 2020
 
 class MainActivity : AppCompatActivity(), AndroidScopeComponent {
     override val scope: Scope by activityRetainedScope()
@@ -194,30 +184,11 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
         BackgroundService.start(applicationContext)
     }
 
-    override fun onStop() {
-        deviceManager.removeDeviceListChangedCallback(this::class.simpleName!!)
-        super.onStop()
-    }
-
-    @JvmOverloads
-    fun onDeviceSelected(deviceId: String?, fromDeviceList: Boolean = false) {
-        if (deviceId != null) {
-            mNavigator.goTo(DeviceKey(deviceId, fromDeviceList))
-        } else {
-            mNavigator.goTo(PairingKey)
-        }
-    }
-
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
             else -> super.onActivityResult(requestCode, resultCode, data)
         }
-    }
-
-    fun isPermissionGranted(permissions: Array<String>, grantResults: IntArray, permission : String) : Boolean {
-        val index = permissions.indexOf(permission)
-        return index != -1 && grantResults[index] == PackageManager.PERMISSION_GRANTED
     }
 
     var shareGetResultCallback: ((List<Uri>) -> Unit)? = null
@@ -232,11 +203,6 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
 
     companion object {
         const val EXTRA_DEVICE_ID = KdeConnectKeyConstants.EXTRA_DEVICE_ID
-        const val PAIR_REQUEST_STATUS = "pair_req_status"
-        const val PAIRING_ACCEPTED = "accepted"
-        const val PAIRING_REJECTED = "rejected"
-        const val PAIRING_PENDING = "pending"
-        const val RESULT_NEEDS_RELOAD = RESULT_FIRST_USER
         const val FLAG_FORCE_OVERVIEW = "forceOverview"
     }
 }

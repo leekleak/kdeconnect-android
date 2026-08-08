@@ -18,7 +18,7 @@ import org.kde.kdeconnect.plugins.findremotedevice.FindRemoteDevicePluginInfo
 import org.kde.kdeconnect.plugins.inputdevicesreceiver.InputDevicesReceiverPluginInfo
 import org.kde.kdeconnect.plugins.mousepad.MousePadPluginSettings
 import org.kde.kdeconnect.plugins.mousereceiver.MouseReceiverPluginInfo
-import org.kde.kdeconnect.plugins.mpris.MprisPluginSettings
+import org.kde.kdeconnect.plugins.mpris.MprisPluginInfo
 import org.kde.kdeconnect.plugins.mprisreceiver.MprisReceiverPluginInfo
 import org.kde.kdeconnect.plugins.notifications.NotificationsPluginInfo
 import org.kde.kdeconnect.plugins.presenter.PresenterPluginInfo
@@ -47,7 +47,7 @@ object PluginFactory {
         InputDevicesReceiverPluginInfo.pluginKey to InputDevicesReceiverPluginInfo,
         MousePadPluginSettings.pluginKey to MousePadPluginSettings,
         MouseReceiverPluginInfo.pluginKey to MouseReceiverPluginInfo,
-        MprisPluginSettings.pluginKey to MprisPluginSettings,
+        MprisPluginInfo.pluginKey to MprisPluginInfo,
         NotificationsPluginInfo.pluginKey to NotificationsPluginInfo,
         PresenterPluginInfo.pluginKey to PresenterPluginInfo,
         ReceiveNotificationsPluginInfo.pluginKey to ReceiveNotificationsPluginInfo,
