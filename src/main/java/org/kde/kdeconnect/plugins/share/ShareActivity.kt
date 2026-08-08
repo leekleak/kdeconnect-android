@@ -16,6 +16,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.delay
@@ -30,7 +32,7 @@ import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.compose.extensions.device.toUiModel
 import org.kde.kdeconnect.ui.compose.model.device.DeviceUiModel
-import org.kde.kdeconnect.ui.compose.screen.share.ShareScreen
+import org.kde.kdeconnect.ui.compose.screen.share.DeviceSelectScreen
 import org.kde.kdeconnect_tp.R
 import org.koin.android.ext.android.inject
 import kotlin.time.Duration.Companion.milliseconds
@@ -75,11 +77,14 @@ class ShareActivity : AppCompatActivity() {
             KdeTheme {
                 val scope = rememberCoroutineScope()
                 val devices by uiDevices.collectAsStateWithLifecycle()
-                ShareScreen(
+                DeviceSelectScreen(
                     devices = devices,
+                    pageTitle = stringResource(R.string.share),
+                    actionIcon = painterResource(R.drawable.share),
+                    actionDescription = stringResource(R.string.share),
                     isRefreshing = isRefreshing,
                     onDeviceClick = { deviceId ->
-                        val device = deviceManager.getDevice(id = deviceId) ?: return@ShareScreen
+                        val device = deviceManager.getDevice(id = deviceId) ?: return@DeviceSelectScreen
                         deviceClicked(device = device, intent = intent)
                     },
                     onRefresh = {

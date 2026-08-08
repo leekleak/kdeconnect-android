@@ -11,20 +11,48 @@ import android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_ID
 import android.content.Intent
 import android.os.Bundle
 import android.view.Window
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.kde.kdeconnect.BackgroundService
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
-import org.kde.kdeconnect.ui.list.DeviceItem
-import org.kde.kdeconnect.ui.list.ListAdapter
-import org.kde.kdeconnect_tp.databinding.WidgetRemoteCommandPluginDialogBinding
+import org.kde.kdeconnect.ui.compose.KdeTheme
+import org.kde.kdeconnect.ui.compose.extensions.device.toUiModel
+import org.kde.kdeconnect.ui.compose.model.device.DeviceUiModel
+import org.kde.kdeconnect.ui.compose.screen.share.DeviceSelectScreen
+import org.kde.kdeconnect_tp.R
 import org.koin.android.ext.android.inject
+import kotlin.time.Duration.Companion.milliseconds
 
 class RunCommandWidgetConfigActivity : AppCompatActivity() {
     private val deviceManager: DeviceManager by inject()
     private val runCommandSettingsDataStore: RunCommandSettingsDataStore by inject()
+
+    private var isRefreshing by mutableStateOf(value = false)
+    private var uiDevices: StateFlow<List<DeviceUiModel>> = deviceManager.devices.map { devices ->
+        devices.values
+            .filter { device -> device.isPaired && device.isReachable }
+            .map { it.toUiModel() }
+    }.stateIn(
+        scope = lifecycleScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
 
@@ -41,14 +69,29 @@ class RunCommandWidgetConfigActivity : AppCompatActivity() {
 
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
 
-        val binding = WidgetRemoteCommandPluginDialogBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        val pairedDevices = deviceManager.devices.value.values.filter(Device::isPaired)
-
-        val list = ListAdapter(this, pairedDevices.map { DeviceItem(it, ::deviceClicked) })
-        binding.runCommandsDeviceList.adapter = list
-        binding.runCommandsDeviceList.emptyView = binding.noDevices
+        setContent {
+            KdeTheme {
+                val scope = rememberCoroutineScope()
+                val devices by uiDevices.collectAsStateWithLifecycle()
+                DeviceSelectScreen(
+                    devices = devices,
+                    pageTitle = stringResource(R.string.select_device),
+                    actionIcon = painterResource(R.drawable.check_circle),
+                    actionDescription = stringResource(R.string.select),
+                    isRefreshing = isRefreshing,
+                    onDeviceClick = { deviceId ->
+                        val device =
+                            deviceManager.getDevice(id = deviceId) ?: return@DeviceSelectScreen
+                        deviceClicked(device = device)
+                    },
+                    onRefresh = {
+                        scope.launch {
+                            refreshDevicesAction()
+                        }
+                    },
+                )
+            }
+        }
     }
 
     fun deviceClicked(device: Device) {
@@ -64,6 +107,14 @@ class RunCommandWidgetConfigActivity : AppCompatActivity() {
             setResult(RESULT_OK, resultValue)
             finish()
         }
+    }
+
+    private suspend fun refreshDevicesAction() {
+        isRefreshing = true
+
+        BackgroundService.forceRefreshConnections(context = this)
+        delay(1500.milliseconds)
+        isRefreshing = false
     }
 }
 

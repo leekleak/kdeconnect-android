@@ -21,6 +21,7 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -32,22 +33,24 @@ import org.kde.kdeconnect_tp.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShareScreen(
+fun DeviceSelectScreen(
     devices: List<DeviceUiModel>,
+    pageTitle: String,
+    actionIcon: Painter,
+    actionDescription: String,
     isRefreshing: Boolean,
     onDeviceClick: (String) -> Unit,
     onRefresh: () -> Unit
 ) {
-    val state = rememberLazyListState()
-
     HazeScaffold(
-        title = stringResource(id = R.string.share),
+        title = pageTitle,
         scrollState = null,
-        backButton = true
+        backButton = false
     ) { paddingValues ->
-        ShareScreenContent(
+        DeviceSelectScreenContent(
             paddingValues = paddingValues,
-            state = state,
+            actionIcon = actionIcon,
+            actionDescription = actionDescription,
             isRefreshing = isRefreshing,
             devices = devices,
             onDeviceClick = onDeviceClick,
@@ -57,15 +60,17 @@ fun ShareScreen(
 }
 
 @Composable
-private fun ShareScreenContent(
+private fun DeviceSelectScreenContent(
     paddingValues: PaddingValues,
-    state: LazyListState,
+    actionIcon: Painter,
+    actionDescription: String,
     isRefreshing: Boolean,
     devices: List<DeviceUiModel>,
     onDeviceClick: (String) -> Unit,
     onRefresh: () -> Unit
 ) {
     val pullRefreshState = rememberPullToRefreshState()
+    val state = rememberLazyListState()
     PullToRefreshBox(
         isRefreshing = isRefreshing,
         onRefresh = onRefresh,
@@ -93,8 +98,8 @@ private fun ShareScreenContent(
             ) { device ->
                 DeviceCard(
                     device = device,
-                    actionIcon = painterResource(R.drawable.share),
-                    actionDescription = stringResource(R.string.share),
+                    actionIcon = actionIcon,
+                    actionDescription = actionDescription,
                     actionDescriptionVisible = true,
                     onClick = { onDeviceClick(device.id) }
                 )
@@ -106,9 +111,10 @@ private fun ShareScreenContent(
 @KdeThemePreviews
 @Composable
 private fun ShareScreenPreview() {
-    ShareScreenContent(
+    DeviceSelectScreenContent(
         paddingValues = PaddingValues(),
-        state = rememberLazyListState(),
+        actionIcon = painterResource(R.drawable.share),
+        actionDescription = stringResource(R.string.share),
         isRefreshing = false,
         devices = listOf(
             DeviceUiModel(
