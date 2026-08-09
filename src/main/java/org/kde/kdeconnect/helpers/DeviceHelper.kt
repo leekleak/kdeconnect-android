@@ -66,7 +66,7 @@ class DeviceHelper(
     fun getDeviceInfo(): DeviceInfo = runBlocking(Dispatchers.IO) {
         return@runBlocking DeviceInfo(
             getDeviceId(),
-            sslHelper.certificate,
+            sslHelper.certificate.encoded,
             getDeviceName(),
             deviceType,
             PROTOCOL_VERSION,

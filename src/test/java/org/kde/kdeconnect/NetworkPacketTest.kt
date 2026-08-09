@@ -46,7 +46,7 @@ class NetworkPacketTest {
     @Test
     fun testIdentity() {
         val cert = mockk<Certificate>()
-        val deviceInfo = DeviceInfo("myid", cert, "myname", DeviceType.TV, 12, setOf("ASDFG"), setOf("QWERTY"))
+        val deviceInfo = DeviceInfo("myid", ByteArray(0), "myname", DeviceType.TV, 12, setOf("ASDFG"), setOf("QWERTY"))
 
         val np = deviceInfo.toIdentityPacket()
 

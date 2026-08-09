@@ -26,12 +26,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import org.kde.kdeconnect.PairingHandler
+import org.kde.kdeconnect.DeviceInfo
+import org.kde.kdeconnect.DeviceState
+import org.kde.kdeconnect.DeviceType
+import org.kde.kdeconnect.PairingHandler.PairState
 import org.kde.kdeconnect.ui.compose.components.DeviceCard
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
 import org.kde.kdeconnect.ui.compose.components.PairingExplanations
-import org.kde.kdeconnect.ui.compose.model.device.DeviceUiModel
 import org.kde.kdeconnect_tp.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,7 +82,7 @@ fun HomeScreen(
                 ) {
                     itemsIndexed(
                         items = uiState.connected,
-                        key = { _, connectedDevice -> connectedDevice.id }) { _, connectedDevice ->
+                        key = { _, connectedDevice -> connectedDevice.deviceInfo.id }) { _, connectedDevice ->
                         Spacer(Modifier.height(4.dp))
                         DeviceCard(
                             device = connectedDevice,
@@ -131,21 +133,26 @@ private fun PreviewCompose() {
             wifiAvailable = true,
             trustedNetwork = true,
             connected = listOf(
-                DeviceUiModel(
-                    id = "_2504584b_6aa2_3cd6_bd1b_5e958aa6cd23_",
-                    icon = R.drawable.laptop_windows,
-                    name = "Device 1",
-                    summaryRes = 0,
-                    isReachable = true,
-                    pairState = PairingHandler.PairState.Paired
-                ), DeviceUiModel(
-                    id = "_2504584b_6aa2_3cd6_bd1b_5e958aa6cd24_",
-                    icon = R.drawable.desktop_windows,
-                    name = "Device 2",
-                    summaryRes = R.string.protocol_version_newer,
-                    isReachable = true,
-                    pairState = PairingHandler.PairState.Paired
-                )
+                DeviceState(
+                    deviceInfo = DeviceInfo(
+                        id = "_2504584b_6aa2_3cd6_bd1b_5e958aa6cd23_",
+                        certificate = ByteArray(0),
+                        name = "Device 1",
+                        type = DeviceType.LAPTOP
+                    ),
+                    pairStatus = PairState.Paired,
+                    isReachable = true
+                ),
+                DeviceState(
+                    deviceInfo = DeviceInfo(
+                        id = "_2504584b_6aa2_3cd6_bd1b_5e958aa6cd24_",
+                        certificate = ByteArray(0),
+                        name = "Device 2",
+                        type = DeviceType.DESKTOP
+                    ),
+                    pairStatus = PairState.Paired,
+                    isReachable = true
+                ),
             ),
             refreshing = false
         ),

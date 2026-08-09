@@ -20,7 +20,6 @@ import org.kde.kdeconnect.PairingHandler
 import org.kde.kdeconnect.ui.compose.components.DeviceCard
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.PairingExplanations
-import org.kde.kdeconnect.ui.compose.extensions.device.toUiModel
 import org.kde.kdeconnect_tp.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,11 +67,12 @@ fun PairingScreen(
                             else R.drawable.link
                         )
                         val actionDescription =
-                            if (device.pairStatus == PairingHandler.PairState.Requested) device.verificationKey ?: ""
+                            if (device.pairStatus == PairingHandler.PairState.Requested) device.verificationKey
+                                ?: ""
                             else stringResource(R.string.pair)
 
                         DeviceCard(
-                            device = device.toUiModel(),
+                            device = device,
                             actionIcon = actionIcon,
                             actionDescription = actionDescription,
                             actionDescriptionVisible = true,

@@ -18,7 +18,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import org.kde.kdeconnect.PairingHandler
 import org.kde.kdeconnect.ui.compose.components.BatteryComponent
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.IconHero
@@ -55,41 +54,25 @@ fun DeviceScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically)
         ) {
             val font = remember { googleSans(weight = 600f) }
-            val batteryInfo = uiState.batteryInfo
             IconHero(
                 backgroundSize = 164.dp,
                 iconSize = 88.dp,
-                icon = uiState.deviceUiModel.icon
+                icon = uiState.deviceInfo.type.toDrawableId()
             )
             Text(
-                text = uiState.deviceUiModel.name,
+                text = uiState.deviceInfo.name,
                 fontFamily = font,
                 fontSize = 32.sp
             )
-            batteryInfo?.let { BatteryComponent(it) }
+            uiState.batteryInfo?.let { BatteryComponent(it) }
         }
-        when (uiState.pairStatus) {
-            PairingHandler.PairState.NotPaired,
-            PairingHandler.PairState.Requested,
-            PairingHandler.PairState.RequestedByPeer -> {
-                DevicePairingScreen(
-                    pairStatus = uiState.pairStatus,
-                    verificationKey = uiState.verificationKey ?: "",
-                    onRequestPairing = { viewModel.requestPairing() },
-                    onAcceptPairing = { viewModel.acceptPairing() },
-                    onRejectPairing = { viewModel.cancelPairing() }
-                )
-            }
-            PairingHandler.PairState.Paired -> {
-                if (uiState.deviceUiModel.isReachable) {
-                    PluginsScreen(
-                        pluginsWithButtons = uiState.pluginsWithButtons,
-                        onButtonClick = { button -> activity?.let { button.onClick(it) } },
-                    )
-                } else {
-                    onNavigateToPairingScreen()
-                }
-            }
+        if (uiState.isReachable) {
+            PluginsScreen(
+                pluginsWithButtons = uiState.loadedPlugins.values.flatMap { it.getUiButtons() },
+                onButtonClick = { button -> activity?.let { button.onClick(it) } },
+            )
+        } else {
+            onNavigateToPairingScreen()
         }
     }
 }

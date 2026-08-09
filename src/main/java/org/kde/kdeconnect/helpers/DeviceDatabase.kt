@@ -55,10 +55,10 @@ data class DeviceEntity(
         return result
     }
 
-    fun toDeviceInfo(sslHelper: SslHelper): DeviceInfo {
+    fun toDeviceInfo(): DeviceInfo {
         return DeviceInfo(
             id = deviceId,
-            certificate = sslHelper.parseCertificate(certificate),
+            certificate = certificate,
             name = name,
             type = DeviceType.fromString(type),
             protocolVersion = protocolVersion,
@@ -158,6 +158,10 @@ class DeviceSettings(
         val certificateBytes = deviceDao.getCertificate(deviceId)
             ?: throw CertificateException("No certificate stored for device $deviceId")
         return sslHelper.parseCertificate(certificateBytes)
+    }
+
+    suspend fun getDeviceCertificateBytes(deviceId: String): ByteArray {
+        return deviceDao.getCertificate(deviceId) ?: throw CertificateException("No certificate stored for device $deviceId")
     }
 
     suspend fun isCertificateStored(deviceId: String): Boolean {

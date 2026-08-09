@@ -36,8 +36,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.kde.kdeconnect.DeviceState
 import org.kde.kdeconnect.plugins.battery.DeviceBatteryInfo
-import org.kde.kdeconnect.ui.compose.model.device.DeviceUiModel
 import org.kde.kdeconnect_tp.R
 
 @Composable
@@ -83,7 +83,7 @@ fun Modifier.card(backgroundColor: Color = colorScheme.surfaceContainer): Modifi
 
 @Composable
 fun DeviceCard(
-    device: DeviceUiModel,
+    device: DeviceState,
     actionIcon: Painter = painterResource(R.drawable.arrow_forward_ios),
     actionDescription: String = stringResource(R.string.open),
     actionDescriptionVisible: Boolean = false,
@@ -95,19 +95,19 @@ fun DeviceCard(
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.large)
             .background(colorScheme.surfaceContainerLowest)
-            .clickable { onClick(device.id) }
+            .clickable { onClick(device.deviceInfo.id) }
             .border(BorderStroke(1.dp, colorScheme.outline), MaterialTheme.shapes.large)
             .padding(16.dp)
     ) {
         Icon(
             modifier = Modifier.size(40.dp),
-            painter = painterResource(device.icon),
+            painter = painterResource(device.deviceInfo.type.toDrawableId()),
             contentDescription = null
         )
         Text(
             fontSize = 42.sp,
             lineHeight = 42.sp,
-            text = device.name,
+            text = device.deviceInfo.name,
             fontFamily = font
         )
         Row(

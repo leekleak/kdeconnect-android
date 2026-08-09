@@ -21,13 +21,13 @@ import java.security.cert.CertificateException
  * DeviceInfo contains all the properties needed to instantiate a Device.
  */
 data class DeviceInfo(
-    @JvmField val id: String,
-    @JvmField val certificate: Certificate,
-    @JvmField val name: String,
-    @JvmField val type: DeviceType,
-    @JvmField val protocolVersion: Int = 0,
-    @JvmField val incomingCapabilities: Set<String> = emptySet(),
-    @JvmField val outgoingCapabilities: Set<String> = emptySet(),
+    val id: String,
+    val certificate: ByteArray,
+    val name: String,
+    val type: DeviceType,
+    val protocolVersion: Int = 0,
+    val incomingCapabilities: Set<String> = emptySet(),
+    val outgoingCapabilities: Set<String> = emptySet(),
     val settings: Map<String, Boolean> = emptyMap()
 ) {
 
@@ -44,7 +44,7 @@ data class DeviceInfo(
                     name = name,
                     type = type.toString(),
                     protocolVersion = protocolVersion,
-                    certificate = certificate.encoded,
+                    certificate = certificate,
                     trusted = true
                 )
             )
@@ -80,7 +80,7 @@ data class DeviceInfo(
                 id = device.deviceId,
                 name = device.name,
                 type = DeviceType.fromString(device.type),
-                certificate = deviceSettings.getDeviceCertificate(device.deviceId),
+                certificate = deviceSettings.getDeviceCertificateBytes(device.deviceId),
                 protocolVersion = device.protocolVersion,
             )
         }
@@ -103,7 +103,7 @@ data class DeviceInfo(
                     id = getString("deviceId"), // Redundant: We could read this from the certificate instead
                     name = DeviceHelper.filterInvalidCharactersFromDeviceNameAndLimitLength(getString("deviceName", "unknown")),
                     type = DeviceType.fromString(getString("deviceType", "desktop")),
-                    certificate = certificate,
+                    certificate = certificate.encoded,
                     protocolVersion = getInt("protocolVersion"),
                     incomingCapabilities = getStringSet("incomingCapabilities") ?: emptySet(),
                     outgoingCapabilities = getStringSet("outgoingCapabilities") ?: emptySet()
@@ -119,6 +119,36 @@ data class DeviceInfo(
         private val DEVICE_ID_REGEX = "^[a-zA-Z0-9_-]{32,38}$".toRegex()
 
         fun isValidDeviceId(deviceId: String): Boolean = deviceId.matches(DEVICE_ID_REGEX)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as DeviceInfo
+
+        if (protocolVersion != other.protocolVersion) return false
+        if (id != other.id) return false
+        if (!certificate.contentEquals(other.certificate)) return false
+        if (name != other.name) return false
+        if (type != other.type) return false
+        if (incomingCapabilities != other.incomingCapabilities) return false
+        if (outgoingCapabilities != other.outgoingCapabilities) return false
+        if (settings != other.settings) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = protocolVersion
+        result = 31 * result + id.hashCode()
+        result = 31 * result + certificate.contentHashCode()
+        result = 31 * result + name.hashCode()
+        result = 31 * result + type.hashCode()
+        result = 31 * result + incomingCapabilities.hashCode()
+        result = 31 * result + outgoingCapabilities.hashCode()
+        result = 31 * result + settings.hashCode()
+        return result
     }
 }
 

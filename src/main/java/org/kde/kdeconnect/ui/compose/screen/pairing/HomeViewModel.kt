@@ -14,10 +14,9 @@ import kotlinx.coroutines.launch
 import org.kde.kdeconnect.BackgroundService.Companion.forceRefreshConnections
 import org.kde.kdeconnect.BackgroundServiceData
 import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.DeviceState
 import org.kde.kdeconnect.PairingHandler
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper
-import org.kde.kdeconnect.ui.compose.extensions.device.toUiModel
-import org.kde.kdeconnect.ui.compose.model.device.DeviceUiModel
 
 class HomeViewModel(
     deviceManager: DeviceManager,
@@ -33,7 +32,7 @@ class HomeViewModel(
         HomeUiState(
             wifiAvailable = isConnectedToNonCellularNetwork,
             trustedNetwork = trustedNetworkHelper.getIsTrustedNetwork(),
-            connected = devices.filter { it.isReachable && it.pairStatus == PairingHandler.PairState.Paired }.map { it.toUiModel() },
+            connected = devices.filter { it.isReachable && it.pairStatus == PairingHandler.PairState.Paired },
             availableCount = devices.count { it.isReachable && it.pairStatus != PairingHandler.PairState.Paired },
             refreshing = refreshing
         )
@@ -58,7 +57,7 @@ class HomeViewModel(
 data class HomeUiState(
     val wifiAvailable: Boolean = true,
     val trustedNetwork: Boolean = true,
-    val connected: List<DeviceUiModel> = emptyList(),
+    val connected: List<DeviceState> = emptyList(),
     val availableCount: Int = 0,
     val refreshing: Boolean = false
 )

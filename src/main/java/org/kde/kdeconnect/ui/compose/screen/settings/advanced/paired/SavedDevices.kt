@@ -41,7 +41,7 @@ fun SavedDevices(
             state = rememberLazyListState(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(uiState.saved,{ it.id }) { device ->
+            items(uiState.saved,{ it.deviceInfo.id }) { device ->
                 Spacer(Modifier.height(4.dp))
                 DeviceCard (
                     device = device,

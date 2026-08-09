@@ -14,7 +14,9 @@ import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
+import org.kde.kdeconnect.plugins.mousereceiver.MouseReceiverPlugin
 import org.kde.kdeconnect_tp.R
+import kotlin.collections.set
 
 class InputDevicesReceiverPlugin(
     context: Context,
@@ -71,13 +73,13 @@ class InputDevicesReceiverPlugin(
     }
 
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
-        val mouseReceiverPlugin = device.getPlugin("MouseReceiverPlugin")
+        val mouseReceiverPlugin = device.getPlugin("MouseReceiverPlugin") as? MouseReceiverPlugin
 
         // If we do not have the permission or the MouseReceiverPlugin is disabled (either from the beginning or the user disabled it while the cursor was in our possession),
         // we must hand over control to the other end.
-        if (mouseReceiverPlugin == null) {
-            val plugin = device.getPluginIncludingWithoutPermissions("MouseReceiverPlugin")
-            plugin?.pluginInfo?.showPermissionExplanation(context, permissionRequestHelper)
+        val requiredPermissionsGranted = mouseReceiverPlugin?.pluginInfo?.checkRequiredPermissions(context) == true
+        if (!requiredPermissionsGranted) {
+            mouseReceiverPlugin?.pluginInfo?.showPermissionExplanation(context, permissionRequestHelper)
 
             Cursor.x = np.getInt("deltax", Cursor.x)
             Cursor.y = np.getInt("deltay", Cursor.y)

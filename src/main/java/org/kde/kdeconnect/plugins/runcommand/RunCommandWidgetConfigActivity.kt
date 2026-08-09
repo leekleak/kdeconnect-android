@@ -31,11 +31,10 @@ import org.kde.kdeconnect.BackgroundService
 import org.kde.kdeconnect.BackgroundServiceData
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.DeviceState
 import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 import org.kde.kdeconnect.ui.compose.KdeTheme
-import org.kde.kdeconnect.ui.compose.extensions.device.toUiModel
-import org.kde.kdeconnect.ui.compose.model.device.DeviceUiModel
 import org.kde.kdeconnect.ui.compose.screen.share.DeviceSelectScreen
 import org.kde.kdeconnect_tp.R
 import org.koin.android.ext.android.inject
@@ -48,11 +47,8 @@ class RunCommandWidgetConfigActivity : AppCompatActivity() {
     private val trustedNetworkHelper: TrustedNetworkHelper by inject()
 
     private var isRefreshing by mutableStateOf(value = false)
-    private var uiDevices: StateFlow<List<DeviceUiModel>> = deviceManager.devices.map { devices ->
-        devices.values
-            .filter { device -> device.isPaired && device.isReachable }
-            .map { it.toUiModel() }
-    }.stateIn(
+    private var deviceStates: StateFlow<List<DeviceState>> = deviceManager.allDeviceStatesMap.map { it.values.toList() }
+    .stateIn(
         scope = lifecycleScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
@@ -84,7 +80,7 @@ class RunCommandWidgetConfigActivity : AppCompatActivity() {
         setContent {
             KdeTheme {
                 val scope = rememberCoroutineScope()
-                val devices by uiDevices.collectAsStateWithLifecycle()
+                val devices by deviceStates.collectAsStateWithLifecycle()
                 val wifiToTrustedValue by wifiToTrusted.collectAsStateWithLifecycle()
                 DeviceSelectScreen(
                     devices = devices,

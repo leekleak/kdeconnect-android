@@ -16,13 +16,17 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -37,6 +41,7 @@ import org.kde.kdeconnect.PairingHandler.PairState
 import org.kde.kdeconnect.PairingHandler.PairingCallback
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLink.PacketReceiver
+import org.kde.kdeconnect.helpers.DeviceEntity
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.security.SslHelper
@@ -51,7 +56,6 @@ import org.koin.core.component.createScope
 import org.koin.core.scope.Scope
 import java.io.IOException
 import java.security.cert.Certificate
-import java.util.Vector
 
 class Device(
     private val context: Context,
@@ -69,23 +73,17 @@ class Device(
     private val _state: MutableStateFlow<DeviceState> = MutableStateFlow(DeviceState(
         deviceInfo = link?.deviceInfo ?: runBlocking { loadFromSettings(deviceSettings, deviceId) },
         pairStatus = if (link == null) PairState.Paired else PairState.NotPaired,
-        isReachable = false,
-        batteryInfo = null,
-        verificationKey = null,
-        loadedPlugins = emptyMap(),
-        pluginsWithoutPermissions = emptyMap(),
-        supportedPlugins = Vector(PluginFactory.availablePlugins),
-        links = emptyList()
+        supportedPlugins = PluginFactory.availablePlugins.toList(),
+        isReachable = false
     ))
     val state: StateFlow<DeviceState> = _state.asStateFlow()
     private fun updateState(transform: (DeviceState) -> DeviceState) = _state.update(transform)
 
     val deviceId: String get() = state.value.deviceInfo.id
-    val certificate: Certificate get() = state.value.deviceInfo.certificate
+    val certificate: Certificate get() = sslHelper.parseCertificate(state.value.deviceInfo.certificate)
     val deviceInfo: DeviceInfo get() = state.value.deviceInfo
     val loadedPlugins: Map<String, Plugin> get() = state.value.loadedPlugins
     val supportedPlugins: List<String> get() = state.value.supportedPlugins
-    val pluginsWithoutPermissions: Map<String, Plugin> get() = state.value.pluginsWithoutPermissions
     val isReachable: Boolean get() = state.value.isReachable
     val name: String get() = deviceInfo.name
     val icon: Drawable get() = deviceInfo.type.getIcon(context)
@@ -114,7 +112,6 @@ class Device(
     private val reloadPluginsMutex = Mutex()
 
     init {
-        runBlocking { reloadPluginsFromSettings() }
         jobScope.launch {
             combine(pairingHandler.state, pairingHandler.verificationKey) { a, b ->
                 a to b
@@ -126,15 +123,19 @@ class Device(
             link?.let { addLink(it) }
         }
         jobScope.launch {
-            state.map { it.isReachable }.distinctUntilChanged().collect {
-                reloadPluginsFromSettings()
+            deviceSettings.getDeviceEntityFlow(deviceId).filterNotNull().collect { settingsEntity ->
+                reloadPluginsFromSettings(settingsEntity)
+            }
+        }
+        jobScope.launch {
+            state.map { it.isReachable to it.pairStatus }.distinctUntilChanged().collect {
+                deviceSettings.getDeviceEntity(deviceId)?.let { reloadPluginsFromSettings(it) }
             }
         }
         jobScope.launch {
             deviceSettings.getDeviceEntityFlow(deviceId).collect { deviceEntity ->
                 deviceEntity?.let {
-                    updateState { state -> state.copy(deviceInfo = it.toDeviceInfo(sslHelper)) }
-                    reloadPluginsFromSettings()
+                    updateState { state -> state.copy(deviceInfo = it.toDeviceInfo()) }
                 }
             }
         }
@@ -187,12 +188,12 @@ class Device(
             override fun unpaired(device: Device) {
                 assert(device == this@Device)
                 Log.i("Device", "unpaired, removing from trusted devices list")
-                jobScope.launch {  deviceSettings.removeTrustedDevice(deviceInfo.id) }
+                jobScope.launch { deviceSettings.removeTrustedDevice(deviceInfo.id) }
             }
         }
     }
 
-    fun addLink(link: BaseLink) {
+    suspend fun addLink(link: BaseLink) {
         synchronized(sendChannel) {
             if (sendCoroutine == null) {
                 sendCoroutine = CoroutineScope(Dispatchers.IO).launch {
@@ -210,6 +211,7 @@ class Device(
             )
         }
 
+        deviceSettings.getDeviceEntity(deviceId)?.let { reloadPluginsFromSettings(it) }
         link.addPacketReceiver(this)
     }
 
@@ -279,7 +281,7 @@ class Device(
     private suspend fun notifyPluginPacketReceived(np: NetworkPacket) {
         val targetPlugins = pluginsByIncomingInterface[np.type] // Returns an empty collection if the key doesn't exist
         if (targetPlugins == null) {
-            Log.w("Device", "Ignoring packet with type ${np.type} because no plugin can handle it")
+            Log.e("Device", "Ignoring packet with type ${np.type} because no plugin can handle it")
 
             // If there is a payload close it to not leak sockets
             np.payload?.close()
@@ -338,7 +340,7 @@ class Device(
     fun sendPacketBlocking(np: NetworkPacket): Boolean = sendPacketBlocking(np, defaultCallback, false)
 
     /**
-     * Send `np` over one of this device's connected [DeviceState.links].
+     * Send `np` over one of this device's connected [links].
      *
      * @param np                        the packet to send
      * @param callback                  a callback that can receive realtime updates
@@ -391,54 +393,30 @@ class Device(
 
     fun getPlugin(pluginKey: String): Plugin? = loadedPlugins[pluginKey]
 
-    fun getPluginIncludingWithoutPermissions(pluginKey: String): Plugin? {
-        return loadedPlugins[pluginKey] ?: pluginsWithoutPermissions[pluginKey]
-    }
-
     fun setPluginEnabled(pluginKey: String, value: Boolean) {
         runBlocking(Dispatchers.IO) {
             deviceSettings.setBooleanSetting(deviceId, pluginKey, value)
-            reloadPluginsFromSettings()
         }
     }
 
-    suspend fun isPluginEnabled(pluginKey: String): Boolean {
-        val enabledByDefault = PluginFactory.getPluginInfo(pluginKey).isEnabledByDefault
-        return deviceSettings.getBooleanSetting(deviceId, pluginKey, enabledByDefault)
-    }
-
     @WorkerThread
-    suspend fun reloadPluginsFromSettings() = reloadPluginsMutex.withLock {
+    suspend fun reloadPluginsFromSettings(settingsEntity: DeviceEntity) {
         Log.i("Device", "${deviceInfo.name}: reloading plugins")
         val newPluginsByIncomingInterface: MutableMap<String, MutableList<String>> = mutableMapOf()
 
         val oldLoadedPlugins = loadedPlugins
         val newLoadedPlugins = mutableMapOf<String, Plugin>()
-        val newPluginsWithoutPermissions = mutableMapOf<String, Plugin>()
 
         supportedPlugins.forEach { pluginKey ->
             val pluginInfo = PluginFactory.getPluginInfo(pluginKey)
 
-            val pluginEnabled = isPaired && this.isReachable && isPluginEnabled(pluginKey)
+            val pluginEnabled = isPaired && isReachable && (settingsEntity.settings[pluginKey] == true)
 
             if (pluginEnabled) {
-                val isNewPlugin = !oldLoadedPlugins.containsKey(pluginKey)
-                val plugin = oldLoadedPlugins[pluginKey]
-                    ?: PluginFactory.instantiatePluginForDevice(pluginKey, this)
+                val plugin = oldLoadedPlugins[pluginKey] ?: PluginFactory.instantiatePluginForDevice(pluginKey, this)
 
                 if (plugin != null && plugin.isCompatible) {
-                    val requiredPermissionsGranted = plugin.pluginInfo.checkRequiredPermissions(context)
-
                     newLoadedPlugins[pluginKey] = plugin
-                    if (!requiredPermissionsGranted) {
-                        newPluginsWithoutPermissions[pluginKey] = plugin
-                    }
-
-                    if (isNewPlugin) {
-                        runCatching { plugin.onCreate() }.onFailure {
-                            Log.e("KDE/addPlugin", "plugin failed to load $pluginKey", it)
-                        }
-                    }
 
                     pluginInfo.supportedPacketTypes.forEach { packetType ->
                         newPluginsByIncomingInterface.getOrPut(packetType){mutableListOf()}.add(pluginKey)
@@ -447,23 +425,42 @@ class Device(
             }
         }
 
-        // Handle onDestroy for plugins that are no longer loaded
-        oldLoadedPlugins.forEach { (pluginKey, plugin) ->
-            if (!newLoadedPlugins.containsKey(pluginKey)) {
-                try {
-                    plugin.onDestroy()
-                } catch (e: Exception) {
-                    Log.e("KDE/removePlugin", "Exception calling onDestroy for plugin $pluginKey", e)
+        updateState { it.copy(
+            loadedPlugins = newLoadedPlugins,
+        ) }
+
+        pluginsByIncomingInterface = newPluginsByIncomingInterface
+
+
+        val destroyJobs = oldLoadedPlugins.filter { !newLoadedPlugins.containsKey(it.key) }.map { (pluginKey, plugin) ->
+            coroutineScope {
+                async {
+                    if (!newLoadedPlugins.containsKey(pluginKey)) {
+                        try {
+                            plugin.onDestroy()
+                        } catch (e: Exception) {
+                            Log.e("KDE/removePlugin", "Exception calling onDestroy for plugin $pluginKey", e)
+                        }
+                    }
                 }
             }
         }
 
-        updateState { it.copy(
-            loadedPlugins = newLoadedPlugins,
-            pluginsWithoutPermissions = newPluginsWithoutPermissions,
-        ) }
+        val createJobs = newLoadedPlugins.filter { !oldLoadedPlugins.containsKey(it.key) }.map { (pluginKey, plugin) ->
+            coroutineScope {
+                async {
+                    runCatching {
+                        plugin.onCreate()
+                    }.onFailure {
+                        Log.e("KDE/addPlugin", "plugin failed to load $pluginKey", it)
+                    }
+                }
+            }
+        }
 
-        pluginsByIncomingInterface = newPluginsByIncomingInterface
+        (destroyJobs + createJobs).awaitAll()
+
+        jobScope
     }
 
     internal fun updateBatteryInfo(newInfo: DeviceBatteryInfo) {
@@ -495,10 +492,9 @@ data class DeviceState(
     val deviceInfo: DeviceInfo,
     val pairStatus: PairState,
     val isReachable: Boolean,
-    val batteryInfo: DeviceBatteryInfo?,
-    val verificationKey: String?,
-    val loadedPlugins: Map<String, Plugin>,
-    val pluginsWithoutPermissions: Map<String, Plugin>,
-    val supportedPlugins: List<String>,
-    val links: List<BaseLink>,
+    val batteryInfo: DeviceBatteryInfo? = null,
+    val verificationKey: String? = null,
+    val loadedPlugins: Map<String, Plugin> = emptyMap(),
+    val supportedPlugins: List<String> = emptyList(),
+    val links: List<BaseLink> = emptyList(),
 )

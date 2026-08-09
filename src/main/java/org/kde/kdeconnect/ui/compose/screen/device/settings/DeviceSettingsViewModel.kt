@@ -1,6 +1,7 @@
 package org.kde.kdeconnect.ui.compose.screen.device.settings
 
 import android.app.Activity.RESULT_OK
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -9,6 +10,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.helpers.DeviceSettings
@@ -50,11 +52,11 @@ class DeviceSettingsViewModel(
      *
      * @return True - Everything went fine. False - unable to set plugin state, probably due to missing permission
      */
-    fun setPluginEnabled(pluginKey: String, isEnabled: Boolean): Boolean {
+    fun setPluginEnabled(pluginKey: String, isEnabled: Boolean, context: Context): Boolean {
         val device = device ?: return false
         device.setPluginEnabled(pluginKey, isEnabled)
         if (!isEnabled) return true // If we're disabling, we don't care about permissions
-        val missingPermission = device.pluginsWithoutPermissions.containsKey(pluginKey)
+        val missingPermission = runBlocking { device.getPlugin(pluginKey)?.pluginInfo?.checkRequiredPermissions(context) != true }
         if (!missingPermission) return true // If plugin is not in "pluginsWithoutPermissions" after being enabled, we know we have been successful
 
         // Otherwise disable. This method is to be called again after permission has been granted

@@ -53,7 +53,7 @@ fun DeviceSettingsScreen(
 
     fun onPluginToggled(pluginKey: String, isEnabled: Boolean) {
         scope.launch {
-            if (!viewModel.setPluginEnabled(pluginKey, isEnabled)) {
+            if (!viewModel.setPluginEnabled(pluginKey, isEnabled, context)) {
                 val intent = Intent(context, PermissionExplanationActivity::class.java).apply {
                     putExtra("pluginKey", pluginKey)
                 }
