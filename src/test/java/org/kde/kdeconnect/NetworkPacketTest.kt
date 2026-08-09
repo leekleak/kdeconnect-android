@@ -5,6 +5,7 @@
 */
 package org.kde.kdeconnect
 
+import io.mockk.every
 import io.mockk.mockk
 import org.json.JSONException
 import org.junit.Assert
@@ -46,6 +47,7 @@ class NetworkPacketTest {
     @Test
     fun testIdentity() {
         val cert = mockk<Certificate>()
+        every { cert.encoded } returns ByteArray(0)
         val deviceInfo = DeviceInfo("myid", ByteArray(0), "myname", DeviceType.TV, 12, setOf("ASDFG"), setOf("QWERTY"))
 
         val np = deviceInfo.toIdentityPacket()

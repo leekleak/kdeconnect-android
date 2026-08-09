@@ -433,7 +433,7 @@ class LanLinkProvider(
 
     private fun isProtocolDowngrade(deviceId: String, protocolVersion: Int): Boolean {
         val lastKnownProtocolVersion =
-            runBlocking { DeviceInfo.loadProtocolVersionFromSettings(deviceSettings, deviceId) }
+            runBlocking { deviceSettings.getDeviceInfo(deviceId)?.protocolVersion ?: 0 }
         return lastKnownProtocolVersion > protocolVersion
     }
 
@@ -449,7 +449,7 @@ class LanLinkProvider(
     private suspend fun addOrUpdateLink(socket: SSLSocket, deviceInfo: DeviceInfo) {
         var link = visibleDevices[deviceInfo.id]
         if (link != null) {
-            if (link.deviceInfo.certificate != deviceInfo.certificate) {
+            if (!link.deviceInfo.certificate.contentEquals(deviceInfo.certificate)) {
                 Log.e(
                     "LanLinkProvider",
                     "LanLink was asked to replace a socket but the certificate doesn't match, aborting"

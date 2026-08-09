@@ -19,6 +19,8 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.kde.kdeconnect.DeviceInfo
+import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import java.security.cert.X509Certificate
@@ -74,7 +76,7 @@ class SSLHelperTest {
     fun testCertificateStored() {
         runBlocking {
             deviceSettings.addTrustedDevice(
-                DeviceEntity(deviceId, "name", "phone", 0, Base64.getMimeDecoder().decode(certificateBase64))
+                DeviceInfo(deviceId, Base64.getMimeDecoder().decode(certificateBase64), "name", DeviceType.PHONE, 0)
             )
         }
         Assert.assertTrue(runBlocking { deviceSettings.isCertificateStored(deviceId) })
@@ -87,7 +89,7 @@ class SSLHelperTest {
         Assert.assertThrows(Exception::class.java) { runBlocking { deviceSettings.getDeviceCertificate(deviceId) } }
         runBlocking {
             deviceSettings.addTrustedDevice(
-                DeviceEntity(deviceId, "name", "phone", 0, Base64.getMimeDecoder().decode(certificateBase64))
+                DeviceInfo(deviceId, Base64.getMimeDecoder().decode(certificateBase64), "name", DeviceType.PHONE, 0)
             )
         }
         Assert.assertNotNull(runBlocking { deviceSettings.getDeviceCertificate(deviceId) })
@@ -97,7 +99,7 @@ class SSLHelperTest {
     fun getExpectedCertificate() {
         runBlocking {
             deviceSettings.addTrustedDevice(
-                DeviceEntity(deviceId, "name", "phone", 0, Base64.getMimeDecoder().decode(certificateBase64))
+                DeviceInfo(deviceId, Base64.getMimeDecoder().decode(certificateBase64), "name", DeviceType.PHONE, 0)
             )
         }
         val cert: Certificate = runBlocking { deviceSettings.getDeviceCertificate(deviceId) }
@@ -108,7 +110,7 @@ class SSLHelperTest {
     fun getCertificateHash() {
         runBlocking {
             deviceSettings.addTrustedDevice(
-                DeviceEntity(deviceId, "name", "phone", 0, Base64.getMimeDecoder().decode(certificateBase64))
+                DeviceInfo(deviceId, Base64.getMimeDecoder().decode(certificateBase64), "name", DeviceType.PHONE, 0)
             )
         }
         val cert: Certificate = runBlocking { deviceSettings.getDeviceCertificate(deviceId) }
@@ -128,7 +130,7 @@ class SSLHelperTest {
     fun getCommonName() {
         runBlocking {
             deviceSettings.addTrustedDevice(
-                DeviceEntity(deviceId, "name", "phone", 0, Base64.getMimeDecoder().decode(certificateBase64))
+                DeviceInfo(deviceId, Base64.getMimeDecoder().decode(certificateBase64), "name", DeviceType.PHONE, 0)
             )
         }
         val cert = runBlocking { deviceSettings.getDeviceCertificate(deviceId) }

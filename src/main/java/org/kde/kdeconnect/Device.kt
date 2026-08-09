@@ -34,14 +34,12 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import org.kde.kdeconnect.DeviceInfo.Companion.loadFromSettings
 import org.kde.kdeconnect.DeviceStats.countReceived
 import org.kde.kdeconnect.DeviceStats.countSent
 import org.kde.kdeconnect.PairingHandler.PairState
 import org.kde.kdeconnect.PairingHandler.PairingCallback
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLink.PacketReceiver
-import org.kde.kdeconnect.helpers.DeviceEntity
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.security.SslHelper
@@ -71,7 +69,7 @@ class Device(
     private val jobScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _state: MutableStateFlow<DeviceState> = MutableStateFlow(DeviceState(
-        deviceInfo = link?.deviceInfo ?: runBlocking { loadFromSettings(deviceSettings, deviceId) },
+        deviceInfo = link?.deviceInfo ?: runBlocking { deviceSettings.getDeviceInfo(deviceId) ?: throw RuntimeException("Device $deviceId not found in settings") },
         pairStatus = if (link == null) PairState.Paired else PairState.NotPaired,
         supportedPlugins = PluginFactory.availablePlugins.toList(),
         isReachable = false
@@ -123,19 +121,19 @@ class Device(
             link?.let { addLink(it) }
         }
         jobScope.launch {
-            deviceSettings.getDeviceEntityFlow(deviceId).filterNotNull().collect { settingsEntity ->
-                reloadPluginsFromSettings(settingsEntity)
+            deviceSettings.getDeviceInfoFlow(deviceId).filterNotNull().collect { settingsInfo ->
+                reloadPluginsFromSettings(settingsInfo)
             }
         }
         jobScope.launch {
-            state.map { it.isReachable to it.pairStatus }.distinctUntilChanged().collect {
-                deviceSettings.getDeviceEntity(deviceId)?.let { reloadPluginsFromSettings(it) }
+            state.map { it.isReachable to it.pairStatus }.collect {
+                deviceSettings.getDeviceInfo(deviceId)?.let { reloadPluginsFromSettings(it) }
             }
         }
         jobScope.launch {
-            deviceSettings.getDeviceEntityFlow(deviceId).collect { deviceEntity ->
-                deviceEntity?.let {
-                    updateState { state -> state.copy(deviceInfo = it.toDeviceInfo()) }
+            deviceSettings.getDeviceInfoFlow(deviceId).collect { deviceInfo ->
+                deviceInfo?.let {
+                    updateState { state -> state.copy(deviceInfo = it) }
                 }
             }
         }
@@ -145,8 +143,7 @@ class Device(
     fun compareProtocolVersion(): Int =
         deviceInfo.protocolVersion - DeviceHelper.PROTOCOL_VERSION
 
-    val isPaired: Boolean
-        get() = state.value.pairStatus == PairState.Paired
+    val isPaired: Boolean get() = pairingHandler.state.value == PairState.Paired
 
     suspend fun requestPairing() {
         pairingHandler.requestPairing()
@@ -179,7 +176,10 @@ class Device(
             override fun pairingSuccessful() {
                 Log.i("Device", "pairing successful, adding to trusted devices list")
 
-                jobScope.launch { deviceInfo.saveInSettings(deviceSettings) }
+                runBlocking {
+                    deviceSettings.addTrustedDevice(deviceInfo)
+                    reloadPluginsFromSettings(deviceInfo)
+                }
             }
 
             override fun pairingFailed(error: Int) {
@@ -188,6 +188,9 @@ class Device(
             override fun unpaired(device: Device) {
                 assert(device == this@Device)
                 Log.i("Device", "unpaired, removing from trusted devices list")
+                runBlocking {
+                    deviceSettings.getDeviceInfo(deviceId)?.let { reloadPluginsFromSettings(it) }
+                }
                 jobScope.launch { deviceSettings.removeTrustedDevice(deviceInfo.id) }
             }
         }
@@ -211,7 +214,7 @@ class Device(
             )
         }
 
-        deviceSettings.getDeviceEntity(deviceId)?.let { reloadPluginsFromSettings(it) }
+        deviceSettings.getDeviceInfo(deviceId)?.let { reloadPluginsFromSettings(it) }
         link.addPacketReceiver(this)
     }
 
@@ -238,6 +241,7 @@ class Device(
             newDeviceInfo.outgoingCapabilities
         ).toList()
 
+        runBlocking { deviceSettings.addTrustedDevice(newDeviceInfo) }
         updateState { state ->
             state.copy(
                 deviceInfo = state.deviceInfo.copy(
@@ -253,7 +257,9 @@ class Device(
     }
 
     override suspend fun onPacketReceived(np: NetworkPacket) {
+        Log.i("PairingHandler", "Waiting for lock")
         reloadPluginsMutex.withLock {
+            Log.i("PairingHandler", "Got through lock")
             countReceived(deviceId, np.type)
 
             if (NetworkPacket.PACKET_TYPE_PAIR == np.type) {
@@ -400,7 +406,7 @@ class Device(
     }
 
     @WorkerThread
-    suspend fun reloadPluginsFromSettings(settingsEntity: DeviceEntity) {
+    suspend fun reloadPluginsFromSettings(settingsInfo: DeviceInfo) {
         Log.i("Device", "${deviceInfo.name}: reloading plugins")
         val newPluginsByIncomingInterface: MutableMap<String, MutableList<String>> = mutableMapOf()
 
@@ -410,7 +416,7 @@ class Device(
         supportedPlugins.forEach { pluginKey ->
             val pluginInfo = PluginFactory.getPluginInfo(pluginKey)
 
-            val pluginEnabled = isPaired && isReachable && (settingsEntity.settings[pluginKey] == true)
+            val pluginEnabled = isPaired && isReachable && (settingsInfo.settings[pluginKey] == true)
 
             if (pluginEnabled) {
                 val plugin = oldLoadedPlugins[pluginKey] ?: PluginFactory.instantiatePluginForDevice(pluginKey, this)
@@ -430,7 +436,6 @@ class Device(
         ) }
 
         pluginsByIncomingInterface = newPluginsByIncomingInterface
-
 
         val destroyJobs = oldLoadedPlugins.filter { !newLoadedPlugins.containsKey(it.key) }.map { (pluginKey, plugin) ->
             coroutineScope {

@@ -9,49 +9,29 @@ package org.kde.kdeconnect
 import android.content.Context
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
-import org.kde.kdeconnect.helpers.DeviceEntity
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import org.kde.kdeconnect.helpers.DeviceHelper
-import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect_tp.R
 import java.security.cert.Certificate
-import java.security.cert.CertificateEncodingException
 import java.security.cert.CertificateException
 
 /**
  * DeviceInfo contains all the properties needed to instantiate a Device.
  */
+@Entity(tableName = "devices")
 data class DeviceInfo(
-    val id: String,
+    @PrimaryKey @ColumnInfo(name = "deviceId") val id: String,
     val certificate: ByteArray,
     val name: String,
     val type: DeviceType,
     val protocolVersion: Int = 0,
     val incomingCapabilities: Set<String> = emptySet(),
     val outgoingCapabilities: Set<String> = emptySet(),
-    val settings: Map<String, Boolean> = emptyMap()
+    val settings: Map<String, Boolean> = emptyMap(),
+    val trusted: Boolean = true,
 ) {
-
-    /**
-     * Saves the info in settings so it can be restored later using loadFromSettings().
-     * This is used to keep info from paired devices, even when they are not reachable.
-     * The capabilities and protocol version are not persisted.
-     */
-    suspend fun saveInSettings(deviceSettings: DeviceSettings) {
-        try {
-            deviceSettings.addTrustedDevice(
-                DeviceEntity(
-                    deviceId = id,
-                    name = name,
-                    type = type.toString(),
-                    protocolVersion = protocolVersion,
-                    certificate = certificate,
-                    trusted = true
-                )
-            )
-        } catch (e: CertificateEncodingException) {
-            throw RuntimeException(e)
-        }
-    }
 
     /**
      * Serializes to a NetworkPacket, which LanLinkProvider uses to send this data over the network.
@@ -69,30 +49,6 @@ data class DeviceInfo(
         }
 
     companion object {
-        /**
-         * Recreates a DeviceInfo object that was persisted using saveInSettings()
-         */
-        @Throws(CertificateException::class)
-        suspend fun loadFromSettings(deviceSettings: DeviceSettings, deviceId: String): DeviceInfo {
-            val device = deviceSettings.getDeviceEntity(deviceId)
-                ?: throw CertificateException("Device $deviceId not found in settings")
-            return DeviceInfo(
-                id = device.deviceId,
-                name = device.name,
-                type = DeviceType.fromString(device.type),
-                certificate = deviceSettings.getDeviceCertificateBytes(device.deviceId),
-                protocolVersion = device.protocolVersion,
-            )
-        }
-
-        /**
-         * Reads the stored
-         */
-        suspend fun loadProtocolVersionFromSettings(deviceSettings: DeviceSettings, deviceId: String): Int {
-            val device = deviceSettings.getDeviceEntity(deviceId)
-            return device?.protocolVersion ?: 0
-        }
-
         /**
          * Recreates a DeviceInfo object that was serialized using toIdentityPacket().
          * Since toIdentityPacket() doesn't serialize the certificate, this needs to be passed separately.
@@ -135,6 +91,7 @@ data class DeviceInfo(
         if (incomingCapabilities != other.incomingCapabilities) return false
         if (outgoingCapabilities != other.outgoingCapabilities) return false
         if (settings != other.settings) return false
+        if (trusted != other.trusted) return false
 
         return true
     }
@@ -148,6 +105,7 @@ data class DeviceInfo(
         result = 31 * result + incomingCapabilities.hashCode()
         result = 31 * result + outgoingCapabilities.hashCode()
         result = 31 * result + settings.hashCode()
+        result = 31 * result + trusted.hashCode()
         return result
     }
 }

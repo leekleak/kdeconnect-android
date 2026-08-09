@@ -27,11 +27,9 @@ import org.junit.runner.RunWith
 import org.kde.kdeconnect.DeviceInfo.Companion.fromIdentityPacketAndCert
 import org.kde.kdeconnect.DeviceInfo.Companion.isValidDeviceId
 import org.kde.kdeconnect.DeviceInfo.Companion.isValidIdentityPacket
-import org.kde.kdeconnect.DeviceInfo.Companion.loadFromSettings
 import org.kde.kdeconnect.DeviceType.Companion.fromString
 import org.kde.kdeconnect.backends.lan.LanLink
 import org.kde.kdeconnect.backends.lan.LanLinkProvider
-import org.kde.kdeconnect.helpers.DeviceEntity
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.DevicesRoomDatabase
@@ -85,10 +83,10 @@ class DeviceTest {
         val certificateBytes = java.util.Base64.getMimeDecoder().decode(encodedCertificate)
         runBlocking {
             deviceSettings.addTrustedDevice(
-                DeviceEntity(
-                    deviceId = deviceId,
+                DeviceInfo(
+                    id = deviceId,
                     name = name,
-                    type = DeviceType.PHONE.toString(),
+                    type = DeviceType.PHONE,
                     protocolVersion = DeviceHelper.PROTOCOL_VERSION,
                     certificate = certificateBytes,
                 )
@@ -144,7 +142,7 @@ class DeviceTest {
     fun testDeviceInfoToIdentityPacket() {
         val deviceId = "testDevice"
         val deviceInfo = runBlocking {
-            loadFromSettings(deviceSettings, deviceId).copy(
+            deviceSettings.getDeviceInfo(deviceId)!!.copy(
                 protocolVersion = DeviceHelper.PROTOCOL_VERSION,
                 incomingCapabilities = hashSetOf("kdeconnect.plugin1State", "kdeconnect.plugin2State"),
                 outgoingCapabilities = hashSetOf("kdeconnect.plugin1State.request", "kdeconnect.plugin2State.request"),
@@ -271,10 +269,10 @@ class DeviceTest {
 
         Assert.assertTrue(runBlocking { deviceSettings.isTrustedDevice(device.deviceId) })
 
-        val deviceEntity = runBlocking { deviceSettings.getDeviceEntity(device.deviceId) }
-        Assert.assertNotNull(deviceEntity)
-        Assert.assertEquals(deviceEntity?.name, "Unpaired Test Device")
-        Assert.assertEquals(deviceEntity?.type, "phone")
+        val deviceInfoInSettings = runBlocking { deviceSettings.getDeviceInfo(device.deviceId) }
+        Assert.assertNotNull(deviceInfoInSettings)
+        Assert.assertEquals(deviceInfoInSettings?.name, "Unpaired Test Device")
+        Assert.assertEquals(deviceInfoInSettings?.type, DeviceType.PHONE)
 
         runBlocking { deviceSettings.removeTrustedDevice(device.deviceId) }
     }

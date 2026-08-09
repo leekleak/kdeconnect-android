@@ -30,10 +30,10 @@ class DeviceSettingsViewModel(
     @InjectedParam private val deviceId: String
 ) : ViewModel() {
 
-    val uiState: StateFlow<DeviceSettingsUiState> = deviceSettings.getDeviceEntityFlow(deviceId).filterNotNull().map { entity ->
+    val uiState: StateFlow<DeviceSettingsUiState> = deviceSettings.getDeviceInfoFlow(deviceId).filterNotNull().map { info ->
         DeviceSettingsUiState(
-            deviceName = entity.name,
-            plugins = entity.settings
+            deviceName = info.name,
+            plugins = info.settings
         )
     }.stateIn(
         scope = viewModelScope,
