@@ -296,7 +296,7 @@ class LanLink @WorkerThread constructor(
             }
         }
 
-        Log.e("Receiving", np.type)
+        Log.e("Receiving", np.serialize())
         packetReceived(np)
     }
 

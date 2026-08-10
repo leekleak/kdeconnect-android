@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.helpers.calculateNewVolume
+import org.kde.kdeconnect.plugins.mousepad.MousePadSettingsUiState
 import org.kde.kdeconnect.plugins.systemvolume.Sink
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin
 import org.koin.core.annotation.InjectedParam
@@ -23,22 +24,30 @@ class MprisViewModel(
     @InjectedParam val deviceId: String
 ) : ViewModel() {
 
-    val plugin: MprisPlugin? = deviceManager.getDevicePlugin(deviceId, MprisPlugin::class.java)
+    val plugin: MprisPlugin = deviceManager.getDevicePlugin(deviceId, MprisPlugin::class.java)!!
     val systemVolumePlugin: SystemVolumePlugin = deviceManager.getDevicePlugin(deviceId, SystemVolumePlugin::class.java)!!
 
-    val playerList: StateFlow<List<String>> = plugin?.players?.map { it.keys.sorted() }
-        ?.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-        ?: MutableStateFlow(emptyList())
+    val playerList: StateFlow<List<String>> = plugin.players.map {
+        it.keys.sorted()
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 
     private val _selectedPlayerName = MutableStateFlow<String?>(null)
     val selectedPlayerName: StateFlow<String?> = _selectedPlayerName.asStateFlow()
 
     val playerStatus: StateFlow<MprisPlayerState?> = combine(
-        plugin?.players ?: MutableStateFlow(emptyMap()),
+        plugin.players,
         _selectedPlayerName
     ) { players, selectedName ->
         players[selectedName]
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = null
+    )
 
     private val _playerPosition = MutableStateFlow(0L)
     val playerPosition: StateFlow<Long> = _playerPosition.asStateFlow()
@@ -49,12 +58,12 @@ class MprisViewModel(
 
     init {
         viewModelScope.launch {
-            plugin?.requestPlayerList()
+            plugin.requestPlayerList()
         }
         viewModelScope.launch {
             playerList.collect { list ->
                 if (_selectedPlayerName.value == null || !list.contains(_selectedPlayerName.value)) {
-                    val playing = plugin?.playingPlayer
+                    val playing = plugin.playingPlayer
                     val first = if (list.isNotEmpty()) list[0] else null
                     selectPlayer(playing?.playerName ?: first)
                 }

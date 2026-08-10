@@ -21,6 +21,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -55,6 +56,7 @@ import org.koin.core.component.createScope
 import org.koin.core.scope.Scope
 import java.io.IOException
 import java.security.cert.Certificate
+import kotlin.time.Duration.Companion.milliseconds
 
 class Device(
     private val context: Context,
@@ -203,7 +205,9 @@ class Device(
         }
     }
 
-    suspend fun addLink(link: BaseLink) {
+    suspend fun addLink(link: BaseLink){
+        Log.e("DEVICE", "ADdding linkg")
+
         synchronized(sendChannel) {
             if (sendCoroutine == null) {
                 sendCoroutine = CoroutineScope(Dispatchers.IO).launch {
@@ -214,6 +218,8 @@ class Device(
             }
         }
 
+        link.addPacketReceiver(this@Device)
+
         updateState { state ->
             state.copy(
                 links = (state.links + link).sortedByDescending { it.linkProvider.priority },
@@ -221,7 +227,7 @@ class Device(
             )
         }
 
-        link.addPacketReceiver(this)
+        Log.e("DEVICE", "ADdding packet receiver")
     }
 
     @WorkerThread
@@ -338,7 +344,11 @@ class Device(
         sendPacketToLink(np, callback)
     }
 
-    suspend fun sendPacket(np: NetworkPacket) = sendPacketToLink(np, defaultCallback)
+    suspend fun sendPacket(np: NetworkPacket) {
+        while (!isReachable) delay(200.milliseconds)
+        //Log.i("Safe sending", "Safe sending ${np.serialize()}")
+        sendPacketToLink(np, defaultCallback)
+    }
 
     @WorkerThread
     @Deprecated("Use suspend")
@@ -441,6 +451,7 @@ class Device(
             }
         }
 
+        Log.e("Device", "ADding ${newLoadedPlugins.count { !oldLoadedPlugins.containsKey(it.key) }} plugins")
         newLoadedPlugins.filter { !oldLoadedPlugins.containsKey(it.key) }.forEach { (pluginKey, plugin) ->
             runCatching {
                 Log.e("Device", "Loading $pluginKey")

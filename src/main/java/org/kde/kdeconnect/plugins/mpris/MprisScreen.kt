@@ -405,7 +405,7 @@ fun ControlsIsland(
     val playerStatus by viewModel.playerStatus.collectAsState()
     val sinks by viewModel.sinks.collectAsState()
     val outputName by remember { derivedStateOf {
-        sinks.firstOrNull() { it.isDefault }?.description
+        sinks.firstOrNull { it.isDefault }?.description
     } }
 
     Column(

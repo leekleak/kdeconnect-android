@@ -66,6 +66,11 @@ class SystemVolumePlugin(context: Context, device: Device) : Plugin(context, dev
         return true
     }
 
+    override fun onCreate(): Boolean {
+        Log.e("SYSTVOL", "CREATED")
+        return super.onCreate()
+    }
+
     internal suspend fun sendVolume(name: String, volume: Int) {
         val np = NetworkPacket(PACKET_TYPE_SYSTEMVOLUME_REQUEST)
         np["volume"] = volume

@@ -442,7 +442,7 @@ class MprisPlugin(
 }
 
 object MprisPluginInfo: PluginInfo(
-    pluginKey = "MprisPluginInfo",
+    pluginKey = "MprisPlugin",
     instantiableClass = MprisPlugin::class.java,
     displayNameRes = R.string.pref_plugin_mpris,
     descriptionRes = R.string.pref_plugin_mpris_desc,
