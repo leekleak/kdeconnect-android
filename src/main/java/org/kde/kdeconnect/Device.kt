@@ -24,7 +24,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -46,6 +45,7 @@ import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.Plugin.Companion.getPluginKey
 import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect.plugins.battery.DeviceBatteryInfo
+import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.PairingActivity
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.component.KoinScopeComponent
@@ -75,9 +75,7 @@ class Device(
     ))
     val state: StateFlow<DeviceState> = _state.asStateFlow()
     private fun updateState(transform: (DeviceState) -> DeviceState) {
-        val newState = transform(state.value)
-        val newPlugins = runBlocking { reloadPluginsFromSettings(newState.deviceInfo) }
-        _state.update { newState.copy(loadedPlugins = newPlugins) }
+        _state.update { runBlocking { reloadPluginsFromSettings(transform(it)) } }
     }
 
     val deviceId: String get() = state.value.deviceInfo.id
@@ -92,17 +90,12 @@ class Device(
     val deviceType: DeviceType get() = deviceInfo.type
     val protocolVersion: Int get() = deviceInfo.protocolVersion
 
-    internal var pairingHandler: PairingHandler = PairingHandler(
+    internal val pairingHandler: PairingHandler = PairingHandler(
         device = this,
         sslHelper = sslHelper,
         callback = createDefaultPairingCallback(),
         startState = if (link == null) PairState.Paired else PairState.NotPaired
     )
-
-    /**
-     * Same as loadedPlugins but indexed by incoming packet type
-     */
-    private var pluginsByIncomingInterface: Map<String, List<String>> = emptyMap()
 
     private val sendChannel = Channel<NetworkPacketWithCallback>(Channel.UNLIMITED)
     private var sendCoroutine : Job? = null
@@ -116,10 +109,8 @@ class Device(
         link?.let { addLink(it) }
         updateState { it }
         jobScope.launch {
-            combine(pairingHandler.state, pairingHandler.verificationKey) { a, b ->
-                a to b
-            }.collect { (pairStatus, verificationKey) ->
-                updateState { it.copy(pairStatus = pairStatus, verificationKey = verificationKey) }
+            pairingHandler.verificationKey.collect { key ->
+                updateState { it.copy(verificationKey = key) }
             }
         }
         jobScope.launch {
@@ -178,6 +169,12 @@ class Device(
                     deviceInfo = it.deviceInfo.copy(trusted = true),
                     pairStatus = PairState.Paired,
                 ) }
+
+                val intent = Intent(context, MainActivity::class.java).apply {
+                    putExtra(MainActivity.EXTRA_DEVICE_ID, deviceId)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(intent)
             }
 
             override fun pairingFailed(error: Int) {
@@ -216,7 +213,7 @@ class Device(
     }
 
     @WorkerThread
-    suspend fun removeLink(link: BaseLink) {
+    fun removeLink(link: BaseLink) {
         link.removePacketReceiver(this)
         updateState { state ->
             val newLinks = state.links.minus(link)
@@ -232,7 +229,7 @@ class Device(
         }
     }
 
-    suspend fun updateDeviceInfo(newDeviceInfo: DeviceInfo) {
+    fun updateDeviceInfo(newDeviceInfo: DeviceInfo) {
         val updatedSupportedPlugins: List<String> = PluginFactory.pluginsForCapabilities(
             newDeviceInfo.incomingCapabilities,
             newDeviceInfo.outgoingCapabilities
@@ -282,7 +279,7 @@ class Device(
     }
 
     private suspend fun notifyPluginPacketReceived(np: NetworkPacket) {
-        val targetPlugins = pluginsByIncomingInterface[np.type] // Returns an empty collection if the key doesn't exist
+        val targetPlugins = state.value.pluginsByIncomingInterface[np.type] // Returns an empty collection if the key doesn't exist
         if (targetPlugins == null) {
             Log.e("Device", "Ignoring packet with type ${np.type} because no plugin can handle it")
 
@@ -401,17 +398,18 @@ class Device(
     }
 
     @WorkerThread
-    suspend fun reloadPluginsFromSettings(deviceInfo: DeviceInfo): Map<String, Plugin> {
+    suspend fun reloadPluginsFromSettings(deviceState: DeviceState): DeviceState {
         Log.i("Device", "${this@Device.deviceInfo.name}: reloading plugins")
         val newPluginsByIncomingInterface: MutableMap<String, MutableList<String>> = mutableMapOf()
+        val deviceInfo = deviceState.deviceInfo
 
-        val oldLoadedPlugins = loadedPlugins
+        val oldLoadedPlugins = deviceState.loadedPlugins
         val newLoadedPlugins = mutableMapOf<String, Plugin>()
 
-        supportedPlugins.forEach { pluginKey ->
+        deviceState.supportedPlugins.forEach { pluginKey ->
             val pluginInfo = PluginFactory.getPluginInfo(pluginKey)
 
-            val pluginEnabled = isPaired && isReachable && (deviceInfo.settings[pluginKey] == true)
+            val pluginEnabled = deviceState.pairStatus == PairState.Paired && deviceState.isReachable && (deviceInfo.settings[pluginKey] == true)
 
             if (pluginEnabled) {
                 val plugin = oldLoadedPlugins[pluginKey] ?: PluginFactory.instantiatePluginForDevice(pluginKey, this)
@@ -425,8 +423,6 @@ class Device(
                 }
             }
         }
-
-        pluginsByIncomingInterface = newPluginsByIncomingInterface
 
         val destroyJobs = oldLoadedPlugins.filter { !newLoadedPlugins.containsKey(it.key) }.map { (pluginKey, plugin) ->
             coroutineScope {
@@ -456,10 +452,13 @@ class Device(
 
         (destroyJobs + createJobs).awaitAll()
 
-        return newLoadedPlugins
+        return deviceState.copy(
+            pluginsByIncomingInterface = newPluginsByIncomingInterface,
+            loadedPlugins = newLoadedPlugins
+        )
     }
 
-    internal suspend fun updateBatteryInfo(newInfo: DeviceBatteryInfo) {
+    internal fun updateBatteryInfo(newInfo: DeviceBatteryInfo) {
         updateState { it.copy(batteryInfo = newInfo) }
     }
 
@@ -492,5 +491,6 @@ data class DeviceState(
     val verificationKey: String? = null,
     val loadedPlugins: Map<String, Plugin> = emptyMap(),
     val supportedPlugins: List<String> = emptyList(),
+    val pluginsByIncomingInterface: Map<String, List<String>> = emptyMap(),
     val links: List<BaseLink> = emptyList(),
 )

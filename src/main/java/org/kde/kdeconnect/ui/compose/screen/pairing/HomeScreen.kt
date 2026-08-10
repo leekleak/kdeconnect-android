@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.DeviceState
 import org.kde.kdeconnect.DeviceType
@@ -68,9 +69,8 @@ fun HomeScreen(
                 PullToRefreshDefaults.Indicator(
                     state = pullRefreshState,
                     isRefreshing = uiState.refreshing,
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = paddingValues.calculateTopPadding())
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    maxDistance = PullToRefreshDefaults.IndicatorMaxDistance + paddingValues.calculateTopPadding()
                 )
             }
         ) {

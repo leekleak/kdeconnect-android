@@ -47,6 +47,7 @@ import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
 import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.DigitizerKey
+import org.kde.kdeconnect.ui.navigation.HomeKey
 import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import org.kde.kdeconnect.ui.navigation.MousePadKey
 import org.kde.kdeconnect.ui.navigation.MprisKey
@@ -148,7 +149,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
                     "DigitizerPlugin" -> navigator.goTo(DigitizerKey(deviceId))
                     "MousePadPlugin" -> navigator.goTo(MousePadKey(deviceId))
                     "MprisPlugin" -> navigator.goTo(MprisKey(deviceId))
-                    else -> navigator.goTo(DeviceKey(deviceId))
+                    else -> navigator.setTo(listOf(HomeKey, DeviceKey(deviceId)))
                 }
             }
         }

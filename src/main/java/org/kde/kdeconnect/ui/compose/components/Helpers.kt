@@ -3,10 +3,14 @@
 package org.kde.kdeconnect.ui.compose.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialShapes.Companion.Arch
@@ -85,25 +89,30 @@ fun DrawScope.smartDashBorder(
 }
 
 @Composable
-fun BoxScope.PairingExplanations(wifiAvailable: Boolean, trustedNetwork: Boolean) {
-    if (!wifiAvailable) {
-        BigPlaceholder(
-            modifier = Modifier.align(Alignment.Center),
-            painter = painterResource(R.drawable.wifi_off),
-            text = stringResource(R.string.on_non_trusted_message),
-        )
-    } else if (!trustedNetwork) {
-        BigPlaceholder(
-            modifier = Modifier.align(Alignment.Center),
-            painter = painterResource(R.drawable.verified_off),
-            text = stringResource(R.string.on_non_trusted_message),
-        )
-    } else {
-        BigPlaceholder(
-            modifier = Modifier.align(Alignment.Center),
-            painter = painterResource(R.drawable.sentiment_sad),
-            text = stringResource(R.string.device_list_empty)
-        )
+fun PairingExplanations(wifiAvailable: Boolean, trustedNetwork: Boolean) {
+    Box(                                                       // This scrollable box container is required
+        modifier = Modifier.fillMaxSize()                      // as the intended place of use for this component
+           .verticalScroll(rememberScrollState())              // is a refresh box, which requires a
+    ) {                                                        // scrollable child to detect refreshes
+        if (!wifiAvailable) {
+            BigPlaceholder(
+                modifier = Modifier.align(Alignment.Center),
+                painter = painterResource(R.drawable.wifi_off),
+                text = stringResource(R.string.on_non_trusted_message),
+            )
+        } else if (!trustedNetwork) {
+            BigPlaceholder(
+                modifier = Modifier.align(Alignment.Center),
+                painter = painterResource(R.drawable.verified_off),
+                text = stringResource(R.string.on_non_trusted_message),
+            )
+        } else {
+            BigPlaceholder(
+                modifier = Modifier.align(Alignment.Center),
+                painter = painterResource(R.drawable.sentiment_sad),
+                text = stringResource(R.string.device_list_empty)
+            )
+        }
     }
 }
 

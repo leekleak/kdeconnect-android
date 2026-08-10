@@ -135,8 +135,6 @@ class LanLink @WorkerThread constructor(
             return false
         }
 
-        Log.e("SendPacket", "Stop 1")
-
         try {
             //Prepare socket for the payload
 
@@ -149,9 +147,6 @@ class LanLink @WorkerThread constructor(
             } else {
                 null
             }
-            Log.e("SendPacket", "Stop 2")
-
-            //Log.e("LanLink/sendPacket", np.getType());
 
             //Send body of the network packet
             withContext(Dispatchers.IO) {
@@ -170,7 +165,6 @@ class LanLink @WorkerThread constructor(
                     throw e
                 }
             }
-            Log.e("SendPacket", "Stop 3")
 
             //Send payload
             if (server != null) {
@@ -185,7 +179,6 @@ class LanLink @WorkerThread constructor(
                 }
             }
 
-            Log.e("SendPacket", "Stop 4")
             if (!np.isCanceled) {
                 callback.onSuccess()
             }
@@ -194,7 +187,6 @@ class LanLink @WorkerThread constructor(
             callback.onFailure(e)
             return false
         } finally {
-            Log.e("SendPacket", "Stop 5")
             //Make sure we close the payload stream, if any
             if (np.hasPayload()) {
                 np.payload?.close()

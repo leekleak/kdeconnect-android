@@ -90,9 +90,8 @@ private fun DeviceSelectScreenContent(
             PullToRefreshDefaults.Indicator(
                 state = pullRefreshState,
                 isRefreshing = isRefreshing,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = paddingValues.calculateTopPadding())
+                modifier = Modifier.align(Alignment.TopCenter),
+                maxDistance = PullToRefreshDefaults.IndicatorMaxDistance + paddingValues.calculateTopPadding()
             )
         }
     ) {

@@ -223,7 +223,7 @@ class PairingHandler(
     fun pairingDone() {
         Log.i("PairingHandler", "Pairing done")
         updateState(PairState.Paired)
-        kotlin.runCatching {
+        runCatching {
             callback.pairingSuccessful()
         }.onFailure { e ->
             Log.e("PairingHandler", "Exception in pairingSuccessful callback, unpairing", e)

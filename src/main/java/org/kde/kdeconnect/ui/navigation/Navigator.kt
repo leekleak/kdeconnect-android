@@ -13,6 +13,10 @@ class Navigator(startDestination: KdeConnectKey = HomeKey) {
         backStack.clear().also { backStack.add(destination) }
     }
 
+    fun setTo(destination: List<KdeConnectKey>) {
+        backStack.clear().also { backStack.addAll(destination) }
+    }
+
     fun goBack() {
         backStack.removeLastOrNull()
     }

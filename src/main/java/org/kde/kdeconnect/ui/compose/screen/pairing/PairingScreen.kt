@@ -45,9 +45,8 @@ fun PairingScreen(
                 PullToRefreshDefaults.Indicator(
                     state = pullRefreshState,
                     isRefreshing = uiState.refreshing,
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = paddingValues.calculateTopPadding())
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    maxDistance = PullToRefreshDefaults.IndicatorMaxDistance + paddingValues.calculateTopPadding()
                 )
             }
         ) {
