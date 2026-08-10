@@ -41,7 +41,6 @@ import org.kde.kdeconnect.helpers.SMSHelper.getMessagesInThread
 import org.kde.kdeconnect.helpers.SMSHelper.getNewestMessageTimestamp
 import org.kde.kdeconnect.helpers.SMSHelper.jsonArrayToAddressList
 import org.kde.kdeconnect.helpers.SMSHelper.jsonArrayToAttachmentsList
-import org.kde.kdeconnect.helpers.ThreadHelper.execute
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.sms.SMSPlugin.Companion.PACKET_TYPE_SMS_ATTACHMENT_FILE
@@ -238,7 +237,6 @@ class SMSPlugin(
     }
 
     override fun onCreate(): Boolean {
-        initialize()
         return true
     }
 
@@ -267,8 +265,12 @@ class SMSPlugin(
             // To see debug messages for Klinker library, uncomment the below line
             //Log.setDebug(true)
             mostRecentTimestampLock.lock()
-            mostRecentTimestamp = getNewestMessageTimestamp(context)
-            mostRecentTimestampLock.unlock()
+            try {
+                mostRecentTimestamp = getNewestMessageTimestamp(context)
+            } finally {
+                mostRecentTimestampLock.unlock()
+            }
+
             initialized = true
         } catch (e: Exception) {
             e.printStackTrace()

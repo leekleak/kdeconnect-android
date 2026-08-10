@@ -147,13 +147,17 @@ fun PlayerIsland(viewModel: MprisViewModel) {
         AsyncImage(
             modifier = Modifier
                 .aspectRatio(1f)
-                .fillMaxWidth().hazeSource(hazeState)
+                .fillMaxWidth()
+                .hazeSource(hazeState)
                 .drawWithContent {
                     drawContent()
                     drawRect(
-                        brush = Brush.verticalGradient(0.66f to Color.Transparent, 1f to backgroundColor),
-                        topLeft = Offset(x = 0f, y = size.height*2/3),
-                        size = Size(size.width, size.height/3f)
+                        brush = Brush.verticalGradient(
+                            0.66f to Color.Transparent,
+                            1f to backgroundColor
+                        ),
+                        topLeft = Offset(x = 0f, y = size.height * 2 / 3),
+                        size = Size(size.width, size.height / 3f)
                     )
                 },
             model = ImageRequest.Builder(LocalContext.current)
@@ -181,8 +185,12 @@ fun PlayerIsland(viewModel: MprisViewModel) {
             contentScale = ContentScale.Crop
         )
         Column {
-            Spacer(modifier = Modifier.aspectRatio(1.5f).fillMaxWidth())
-            Spacer(modifier = Modifier.aspectRatio(1.5f).fillMaxWidth()
+            Spacer(modifier = Modifier
+                .aspectRatio(1.5f)
+                .fillMaxWidth())
+            Spacer(modifier = Modifier
+                .aspectRatio(1.5f)
+                .fillMaxWidth()
                 .hazeEffect(hazeState, HazeMaterials.thick(backgroundColor)) {
                     progressive =
                         HazeProgressive.verticalGradient(
@@ -193,7 +201,9 @@ fun PlayerIsland(viewModel: MprisViewModel) {
             )
         }
 
-        Row(Modifier.align(Alignment.TopEnd).padding(8.dp)) {
+        Row(Modifier
+            .align(Alignment.TopEnd)
+            .padding(8.dp)) {
             if (playerStatus?.isShuffleAllowed == true) {
                 val checked = playerStatus?.shuffle == true
                 FilledIconToggleButton(
@@ -231,7 +241,9 @@ fun PlayerIsland(viewModel: MprisViewModel) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.aspectRatio(1.2f).fillMaxWidth())
+            Spacer(modifier = Modifier
+                .aspectRatio(1.2f)
+                .fillMaxWidth())
 
             val title = playerStatus?.title ?: ""
             val artist = playerStatus?.artist ?: ""
@@ -240,7 +252,9 @@ fun PlayerIsland(viewModel: MprisViewModel) {
             AnimatedContent(title) {
                 Text(
                     text = it,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
                     fontSize = 36.sp,
                     color = contentColor,
                     fontFamily = fontBold,
@@ -298,13 +312,17 @@ fun PlayerIsland(viewModel: MprisViewModel) {
 
 
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 24.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (playerStatus?.isSeekAllowed == true) {
                         FilledTonalIconButton(
-                            modifier = Modifier.width(42.dp).height(36.dp),
+                            modifier = Modifier
+                                .width(42.dp)
+                                .height(36.dp),
                             shape = MaterialTheme.shapes.medium,
                             onClick = { viewModel.seek(-30000) }
                         ) {
@@ -315,7 +333,9 @@ fun PlayerIsland(viewModel: MprisViewModel) {
                         }
                     }
                     FilledTonalIconButton(
-                        modifier = Modifier.width(56.dp).height(42.dp),
+                        modifier = Modifier
+                            .width(56.dp)
+                            .height(42.dp),
                         onClick = { viewModel.previous() },
                         shape = MaterialTheme.shapes.medium,
                         enabled = playerStatus?.isGoPreviousAllowed == true
@@ -327,7 +347,9 @@ fun PlayerIsland(viewModel: MprisViewModel) {
                     }
                     val playChecked = playerStatus?.isPlaying == true
                     FilledIconToggleButton(
-                        modifier = Modifier.width(100.dp).height(64.dp),
+                        modifier = Modifier
+                            .width(100.dp)
+                            .height(64.dp),
                         checked = playChecked,
                         onCheckedChange = { viewModel.playPause() },
                         shape = MaterialTheme.shapes.medium,
@@ -341,7 +363,9 @@ fun PlayerIsland(viewModel: MprisViewModel) {
                         }
                     }
                     FilledTonalIconButton(
-                        modifier = Modifier.width(56.dp).height(42.dp),
+                        modifier = Modifier
+                            .width(56.dp)
+                            .height(42.dp),
                         onClick = { viewModel.next() },
                         shape = MaterialTheme.shapes.medium,
                         enabled = playerStatus?.isGoNextAllowed == true
@@ -353,7 +377,9 @@ fun PlayerIsland(viewModel: MprisViewModel) {
                     }
                     if (playerStatus?.isSeekAllowed == true) {
                         FilledTonalIconButton(
-                            modifier = Modifier.width(42.dp).height(36.dp),
+                            modifier = Modifier
+                                .width(42.dp)
+                                .height(36.dp),
                             shape = MaterialTheme.shapes.medium,
                             onClick = { viewModel.seek(30000) }
                         ) {
@@ -379,7 +405,7 @@ fun ControlsIsland(
     val playerStatus by viewModel.playerStatus.collectAsState()
     val sinks by viewModel.sinks.collectAsState()
     val outputName by remember { derivedStateOf {
-        sinks.first { it.isDefault }.description
+        sinks.firstOrNull() { it.isDefault }?.description
     } }
 
     Column(
@@ -394,13 +420,13 @@ fun ControlsIsland(
         ) {
             ControlButton(
                 titleName = stringResource(R.string.input),
-                contentName = playerStatus?.playerName ?: "",
+                contentName = playerStatus?.playerName ?: stringResource(R.string.no_input),
                 icon = painterResource(R.drawable.input),
                 onClick = { navigator.goTo(MprisSourceKey(deviceId)) }
             )
             ControlButton(
                 titleName = stringResource(R.string.output),
-                contentName = outputName,
+                contentName = outputName ?: stringResource(R.string.no_output),
                 icon = painterResource(R.drawable.speaker_group),
                 onClick = { navigator.goTo(MprisSinkKey(deviceId)) }
             )
@@ -442,7 +468,9 @@ private fun RowScope.ControlButton(
             contentPadding = PaddingValues(0.dp),
             onClick = onClick
         ) {
-            Box(modifier = Modifier.basicMarquee().padding(vertical = 8.dp, horizontal = 16.dp)) {
+            Box(modifier = Modifier
+                .basicMarquee()
+                .padding(vertical = 8.dp, horizontal = 16.dp)) {
                 Text(
                     text = contentName,
                     maxLines = 1

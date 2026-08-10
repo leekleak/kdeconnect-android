@@ -79,6 +79,7 @@ class Device(
 
     private val stateUpdateMutex = Mutex()
     private suspend fun updateState(transform: (DeviceState) -> DeviceState) = stateUpdateMutex.withLock {
+        Log.e("DeviceState", "Got through lock")
         val newState = reloadPluginsFromSettings(transform(state.value))
         state.update { newState }
     }
@@ -188,7 +189,7 @@ class Device(
             override fun unpaired(device: Device) {
                 assert(device == this@Device)
                 Log.i("Device", "unpaired, removing from trusted devices list")
-                runBlocking {
+                jobScope.launch {
                     updateState {
                         it.copy(
                             deviceInfo = it.deviceInfo.copy(trusted = false),
@@ -431,6 +432,7 @@ class Device(
             }
         }
 
+        Log.e("Device", "Removing ${oldLoadedPlugins.count { !newLoadedPlugins.containsKey(it.key) }} plugins")
         oldLoadedPlugins.filter { !newLoadedPlugins.containsKey(it.key) }.forEach { (pluginKey, plugin) ->
             runCatching {
                 plugin.onDestroy()
@@ -441,6 +443,7 @@ class Device(
 
         newLoadedPlugins.filter { !oldLoadedPlugins.containsKey(it.key) }.forEach { (pluginKey, plugin) ->
             runCatching {
+                Log.e("Device", "Loading $pluginKey")
                 plugin.onCreate()
             }.onFailure {
                 Log.e("KDE/addPlugin", "plugin failed to load $pluginKey", it)
