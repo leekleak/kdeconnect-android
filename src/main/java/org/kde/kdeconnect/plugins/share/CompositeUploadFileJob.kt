@@ -88,7 +88,6 @@ class CompositeUploadFileJob(private val device: Device, private val context: Co
                 if (!device.sendPacketBlocking(
                         packet,
                         sendPacketStatusCallback,
-                        true
                     )
                 ) {
                     throw RuntimeException("Sending packet failed")

@@ -13,9 +13,9 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import org.kde.kdeconnect.helpers.DeviceHelper
+import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect_tp.R
 import java.security.cert.Certificate
-import java.security.cert.CertificateException
 
 /**
  * DeviceInfo contains all the properties needed to instantiate a Device.
@@ -30,7 +30,7 @@ data class DeviceInfo(
     val incomingCapabilities: Set<String> = emptySet(),
     val outgoingCapabilities: Set<String> = emptySet(),
     val settings: Map<String, Boolean> = emptyMap(),
-    val trusted: Boolean = true,
+    val trusted: Boolean = false,
 ) {
 
     /**
@@ -47,6 +47,14 @@ data class DeviceInfo(
             np["incomingCapabilities"] = incomingCapabilities
             np["outgoingCapabilities"] = outgoingCapabilities
         }
+
+    fun withPopulatedSettings(): DeviceInfo {
+        val missingSettings = PluginFactory.availablePlugins.toSet().minus(settings.keys)
+        val newInfo = this.copy(
+            settings = settings.plus(missingSettings.map { it to PluginFactory.getPluginInfo(it).isEnabledByDefault }),
+        )
+        return newInfo
+    }
 
     companion object {
         /**

@@ -21,7 +21,6 @@ import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.NetworkPacket.Companion.unserialize
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLinkProvider
-import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.LineTooLongException
 import org.kde.kdeconnect.helpers.readLineBounded
 import org.kde.kdeconnect.helpers.security.SslHelper
@@ -45,7 +44,6 @@ class LanLink @WorkerThread constructor(
     linkProvider: BaseLinkProvider,
     socket: SSLSocket,
     private val sslHelper: SslHelper,
-    private val deviceSettings: DeviceSettings
 ) : BaseLink(context, linkProvider) {
     enum class ConnectionStarted {
         Locally, Remotely
@@ -130,13 +128,14 @@ class LanLink @WorkerThread constructor(
     override suspend fun sendPacket(
         np: NetworkPacket,
         callback: Device.SendPacketStatusCallback,
-        sendPayloadFromSameThread: Boolean
     ): Boolean {
         if (socket == null) {
             Log.e("KDE/sendPacket", "Not yet connected")
             callback.onFailure(NotYetConnectedException())
             return false
         }
+
+        Log.e("SendPacket", "Stop 1")
 
         try {
             //Prepare socket for the payload
@@ -150,6 +149,7 @@ class LanLink @WorkerThread constructor(
             } else {
                 null
             }
+            Log.e("SendPacket", "Stop 2")
 
             //Log.e("LanLink/sendPacket", np.getType());
 
@@ -170,26 +170,22 @@ class LanLink @WorkerThread constructor(
                     throw e
                 }
             }
+            Log.e("SendPacket", "Stop 3")
 
             //Send payload
             if (server != null) {
-                if (sendPayloadFromSameThread) {
+                try {
                     sendPayload(np, callback, server)
-                } else {
-                    scope.launch {
-                        try {
-                            sendPayload(np, callback, server)
-                        } catch (e: IOException) {
-                            e.printStackTrace()
-                            Log.e(
-                                "LanLink/sendPacket",
-                                "Async sendPayload failed for packet of type " + np.type + ". The Plugin was NOT notified."
-                            )
-                        }
-                    }
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    Log.e(
+                        "LanLink/sendPacket",
+                        "Async sendPayload failed for packet of type " + np.type + ". The Plugin was NOT notified."
+                    )
                 }
             }
 
+            Log.e("SendPacket", "Stop 4")
             if (!np.isCanceled) {
                 callback.onSuccess()
             }
@@ -198,6 +194,7 @@ class LanLink @WorkerThread constructor(
             callback.onFailure(e)
             return false
         } finally {
+            Log.e("SendPacket", "Stop 5")
             //Make sure we close the payload stream, if any
             if (np.hasPayload()) {
                 np.payload?.close()
@@ -223,10 +220,9 @@ class LanLink @WorkerThread constructor(
 
                 //Convert to SSL if needed
                 payloadSocket =
-                    sslHelper.convertToSslSocket(context, payloadSocket!!, deviceId,
+                    sslHelper.convertToSslSocket(context, payloadSocket!!, deviceInfo,
                         isDeviceTrusted = true,
                         clientMode = false,
-                        deviceSettings
                     )
 
                 outputStream = payloadSocket.getOutputStream()
@@ -292,10 +288,9 @@ class LanLink @WorkerThread constructor(
                     payloadSocket.connect(InetSocketAddress(deviceAddress.address, tcpPort))
                 }
                 payloadSocket =
-                    sslHelper.convertToSslSocket(context, payloadSocket, deviceId,
+                    sslHelper.convertToSslSocket(context, payloadSocket, deviceInfo,
                         isDeviceTrusted = true,
                         clientMode = true,
-                        deviceSettings
                     )
                 np.payload = NetworkPacket.Payload(payloadSocket, np.payloadSize)
             } catch (e: Exception) {

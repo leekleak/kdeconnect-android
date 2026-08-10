@@ -24,7 +24,7 @@ class LoopbackLink(
     override val deviceInfo: DeviceInfo = deviceHelper.getDeviceInfo()
 
     @WorkerThread
-    override suspend fun sendPacket(np: NetworkPacket, callback: Device.SendPacketStatusCallback, sendPayloadFromSameThread: Boolean): Boolean {
+    override suspend fun sendPacket(np: NetworkPacket, callback: Device.SendPacketStatusCallback): Boolean {
         packetReceived(np)
         if (np.hasPayload()) {
             callback.onPayloadProgressChanged(0)

@@ -256,10 +256,10 @@ val settingsModule = module {
     single<SettingsDataStore>()
     single<RunCommandSettingsDataStore>()
     single<MousePadSettingsDataStore>()
-    single { DeviceSettings(get(), get()) }
+    single { DeviceSettings(get()) }
     single { DeviceHelper(get(), get()) }
     single { ThemeUtil(get()) }
-    single { SslHelper(get()) }
+    single { SslHelper(get(), get()) }
     single { CustomDevicesHelper(get()) }
     single { VideoUrlsHelper(get()) }
     single<DeviceManager> {

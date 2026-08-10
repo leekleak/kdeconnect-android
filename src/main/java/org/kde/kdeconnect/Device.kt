@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -75,7 +74,11 @@ class Device(
         isReachable = false
     ))
     val state: StateFlow<DeviceState> = _state.asStateFlow()
-    private fun updateState(transform: (DeviceState) -> DeviceState) = _state.update(transform)
+    private fun updateState(transform: (DeviceState) -> DeviceState) {
+        val newState = transform(state.value)
+        val newPlugins = runBlocking { reloadPluginsFromSettings(newState.deviceInfo) }
+        _state.update { newState.copy(loadedPlugins = newPlugins) }
+    }
 
     val deviceId: String get() = state.value.deviceInfo.id
     val certificate: Certificate get() = sslHelper.parseCertificate(state.value.deviceInfo.certificate)
@@ -110,6 +113,8 @@ class Device(
     private val reloadPluginsMutex = Mutex()
 
     init {
+        link?.let { addLink(it) }
+        updateState { it }
         jobScope.launch {
             combine(pairingHandler.state, pairingHandler.verificationKey) { a, b ->
                 a to b
@@ -118,23 +123,8 @@ class Device(
             }
         }
         jobScope.launch {
-            link?.let { addLink(it) }
-        }
-        jobScope.launch {
-            deviceSettings.getDeviceInfoFlow(deviceId).filterNotNull().collect { settingsInfo ->
-                reloadPluginsFromSettings(settingsInfo)
-            }
-        }
-        jobScope.launch {
-            state.map { it.isReachable to it.pairStatus }.collect {
-                deviceSettings.getDeviceInfo(deviceId)?.let { reloadPluginsFromSettings(it) }
-            }
-        }
-        jobScope.launch {
-            deviceSettings.getDeviceInfoFlow(deviceId).collect { deviceInfo ->
-                deviceInfo?.let {
-                    updateState { state -> state.copy(deviceInfo = it) }
-                }
+            state.map { it.deviceInfo }.distinctUntilChanged().collect { info ->
+                deviceSettings.addTrustedDevice(info)
             }
         }
     }
@@ -149,7 +139,15 @@ class Device(
         pairingHandler.requestPairing()
     }
 
-    suspend fun unpair() = pairingHandler.unpair()
+    suspend fun unpair() {
+        pairingHandler.unpair()
+        _state.update {
+            it.copy(
+                batteryInfo = null,
+                verificationKey = null,
+            )
+        }
+    }
 
     /* This method is called after accepting pair request form GUI */
     suspend fun acceptPairing() {
@@ -176,10 +174,10 @@ class Device(
             override fun pairingSuccessful() {
                 Log.i("Device", "pairing successful, adding to trusted devices list")
 
-                runBlocking {
-                    deviceSettings.addTrustedDevice(deviceInfo)
-                    reloadPluginsFromSettings(deviceInfo)
-                }
+                updateState { it.copy(
+                    deviceInfo = it.deviceInfo.copy(trusted = true),
+                    pairStatus = PairState.Paired,
+                ) }
             }
 
             override fun pairingFailed(error: Int) {
@@ -188,20 +186,20 @@ class Device(
             override fun unpaired(device: Device) {
                 assert(device == this@Device)
                 Log.i("Device", "unpaired, removing from trusted devices list")
-                runBlocking {
-                    deviceSettings.getDeviceInfo(deviceId)?.let { reloadPluginsFromSettings(it) }
-                }
-                jobScope.launch { deviceSettings.removeTrustedDevice(deviceInfo.id) }
+                updateState { it.copy(
+                    deviceInfo = it.deviceInfo.copy(trusted = true),
+                    pairStatus = PairState.NotPaired,
+                ) }
             }
         }
     }
 
-    suspend fun addLink(link: BaseLink) {
+    fun addLink(link: BaseLink) {
         synchronized(sendChannel) {
             if (sendCoroutine == null) {
                 sendCoroutine = CoroutineScope(Dispatchers.IO).launch {
                     for ((np, callback) in sendChannel) {
-                        sendPacketBlocking(np, callback)
+                        sendPacket(np, callback)
                     }
                 }
             }
@@ -214,12 +212,11 @@ class Device(
             )
         }
 
-        deviceSettings.getDeviceInfo(deviceId)?.let { reloadPluginsFromSettings(it) }
         link.addPacketReceiver(this)
     }
 
     @WorkerThread
-    fun removeLink(link: BaseLink) {
+    suspend fun removeLink(link: BaseLink) {
         link.removePacketReceiver(this)
         updateState { state ->
             val newLinks = state.links.minus(link)
@@ -235,13 +232,12 @@ class Device(
         }
     }
 
-    fun updateDeviceInfo(newDeviceInfo: DeviceInfo) {
+    suspend fun updateDeviceInfo(newDeviceInfo: DeviceInfo) {
         val updatedSupportedPlugins: List<String> = PluginFactory.pluginsForCapabilities(
             newDeviceInfo.incomingCapabilities,
             newDeviceInfo.outgoingCapabilities
         ).toList()
 
-        runBlocking { deviceSettings.addTrustedDevice(newDeviceInfo) }
         updateState { state ->
             state.copy(
                 deviceInfo = state.deviceInfo.copy(
@@ -250,7 +246,8 @@ class Device(
                     protocolVersion = newDeviceInfo.protocolVersion,
                     outgoingCapabilities = newDeviceInfo.outgoingCapabilities,
                     incomingCapabilities = newDeviceInfo.incomingCapabilities,
-                ),
+                    settings = deviceInfo.settings
+                ).withPopulatedSettings(),
                 supportedPlugins = updatedSupportedPlugins
             )
         }
@@ -333,34 +330,34 @@ class Device(
      */
     suspend fun sendPacket(np: NetworkPacket, callback: SendPacketStatusCallback) = withContext(Dispatchers.IO) {
         Log.e("Sending", np.type)
-        sendChannel.send(NetworkPacketWithCallback(np, callback))
+        sendPacketToLink(np, callback)
     }
 
-    suspend fun sendPacket(np: NetworkPacket) = sendPacket(np, defaultCallback)
+    suspend fun sendPacket(np: NetworkPacket) = sendPacketToLink(np, defaultCallback)
 
     @WorkerThread
+    @Deprecated("Use suspend")
     fun sendPacketBlocking(np: NetworkPacket, callback: SendPacketStatusCallback): Boolean =
-        sendPacketBlocking(np, callback, false)
+        runBlocking { sendPacketToLink(np, callback) }
 
     @WorkerThread
-    fun sendPacketBlocking(np: NetworkPacket): Boolean = sendPacketBlocking(np, defaultCallback, false)
+    @Deprecated("Use suspend")
+    fun sendPacketBlocking(np: NetworkPacket): Boolean = runBlocking { sendPacketToLink(np, defaultCallback) }
 
     /**
      * Send `np` over one of this device's connected [links].
      *
      * @param np                        the packet to send
      * @param callback                  a callback that can receive realtime updates
-     * @param sendPayloadFromSameThread when set to true and np contains a Payload, this function
      * won't return until the Payload has been received by the
      * other end, or times out after 10 seconds
      * @return true if the packet was sent ok, false otherwise
      * @see BaseLink.sendPacket
      */
     @WorkerThread
-    fun sendPacketBlocking(
+    suspend fun sendPacketToLink(
         np: NetworkPacket,
         callback: SendPacketStatusCallback,
-        sendPayloadFromSameThread: Boolean
     ): Boolean {
         if (!supportsPacketType(np.type)) {
             Log.e("KDE/sendPacket", "Tried to send an unsupported packet type ${np.type} to: ${deviceInfo.name}")
@@ -370,7 +367,7 @@ class Device(
         val currentLinks = state.value.links
         val success = currentLinks.any { link ->
             try {
-                runBlocking { link.sendPacket(np, callback, sendPayloadFromSameThread) }
+                link.sendPacket(np, callback)
             } catch (e: IOException) {
                 Log.w("KDE/sendPacket", "Failed to send packet", e)
                 false
@@ -399,15 +396,13 @@ class Device(
 
     fun getPlugin(pluginKey: String): Plugin? = loadedPlugins[pluginKey]
 
-    fun setPluginEnabled(pluginKey: String, value: Boolean) {
-        runBlocking(Dispatchers.IO) {
-            deviceSettings.setBooleanSetting(deviceId, pluginKey, value)
-        }
+    suspend fun setPluginEnabled(pluginKey: String, value: Boolean) = withContext(Dispatchers.IO) {
+        updateState { it.copy(deviceInfo = it.deviceInfo.copy(settings = it.deviceInfo.settings + (pluginKey to value))) }
     }
 
     @WorkerThread
-    suspend fun reloadPluginsFromSettings(settingsInfo: DeviceInfo) {
-        Log.i("Device", "${deviceInfo.name}: reloading plugins")
+    suspend fun reloadPluginsFromSettings(deviceInfo: DeviceInfo): Map<String, Plugin> {
+        Log.i("Device", "${this@Device.deviceInfo.name}: reloading plugins")
         val newPluginsByIncomingInterface: MutableMap<String, MutableList<String>> = mutableMapOf()
 
         val oldLoadedPlugins = loadedPlugins
@@ -416,7 +411,7 @@ class Device(
         supportedPlugins.forEach { pluginKey ->
             val pluginInfo = PluginFactory.getPluginInfo(pluginKey)
 
-            val pluginEnabled = isPaired && isReachable && (settingsInfo.settings[pluginKey] == true)
+            val pluginEnabled = isPaired && isReachable && (deviceInfo.settings[pluginKey] == true)
 
             if (pluginEnabled) {
                 val plugin = oldLoadedPlugins[pluginKey] ?: PluginFactory.instantiatePluginForDevice(pluginKey, this)
@@ -430,10 +425,6 @@ class Device(
                 }
             }
         }
-
-        updateState { it.copy(
-            loadedPlugins = newLoadedPlugins,
-        ) }
 
         pluginsByIncomingInterface = newPluginsByIncomingInterface
 
@@ -465,10 +456,10 @@ class Device(
 
         (destroyJobs + createJobs).awaitAll()
 
-        jobScope
+        return newLoadedPlugins
     }
 
-    internal fun updateBatteryInfo(newInfo: DeviceBatteryInfo) {
+    internal suspend fun updateBatteryInfo(newInfo: DeviceBatteryInfo) {
         updateState { it.copy(batteryInfo = newInfo) }
     }
 

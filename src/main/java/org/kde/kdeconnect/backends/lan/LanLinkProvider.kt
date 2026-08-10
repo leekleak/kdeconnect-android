@@ -14,11 +14,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONException
 import org.kde.kdeconnect.DeviceHost
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.DeviceInfo.Companion.fromIdentityPacketAndCert
 import org.kde.kdeconnect.DeviceInfo.Companion.isValidIdentityPacket
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.NetworkPacket.Companion.unserialize
 import org.kde.kdeconnect.backends.BaseLink
@@ -26,7 +28,6 @@ import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.backends.lan.LanLink.ConnectionStarted
 import org.kde.kdeconnect.helpers.CustomDevicesHelper
 import org.kde.kdeconnect.helpers.DeviceHelper
-import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 import org.kde.kdeconnect.helpers.isPrivateAddress
 import org.kde.kdeconnect.helpers.readLineBounded
@@ -46,8 +47,6 @@ import javax.net.SocketFactory
 import javax.net.ssl.HandshakeCompletedEvent
 import javax.net.ssl.SSLSocket
 import kotlin.text.Charsets.UTF_8
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 
 /**
  * This LanLinkProvider creates [LanLink]s to other devices on the same
@@ -59,8 +58,8 @@ import kotlinx.coroutines.withContext
 class LanLinkProvider(
     private val context: Context,
     private val deviceHelper: DeviceHelper,
+    private val deviceManager: DeviceManager,
     private val trustedNetworkHelper: TrustedNetworkHelper,
-    private val deviceSettings: DeviceSettings,
     private val customDevicesHelper: CustomDevicesHelper,
     private val sslHelper: SslHelper
 ) : BaseLinkProvider() {
@@ -117,7 +116,7 @@ class LanLinkProvider(
             return@withContext null
         }
 
-        val deviceTrusted = deviceSettings.isTrustedDevice(deviceId)
+        val deviceTrusted = deviceManager.getDevice(deviceId)?.state?.value?.deviceInfo?.trusted == true
         if (!deviceTrusted && !trustedNetworkHelper.getIsTrustedNetwork()) {
             Log.i(
                 "KDE/LanLinkProvider",
@@ -324,6 +323,7 @@ class LanLinkProvider(
         deviceTrusted: Boolean
     ) {
         val deviceId = identityPacket.getString("deviceId")
+        val device = deviceManager.getDevice(deviceId)
         val protocolVersion = identityPacket.getInt("protocolVersion")
 
         if (deviceTrusted && isProtocolDowngrade(deviceId, protocolVersion)) {
@@ -334,7 +334,7 @@ class LanLinkProvider(
             return
         }
 
-         if (deviceTrusted && !runBlocking { deviceSettings.isCertificateStored(deviceId) }) {
+        if (deviceTrusted && device?.certificate == null) {
             Log.e(
                 "KDE/LanLinkProvider",
                 "Device trusted but no cert stored. This should not happen."
@@ -349,8 +349,7 @@ class LanLinkProvider(
 
         // If I'm the TCP server I will be the SSL client and vice-versa.
         val clientMode = (connectionStarted == ConnectionStarted.Locally)
-        val sslSocket =
-            sslHelper.convertToSslSocket(context, socket, deviceId, deviceTrusted, clientMode, deviceSettings)
+        val sslSocket = sslHelper.convertToSslSocket(context, socket, device?.deviceInfo, deviceTrusted, clientMode)
         sslSocket.addHandshakeCompletedListener { event: HandshakeCompletedEvent? ->
             // Start a new thread because some Android versions don't allow calling sslSocket.getOutputStream() from the callback
             scope?.launch {
@@ -432,8 +431,7 @@ class LanLinkProvider(
     }
 
     private fun isProtocolDowngrade(deviceId: String, protocolVersion: Int): Boolean {
-        val lastKnownProtocolVersion =
-            runBlocking { deviceSettings.getDeviceInfo(deviceId)?.protocolVersion ?: 0 }
+        val lastKnownProtocolVersion = deviceManager.getDevice(deviceId)?.protocolVersion ?: 0
         return lastKnownProtocolVersion > protocolVersion
     }
 
@@ -463,7 +461,7 @@ class LanLinkProvider(
         } else {
             // Create a new link
             Log.d("KDE/LanLinkProvider", "Creating a new link for device " + deviceInfo.id)
-            link = LanLink(context, deviceInfo, this, socket, sslHelper, deviceSettings)
+            link = LanLink(context, deviceInfo, this, socket, sslHelper)
             visibleDevices[deviceInfo.id] = link
             onConnectionReceived(link)
         }

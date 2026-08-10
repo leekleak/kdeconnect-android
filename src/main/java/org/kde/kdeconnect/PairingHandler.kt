@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.bouncycastle.util.Arrays
 import org.kde.kdeconnect.helpers.security.SslHelper
@@ -34,11 +35,11 @@ class PairingHandler(
     private val callback: PairingCallback,
     startState: PairState,
 ) {
-    private val _state: MutableStateFlow<PairState> = MutableStateFlow(startState)
-    val state: StateFlow<PairState> = _state.asStateFlow()
+    val state: StateFlow<PairState>
+        field = MutableStateFlow(startState)
 
     fun updateState(newState: PairState) {
-        _state.value = newState
+        state.update { newState }
     }
 
     enum class PairState {

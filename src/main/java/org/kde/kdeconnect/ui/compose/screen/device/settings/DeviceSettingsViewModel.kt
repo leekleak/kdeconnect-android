@@ -6,14 +6,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
-import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.HomeKey
 import org.koin.core.annotation.InjectedParam
@@ -24,25 +23,23 @@ data class DeviceSettingsUiState(
 )
 
 class DeviceSettingsViewModel(
-    deviceSettings: DeviceSettings,
-    private val deviceManager: DeviceManager,
+    deviceManager: DeviceManager,
     private val navigator: Navigator,
     @InjectedParam private val deviceId: String
 ) : ViewModel() {
 
-    val uiState: StateFlow<DeviceSettingsUiState> = deviceSettings.getDeviceInfoFlow(deviceId).filterNotNull().map { info ->
+    private val device: Device = deviceManager.getDevice(deviceId)!!
+
+    val uiState: StateFlow<DeviceSettingsUiState> = device.state.map { state ->
         DeviceSettingsUiState(
-            deviceName = info.name,
-            plugins = info.settings
+            deviceName = state.deviceInfo.name,
+            plugins = state.deviceInfo.settings
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = DeviceSettingsUiState()
     )
-
-    private val device: Device?
-        get() = deviceManager.getDevice(deviceId)
 
     private var pendingPluginKey: String? = null
     private var pendingIsEnabled: Boolean = false
@@ -52,12 +49,12 @@ class DeviceSettingsViewModel(
      *
      * @return True - Everything went fine. False - unable to set plugin state, probably due to missing permission
      */
-    fun setPluginEnabled(pluginKey: String, isEnabled: Boolean, context: Context): Boolean {
+    suspend fun setPluginEnabled(pluginKey: String, isEnabled: Boolean, context: Context): Boolean {
         val device = device ?: return false
         device.setPluginEnabled(pluginKey, isEnabled)
         if (!isEnabled) return true // If we're disabling, we don't care about permissions
-        val missingPermission = runBlocking { device.getPlugin(pluginKey)?.pluginInfo?.checkRequiredPermissions(context) != true }
-        if (!missingPermission) return true // If plugin is not in "pluginsWithoutPermissions" after being enabled, we know we have been successful
+        val gotPermission = device.getPlugin(pluginKey)?.pluginInfo?.checkRequiredPermissions(context)
+        if (gotPermission == true) return true // If plugin is not in "pluginsWithoutPermissions" after being enabled, we know we have been successful
 
         // Otherwise disable. This method is to be called again after permission has been granted
         device.setPluginEnabled(pluginKey, false)

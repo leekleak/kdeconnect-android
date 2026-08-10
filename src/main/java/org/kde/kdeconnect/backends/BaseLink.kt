@@ -49,12 +49,10 @@ abstract class BaseLink protected constructor(
         linkProvider.onConnectionLost(this)
     }
 
-    //TO OVERRIDE, should be sync. If sendPayloadFromSameThread is false, it should only block to send the packet but start a separate thread to send the payload.
     @WorkerThread
     @Throws(IOException::class)
     abstract suspend fun sendPacket(
         np: NetworkPacket,
         callback: Device.SendPacketStatusCallback,
-        sendPayloadFromSameThread: Boolean
     ): Boolean
 }

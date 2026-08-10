@@ -14,7 +14,6 @@ import android.util.Log
 import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.di.appModule
 import org.kde.kdeconnect.helpers.DeviceHelper
-import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.helpers.security.EcHelper
 import org.kde.kdeconnect.helpers.security.SslHelper
@@ -33,7 +32,6 @@ import org.slf4j.impl.HandroidLoggerAdapter
  */
 class KdeConnect : Application() {
     private val deviceHelper: DeviceHelper by inject()
-    private val deviceSettings: DeviceSettings by inject()
     private val themeUtil: ThemeUtil by inject()
     private val sslHelper: SslHelper by inject()
 
@@ -48,7 +46,7 @@ class KdeConnect : Application() {
         themeUtil.setUserPreferredTheme(this)
         runBlocking { deviceHelper.initializeDeviceId() }
         EcHelper.ensureKeyPair()
-        runBlocking { sslHelper.initialiseCertificate(this@KdeConnect, deviceSettings) }
+        runBlocking { sslHelper.initialiseCertificate(this@KdeConnect) }
         NotificationHelper.initializeChannels(this)
 
         if (BuildConfig.DEBUG && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

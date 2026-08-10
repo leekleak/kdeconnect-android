@@ -66,9 +66,11 @@ class FindMyPhonePlugin(
 
     override suspend fun onDestroy() {
         super.onDestroy()
-        if (mediaPlayer.isPlaying) {
-            stopPlaying()
-        }
+        try {
+            if (mediaPlayer.isPlaying) {
+                stopPlaying()
+            }
+        } catch (_: IllegalStateException) { }
         mediaPlayer.release()
     }
 

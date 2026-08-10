@@ -111,7 +111,7 @@ class BluetoothLink(
 
     @WorkerThread
     @Throws(IOException::class)
-    override suspend fun sendPacket(np: NetworkPacket, callback: Device.SendPacketStatusCallback, sendPayloadFromSameThread: Boolean): Boolean {
+    override suspend fun sendPacket(np: NetworkPacket, callback: Device.SendPacketStatusCallback): Boolean {
         // sendPayloadFromSameThread is ignored, we always send from the same thread!
 
         return try {

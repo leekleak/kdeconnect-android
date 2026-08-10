@@ -428,7 +428,7 @@ class BluetoothLinkProvider(
                     }
 
                     override fun onFailure(e: Throwable) {}
-                }, true)
+                })
             } catch (e: Exception) {
                 Log.e("BTLinkProvider/Client", "Connection lost/disconnected on " + device.address, e)
                 synchronized(sockets) { sockets.remove(device, socket) }

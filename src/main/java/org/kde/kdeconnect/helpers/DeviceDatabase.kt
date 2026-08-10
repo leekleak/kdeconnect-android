@@ -98,9 +98,13 @@ abstract class DevicesRoomDatabase : RoomDatabase() {
     abstract fun deviceDao(): DeviceDao
 }
 
+/**
+ * This class and all device-related db reads should only be used for saving data or loading fresh.
+ *
+ * If you need to access a device's info, use the device manager to get an active instance.
+ */
 class DeviceSettings(
     private val deviceDao: DeviceDao,
-    private val sslHelper: SslHelper
 ) {
 
     suspend fun isTrustedDevice(deviceId: String): Boolean {
@@ -108,15 +112,8 @@ class DeviceSettings(
     }
 
     suspend fun addTrustedDevice(device: DeviceInfo) {
-        if (device.settings.size == PluginFactory.availablePlugins.size) {
-            deviceDao.upsert(device)
-        } else {
-            val missingSettings = PluginFactory.availablePlugins.toSet().minus(device.settings.keys)
-            val newDevice = device.copy(
-                settings = device.settings.plus(missingSettings.map { it to PluginFactory.getPluginInfo(it).isEnabledByDefault })
-            )
-            deviceDao.upsert(newDevice)
-        }
+        val newDevice = device.copy(trusted = true).withPopulatedSettings()
+        deviceDao.upsert(newDevice)
     }
 
     suspend fun removeTrustedDevice(deviceId: String) {
@@ -129,12 +126,6 @@ class DeviceSettings(
 
     suspend fun removeAllTrustedDevices() {
         deviceDao.removeAll()
-    }
-
-    suspend fun getDeviceCertificate(deviceId: String): Certificate {
-        val certificateBytes = deviceDao.getCertificate(deviceId)
-            ?: throw CertificateException("No certificate stored for device $deviceId")
-        return sslHelper.parseCertificate(certificateBytes)
     }
 
     suspend fun getDeviceCertificateBytes(deviceId: String): ByteArray {
@@ -157,7 +148,8 @@ class DeviceSettings(
     }
 
     suspend fun getDeviceInfo(deviceId: String): DeviceInfo? {
-        return deviceDao.getDevice(deviceId)
+        val info = deviceDao.getDevice(deviceId)
+        return info
     }
 
     fun getDeviceInfoFlow(deviceId: String): Flow<DeviceInfo?> = deviceDao.getDeviceFlow(deviceId)

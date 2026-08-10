@@ -10,7 +10,6 @@ import android.content.Context
 import android.util.Base64
 import android.util.Log
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import org.bouncycastle.asn1.x500.X500Name
 import org.bouncycastle.asn1.x500.X500NameBuilder
 import org.bouncycastle.asn1.x500.style.BCStyle
@@ -18,6 +17,9 @@ import org.bouncycastle.asn1.x500.style.IETFUtils
 import org.bouncycastle.cert.X509v3CertificateBuilder
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
+import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.DeviceInfo
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.RandomHelper
@@ -47,6 +49,7 @@ import javax.net.ssl.X509TrustManager
 
 class SslHelper(
     private val settingsDataStore: SettingsDataStore,
+    private val deviceSettings: DeviceSettings,
 ) {
     lateinit var certificate: Certificate //my device's certificate
     private val factory: CertificateFactory = CertificateFactory.getInstance("X.509")
@@ -59,7 +62,7 @@ class SslHelper(
         override fun checkServerTrusted(certs: Array<X509Certificate?>?, authType: String?) = Unit
     })
 
-    suspend fun initialiseCertificate(context: Context, deviceSettings: DeviceSettings) {
+    suspend fun initialiseCertificate(context: Context) {
         val privateKey: PrivateKey = getPrivateKey()
         val publicKey: PublicKey = getPublicKey()
 
@@ -138,7 +141,7 @@ class SslHelper(
         resources.updateConfiguration(config, resources.displayMetrics)
     }
 
-    private fun getSslContextForDevice(deviceId: String, isDeviceTrusted: Boolean, deviceSettings: DeviceSettings): SSLContext {
+    private fun getSslContextForDevice(deviceInfo: DeviceInfo?, isDeviceTrusted: Boolean): SSLContext {
         // TODO: This method is called for each payload that is sent. Cache the result.
         val privateKey = getPrivateKey()
 
@@ -148,9 +151,9 @@ class SslHelper(
         keyStore.setKeyEntry("key", privateKey, "".toCharArray(), arrayOf(certificate))
 
         // Add device certificate if device trusted
-        if (isDeviceTrusted) {
-            val remoteDeviceCertificate = runBlocking { deviceSettings.getDeviceCertificate(deviceId) }
-            keyStore.setCertificateEntry(deviceId, remoteDeviceCertificate)
+        if (isDeviceTrusted && deviceInfo != null) {
+            val remoteDeviceCertificate = parseCertificate(deviceInfo.certificate)
+            keyStore.setCertificateEntry(deviceInfo.id, remoteDeviceCertificate)
         }
 
         // Setup key manager factory
@@ -186,8 +189,8 @@ class SslHelper(
     }
 
     @Throws(java.security.cert.CertificateException::class)
-    fun convertToSslSocket(context: Context, socket: Socket, deviceId: String, isDeviceTrusted: Boolean, clientMode: Boolean, deviceSettings: DeviceSettings): SSLSocket {
-        val sslSocketFactory = getSslContextForDevice(deviceId, isDeviceTrusted, deviceSettings).socketFactory
+    fun convertToSslSocket(context: Context, socket: Socket, deviceInfo: DeviceInfo?, isDeviceTrusted: Boolean, clientMode: Boolean): SSLSocket {
+        val sslSocketFactory = getSslContextForDevice(deviceInfo, isDeviceTrusted).socketFactory
         val sslSocket = sslSocketFactory.createSocket(socket, socket.inetAddress.hostAddress, socket.port, true) as SSLSocket
         configureSslSocket(sslSocket, isDeviceTrusted, clientMode)
         return sslSocket
