@@ -13,13 +13,12 @@ data class MousePadSettingsUiState(
     val singleTap: String = "",
     val doubleTap: String = "",
     val tripleTap: String = "",
-    val sensitivity: String = "",
-    val accelerationProfile: String = "",
+    val sensitivity: Int = 4,
+    val acceleration: Int = 0,
     val scrollDirection: Boolean = false,
     val scrollSensitivity: Long = 100,
     val gyroEnabled: Boolean = false,
     val gyroSensitivity: Long = 100,
-    val mouseButtonsEnabled: Boolean = true,
     val doubleTapDragEnabled: Boolean = true,
     val sendKeystrokesEnabled: Boolean = true,
     val sendSafeTextImmediately: Boolean = true,
@@ -35,12 +34,11 @@ class MousePadSettingsViewModel(
         dataStore.doubleTap,
         dataStore.tripleTap,
         dataStore.sensitivity,
-        dataStore.accelerationProfile,
+        dataStore.acceleration,
         dataStore.scrollDirection,
         dataStore.scrollSensitivity,
         dataStore.gyroEnabled,
         dataStore.gyroSensitivity,
-        dataStore.mouseButtonsEnabled,
         dataStore.doubleTapDragEnabled,
         dataStore.sendKeystrokesEnabled,
         dataStore.sendSafeTextImmediately,
@@ -49,16 +47,15 @@ class MousePadSettingsViewModel(
             singleTap = params[0] as String,
             doubleTap = params[1] as String,
             tripleTap = params[2] as String,
-            sensitivity = params[3] as String,
-            accelerationProfile = params[4] as String,
+            sensitivity = params[3] as Int,
+            acceleration = params[4] as Int,
             scrollDirection = params[5] as Boolean,
             scrollSensitivity = (params[6] as Int).toLong(),
             gyroEnabled = params[7] as Boolean,
             gyroSensitivity = (params[8] as Int).toLong(),
-            mouseButtonsEnabled = params[9] as Boolean,
-            doubleTapDragEnabled = params[10] as Boolean,
-            sendKeystrokesEnabled = params[11] as Boolean,
-            sendSafeTextImmediately = params[12] as Boolean,
+            doubleTapDragEnabled = params[9] as Boolean,
+            sendKeystrokesEnabled = params[10] as Boolean,
+            sendSafeTextImmediately = params[11] as Boolean,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -69,12 +66,11 @@ class MousePadSettingsViewModel(
     fun setSingleTap(value: String) = viewModelScope.launch { dataStore.setSingleTap(value) }
     fun setDoubleTap(value: String) = viewModelScope.launch { dataStore.setDoubleTap(value) }
     fun setTripleTap(value: String) = viewModelScope.launch { dataStore.setTripleTap(value) }
-    fun setSensitivity(value: String) = viewModelScope.launch { dataStore.setSensitivity(value) }
-    fun setAccelerationProfile(value: String) = viewModelScope.launch { dataStore.setAccelerationProfile(value) }
+    fun setSensitivity(value: Long) = viewModelScope.launch { dataStore.setSensitivity(value.toInt()) }
+    fun setAccelerationProfile(value: Long) = viewModelScope.launch { dataStore.setAccelerationProfile(value.toInt()) }
     fun setScrollDirection(value: Boolean) = viewModelScope.launch { dataStore.setScrollDirection(value) }
     fun setScrollSensitivity(value: Long) = viewModelScope.launch { dataStore.setScrollSensitivity(value.toInt()) }
     fun setGyroSensitivity(value: Long) = viewModelScope.launch { dataStore.setGyroSensitivity(value.toInt()) }
-    fun setMouseButtonsEnabled(value: Boolean) = viewModelScope.launch { dataStore.setMouseButtonsEnabled(value) }
     fun setDoubleTapDragEnabled(value: Boolean) = viewModelScope.launch { dataStore.setDoubleTapDragEnabled(value) }
     fun setSendKeystrokesEnabled(value: Boolean) = viewModelScope.launch { dataStore.setSendKeystrokesEnabled(value) }
     fun setSendSafeTextImmediately(value: Boolean) = viewModelScope.launch { dataStore.setSendSafeTextImmediately(value) }

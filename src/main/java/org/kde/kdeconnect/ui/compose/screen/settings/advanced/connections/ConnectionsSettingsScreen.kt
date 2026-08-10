@@ -102,6 +102,7 @@ private fun ColumnScope.WhitelistComponent(
     SwitchPreference(
         title = stringResource(R.string.network_whitelist),
         summary = stringResource(R.string.network_whitelist_summary),
+        icon = painterResource(R.drawable.verified),
         value = !uiState.allNetworksAllowed,
         onValueChanged = { newValue ->
             if (newValue && !uiState.hasLocationPermission) {

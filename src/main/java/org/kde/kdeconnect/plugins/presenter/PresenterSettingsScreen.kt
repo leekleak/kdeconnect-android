@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -39,26 +40,22 @@ fun PresenterSettingsScreenContent(
     HazeScaffold(
         title = stringResource(R.string.plugin_settings_with_name, stringResource(R.string.pref_plugin_presenter)),
         backButton = true,
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            SwitchPreference(
-                title = stringResource(R.string.pref_presenter_enable_volume_keys_title),
-                summary = stringResource(R.string.pref_presenter_enable_volume_keys_summary),
-                value = uiState.enableVolumeKeys,
-                onValueChanged = onEnableVolumeKeysChanged
-            )
+    ) { 
+        SwitchPreference(
+            title = stringResource(R.string.pref_presenter_enable_volume_keys_title),
+            summary = stringResource(R.string.pref_presenter_enable_volume_keys_summary),
+            icon = painterResource(R.drawable.volume_up),
+            value = uiState.enableVolumeKeys,
+            onValueChanged = onEnableVolumeKeysChanged
+        )
 
-            SliderPreference(
-                modifierLabelText = Modifier.widthIn(min = 52.dp),
-                title = stringResource(R.string.pref_presenter_sensitivity_title),
-                value = uiState.sensitivity.toLong(),
-                values = sensitivityValues,
-                onValueChanged = onSensitivityChanged
-            )
-        }
+        SliderPreference(
+            modifierLabelText = Modifier.widthIn(min = 52.dp),
+            title = stringResource(R.string.pref_presenter_sensitivity_title),
+            icon = painterResource(R.drawable.touch_triple),
+            value = uiState.sensitivity.toLong(),
+            values = sensitivityValues,
+            onValueChanged = onSensitivityChanged
+        )
     }
 }

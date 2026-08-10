@@ -11,15 +11,9 @@ import kotlin.math.sqrt
 
 object PointerAccelerationProfileFactory {
     @JvmStatic
-    fun getProfileWithName(name: String): PointerAccelerationProfile = when (name) {
-        "weaker" -> PolynomialProfile(0.25f)
-        "weak" -> PolynomialProfile(0.5f)
-        "medium" -> PolynomialProfile(1.0f)
-        "strong" -> PolynomialProfile(1.5f)
-        "stronger" -> PolynomialProfile(2.0f)
-        "noacceleration" -> DefaultProfile()
-        else -> DefaultProfile()
-    }
+    fun getProfileForSensitivity(sens: Int): PointerAccelerationProfile =
+        if (sens == 0) DefaultProfile()
+        else PolynomialProfile(sens.toFloat() / 4f)
 
     /* The simplest profile. Merely adds the mouse deltas without any processing. */
     private class DefaultProfile : PointerAccelerationProfile() {

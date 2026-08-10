@@ -63,13 +63,13 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     <string name="remotekeyboard_multiple_connections" translatable="true">There is more than one remote keyboard connection, select the device to configure</string>
     <string name="open_mousepad">Remote input</string>
     <string name="open_mousepad_tv">TV remote</string>
-  <string name="mousepad_single_tap_settings_title">Set one finger tap action</string>
-    <string name="mousepad_double_tap_settings_title">Set two finger tap action</string>
-    <string name="mousepad_triple_tap_settings_title">Set three finger tap action</string>
+  <string name="mousepad_single_tap_settings_title">One finger</string>
+    <string name="mousepad_double_tap_settings_title">Two fingers</string>
+    <string name="mousepad_triple_tap_settings_title">Three fingers</string>
     <string name="mousepad_sensitivity_settings_title">Set touchpad sensitivity</string>
     <string name="mousepad_mouse_buttons_title">Show mouse buttons</string>
     <string name="mousepad_acceleration_profile_settings_title">Set pointer acceleration</string>
-  <string name="mousepad_scroll_direction_title">Reverse Scrolling Direction</string>
+  <string name="mousepad_scroll_direction_title">Invert scroll direction</string>
   <string name="mousepad_scroll_sensitivity_title">Scroll sensitivity</string>
   <string name="gyro_mouse_enabled_title">Enable gyroscope mouse</string>
     <string name="gyro_mouse_sensitivity_title">Gyroscope sensitivity</string>
@@ -345,8 +345,8 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
   <string name="version">Version %s</string>
 
   <string name="click_here_to_type">Tap here to type</string>
-  <string name="double_tap_to_drag">Double tap to drag</string>
-  <string name="hold_to_drag">Hold to drag</string>
+  <string name="double_tap_to_drag">On double tap</string>
+  <string name="hold_to_drag">On hold</string>
 
   <!-- Authors tasks -->
     <string name="maintainer_and_developer">Maintainer and developer</string>
@@ -454,6 +454,15 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
   <string name="pair">Pair</string>
     <string name="no_input">No Input</string>
   <string name="no_output">No Output</string>
+    <string name="actions">Actions</string>
+  <string name="drag_drop"><![CDATA[Drag & drop]]></string>
+  <string name="sensitivity">Sensitivity</string>
+  <string name="speed">Speed</string>
+  <string name="acceleration">Acceleration</string>
+  <string name="scroll">Scroll</string>
+  <string name="gyro">Gyro</string>
+  <string name="scrolling">Scrolling</string>
+  <string name="keystroke_capture">Keystroke capture (WIP)</string>
 
 
 </resources>

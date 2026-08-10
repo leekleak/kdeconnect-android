@@ -1,4 +1,4 @@
-package org.kde.kdeconnect.ui.compose.screen.pairing
+package org.kde.kdeconnect.ui.compose.screen.home
 
 import android.content.Context
 import androidx.lifecycle.ViewModel

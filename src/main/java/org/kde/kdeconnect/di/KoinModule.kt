@@ -101,8 +101,8 @@ import org.kde.kdeconnect.ui.compose.screen.device.settings.DeviceSettingsScreen
 import org.kde.kdeconnect.ui.compose.screen.device.settings.DeviceSettingsViewModel
 import org.kde.kdeconnect.ui.compose.screen.licenses.LicensesEvent
 import org.kde.kdeconnect.ui.compose.screen.licenses.LicensesScreen
-import org.kde.kdeconnect.ui.compose.screen.pairing.HomeScreen
-import org.kde.kdeconnect.ui.compose.screen.pairing.HomeViewModel
+import org.kde.kdeconnect.ui.compose.screen.home.HomeScreen
+import org.kde.kdeconnect.ui.compose.screen.home.HomeViewModel
 import org.kde.kdeconnect.ui.compose.screen.pairing.PairingScreen
 import org.kde.kdeconnect.ui.compose.screen.pairing.PairingViewModel
 import org.kde.kdeconnect.ui.compose.screen.permissions.PermissionsScreen

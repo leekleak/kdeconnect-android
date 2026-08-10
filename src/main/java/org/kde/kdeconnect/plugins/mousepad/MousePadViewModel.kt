@@ -34,7 +34,6 @@ class MousePadViewModel(
     val plugin: MousePadPlugin? = deviceManager.getDevicePlugin(deviceId, MousePadPlugin::class.java)
     private val sensorManager = application.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
 
-    var mouseButtonsEnabled by mutableStateOf(true)
     var doubleTapDragEnabled by mutableStateOf(true)
     var isGyroListenerActive by mutableStateOf(false)
     var allowGyro by mutableStateOf(false)
@@ -75,8 +74,7 @@ class MousePadViewModel(
                 dataStore.doubleTap,
                 dataStore.tripleTap,
                 dataStore.sensitivity,
-                dataStore.accelerationProfile,
-                dataStore.mouseButtonsEnabled,
+                dataStore.acceleration,
                 dataStore.doubleTapDragEnabled
             ) { params ->
                 val scrollDir = params[0] as Boolean
@@ -86,10 +84,9 @@ class MousePadViewModel(
                 val singleTap = params[4] as String
                 val doubleTap = params[5] as String
                 val tripleTap = params[6] as String
-                val sensitivity = params[7] as String
-                val accelProfile = params[8] as String
-                val mouseButtons = params[9] as Boolean
-                val doubleTapDrag = params[10] as Boolean
+                val sensitivity = params[7] as Int
+                val accelProfile = params[8] as Int
+                val doubleTapDrag = params[9] as Boolean
 
                 scrollDirection = if (scrollDir) -1 else 1
                 scrollCoefficient = (scrollSens.coerceAtLeast(1) / 100.0).pow(1.5)
@@ -103,17 +100,9 @@ class MousePadViewModel(
                 doubleTapAction = ClickType.fromString(doubleTap)
                 tripleTapAction = ClickType.fromString(tripleTap)
 
-                currentSensitivity = when (sensitivity) {
-                    "slowest" -> 0.2f
-                    "aboveSlowest" -> 0.5f
-                    "default" -> 1.0f
-                    "aboveDefault" -> 1.5f
-                    "fastest" -> 2.0f
-                    else -> 1.0f
-                }
+                currentSensitivity = (sensitivity + 1) * 0.2f
 
-                accelerationProfile = PointerAccelerationProfileFactory.getProfileWithName(accelProfile)
-                mouseButtonsEnabled = mouseButtons
+                accelerationProfile = PointerAccelerationProfileFactory.getProfileForSensitivity(accelProfile)
                 doubleTapDragEnabled = doubleTapDrag
             }.collect {
                 updateGyroListener()

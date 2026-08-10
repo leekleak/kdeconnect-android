@@ -200,32 +200,30 @@ fun MousePadScreen(
                 modifier = Modifier.fillMaxSize(),
                 viewModel = viewModel
             )
-            if (viewModel.mouseButtonsEnabled) {
-                Row(
+            Row(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .align(Alignment.BottomStart)
+                    .fillMaxWidth()
+                    .height(64.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                KdeButton(
+                    onClick = { viewModel.sendLeftClick() },
                     modifier = Modifier
-                        .padding(8.dp)
-                        .align(Alignment.BottomStart)
-                        .fillMaxWidth()
-                        .height(64.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    KdeButton(
-                        onClick = { viewModel.sendLeftClick() },
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .focusable(false),
-                        shape = RoundedCornerShape(8.dp, 8.dp, 8.dp, 16.dp)
-                    )
-                    KdeButton(
-                        onClick = { viewModel.sendRightClick() },
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .focusable(false),
-                        shape = RoundedCornerShape(8.dp, 8.dp, 16.dp, 8.dp)
-                    )
-                }
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .focusable(false),
+                    shape = RoundedCornerShape(8.dp, 8.dp, 8.dp, 16.dp)
+                )
+                KdeButton(
+                    onClick = { viewModel.sendRightClick() },
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .focusable(false),
+                    shape = RoundedCornerShape(8.dp, 8.dp, 16.dp, 8.dp)
+                )
             }
         }
     }
