@@ -335,31 +335,6 @@ class Device(
     }
 
     /**
-     * Send a packet to the device asynchronously
-     * @param np The packet
-     * @param callback A callback for success/failure
-     */
-    suspend fun sendPacket(np: NetworkPacket, callback: SendPacketStatusCallback) = withContext(Dispatchers.IO) {
-        Log.e("Sending", np.type)
-        sendPacketToLink(np, callback)
-    }
-
-    suspend fun sendPacket(np: NetworkPacket) {
-        while (!isReachable) delay(200.milliseconds)
-        //Log.i("Safe sending", "Safe sending ${np.serialize()}")
-        sendPacketToLink(np, defaultCallback)
-    }
-
-    @WorkerThread
-    @Deprecated("Use suspend")
-    fun sendPacketBlocking(np: NetworkPacket, callback: SendPacketStatusCallback): Boolean =
-        runBlocking { sendPacketToLink(np, callback) }
-
-    @WorkerThread
-    @Deprecated("Use suspend")
-    fun sendPacketBlocking(np: NetworkPacket): Boolean = runBlocking { sendPacketToLink(np, defaultCallback) }
-
-    /**
      * Send `np` over one of this device's connected [links].
      *
      * @param np                        the packet to send
@@ -370,10 +345,11 @@ class Device(
      * @see BaseLink.sendPacket
      */
     @WorkerThread
-    suspend fun sendPacketToLink(
+    suspend fun sendPacket(
         np: NetworkPacket,
-        callback: SendPacketStatusCallback,
+        callback: SendPacketStatusCallback = defaultCallback,
     ): Boolean {
+        while (!isReachable) delay(200.milliseconds)
         if (!supportsPacketType(np.type)) {
             Log.e("KDE/sendPacket", "Tried to send an unsupported packet type ${np.type} to: ${deviceInfo.name}")
             return false

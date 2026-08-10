@@ -26,7 +26,9 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
@@ -34,7 +36,9 @@ import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.BackgroundService
@@ -62,6 +66,7 @@ import org.koin.compose.navigation3.koinEntryProvider
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.parameter.parametersOf
 import org.koin.core.scope.Scope
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 class MainActivity : AppCompatActivity(), AndroidScopeComponent {
     override val scope: Scope by activityRetainedScope()
@@ -70,6 +75,8 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
     private val deviceManager: DeviceManager by inject()
 
     private val mNavigator: Navigator by inject()
+
+    val lastIntent = MutableStateFlow(intent)
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val currentKey = mNavigator.backStack.lastOrNull()
@@ -124,6 +131,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         runBlocking { deviceHelper.initializeDeviceId() }
+        lastIntent.update { intent }
 
         setContent {
             val imageLoader: ImageLoader = koinInject()
@@ -133,16 +141,18 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
         }
     }
 
-    @OptIn(KoinExperimentalAPI::class)
+    @OptIn(KoinExperimentalAPI::class, ExperimentalAtomicApi::class)
     @Composable
     private fun MainActivityContent() {
         val entryProvider = koinEntryProvider<Any>()
         val navigator: Navigator = koinInject()
         val hazeState: HazeState = koinInject()
 
-        LaunchedEffect(intent) {
-            val deviceId = intent.getStringExtra(EXTRA_DEVICE_ID)
-            val pluginKey = intent.getStringExtra(KdeConnectKeyConstants.EXTRA_PLUGIN_KEY)
+        val activeIntent by lastIntent.collectAsStateWithLifecycle()
+
+        LaunchedEffect(activeIntent) {
+            val deviceId = activeIntent.getStringExtra(EXTRA_DEVICE_ID)
+            val pluginKey = activeIntent.getStringExtra(KdeConnectKeyConstants.EXTRA_PLUGIN_KEY)
             if (deviceId != null) {
                 when (pluginKey) {
                     "RunCommandPlugin" -> navigator.goTo(RunCommandKey(deviceId))
@@ -162,7 +172,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
                 onBack = { navigator.goBack() },
                 sceneStrategies = listOf(DialogSceneStrategy()),
                 transitionSpec = {
-                    if (navigator.backStack.size == 1) fadeIn(tween()) togetherWith fadeOut(tween())
+                    if (navigator.forceBasicTransition.load()) fadeIn(tween()) togetherWith fadeOut(tween())
                     else {
                         slideInHorizontally { it } togetherWith
                                 slideOutHorizontally { -it / 2 } + scaleOut(targetScale = 0.7f) + fadeOut()
@@ -190,6 +200,11 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
         when (requestCode) {
             else -> super.onActivityResult(requestCode, resultCode, data)
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        lastIntent.update { intent }
+        super.onNewIntent(intent)
     }
 
     var shareGetResultCallback: ((List<Uri>) -> Unit)? = null

@@ -37,7 +37,7 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
  * 
  * 
  * The I/O-part of this file sending is handled by
- * [Device.sendPacketBlocking].
+ * [Device.sendPacket].
  * 
  * 
  * @see CompositeReceiveFileJob
@@ -85,7 +85,7 @@ class CompositeUploadFileJob(private val device: Device, private val context: Co
 
                 // We set sendPayloadFromSameThread to true so this call blocks until the payload
                 // has been received by the other end, so payloads are sent one by one.
-                if (!device.sendPacketBlocking(
+                if (!device.sendPacket(
                         packet,
                         sendPacketStatusCallback,
                     )

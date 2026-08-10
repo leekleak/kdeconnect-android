@@ -20,6 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.kde.kdeconnect.ui.compose.components.DeviceCard
 import org.kde.kdeconnect.ui.compose.components.FancyDialog
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
+import org.kde.kdeconnect.ui.compose.components.PairingExplanations
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -35,24 +36,29 @@ fun SavedDevices(
         scrollState = null,
         backButton = true,
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = padding,
-            state = rememberLazyListState(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(uiState.saved,{ it.deviceInfo.id }) { device ->
-                Spacer(Modifier.height(4.dp))
-                DeviceCard (
-                    device = device,
-                    actionIcon = painterResource(R.drawable.link_off),
-                    actionDescription = stringResource(R.string.device_menu_unpair),
-                    actionDescriptionVisible = true,
-                    onClick = { viewModel.queueUnpair(device) }
-                )
+        if (uiState.saved.isNotEmpty()) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = padding,
+                state = rememberLazyListState(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(uiState.saved,{ it.deviceInfo.id }) { device ->
+                    Spacer(Modifier.height(4.dp))
+                    DeviceCard (
+                        device = device,
+                        actionIcon = painterResource(R.drawable.link_off),
+                        actionDescription = stringResource(R.string.device_menu_unpair),
+                        actionDescriptionVisible = true,
+                        onClick = { viewModel.queueUnpair(device) }
+                    )
+                }
             }
+        } else {
+            PairingExplanations(wifiAvailable = true, trustedNetwork = true)
         }
     }
+
 
     if (deviceToUnpair != null) {
         FancyDialog(
