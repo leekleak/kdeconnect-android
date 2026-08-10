@@ -69,7 +69,7 @@ class DeviceSettingsViewModel(
         viewModelScope.launch {
             val pluginKey = pendingPluginKey ?: return@launch
             if (resultCode == RESULT_OK) {
-                device?.setPluginEnabled(pluginKey, pendingIsEnabled)
+                device.setPluginEnabled(pluginKey, pendingIsEnabled)
             }
             pendingPluginKey = null
         }
@@ -77,8 +77,8 @@ class DeviceSettingsViewModel(
 
     fun unpair() {
         viewModelScope.launch {
-            device?.unpair()
+            device.unpair()
+            navigator.setTo(HomeKey)
         }
-        navigator.setTo(HomeKey)
     }
 }

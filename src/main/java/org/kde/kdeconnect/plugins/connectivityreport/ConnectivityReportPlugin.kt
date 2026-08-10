@@ -67,12 +67,12 @@ class ConnectivityReportPlugin(context: Context, device: Device) : Plugin(contex
         }
     }
 
-    override suspend fun onCreate(): Boolean {
+    override fun onCreate(): Boolean {
         getInstance(context).listenStateChanges(listener)
         return true
     }
 
-    override suspend fun onDestroy() {
+    override fun onDestroy() {
         super.onDestroy()
         getInstance(context).cancelActiveListener(listener)
     }

@@ -79,7 +79,7 @@ abstract class Plugin(
      *
      * @return true if initialization was successful, false otherwise
      */
-    open suspend fun onCreate(): Boolean {
+    open fun onCreate(): Boolean {
         return true
     }
 
@@ -90,7 +90,7 @@ abstract class Plugin(
      * could be not fully initialized.
      */
     @CallSuper
-    open suspend fun onDestroy() {
+    open fun onDestroy() {
         coroutineScope.cancel()
     }
 

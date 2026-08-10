@@ -35,11 +35,9 @@ class DeviceManager(
             if (deviceMap.isEmpty()) {
                 flowOf(emptyMap())
             } else {
-                combine(
-                    deviceMap.entries.map { (id, device) ->
-                        device.state.map { id to it }
-                    }
-                ) { pairs -> pairs.toMap() }
+                combine(deviceMap.values.map { it.state }) { states ->
+                    states.associateBy { it.deviceInfo.id }
+                }
             }
         }
 

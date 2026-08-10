@@ -64,8 +64,8 @@ class RunCommandPlugin(
             })
     }
 
-    override suspend fun onCreate(): Boolean {
-        requestCommandList()
+    override fun onCreate(): Boolean {
+        coroutineScope.launch { requestCommandList() }
         return true
     }
 

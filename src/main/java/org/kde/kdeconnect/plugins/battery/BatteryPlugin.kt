@@ -86,7 +86,7 @@ class BatteryPlugin(context: Context, device: Device) : Plugin(context, device) 
         }
     }
 
-    override suspend fun onCreate(): Boolean {
+    override fun onCreate(): Boolean {
         val intentFilter = IntentFilter().apply {
             addAction(Intent.ACTION_BATTERY_CHANGED)
             addAction(Intent.ACTION_BATTERY_LOW)
@@ -97,7 +97,7 @@ class BatteryPlugin(context: Context, device: Device) : Plugin(context, device) 
         return true
     }
 
-    override suspend fun onDestroy() {
+    override fun onDestroy() {
         super.onDestroy()
         // It's okay to call this only once, even though we registered it for two filters
         context.unregisterReceiver(receiver)

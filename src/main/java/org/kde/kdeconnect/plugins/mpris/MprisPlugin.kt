@@ -102,16 +102,16 @@ class MprisPlugin(
 
     private val pendingAlbumArtFetches = ConcurrentHashMap<String, CompletableDeferred<Payload>>()
 
-    override suspend fun onCreate(): Boolean {
+    override fun onCreate(): Boolean {
         mprisMediaSession.onCreate(context.applicationContext, this, device.deviceId)
 
         // Always request the player list so the data is up-to-date
-        requestPlayerList()
+        coroutineScope.launch { requestPlayerList() }
 
         return true
     }
 
-    override suspend fun onDestroy() {
+    override fun onDestroy() {
         super.onDestroy()
         _players.value = emptyMap()
         mprisMediaSession.onDestroy(this)

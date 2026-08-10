@@ -13,6 +13,7 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.ExtractedText
 import android.view.inputmethod.ExtractedTextRequest
 import androidx.core.util.Pair
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.helpers.PermissionRequestHelper
@@ -27,7 +28,7 @@ class RemoteKeyboardPlugin(
 ) : Plugin(context, device) {
     override val pluginInfo: RemoteKeyboardPluginInfo = RemoteKeyboardPluginInfo
 
-    override suspend fun onCreate(): Boolean {
+    override fun onCreate(): Boolean {
         Log.d("RemoteKeyboardPlugin", "Creating for device " + device.name)
         acquireInstances()
         try {
@@ -38,12 +39,12 @@ class RemoteKeyboardPlugin(
         if (RemoteKeyboardService.instance != null) RemoteKeyboardService.instance?.handler?.post { RemoteKeyboardService.instance?.updateInputView() }
 
         val visible = RemoteKeyboardService.instance != null && RemoteKeyboardService.instance?.visible == true
-        notifyKeyboardState(visible)
+        coroutineScope.launch { notifyKeyboardState(visible) }
 
         return true
     }
 
-    override suspend fun onDestroy() {
+    override fun onDestroy() {
         super.onDestroy()
         acquireInstances()
         try {

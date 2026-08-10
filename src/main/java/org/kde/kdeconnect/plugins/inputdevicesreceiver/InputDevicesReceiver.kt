@@ -42,7 +42,7 @@ class InputDevicesReceiverPlugin(
         override fun onDisplayChanged(displayId: Int) { resolveDisplaySize() }
     }
 
-    override suspend fun onCreate(): Boolean {
+    override fun onCreate(): Boolean {
         // We need to listen to display rotation changes, otherwise unintended behavior will happen
         // if the display rotates while we have the cursor.
         displayManager = context.getSystemService(DisplayManager::class.java)
@@ -51,7 +51,7 @@ class InputDevicesReceiverPlugin(
         return true
     }
 
-    override suspend fun onDestroy() {
+    override fun onDestroy() {
         super.onDestroy()
         displayManager.unregisterDisplayListener(displayListener)
     }

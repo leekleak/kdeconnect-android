@@ -24,7 +24,9 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -67,15 +69,18 @@ class Device(
     data class NetworkPacketWithCallback(val np : NetworkPacket, val callback: SendPacketStatusCallback)
     private val jobScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    private val _state: MutableStateFlow<DeviceState> = MutableStateFlow(DeviceState(
-        deviceInfo = link?.deviceInfo ?: runBlocking { deviceSettings.getDeviceInfo(deviceId) ?: throw RuntimeException("Device $deviceId not found in settings") },
-        pairStatus = if (link == null) PairState.Paired else PairState.NotPaired,
-        supportedPlugins = PluginFactory.availablePlugins.toList(),
-        isReachable = false
-    ))
-    val state: StateFlow<DeviceState> = _state.asStateFlow()
-    private fun updateState(transform: (DeviceState) -> DeviceState) {
-        _state.update { runBlocking { reloadPluginsFromSettings(transform(it)) } }
+    val state: StateFlow<DeviceState>
+        field = MutableStateFlow(DeviceState(
+            deviceInfo = link?.deviceInfo ?: runBlocking { deviceSettings.getDeviceInfo(deviceId) ?: throw RuntimeException("Device $deviceId not found in settings") },
+            pairStatus = if (link == null) PairState.Paired else PairState.NotPaired,
+            supportedPlugins = PluginFactory.availablePlugins.toList(),
+            isReachable = false,
+        ))
+
+    private val stateUpdateMutex = Mutex()
+    private suspend fun updateState(transform: (DeviceState) -> DeviceState) = stateUpdateMutex.withLock {
+        val newState = reloadPluginsFromSettings(transform(state.value))
+        state.update { newState }
     }
 
     val deviceId: String get() = state.value.deviceInfo.id
@@ -103,19 +108,22 @@ class Device(
     private fun supportsPacketType(type: String): Boolean =
         NetworkPacket.PROTOCOL_PACKET_TYPES.contains(type) || deviceInfo.incomingCapabilities.contains(type)
 
-    private val reloadPluginsMutex = Mutex()
-
     init {
-        link?.let { addLink(it) }
-        updateState { it }
+        runBlocking {
+            link?.let { addLink(it) }
+        }
         jobScope.launch {
-            pairingHandler.verificationKey.collect { key ->
-                updateState { it.copy(verificationKey = key) }
+            combine(pairingHandler.state, pairingHandler.verificationKey) { a, b -> a to b}.collect { (state, key) ->
+                updateState { it.copy(pairStatus = state, verificationKey = key) }
             }
         }
         jobScope.launch {
             state.map { it.deviceInfo }.distinctUntilChanged().collect { info ->
-                deviceSettings.addTrustedDevice(info)
+                if (info.trusted) {
+                    deviceSettings.addTrustedDevice(info)
+                } else {
+                    deviceSettings.removeTrustedDevice(info.id)
+                }
             }
         }
     }
@@ -132,12 +140,6 @@ class Device(
 
     suspend fun unpair() {
         pairingHandler.unpair()
-        _state.update {
-            it.copy(
-                batteryInfo = null,
-                verificationKey = null,
-            )
-        }
     }
 
     /* This method is called after accepting pair request form GUI */
@@ -165,16 +167,19 @@ class Device(
             override fun pairingSuccessful() {
                 Log.i("Device", "pairing successful, adding to trusted devices list")
 
-                updateState { it.copy(
-                    deviceInfo = it.deviceInfo.copy(trusted = true),
-                    pairStatus = PairState.Paired,
-                ) }
-
-                val intent = Intent(context, MainActivity::class.java).apply {
-                    putExtra(MainActivity.EXTRA_DEVICE_ID, deviceId)
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                jobScope.launch {
+                    updateState {
+                        it.copy(
+                            deviceInfo = it.deviceInfo.copy(trusted = true),
+                            pairStatus = PairState.Paired,
+                        )
+                    }
+                    val intent = Intent(context, MainActivity::class.java).apply {
+                        putExtra(MainActivity.EXTRA_DEVICE_ID, deviceId)
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    context.startActivity(intent)
                 }
-                context.startActivity(intent)
             }
 
             override fun pairingFailed(error: Int) {
@@ -183,15 +188,21 @@ class Device(
             override fun unpaired(device: Device) {
                 assert(device == this@Device)
                 Log.i("Device", "unpaired, removing from trusted devices list")
-                updateState { it.copy(
-                    deviceInfo = it.deviceInfo.copy(trusted = true),
-                    pairStatus = PairState.NotPaired,
-                ) }
+                runBlocking {
+                    updateState {
+                        it.copy(
+                            deviceInfo = it.deviceInfo.copy(trusted = false),
+                            pairStatus = PairState.NotPaired,
+                            batteryInfo = null,
+                            verificationKey = null,
+                        )
+                    }
+                }
             }
         }
     }
 
-    fun addLink(link: BaseLink) {
+    suspend fun addLink(link: BaseLink) {
         synchronized(sendChannel) {
             if (sendCoroutine == null) {
                 sendCoroutine = CoroutineScope(Dispatchers.IO).launch {
@@ -213,7 +224,7 @@ class Device(
     }
 
     @WorkerThread
-    fun removeLink(link: BaseLink) {
+    suspend fun removeLink(link: BaseLink) {
         link.removePacketReceiver(this)
         updateState { state ->
             val newLinks = state.links.minus(link)
@@ -229,7 +240,7 @@ class Device(
         }
     }
 
-    fun updateDeviceInfo(newDeviceInfo: DeviceInfo) {
+    suspend fun updateDeviceInfo(newDeviceInfo: DeviceInfo) {
         val updatedSupportedPlugins: List<String> = PluginFactory.pluginsForCapabilities(
             newDeviceInfo.incomingCapabilities,
             newDeviceInfo.outgoingCapabilities
@@ -250,32 +261,28 @@ class Device(
         }
     }
 
-    override suspend fun onPacketReceived(np: NetworkPacket) {
-        Log.i("PairingHandler", "Waiting for lock")
-        reloadPluginsMutex.withLock {
-            Log.i("PairingHandler", "Got through lock")
-            countReceived(deviceId, np.type)
+    override suspend fun onPacketReceived(np: NetworkPacket): Unit = stateUpdateMutex.withLock {
+        countReceived(deviceId, np.type)
 
-            if (NetworkPacket.PACKET_TYPE_PAIR == np.type) {
-                Log.i("KDE/Device", "Pair packet")
-                pairingHandler.packetReceived(np)
-                return
-            }
-
-            if (!isPaired) {
-                // If it is pair packet, it should be captured by "if" at start
-                // If not and device is paired, it should be captured by isPaired
-                // Else unpair, this handles the situation when one device unpairs,
-                // but other don't know like unpairing when wi-fi is off.
-
-                unpair()
-            }
-
-            // The following code when `isPaired == false` is NOT USED.
-            // It adds support for receiving packets from not trusted devices,
-            // but as of March 2023 no plugin implements "onUnpairedDevicePacketReceived".
-            notifyPluginPacketReceived(np)
+        if (NetworkPacket.PACKET_TYPE_PAIR == np.type) {
+            Log.i("KDE/Device", "Pair packet")
+            pairingHandler.packetReceived(np)
+            return
         }
+
+        if (!isPaired) {
+            // If it is pair packet, it should be captured by "if" at start
+            // If not and device is paired, it should be captured by isPaired
+            // Else unpair, this handles the situation when one device unpairs,
+            // but other don't know like unpairing when wi-fi is off.
+
+            unpair()
+        }
+
+        // The following code when `isPaired == false` is NOT USED.
+        // It adds support for receiving packets from not trusted devices,
+        // but as of March 2023 no plugin implements "onUnpairedDevicePacketReceived".
+        notifyPluginPacketReceived(np)
     }
 
     private suspend fun notifyPluginPacketReceived(np: NetworkPacket) {
@@ -398,7 +405,7 @@ class Device(
     }
 
     @WorkerThread
-    suspend fun reloadPluginsFromSettings(deviceState: DeviceState): DeviceState {
+    fun reloadPluginsFromSettings(deviceState: DeviceState): DeviceState {
         Log.i("Device", "${this@Device.deviceInfo.name}: reloading plugins")
         val newPluginsByIncomingInterface: MutableMap<String, MutableList<String>> = mutableMapOf()
         val deviceInfo = deviceState.deviceInfo
@@ -424,33 +431,21 @@ class Device(
             }
         }
 
-        val destroyJobs = oldLoadedPlugins.filter { !newLoadedPlugins.containsKey(it.key) }.map { (pluginKey, plugin) ->
-            coroutineScope {
-                async {
-                    if (!newLoadedPlugins.containsKey(pluginKey)) {
-                        try {
-                            plugin.onDestroy()
-                        } catch (e: Exception) {
-                            Log.e("KDE/removePlugin", "Exception calling onDestroy for plugin $pluginKey", e)
-                        }
-                    }
-                }
+        oldLoadedPlugins.filter { !newLoadedPlugins.containsKey(it.key) }.forEach { (pluginKey, plugin) ->
+            runCatching {
+                plugin.onDestroy()
+            }.onFailure {
+                Log.e("KDE/removePlugin", "Exception calling onDestroy for plugin $pluginKey")
             }
         }
 
-        val createJobs = newLoadedPlugins.filter { !oldLoadedPlugins.containsKey(it.key) }.map { (pluginKey, plugin) ->
-            coroutineScope {
-                async {
-                    runCatching {
-                        plugin.onCreate()
-                    }.onFailure {
-                        Log.e("KDE/addPlugin", "plugin failed to load $pluginKey", it)
-                    }
-                }
+        newLoadedPlugins.filter { !oldLoadedPlugins.containsKey(it.key) }.forEach { (pluginKey, plugin) ->
+            runCatching {
+                plugin.onCreate()
+            }.onFailure {
+                Log.e("KDE/addPlugin", "plugin failed to load $pluginKey", it)
             }
         }
-
-        (destroyJobs + createJobs).awaitAll()
 
         return deviceState.copy(
             pluginsByIncomingInterface = newPluginsByIncomingInterface,
@@ -458,7 +453,7 @@ class Device(
         )
     }
 
-    internal fun updateBatteryInfo(newInfo: DeviceBatteryInfo) {
+    internal suspend fun updateBatteryInfo(newInfo: DeviceBatteryInfo) {
         updateState { it.copy(batteryInfo = newInfo) }
     }
 

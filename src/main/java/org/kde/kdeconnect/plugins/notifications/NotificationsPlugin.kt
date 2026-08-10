@@ -33,6 +33,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
 import org.kde.kdeconnect.Device
@@ -99,17 +100,19 @@ class NotificationsPlugin(
     private lateinit var mainHandler: Handler
     private val postedNotificationsLock = Any()
 
-    override suspend fun onCreate(): Boolean {
+    override fun onCreate(): Boolean {
         keyguardManager = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
         mainHandler = Handler(Looper.getMainLooper())
-        NotificationReceiver.runCommand(context) { service ->
-            service.addListener(this@NotificationsPlugin)
-            serviceReady = service.isConnected
+        coroutineScope.launch {
+            NotificationReceiver.runCommand(context) { service ->
+                service.addListener(this@NotificationsPlugin)
+                serviceReady = service.isConnected
+            }
         }
         return true
     }
 
-    override suspend fun onDestroy() {
+    override fun onDestroy() {
         super.onDestroy()
         currentNotifications.clear()
         notificationsIcons.clear()
@@ -122,8 +125,10 @@ class NotificationsPlugin(
             postedNotifications.clear()
         }
 
-        NotificationReceiver.runCommand(context) { service ->
-            service.removeListener(this@NotificationsPlugin)
+        runBlocking {
+            NotificationReceiver.runCommand(context) { service ->
+                service.removeListener(this@NotificationsPlugin)
+            }
         }
     }
 

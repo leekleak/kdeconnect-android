@@ -7,6 +7,7 @@ import android.content.Intent
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
@@ -172,7 +173,7 @@ val homeModule = module {
     viewModel<PairingViewModel>()
     navigation<PairingKey> {
         val viewModel: PairingViewModel = koinViewModel()
-        val state by viewModel.uiState.collectAsStateWithLifecycle()
+        val state by viewModel.uiState.collectAsState()
         val context = LocalContext.current
         PairingScreen(
             uiState = state,

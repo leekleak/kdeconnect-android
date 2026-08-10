@@ -166,14 +166,14 @@ class TelephonyPlugin(
         }
     }
 
-    override suspend fun onCreate(): Boolean {
+    override fun onCreate(): Boolean {
         val filter = IntentFilter(TelephonyManager.ACTION_PHONE_STATE_CHANGED)
         filter.priority = 500
         context.registerReceiver(receiver, filter)
         return true
     }
 
-    override suspend fun onDestroy() {
+    override fun onDestroy() {
         super.onDestroy()
         context.unregisterReceiver(receiver)
     }

@@ -237,7 +237,7 @@ class SMSPlugin(
         device.sendPacket(np)
     }
 
-    override suspend fun onCreate(): Boolean {
+    override fun onCreate(): Boolean {
         initialize()
         return true
     }
@@ -275,7 +275,7 @@ class SMSPlugin(
         }
     }
 
-    override suspend fun onDestroy() {
+    override fun onDestroy() {
         super.onDestroy()
         context.unregisterReceiver(receiver)
         context.unregisterReceiver(messagesUpdateReceiver)

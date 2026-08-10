@@ -31,7 +31,7 @@ class MprisReceiverPlugin(context: Context, device: Device) : Plugin(context, de
 
     override val pluginInfo: MprisReceiverPluginInfo = MprisReceiverPluginInfo
 
-    override suspend fun onCreate(): Boolean {
+    override fun onCreate(): Boolean {
         if (!NotificationReceiver.hasReadNotificationsPermission(context)) {
             return false
         }
@@ -56,7 +56,7 @@ class MprisReceiverPlugin(context: Context, device: Device) : Plugin(context, de
                     )
                 )
             )
-            sendPlayerList()
+            coroutineScope.launch { sendPlayerList() }
         } catch (e: Exception) {
             Log.e(TAG, "Exception", e)
         }
@@ -64,7 +64,7 @@ class MprisReceiverPlugin(context: Context, device: Device) : Plugin(context, de
         return true
     }
 
-    override suspend fun onDestroy() {
+    override fun onDestroy() {
         super.onDestroy()
         val manager = ContextCompat.getSystemService(context, MediaSessionManager::class.java)
         mediaSessionChangeListener?.let { manager?.removeOnActiveSessionsChangedListener(it) }

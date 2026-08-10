@@ -47,7 +47,7 @@ class SftpPlugin(
 
     private var job: Job? = null
 
-    override suspend fun onCreate(): Boolean {
+    override fun onCreate(): Boolean {
         job = CoroutineScope(Dispatchers.Main).launch {
             dataStore.storageInfoListJson.collect {
                 if (!server.isStarted) return@collect
@@ -63,7 +63,7 @@ class SftpPlugin(
         return true
     }
 
-    override suspend fun onDestroy() {
+    override fun onDestroy() {
         super.onDestroy()
         server.stop()
         job?.cancel()

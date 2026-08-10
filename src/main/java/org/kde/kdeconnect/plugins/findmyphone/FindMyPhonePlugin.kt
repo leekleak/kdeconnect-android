@@ -38,7 +38,7 @@ class FindMyPhonePlugin(
 
     override val pluginInfo: FindMyPhonePluginInfo = FindMyPhonePluginInfo
 
-    override suspend fun onCreate(): Boolean {
+    override fun onCreate(): Boolean {
         val ringtoneString = telephonySettingsDataStore.getRingtoneUriBlockingBlocking()
         val ringtone = if (ringtoneString.isEmpty()) {
             Settings.System.DEFAULT_RINGTONE_URI
@@ -64,7 +64,7 @@ class FindMyPhonePlugin(
         return true
     }
 
-    override suspend fun onDestroy() {
+    override fun onDestroy() {
         super.onDestroy()
         try {
             if (mediaPlayer.isPlaying) {

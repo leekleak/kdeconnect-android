@@ -84,13 +84,13 @@ class ClipboardPlugin(context: Context, device: Device) : Plugin(context, device
     }
 
 
-    override suspend fun onCreate(): Boolean {
+    override fun onCreate(): Boolean {
         ClipboardListener.instance(context).registerObserver(observer)
-        sendConnectPacket()
+        coroutineScope.launch { sendConnectPacket() }
         return true
     }
 
-    override suspend fun onDestroy() {
+    override fun onDestroy() {
         super.onDestroy()
         ClipboardListener.instance(context).removeObserver(observer)
     }

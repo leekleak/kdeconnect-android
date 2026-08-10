@@ -18,6 +18,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.scale
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.NetworkPacket
@@ -30,11 +31,13 @@ import org.kde.kdeconnect_tp.R
 
 class ReceiveNotificationsPlugin(context: Context, device: Device) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = ReceiveNotificationsPluginInfo
-    override suspend fun onCreate(): Boolean {
+    override fun onCreate(): Boolean {
         // request all existing notifications
-        val np = NetworkPacket(PACKET_TYPE_NOTIFICATION_REQUEST)
-        np["request"] = true
-        device.sendPacket(np)
+        coroutineScope.launch {
+            val np = NetworkPacket(PACKET_TYPE_NOTIFICATION_REQUEST)
+            np["request"] = true
+            device.sendPacket(np)
+        }
         return true
     }
 

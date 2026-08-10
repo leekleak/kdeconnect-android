@@ -60,12 +60,12 @@ class SharePlugin(
 
     override val pluginInfo: PluginInfo = SharePluginInfo
 
-    override suspend fun onCreate(): Boolean {
+    override fun onCreate(): Boolean {
         createOrUpdateDynamicShortcut(null)
         return true
     }
 
-    override suspend fun onDestroy() {
+    override fun onDestroy() {
         for (shortcut in ShortcutManagerCompat.getDynamicShortcuts(context)) {
             if (shortcut.id != device.deviceId) continue
             if (!device.isReachable && shortcut.isPinned) {
