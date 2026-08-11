@@ -15,7 +15,7 @@ import org.kde.kdeconnect.BackgroundService.Companion.forceRefreshConnections
 import org.kde.kdeconnect.BackgroundServiceData
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.DeviceState
-import org.kde.kdeconnect.PairingHandler.PairState
+import org.kde.kdeconnect.PairState
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 
 class PairingViewModel(
@@ -33,7 +33,7 @@ class PairingViewModel(
         PairingUiState(
             wifiAvailable = isConnectedToNonCellularNetwork,
             trustedNetwork = trustedNetworkHelper.getIsTrustedNetwork(),
-            available = devices.filter { it.isReachable && it.pairStatus != PairState.Paired },
+            available = devices.filter { it.isReachable && it.pairState != PairState.Paired },
             refreshing = refreshing
         )
 
@@ -57,7 +57,7 @@ class PairingViewModel(
     fun pair(deviceId: String) {
         val device = deviceManager.getDevice(deviceId) ?: return
         viewModelScope.launch {
-            if (device.pairingHandler.state.value != PairState.Requested) {
+            if (device.state.value.pairState != PairState.Requested) {
                 device.requestPairing()
             }
         }

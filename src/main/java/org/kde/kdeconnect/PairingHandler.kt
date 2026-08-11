@@ -12,16 +12,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.bouncycastle.util.Arrays
-import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect_tp.R
 import java.security.MessageDigest
 import java.security.cert.Certificate
@@ -29,24 +22,24 @@ import java.util.Formatter
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.seconds
 
+enum class PairState {
+    NotPaired,
+    Requested,
+    RequestedByPeer,
+    Paired
+}
+
 class PairingHandler(
     private val device: Device,
-    private val sslHelper: SslHelper,
     private val callback: PairingCallback,
-    startState: PairState,
 ) {
-    val state: StateFlow<PairState>
-        field = MutableStateFlow(startState)
+    private val pairingJob = SupervisorJob()
+    private val pairingScope = CoroutineScope(Dispatchers.IO + pairingJob)
+    private val pairingTimestamp = MutableStateFlow(0L)
+    private val state: PairState get() = device.state.value.pairState
 
     fun updateState(newState: PairState) {
-        state.update { newState }
-    }
-
-    enum class PairState {
-        NotPaired,
-        Requested,
-        RequestedByPeer,
-        Paired
+        device.updatePairState(newState, pairingTimestamp.value)
     }
 
     interface PairingCallback {
@@ -59,15 +52,11 @@ class PairingHandler(
         fun unpaired(device: Device)
     }
 
-    private val pairingJob = SupervisorJob()
-    private val pairingScope = CoroutineScope(Dispatchers.IO + pairingJob)
-    private val pairingTimestamp = MutableStateFlow(0L)
-
     fun packetReceived(np: NetworkPacket) {
         cancelTimer()
         val wantsPair = np.getBoolean("pair")
         if (wantsPair) {
-            when (state.value) {
+            when (state) {
                 PairState.Requested -> pairingDone()
                 PairState.RequestedByPeer -> {
                     Log.w(
@@ -77,7 +66,7 @@ class PairingHandler(
                 }
 
                 PairState.Paired, PairState.NotPaired -> {
-                    if (state.value == PairState.Paired) {
+                    if (state == PairState.Paired) {
                         Log.w("PairingHandler", "Received pairing request from a device we already trusted.")
                         // It would be nice to auto-accept the pairing request here, but since the pairing accept and pairing request
                         // messages are identical, this could create an infinite loop if both devices are "accepting" each other pairs.
@@ -115,7 +104,7 @@ class PairingHandler(
             }
         } else {
             Log.i("PairingHandler", "Unpair request received")
-            when (state.value) {
+            when (state) {
                 PairState.NotPaired -> Log.i("PairingHandler", "Ignoring unpair request for already unpaired device")
                 // Requested: We started pairing and got rejected
                 // RequestedByPeer: They stared pairing, then cancelled
@@ -132,30 +121,16 @@ class PairingHandler(
         }
     }
 
-    val verificationKey: Flow<String?> = combine(state, pairingTimestamp) { a, b ->
-        a to b
-    }.map { (state, timestamp) ->
-        if (device.protocolVersion >= 8) {
-            if (state != PairState.Requested && state != PairState.RequestedByPeer) {
-                null
-            } else {
-                getVerificationKey(sslHelper.certificate, device.certificate, timestamp)
-            }
-        } else {
-            getVerificationKeyV7(sslHelper.certificate, device.certificate)
-        }
-    }
-
     suspend fun requestPairing() {
         cancelTimer()
 
-        if (state.value == PairState.Paired) {
+        if (state == PairState.Paired) {
             Log.w("PairingHandler", "requestPairing was called on an already paired device")
             callback.pairingFailed(R.string.error_already_paired)
             return
         }
 
-        if (state.value == PairState.RequestedByPeer) {
+        if (state == PairState.RequestedByPeer) {
             Log.w("PairingHandler", "Pairing already started by the other end, accepting their request.")
             acceptPairing()
             return
@@ -166,6 +141,7 @@ class PairingHandler(
             return
         }
 
+        pairingTimestamp.value = System.currentTimeMillis() / 1000L
         updateState(PairState.Requested)
 
         pairingScope.launch {
@@ -187,7 +163,6 @@ class PairingHandler(
         }
         val np = NetworkPacket(NetworkPacket.PACKET_TYPE_PAIR)
         np["pair"] = true
-        pairingTimestamp.value = System.currentTimeMillis() / 1000L
         np["timestamp"] = pairingTimestamp.value
         device.sendPacket(np, statusCallback)
     }

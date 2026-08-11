@@ -9,7 +9,6 @@ package org.kde.kdeconnect.ui.compose.screen.share
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -27,8 +26,7 @@ import androidx.compose.ui.unit.dp
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.DeviceState
 import org.kde.kdeconnect.DeviceType
-import org.kde.kdeconnect.PairingHandler
-import org.kde.kdeconnect.PairingHandler.PairState
+import org.kde.kdeconnect.PairState
 import org.kde.kdeconnect.ui.compose.components.DeviceCard
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
@@ -138,7 +136,7 @@ private fun ShareScreenPreview() {
                     name = "Device 1",
                     type = DeviceType.LAPTOP
                 ),
-                pairStatus = PairState.Paired,
+                pairState = PairState.Paired,
                 isReachable = true
             ),
             DeviceState(
@@ -148,7 +146,7 @@ private fun ShareScreenPreview() {
                     name = "Device 2",
                     type = DeviceType.PHONE
                 ),
-                pairStatus = PairState.Paired,
+                pairState = PairState.Paired,
                 isReachable = true
             ),
         ),

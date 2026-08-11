@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.DeviceState
+import org.kde.kdeconnect.PairState
 import org.kde.kdeconnect.PairingHandler
 
 class SavedDevicesViewModel(
@@ -24,7 +25,7 @@ class SavedDevicesViewModel(
     init {
         viewModelScope.launch {
             deviceManager.allDeviceStatesMap.collect { map ->
-                val devices = map.values.filter { it.pairStatus == PairingHandler.PairState.Paired }.toList()
+                val devices = map.values.filter { it.pairState == PairState.Paired }.toList()
 
                 _pairingUiState.update { state ->
                     state.copy(saved = devices)

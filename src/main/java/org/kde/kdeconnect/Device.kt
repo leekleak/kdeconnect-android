@@ -9,26 +9,17 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.util.Log
-import androidx.annotation.DrawableRes
 import androidx.annotation.WorkerThread
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -37,7 +28,8 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.kde.kdeconnect.DeviceStats.countReceived
 import org.kde.kdeconnect.DeviceStats.countSent
-import org.kde.kdeconnect.PairingHandler.PairState
+import org.kde.kdeconnect.PairingHandler.Companion.getVerificationKey
+import org.kde.kdeconnect.PairingHandler.Companion.getVerificationKeyV7
 import org.kde.kdeconnect.PairingHandler.PairingCallback
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLink.PacketReceiver
@@ -74,35 +66,31 @@ class Device(
     val state: StateFlow<DeviceState>
         field = MutableStateFlow(DeviceState(
             deviceInfo = link?.deviceInfo ?: runBlocking { deviceSettings.getDeviceInfo(deviceId) ?: throw RuntimeException("Device $deviceId not found in settings") },
-            pairStatus = if (link == null) PairState.Paired else PairState.NotPaired,
+            pairState = if (link == null) PairState.Paired else PairState.NotPaired,
             supportedPlugins = PluginFactory.availablePlugins.toList(),
             isReachable = false,
         ))
 
     private val stateUpdateMutex = Mutex()
     private suspend fun updateState(transform: (DeviceState) -> DeviceState) = stateUpdateMutex.withLock {
-        Log.e("DeviceState", "Got through lock")
         val newState = reloadPluginsFromSettings(transform(state.value))
         state.update { newState }
+        jobScope.launch { if (newState.deviceInfo.trusted) deviceSettings.addTrustedDevice(newState.deviceInfo) }
     }
 
     val deviceId: String get() = state.value.deviceInfo.id
     val certificate: Certificate get() = sslHelper.parseCertificate(state.value.deviceInfo.certificate)
     val deviceInfo: DeviceInfo get() = state.value.deviceInfo
     val loadedPlugins: Map<String, Plugin> get() = state.value.loadedPlugins
-    val supportedPlugins: List<String> get() = state.value.supportedPlugins
     val isReachable: Boolean get() = state.value.isReachable
     val name: String get() = deviceInfo.name
     val icon: Drawable get() = deviceInfo.type.getIcon(context)
-    val iconDrawable: Int @DrawableRes get() = deviceInfo.type.toDrawableId()
     val deviceType: DeviceType get() = deviceInfo.type
     val protocolVersion: Int get() = deviceInfo.protocolVersion
 
     internal val pairingHandler: PairingHandler = PairingHandler(
         device = this,
-        sslHelper = sslHelper,
         callback = createDefaultPairingCallback(),
-        startState = if (link == null) PairState.Paired else PairState.NotPaired
     )
 
     private val sendChannel = Channel<NetworkPacketWithCallback>(Channel.UNLIMITED)
@@ -115,27 +103,27 @@ class Device(
         runBlocking {
             link?.let { addLink(it) }
         }
-        jobScope.launch {
-            combine(pairingHandler.state, pairingHandler.verificationKey) { a, b -> a to b}.collect { (state, key) ->
-                updateState { it.copy(pairStatus = state, verificationKey = key) }
+    }
+
+    internal fun updatePairState(pairState: PairState, timestamp: Long) {
+        val key = if (protocolVersion >= 8) {
+            if (pairState != PairState.Requested && pairState != PairState.RequestedByPeer) {
+                null
+            } else {
+                Log.e("Device timestampo", timestamp.toString())
+                getVerificationKey(sslHelper.certificate, certificate, timestamp)
             }
+        } else {
+            getVerificationKeyV7(sslHelper.certificate, certificate)
         }
-        jobScope.launch {
-            state.map { it.deviceInfo }.distinctUntilChanged().collect { info ->
-                if (info.trusted) {
-                    deviceSettings.addTrustedDevice(info)
-                } else {
-                    deviceSettings.removeTrustedDevice(info.id)
-                }
-            }
-        }
+        jobScope.launch { updateState { it.copy(pairState = pairState, verificationKey = key) } }
     }
 
     // Returns 0 if the version matches, < 0 if it is older or > 0 if it is newer
     fun compareProtocolVersion(): Int =
         deviceInfo.protocolVersion - DeviceHelper.PROTOCOL_VERSION
 
-    val isPaired: Boolean get() = pairingHandler.state.value == PairState.Paired
+    val isPaired: Boolean get() = state.value.pairState == PairState.Paired
 
     suspend fun requestPairing() {
         pairingHandler.requestPairing()
@@ -174,7 +162,7 @@ class Device(
                     updateState {
                         it.copy(
                             deviceInfo = it.deviceInfo.copy(trusted = true),
-                            pairStatus = PairState.Paired,
+                            pairState = PairState.Paired,
                         )
                     }
                     val intent = Intent(context, MainActivity::class.java).apply {
@@ -195,19 +183,18 @@ class Device(
                     updateState {
                         it.copy(
                             deviceInfo = it.deviceInfo.copy(trusted = false),
-                            pairStatus = PairState.NotPaired,
+                            pairState = PairState.NotPaired,
                             batteryInfo = null,
                             verificationKey = null,
                         )
                     }
                 }
+                jobScope.launch { deviceSettings.removeTrustedDevice(deviceId) }
             }
         }
     }
 
     suspend fun addLink(link: BaseLink){
-        Log.e("DEVICE", "ADdding linkg")
-
         synchronized(sendChannel) {
             if (sendCoroutine == null) {
                 sendCoroutine = CoroutineScope(Dispatchers.IO).launch {
@@ -226,8 +213,6 @@ class Device(
                 isReachable = true
             )
         }
-
-        Log.e("DEVICE", "ADdding packet receiver")
     }
 
     @WorkerThread
@@ -248,6 +233,7 @@ class Device(
     }
 
     suspend fun updateDeviceInfo(newDeviceInfo: DeviceInfo) {
+        Log.e("Updating device info", "${newDeviceInfo.name}: ${newDeviceInfo.protocolVersion}")
         val updatedSupportedPlugins: List<String> = PluginFactory.pluginsForCapabilities(
             newDeviceInfo.incomingCapabilities,
             newDeviceInfo.outgoingCapabilities
@@ -266,6 +252,7 @@ class Device(
                 supportedPlugins = updatedSupportedPlugins
             )
         }
+        Log.e("Updated device info", "${newDeviceInfo.name}: ${state.value.deviceInfo.protocolVersion}")
     }
 
     override suspend fun onPacketReceived(np: NetworkPacket): Unit = stateUpdateMutex.withLock {
@@ -403,7 +390,7 @@ class Device(
         deviceState.supportedPlugins.forEach { pluginKey ->
             val pluginInfo = PluginFactory.getPluginInfo(pluginKey)
 
-            val pluginEnabled = deviceState.pairStatus == PairState.Paired && deviceState.isReachable && (deviceInfo.settings[pluginKey] == true)
+            val pluginEnabled = deviceState.pairState == PairState.Paired && deviceState.isReachable && (deviceInfo.settings[pluginKey] == true)
 
             if (pluginEnabled) {
                 val plugin = oldLoadedPlugins[pluginKey] ?: PluginFactory.instantiatePluginForDevice(pluginKey, this)
@@ -418,7 +405,6 @@ class Device(
             }
         }
 
-        Log.e("Device", "Removing ${oldLoadedPlugins.count { !newLoadedPlugins.containsKey(it.key) }} plugins")
         oldLoadedPlugins.filter { !newLoadedPlugins.containsKey(it.key) }.forEach { (pluginKey, plugin) ->
             runCatching {
                 plugin.onDestroy()
@@ -427,10 +413,8 @@ class Device(
             }
         }
 
-        Log.e("Device", "ADding ${newLoadedPlugins.count { !oldLoadedPlugins.containsKey(it.key) }} plugins")
         newLoadedPlugins.filter { !oldLoadedPlugins.containsKey(it.key) }.forEach { (pluginKey, plugin) ->
             runCatching {
-                Log.e("Device", "Loading $pluginKey")
                 plugin.onCreate()
             }.onFailure {
                 Log.e("KDE/addPlugin", "plugin failed to load $pluginKey", it)
@@ -443,8 +427,10 @@ class Device(
         )
     }
 
-    internal suspend fun updateBatteryInfo(newInfo: DeviceBatteryInfo) {
-        updateState { it.copy(batteryInfo = newInfo) }
+    internal fun updateBatteryInfo(newInfo: DeviceBatteryInfo) {
+        jobScope.launch {
+            updateState { it.copy(batteryInfo = newInfo) }
+        }
     }
 
     fun close() {
@@ -470,7 +456,7 @@ class Device(
 
 data class DeviceState(
     val deviceInfo: DeviceInfo,
-    val pairStatus: PairState,
+    val pairState: PairState,
     val isReachable: Boolean,
     val batteryInfo: DeviceBatteryInfo? = null,
     val verificationKey: String? = null,

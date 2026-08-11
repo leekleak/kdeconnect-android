@@ -15,7 +15,7 @@ import org.kde.kdeconnect.BackgroundService.Companion.forceRefreshConnections
 import org.kde.kdeconnect.BackgroundServiceData
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.DeviceState
-import org.kde.kdeconnect.PairingHandler
+import org.kde.kdeconnect.PairState
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 
 class HomeViewModel(
@@ -32,8 +32,8 @@ class HomeViewModel(
         HomeUiState(
             wifiAvailable = isConnectedToNonCellularNetwork,
             trustedNetwork = trustedNetworkHelper.getIsTrustedNetwork(),
-            connected = devices.filter { it.isReachable && it.pairStatus == PairingHandler.PairState.Paired },
-            availableCount = devices.count { it.isReachable && it.pairStatus != PairingHandler.PairState.Paired },
+            connected = devices.filter { it.isReachable && it.pairState == PairState.Paired },
+            availableCount = devices.count { it.isReachable && it.pairState != PairState.Paired },
             refreshing = refreshing
         )
     }.stateIn(

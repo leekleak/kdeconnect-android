@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.DeviceState
 import org.kde.kdeconnect.DeviceType
-import org.kde.kdeconnect.PairingHandler.PairState
+import org.kde.kdeconnect.PairState
 import org.kde.kdeconnect.ui.compose.components.DeviceCard
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
@@ -139,7 +139,7 @@ private fun PreviewCompose() {
                         name = "Device 1",
                         type = DeviceType.LAPTOP
                     ),
-                    pairStatus = PairState.Paired,
+                    pairState = PairState.Paired,
                     isReachable = true
                 ),
                 DeviceState(
@@ -149,7 +149,7 @@ private fun PreviewCompose() {
                         name = "Device 2",
                         type = DeviceType.DESKTOP
                     ),
-                    pairStatus = PairState.Paired,
+                    pairState = PairState.Paired,
                     isReachable = true
                 ),
             ),

@@ -2,7 +2,6 @@ package org.kde.kdeconnect.ui.compose.screen.pairing
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -16,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import org.kde.kdeconnect.PairState
 import org.kde.kdeconnect.PairingHandler
 import org.kde.kdeconnect.ui.compose.components.DeviceCard
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
@@ -62,11 +62,11 @@ fun PairingScreen(
                         key = { device -> device.deviceInfo.id }
                     ) { device ->
                         val actionIcon = painterResource(
-                            if (device.pairStatus == PairingHandler.PairState.Requested) R.drawable.key
+                            if (device.pairState == PairState.Requested) R.drawable.key
                             else R.drawable.link
                         )
                         val actionDescription =
-                            if (device.pairStatus == PairingHandler.PairState.Requested) device.verificationKey
+                            if (device.pairState == PairState.Requested) device.verificationKey
                                 ?: ""
                             else stringResource(R.string.pair)
 
