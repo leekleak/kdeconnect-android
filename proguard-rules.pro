@@ -18,6 +18,7 @@
 
 -keepattributes SourceFile,LineNumberTable,Signature,*Annotation*
 
+-dontobfuscate
 # SSHd requires mina, and mina uses reflection so some classes would get deleted
 -keep class org.apache.sshd.** {*;}
 -dontwarn org.apache.sshd.**

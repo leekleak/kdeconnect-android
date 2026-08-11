@@ -248,20 +248,14 @@ private fun BigscreenButton(
 @KdeThemePreviews
 @Composable
 private fun BigscreenPreview() {
-    KoinApplication(configuration = koinConfiguration(declaration = {
-        modules(module {
-            single { Navigator() }
-        })
-    }), content = {
-        BigscreenContent(
-            onHomeClick = {},
-            onUpClick = {},
-            onMicClick = {},
-            onLeftClick = {},
-            onSelectClick = {},
-            onRightClick = {},
-            onBackClick = {},
-            onDownClick = {},
-        )
-    })
+    BigscreenContent(
+        onHomeClick = {},
+        onUpClick = {},
+        onMicClick = {},
+        onLeftClick = {},
+        onSelectClick = {},
+        onRightClick = {},
+        onBackClick = {},
+        onDownClick = {},
+    )
 }

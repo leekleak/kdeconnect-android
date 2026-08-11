@@ -257,12 +257,12 @@ val settingsModule = module {
     single<SettingsDataStore>()
     single<RunCommandSettingsDataStore>()
     single<MousePadSettingsDataStore>()
-    single { DeviceSettings(get()) }
-    single { DeviceHelper(get(), get()) }
-    single { ThemeUtil(get()) }
-    single { SslHelper(get(), get()) }
-    single { CustomDevicesHelper(get()) }
-    single { VideoUrlsHelper(get()) }
+    single<DeviceSettings>()
+    single<DeviceHelper>()
+    single<ThemeUtil>()
+    single<SslHelper>()
+    single<CustomDevicesHelper>()
+    single<VideoUrlsHelper>()
     single<DeviceManager> {
         DeviceManager(get()) { deviceId, link ->
             get<Device> { parametersOf(deviceId, link) }
@@ -304,9 +304,7 @@ val pluginSettingsModule = module {
     viewModel<TelephonySettingsViewModel>()
     viewModel<PresenterSettingsViewModel>()
     viewModel<NotificationSettingsViewModel>()
-    navigation<PluginSettingsKey> { key ->
-        DeviceSettingsScreen(key.deviceId)
-    }
+    navigation<PluginSettingsKey> { key -> DeviceSettingsScreen(key.deviceId) }
     navigation<MousePadPluginSettingsKey> { MousePadSettingsScreen() }
     navigation<SftpPluginSettingsKey> { SftpSettingsScreen() }
     navigation<TelephonyPluginSettingsKey> { TelephonySettingsScreen() }
@@ -406,7 +404,7 @@ val appModule = module {
     single<ImageLoader> { buildImageLoader(get(), get()) }
 
     single<TrustedNetworkHelper>()
-    single { PermissionRequestHelper() }
+    single<PermissionRequestHelper>()
     single<AppDatabase>()
 
     single<DevicesRoomDatabase> {
@@ -420,10 +418,10 @@ val appModule = module {
 
     factory<Device>()
 
-    single { MprisMediaSession(get(), get(), get()) }
-    factory { (context: Context) -> BluetoothLinkProvider(context, get(), get(), get()) }
-    factory { (context: Context) -> LanLinkProvider(context, get(), get(), get(), get(), get()) }
-    factory { (context: Context) -> LoopbackLinkProvider(context, get()) }
+    single<MprisMediaSession>()
+    factory<BluetoothLinkProvider>()
+    factory<LanLinkProvider>()
+    factory<LoopbackLinkProvider>()
 
     scope<Device> {
         scoped { SftpPlugin(get(), get(), get(), get()) }

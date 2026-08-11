@@ -69,9 +69,9 @@ class BackgroundService : Service() {
     }
 
     private fun registerLinkProviders() {
-        linkProviders.add(get<LanLinkProvider> { parametersOf(this) })
-        //linkProviders.add(get<LoopbackLinkProvider> { parametersOf(this) })
-        linkProviders.add(get<BluetoothLinkProvider> { parametersOf(this) })
+        linkProviders.add(get<LanLinkProvider>())
+        //linkProviders.add(get<LoopbackLinkProvider>())
+        linkProviders.add(get<BluetoothLinkProvider>())
     }
 
     @OptIn(ExperimentalAtomicApi::class)
