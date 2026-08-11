@@ -67,6 +67,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.palette.graphics.Palette
 import coil3.BitmapImage
 import coil3.compose.AsyncImage
@@ -129,8 +130,8 @@ fun MprisScreen(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
 fun PlayerIsland(viewModel: MprisViewModel) {
-    val playerStatus by viewModel.playerStatus.collectAsState()
-    val playerPosition by viewModel.playerPosition.collectAsState()
+    val playerStatus by viewModel.playerStatus.collectAsStateWithLifecycle()
+    val playerPosition by viewModel.playerPosition.collectAsStateWithLifecycle()
 
     var isBright by remember { mutableStateOf(true) }
     val backgroundColor by animateColorAsState(if (isBright) Color.White else Color.Black)
@@ -402,8 +403,8 @@ fun ControlsIsland(
     viewModel: MprisViewModel
 ) {
     val navigator: Navigator = koinInject()
-    val playerStatus by viewModel.playerStatus.collectAsState()
-    val sinks by viewModel.sinks.collectAsState()
+    val playerStatus by viewModel.playerStatus.collectAsStateWithLifecycle()
+    val sinks by viewModel.sinks.collectAsStateWithLifecycle()
     val outputName by remember { derivedStateOf {
         sinks.firstOrNull { it.isDefault }?.description
     } }
@@ -486,7 +487,7 @@ fun SinkSelector(
     viewModel: MprisViewModel = koinViewModel(key = "MprisViewModel_$deviceId") { parametersOf(deviceId) }
 ) {
     val navigator: Navigator = koinInject()
-    val sinks by viewModel.sinks.collectAsState()
+    val sinks by viewModel.sinks.collectAsStateWithLifecycle()
     KdeTheme {
         FancyDialog(
             modifier = Modifier.height(400.dp),
@@ -514,8 +515,8 @@ fun SourceSelector(
     viewModel: MprisViewModel = koinViewModel(key = "MprisViewModel_$deviceId") { parametersOf(deviceId) }
 ) {
     val navigator: Navigator = koinInject()
-    val playerList by viewModel.playerList.collectAsState()
-    val selectedPlayerName by viewModel.selectedPlayerName.collectAsState()
+    val playerList by viewModel.playerList.collectAsStateWithLifecycle()
+    val selectedPlayerName by viewModel.selectedPlayerName.collectAsStateWithLifecycle()
 
     KdeTheme {
         FancyDialog(

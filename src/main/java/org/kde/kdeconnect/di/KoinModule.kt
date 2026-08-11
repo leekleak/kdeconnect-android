@@ -173,7 +173,7 @@ val homeModule = module {
     viewModel<PairingViewModel>()
     navigation<PairingKey> {
         val viewModel: PairingViewModel = koinViewModel()
-        val state by viewModel.uiState.collectAsState()
+        val state by viewModel.uiState.collectAsStateWithLifecycle()
         val context = LocalContext.current
         PairingScreen(
             uiState = state,

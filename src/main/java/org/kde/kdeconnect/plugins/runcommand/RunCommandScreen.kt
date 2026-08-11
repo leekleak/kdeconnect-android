@@ -39,6 +39,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.compose.components.FancyDialog
@@ -54,7 +55,7 @@ fun RunCommandScreen(
     viewModel: RunCommandViewModel = koinViewModel(key = "RunCommandViewModel_$deviceId") { parametersOf(deviceId) }
 ) {
     val plugin = viewModel.plugin
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
