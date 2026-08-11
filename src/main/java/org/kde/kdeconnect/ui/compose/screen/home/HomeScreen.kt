@@ -140,7 +140,6 @@ private fun PreviewCompose() {
                         type = DeviceType.LAPTOP
                     ),
                     pairState = PairState.Paired,
-                    isReachable = true
                 ),
                 DeviceState(
                     deviceInfo = DeviceInfo(
@@ -150,7 +149,6 @@ private fun PreviewCompose() {
                         type = DeviceType.DESKTOP
                     ),
                     pairState = PairState.Paired,
-                    isReachable = true
                 ),
             ),
             refreshing = false

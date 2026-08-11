@@ -24,7 +24,10 @@ val licenseResDir = "$projectDir/build/dependency-license-res"
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_11)
-        freeCompilerArgs.add("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
+        freeCompilerArgs.addAll(
+            "-XXLanguage:+PropertyParamAnnotationDefaultTargetMode",
+            "-XXLanguage:+ExplicitBackingFields"
+        )
     }
 }
 

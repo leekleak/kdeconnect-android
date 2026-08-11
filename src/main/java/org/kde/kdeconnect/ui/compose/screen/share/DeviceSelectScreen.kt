@@ -137,7 +137,6 @@ private fun ShareScreenPreview() {
                     type = DeviceType.LAPTOP
                 ),
                 pairState = PairState.Paired,
-                isReachable = true
             ),
             DeviceState(
                 deviceInfo = DeviceInfo(
@@ -147,7 +146,6 @@ private fun ShareScreenPreview() {
                     type = DeviceType.PHONE
                 ),
                 pairState = PairState.Paired,
-                isReachable = true
             ),
         ),
         onDeviceClick = { /* Do nothing */ },

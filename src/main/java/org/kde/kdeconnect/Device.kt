@@ -10,13 +10,10 @@ import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.annotation.WorkerThread
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -60,7 +57,6 @@ class Device(
 
     override val scope: Scope by lazy { createScope(this) }
 
-    data class NetworkPacketWithCallback(val np : NetworkPacket, val callback: SendPacketStatusCallback)
     private val jobScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     val state: StateFlow<DeviceState>
@@ -68,7 +64,6 @@ class Device(
             deviceInfo = link?.deviceInfo ?: runBlocking { deviceSettings.getDeviceInfo(deviceId) ?: throw RuntimeException("Device $deviceId not found in settings") },
             pairState = if (link == null) PairState.Paired else PairState.NotPaired,
             supportedPlugins = PluginFactory.availablePlugins.toList(),
-            isReachable = false,
         ))
 
     private val stateUpdateMutex = Mutex()
@@ -92,9 +87,6 @@ class Device(
         device = this,
         callback = createDefaultPairingCallback(),
     )
-
-    private val sendChannel = Channel<NetworkPacketWithCallback>(Channel.UNLIMITED)
-    private var sendCoroutine : Job? = null
 
     private fun supportsPacketType(type: String): Boolean =
         NetworkPacket.PROTOCOL_PACKET_TYPES.contains(type) || deviceInfo.incomingCapabilities.contains(type)
@@ -195,22 +187,11 @@ class Device(
     }
 
     suspend fun addLink(link: BaseLink){
-        synchronized(sendChannel) {
-            if (sendCoroutine == null) {
-                sendCoroutine = CoroutineScope(Dispatchers.IO).launch {
-                    for ((np, callback) in sendChannel) {
-                        sendPacket(np, callback)
-                    }
-                }
-            }
-        }
-
         link.addPacketReceiver(this@Device)
 
         updateState { state ->
             state.copy(
-                links = (state.links + link).sortedByDescending { it.linkProvider.priority },
-                isReachable = true
+                links = (state.links + link).sortedByDescending { it.linkProvider.priority }
             )
         }
     }
@@ -220,15 +201,9 @@ class Device(
         link.removePacketReceiver(this)
         updateState { state ->
             val newLinks = state.links.minus(link)
-            val isReachable = newLinks.isNotEmpty()
-            if (!isReachable) {
-                synchronized(sendChannel) {
-                    sendCoroutine?.cancel(CancellationException("Device disconnected"))
-                    sendCoroutine = null
-                }
-            }
+
             Log.i("KDE/Device", "removeLink: ${link.linkProvider.name} -> $name active links: ${newLinks.size}")
-            state.copy(links = newLinks, isReachable = isReachable)
+            state.copy(links = newLinks)
         }
     }
 
@@ -322,7 +297,7 @@ class Device(
     }
 
     /**
-     * Send `np` over one of this device's connected [links].
+     * Send `np` over one of this device's connected links.
      *
      * @param np                        the packet to send
      * @param callback                  a callback that can receive realtime updates
@@ -457,11 +432,12 @@ class Device(
 data class DeviceState(
     val deviceInfo: DeviceInfo,
     val pairState: PairState,
-    val isReachable: Boolean,
     val batteryInfo: DeviceBatteryInfo? = null,
     val verificationKey: String? = null,
     val loadedPlugins: Map<String, Plugin> = emptyMap(),
     val supportedPlugins: List<String> = emptyList(),
     val pluginsByIncomingInterface: Map<String, List<String>> = emptyMap(),
     val links: List<BaseLink> = emptyList(),
-)
+) {
+    val isReachable: Boolean get() = links.isNotEmpty()
+}

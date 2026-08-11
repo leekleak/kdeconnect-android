@@ -128,29 +128,8 @@ class DeviceSettings(
         deviceDao.removeAll()
     }
 
-    suspend fun getDeviceCertificateBytes(deviceId: String): ByteArray {
-        return deviceDao.getCertificate(deviceId) ?: throw CertificateException("No certificate stored for device $deviceId")
-    }
-
-    suspend fun isCertificateStored(deviceId: String): Boolean {
-        return deviceDao.getCertificate(deviceId) != null
-    }
-
-    suspend fun getBooleanSetting(deviceId: String, key: String, defaultValue: Boolean): Boolean = withContext(Dispatchers.IO) {
-        val device = deviceDao.getDevice(deviceId) ?: return@withContext defaultValue
-        return@withContext device.settings[key] ?: defaultValue
-    }
-
-    suspend fun setBooleanSetting(deviceId: String, key: String, value: Boolean) = withContext(Dispatchers.IO) {
-        val device = deviceDao.getDevice(deviceId) ?: return@withContext
-        val updatedSettings = device.settings.toMutableMap().apply { put(key, value) }
-        deviceDao.upsert(device.copy(settings = updatedSettings))
-    }
-
     suspend fun getDeviceInfo(deviceId: String): DeviceInfo? {
         val info = deviceDao.getDevice(deviceId)
         return info
     }
-
-    fun getDeviceInfoFlow(deviceId: String): Flow<DeviceInfo?> = deviceDao.getDeviceFlow(deviceId)
 }
