@@ -34,6 +34,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.json.JSONArray
 import org.json.JSONObject
 import org.kde.kdeconnect.Device
@@ -51,6 +53,7 @@ import org.kde.kdeconnect_tp.R
 import java.io.ByteArrayOutputStream
 import java.security.MessageDigest
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 
 object NotificationsPluginInfo: PluginInfo(
     pluginKey = "NotificationsPlugin",
@@ -90,15 +93,15 @@ class NotificationsPlugin(
     override val pluginInfo: PluginInfo = NotificationsPluginInfo
     private val currentNotifications = mutableSetOf<String>()
     // Here we will map every notification to it's icon(hash)
-    private val notificationsIcons = mutableMapOf<String, String>()
+    private val notificationsIcons: ConcurrentHashMap<String, String> = ConcurrentHashMap()
     private val postedNotifications = mutableSetOf<String>()
-    private val pendingIntents = mutableMapOf<String, RepliableNotification>()
-    private val pendingActions = HashMap<String, MutableList<Notification.Action>>()
+    private val pendingIntents: ConcurrentHashMap<String, RepliableNotification> = ConcurrentHashMap()
+    private val pendingActions: ConcurrentHashMap<String, MutableList<Notification.Action>> = ConcurrentHashMap()
     private var serviceReady = false
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private lateinit var keyguardManager: KeyguardManager
     private lateinit var mainHandler: Handler
-    private val postedNotificationsLock = Any()
+    private val postedNotificationsLock: Mutex = Mutex()
 
     override fun onCreate(): Boolean {
         keyguardManager = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
@@ -120,12 +123,11 @@ class NotificationsPlugin(
         pendingActions.clear()
         scope.cancel()
 
-        synchronized(postedNotificationsLock) {
-            mainHandler.removeCallbacksAndMessages(null)
-            postedNotifications.clear()
-        }
-
         runBlocking {
+            postedNotificationsLock.withLock {
+                mainHandler.removeCallbacksAndMessages(null)
+                postedNotifications.clear()
+            }
             NotificationReceiver.runCommand(context) { service ->
                 service.removeListener(this@NotificationsPlugin)
             }
@@ -137,16 +139,16 @@ class NotificationsPlugin(
     }
 
     override fun onNotificationRemoved(statusBarNotification: StatusBarNotification) {
-        val id = getNotificationKeyCompat(statusBarNotification)
-
-        synchronized(postedNotificationsLock) {
-            postedNotifications.remove(id)
-            cancelDelayedNotification(id)
-        }
-
-        pendingActions.remove(id)
-
         scope.launch {
+            val id = getNotificationKeyCompat(statusBarNotification)
+
+            postedNotificationsLock.withLock {
+                postedNotifications.remove(id)
+                cancelDelayedNotification(id)
+            }
+
+            pendingActions.remove(id)
+
             if (!appDatabase.isBlacklisted(statusBarNotification.packageName)) {
                 currentNotifications.remove(id)
                 return@launch
@@ -162,12 +164,12 @@ class NotificationsPlugin(
     }
 
     override fun onNotificationPosted(statusBarNotification: StatusBarNotification) {
-        val key = getNotificationKeyCompat(statusBarNotification)
-        synchronized(postedNotificationsLock) {
-            postedNotifications.add(key)
-        }
-
         scope.launch {
+            val key = getNotificationKeyCompat(statusBarNotification)
+            postedNotificationsLock.withLock {
+                postedNotifications.add(key)
+            }
+
             val sendOnlyIfLocked = dataStore.screenOffNotification.first()
             val isLocked = keyguardManager.isKeyguardLocked
             if (!sendOnlyIfLocked || isLocked) {

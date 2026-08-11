@@ -6,7 +6,6 @@
  */
 package org.kde.kdeconnect.backends.bluetooth
 
-import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothServerSocket
@@ -21,22 +20,23 @@ import android.util.Log
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.io.IOUtils
-import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.DeviceInfo.Companion.fromIdentityPacketAndCert
-import org.kde.kdeconnect.datastore.SettingsDataStore
-import org.kde.kdeconnect.helpers.DeviceHelper
-import org.kde.kdeconnect.helpers.security.SslHelper
-import org.kde.kdeconnect.helpers.ThreadHelper.execute
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.backends.BaseLinkProvider
+import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.extensions.getParcelableArrayCompat
 import org.kde.kdeconnect.extensions.getParcelableCompat
+import org.kde.kdeconnect.helpers.DeviceHelper
+import org.kde.kdeconnect.helpers.ThreadHelper.execute
+import org.kde.kdeconnect.helpers.security.SslHelper
 import java.io.IOException
 import java.io.InputStreamReader
 import java.io.Reader
 import java.security.cert.CertificateException
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.encoding.Base64
 import kotlin.text.Charsets.UTF_8
 
@@ -46,8 +46,8 @@ class BluetoothLinkProvider(
     private val deviceHelper: DeviceHelper,
     private val sslHelper: SslHelper
 ) : BaseLinkProvider() {
-    private val visibleDevices: MutableMap<String, BluetoothLink> = HashMap()
-    private val sockets: MutableMap<BluetoothDevice?, BluetoothSocket> = HashMap()
+    private val visibleDevices: ConcurrentHashMap<String, BluetoothLink> = ConcurrentHashMap()
+    private val sockets: ConcurrentHashMap<BluetoothDevice, BluetoothSocket> = ConcurrentHashMap()
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
     private var serverRunnable: ServerRunnable? = null
     private var clientRunnable: ClientRunnable? = null
@@ -61,7 +61,7 @@ class BluetoothLinkProvider(
             Log.e("BluetoothLinkProvider", "oldLink == link. This should not happen!")
             return
         }
-        synchronized(visibleDevices) { visibleDevices.put(deviceId, link) }
+        visibleDevices[deviceId] = link
         onConnectionReceived(link)
         link.startListening()
         link.packetReceived(identityPacket)
@@ -116,8 +116,8 @@ class BluetoothLinkProvider(
 
     suspend fun disconnectedLink(link: BluetoothLink, remoteAddress: BluetoothDevice?) {
         Log.i("BluetoothLinkProvider", "disconnectedLink called")
-        synchronized(sockets) { sockets.remove(remoteAddress) }
-        synchronized(visibleDevices) { visibleDevices.remove(link.deviceId) }
+        sockets.remove(remoteAddress)
+        visibleDevices.remove(link.deviceId)
         onConnectionLost(link)
     }
 
@@ -162,14 +162,12 @@ class BluetoothLinkProvider(
 
         @Throws(Exception::class)
         private suspend fun connect(socket: BluetoothSocket) {
-            synchronized(sockets) {
-                if (sockets.containsKey(socket.remoteDevice)) {
-                    Log.i("BTLinkProvider/Server", "Received duplicate connection from " + socket.remoteDevice.address)
-                    socket.close()
-                    return
-                } else {
-                    sockets.put(socket.remoteDevice, socket)
-                }
+            if (sockets.containsKey(socket.remoteDevice)) {
+                Log.i("BTLinkProvider/Server", "Received duplicate connection from " + socket.remoteDevice.address)
+                socket.close()
+                return
+            } else {
+                sockets[socket.remoteDevice] = socket
             }
             Log.i("BTLinkProvider/Server", "Received connection from " + socket.remoteDevice.address)
 
@@ -177,7 +175,7 @@ class BluetoothLinkProvider(
             try {
                 Thread.sleep(500)
             } catch (e: Exception) {
-                synchronized(sockets) { sockets.remove(socket.remoteDevice) }
+                sockets.remove(socket.remoteDevice)
                 throw e
             }
             try {
@@ -228,10 +226,8 @@ class BluetoothLinkProvider(
                     Log.i("BTLinkProvider/Server", "Link Added")
                 }
             } catch (e: Exception) {
-                synchronized(sockets) {
-                    sockets.remove(socket.remoteDevice)
-                    Log.i("BTLinkProvider/Server", "Exception thrown, removing socket", e)
-                }
+                sockets.remove(socket.remoteDevice)
+                Log.i("BTLinkProvider/Server", "Exception thrown, removing socket", e)
                 throw e
             }
         }
@@ -354,7 +350,7 @@ class BluetoothLinkProvider(
                 socket = device!!.createRfcommSocketToServiceRecord(SERVICE_UUID)
                 Log.i("BTLinkProvider/Client", "Connecting to ServiceRecord Socket")
                 socket.connect()
-                synchronized(sockets) { sockets.put(device, socket) }
+                sockets[device] = socket
             } catch (e: IOException) {
                 Log.e("BTLinkProvider/Client", "Could not connect to KDE Connect service on " + device!!.address, e)
                 return
@@ -431,7 +427,7 @@ class BluetoothLinkProvider(
                 })
             } catch (e: Exception) {
                 Log.e("BTLinkProvider/Client", "Connection lost/disconnected on " + device.address, e)
-                synchronized(sockets) { sockets.remove(device, socket) }
+                sockets.remove(device, socket)
             }
         }
     }

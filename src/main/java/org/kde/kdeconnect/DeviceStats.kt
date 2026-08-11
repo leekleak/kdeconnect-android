@@ -7,7 +7,11 @@ package org.kde.kdeconnect
 
 import android.util.Log
 import androidx.annotation.VisibleForTesting
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.concurrent.atomics.AtomicLong
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
+@OptIn(ExperimentalAtomicApi::class)
 object DeviceStats {
     /**
      * Keep 24 hours of events
@@ -19,53 +23,45 @@ object DeviceStats {
      */
     private const val CLEANUP_INTERVAL_MILLIS = EVENT_KEEP_WINDOW_MILLIS / 4
 
-    private val eventsByDevice: MutableMap<String, PacketStats> = HashMap<String, PacketStats>()
-    private var nextCleanup = System.currentTimeMillis() + CLEANUP_INTERVAL_MILLIS
+    private val eventsByDevice: ConcurrentHashMap<String, PacketStats> = ConcurrentHashMap<String, PacketStats>()
+    private var nextCleanup = AtomicLong(System.currentTimeMillis() + CLEANUP_INTERVAL_MILLIS)
 
     fun countReceived(deviceId: String, packetType: String) {
-        synchronized(DeviceStats::class.java) {
+        eventsByDevice
+            .computeIfAbsent(deviceId) { PacketStats() }
+            .receivedByType
+            .computeIfAbsent(packetType) { ArrayList() }
+            .add(System.currentTimeMillis())
+        cleanupIfNeeded()
+    }
+
+    fun countSent(deviceId: String, packetType: String, success: Boolean) {
+        if (success) {
             eventsByDevice
                 .computeIfAbsent(deviceId) { PacketStats() }
-                .receivedByType
+                .sentSuccessfulByType
+                .computeIfAbsent(packetType) { ArrayList() }
+                .add(System.currentTimeMillis())
+        } else {
+            eventsByDevice
+                .computeIfAbsent(deviceId) { PacketStats() }
+                .sentFailedByType
                 .computeIfAbsent(packetType) { ArrayList() }
                 .add(System.currentTimeMillis())
         }
         cleanupIfNeeded()
     }
 
-    fun countSent(deviceId: String, packetType: String, success: Boolean) {
-        if (success) {
-            synchronized(DeviceStats::class.java) {
-                eventsByDevice
-                    .computeIfAbsent(deviceId) { PacketStats() }
-                    .sentSuccessfulByType
-                    .computeIfAbsent(packetType) { ArrayList() }
-                    .add(System.currentTimeMillis())
-            }
-        } else {
-            synchronized(DeviceStats::class.java) {
-                eventsByDevice
-                    .computeIfAbsent(deviceId) { PacketStats() }
-                    .sentFailedByType
-                    .computeIfAbsent(packetType) { ArrayList() }
-                    .add(System.currentTimeMillis())
-            }
-        }
-        cleanupIfNeeded()
-    }
-
     private fun cleanupIfNeeded() {
         val cutoutTimestamp = System.currentTimeMillis() - EVENT_KEEP_WINDOW_MILLIS
-        if (System.currentTimeMillis() > nextCleanup) {
-            synchronized(DeviceStats::class.java) {
-                Log.i("PacketStats", "Doing periodic cleanup")
-                for (de in eventsByDevice.values) {
-                    removeOldEvents(de.receivedByType, cutoutTimestamp)
-                    removeOldEvents(de.sentFailedByType, cutoutTimestamp)
-                    removeOldEvents(de.sentSuccessfulByType, cutoutTimestamp)
-                }
-                nextCleanup = System.currentTimeMillis() + CLEANUP_INTERVAL_MILLIS
+        if (System.currentTimeMillis() > nextCleanup.load()) {
+            Log.i("PacketStats", "Doing periodic cleanup")
+            for (de in eventsByDevice.values) {
+                removeOldEvents(de.receivedByType, cutoutTimestamp)
+                removeOldEvents(de.sentFailedByType, cutoutTimestamp)
+                removeOldEvents(de.sentSuccessfulByType, cutoutTimestamp)
             }
+            nextCleanup.store(System.currentTimeMillis() + CLEANUP_INTERVAL_MILLIS)
         }
     }
 

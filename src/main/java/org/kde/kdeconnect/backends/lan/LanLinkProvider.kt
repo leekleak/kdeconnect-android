@@ -64,7 +64,7 @@ class LanLinkProvider(
     private val sslHelper: SslHelper
 ) : BaseLinkProvider() {
 
-    val visibleDevices: HashMap<String?, LanLink?> = HashMap() // Links by device id
+    val visibleDevices: ConcurrentHashMap<String, LanLink> = ConcurrentHashMap() // Links by device id
 
     val lastConnectionTimeByDeviceId: ConcurrentHashMap<String, Long> =
         ConcurrentHashMap<String, Long>()

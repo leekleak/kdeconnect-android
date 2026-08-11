@@ -102,8 +102,8 @@ class DeviceManager(
                 device.removeLink(link)
                 if (!device.isReachable) {
                     _devices.update { it.minus(device.deviceId) }
+                    device.close()
                 }
-                device.close()
             } else {
                 Log.d("DeviceManager/onConnectionLost", "Removing connection to unknown device")
             }
