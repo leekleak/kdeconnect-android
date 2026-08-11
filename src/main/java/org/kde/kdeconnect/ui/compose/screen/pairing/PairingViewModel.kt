@@ -20,19 +20,20 @@ import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 
 class PairingViewModel(
     backgroundServiceData: BackgroundServiceData,
+    trustedNetworkHelper: TrustedNetworkHelper,
     private val deviceManager: DeviceManager,
-    private val trustedNetworkHelper: TrustedNetworkHelper,
 ) : ViewModel() {
     private val refreshing = MutableStateFlow(false)
 
     val uiState = combine(
         backgroundServiceData.isConnectedToNonCellularNetwork,
         deviceManager.allDeviceStatesMap.map { it.values },
+        trustedNetworkHelper.isTrustedNetwork,
         refreshing
-    ) { isConnectedToNonCellularNetwork, devices, refreshing ->
+    ) { isConnectedToNonCellularNetwork, devices, trustedNetwork, refreshing ->
         PairingUiState(
             wifiAvailable = isConnectedToNonCellularNetwork,
-            trustedNetwork = trustedNetworkHelper.getIsTrustedNetwork(),
+            trustedNetwork = trustedNetwork,
             available = devices.filter { it.isReachable && it.pairState != PairState.Paired },
             refreshing = refreshing
         )

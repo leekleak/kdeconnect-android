@@ -66,7 +66,7 @@ object DeviceStats {
     }
 
     @VisibleForTesting
-    fun removeOldEvents(eventsByType: HashMap<String, ArrayList<Long>>, cutoutTimestamp: Long) {
+    fun removeOldEvents(eventsByType: ConcurrentHashMap<String, ArrayList<Long>>, cutoutTimestamp: Long) {
         val iterator = eventsByType.entries.iterator()
         while (iterator.hasNext()) {
             val entry = iterator.next()
@@ -87,9 +87,9 @@ object DeviceStats {
 
     internal class PacketStats {
         val createdAtMillis: Long = System.currentTimeMillis()
-        val receivedByType: HashMap<String, ArrayList<Long>> = HashMap()
-        val sentSuccessfulByType: HashMap<String, ArrayList<Long>> = HashMap()
-        val sentFailedByType: HashMap<String, ArrayList<Long>> = HashMap()
+        val receivedByType: ConcurrentHashMap<String, ArrayList<Long>> = ConcurrentHashMap()
+        val sentSuccessfulByType: ConcurrentHashMap<String, ArrayList<Long>> = ConcurrentHashMap()
+        val sentFailedByType: ConcurrentHashMap<String, ArrayList<Long>> = ConcurrentHashMap()
 
         internal data class Summary(
             val packetType: String,

@@ -27,11 +27,12 @@ class HomeViewModel(
     val uiState = combine(
         backgroundServiceData.isConnectedToNonCellularNetwork,
         deviceManager.allDeviceStatesMap.map { it.values },
+        trustedNetworkHelper.isTrustedNetwork,
         refreshing
-    ) { isConnectedToNonCellularNetwork, devices, refreshing ->
+    ) { isConnectedToNonCellularNetwork, devices, trustedNetwork,  refreshing ->
         HomeUiState(
             wifiAvailable = isConnectedToNonCellularNetwork,
-            trustedNetwork = trustedNetworkHelper.getIsTrustedNetwork(),
+            trustedNetwork = trustedNetwork,
             connected = devices.filter { it.isReachable && it.pairState == PairState.Paired },
             availableCount = devices.count { it.isReachable && it.pairState != PairState.Paired },
             refreshing = refreshing

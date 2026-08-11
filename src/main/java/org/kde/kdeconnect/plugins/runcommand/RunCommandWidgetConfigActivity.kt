@@ -24,6 +24,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -54,9 +55,13 @@ class RunCommandWidgetConfigActivity : AppCompatActivity() {
         initialValue = emptyList()
     )
 
-    private val wifiToTrusted: StateFlow<Pair<Boolean, Boolean>> = backgroundServiceData.isConnectedToNonCellularNetwork.map {
-        it to trustedNetworkHelper.getIsTrustedNetwork()
-    }.stateIn(
+    private val wifiToTrusted: StateFlow<Pair<Boolean, Boolean>> =
+        combine(
+            backgroundServiceData.isConnectedToNonCellularNetwork,
+            trustedNetworkHelper.isTrustedNetwork
+        ) { nonCellular, trusted ->
+            nonCellular to trusted
+        }.stateIn(
         scope = lifecycleScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = true to true

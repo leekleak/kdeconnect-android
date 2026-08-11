@@ -32,15 +32,16 @@ class ConnectionsSettingsViewModel(
         connectionsDataStore.trustedNetworks,
         connectionsDataStore.allNetworksAllowed,
         connectionsDataStore.customDeviceList,
+        trustedNetworkHelper.currentSSIDFlow,
         _updateTrigger
-    ) { trustedNetworks, allNetworksAllowed, customDeviceListRaw, _ ->
+    ) { trustedNetworks, allNetworksAllowed, customDeviceListRaw, currentSSID, _ ->
         val customDevices = customDevicesHelper.deserializeIpList(customDeviceListRaw)
         customDevices.sortBy { it.toString() }
 
         ConnectionsSettingsUiState(
             trustedNetworks = trustedNetworks,
             allNetworksAllowed = allNetworksAllowed,
-            currentSSID = trustedNetworkHelper.currentSSID,
+            currentSSID = currentSSID,
             hasLocationPermission = trustedNetworkHelper.hasPermissions,
             customDevices = customDevices
         )
