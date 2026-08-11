@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
@@ -42,6 +43,7 @@ class ClipboardPluginTest {
             every { deviceId } returns "some_id"
             coEvery { sendPacket(any()) } answers {
                 packet = arg<NetworkPacket>(0)
+                true
             }
         }
 
@@ -119,6 +121,7 @@ class ClipboardPluginTest {
 
         Assert.assertTrue(clipboardPlugin.onCreate())
 
+        coVerify(timeout = 1000) { device.sendPacket(any()) }
         val sentPacket = checkNotNull(packet)
         Assert.assertEquals("kdeconnect.clipboard.connect", sentPacket.type)
         Assert.assertEquals(0, sentPacket.getLong("timestamp"))

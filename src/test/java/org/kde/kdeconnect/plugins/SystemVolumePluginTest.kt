@@ -35,6 +35,7 @@ class SystemVolumePluginTest {
             coEvery { sendPacket(any()) } answers {
                 val sentPacket = arg<NetworkPacket>(0)
                 packet = sentPacket
+                true
             }
         }
         systemVolumePlugin = SystemVolumePlugin(context, device)

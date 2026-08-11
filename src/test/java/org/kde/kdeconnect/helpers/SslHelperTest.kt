@@ -9,9 +9,7 @@ import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkStatic
 import io.mockk.unmockkAll
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -21,15 +19,14 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.DeviceType
-import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.datastore.SettingsDataStore
-import java.security.cert.X509Certificate
+import org.kde.kdeconnect.helpers.security.SslHelper
 import java.security.cert.Certificate
-import java.util.Base64
+import java.security.cert.X509Certificate
+import kotlin.io.encoding.Base64
 
 @RunWith(AndroidJUnit4::class)
 class SSLHelperTest {
-    private val context: Context = mockk(relaxed = true)
     private lateinit var deviceSettings: DeviceSettings
     private lateinit var db: DevicesRoomDatabase
     private val settingsDataStore: SettingsDataStore = mockk(relaxed = true)
@@ -54,17 +51,9 @@ class SSLHelperTest {
         db = Room.inMemoryDatabaseBuilder(realContext, DevicesRoomDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-        sslHelper = SslHelper(settingsDataStore)
-        deviceSettings = DeviceSettings(db.deviceDao(), sslHelper)
 
-        // implement android.util.Base64 using java.util.Base64
-        mockkStatic(android.util.Base64::class)
-        every { android.util.Base64.encodeToString(any<ByteArray>(), any()) } answers {
-            Base64.getMimeEncoder().encodeToString(firstArg())
-        }
-        every { android.util.Base64.decode(any<String>(), any()) } answers {
-            Base64.getMimeDecoder().decode(firstArg<String>())
-        }
+        deviceSettings = DeviceSettings(db.deviceDao())
+        sslHelper = SslHelper(settingsDataStore, deviceSettings)
     }
 
     @After
@@ -74,53 +63,55 @@ class SSLHelperTest {
 
     @Test
     fun testCertificateStored() {
+        val cert = Base64.Mime.decode(certificateBase64)
         runBlocking {
             deviceSettings.addTrustedDevice(
-                DeviceInfo(deviceId, Base64.getMimeDecoder().decode(certificateBase64), "name", DeviceType.PHONE, 0)
+                DeviceInfo(deviceId, cert, "name", DeviceType.PHONE, 0)
             )
         }
-        Assert.assertTrue(runBlocking { deviceSettings.isCertificateStored(deviceId) })
+        Assert.assertTrue(runBlocking { deviceSettings.getDeviceInfo(deviceId)?.certificate.contentEquals(cert) })
         runBlocking { deviceSettings.removeTrustedDevice(deviceId) }
-        Assert.assertFalse(runBlocking { deviceSettings.isCertificateStored(deviceId) })
+        Assert.assertFalse(runBlocking { deviceSettings.getDeviceInfo(deviceId)?.certificate.contentEquals(cert) })
     }
 
     @Test
     fun getAnyCertificate() {
-        Assert.assertThrows(Exception::class.java) { runBlocking { deviceSettings.getDeviceCertificate(deviceId) } }
+        Assert.assertNull( runBlocking { deviceSettings.getDeviceInfo(deviceId)?.certificate } )
         runBlocking {
             deviceSettings.addTrustedDevice(
-                DeviceInfo(deviceId, Base64.getMimeDecoder().decode(certificateBase64), "name", DeviceType.PHONE, 0)
+                DeviceInfo(deviceId, Base64.Mime.decode(certificateBase64), "name", DeviceType.PHONE, 0)
             )
         }
-        Assert.assertNotNull(runBlocking { deviceSettings.getDeviceCertificate(deviceId) })
+        Assert.assertNotNull(runBlocking { deviceSettings.getDeviceInfo(deviceId)?.certificate })
     }
 
     @Test
     fun getExpectedCertificate() {
         runBlocking {
             deviceSettings.addTrustedDevice(
-                DeviceInfo(deviceId, Base64.getMimeDecoder().decode(certificateBase64), "name", DeviceType.PHONE, 0)
+                DeviceInfo(deviceId, Base64.Mime.decode(certificateBase64), "name", DeviceType.PHONE, 0)
             )
         }
-        val cert: Certificate = runBlocking { deviceSettings.getDeviceCertificate(deviceId) }
-        Assert.assertEquals(certificateBase64, Base64.getMimeEncoder().encodeToString(cert.encoded))
+        val cert: ByteArray = runBlocking { deviceSettings.getDeviceInfo(deviceId)!!.certificate }
+        Assert.assertEquals(certificateBase64, Base64.Mime.encode(cert))
     }
 
     @Test
     fun getCertificateHash() {
         runBlocking {
             deviceSettings.addTrustedDevice(
-                DeviceInfo(deviceId, Base64.getMimeDecoder().decode(certificateBase64), "name", DeviceType.PHONE, 0)
+                DeviceInfo(deviceId, Base64.Mime.decode(certificateBase64), "name", DeviceType.PHONE, 0)
             )
         }
-        val cert: Certificate = runBlocking { deviceSettings.getDeviceCertificate(deviceId) }
-        val hash = sslHelper.getCertificateHash(cert)
+        val certificateBytes: ByteArray? = runBlocking { deviceSettings.getDeviceInfo(deviceId)?.certificate }
+        val certificate = sslHelper.parseCertificate(certificateBytes!!)
+        val hash = sslHelper.getCertificateHash(certificate)
         Assert.assertEquals(certificateHash, hash)
     }
 
     @Test
     fun parseCertificate() {
-        val bytes = Base64.getMimeDecoder().decode(certificateBase64)
+        val bytes = Base64.Mime.decode(certificateBase64)
         val cert = sslHelper.parseCertificate(bytes)
         val hash = sslHelper.getCertificateHash(cert)
         Assert.assertEquals(certificateHash, hash)
@@ -130,10 +121,10 @@ class SSLHelperTest {
     fun getCommonName() {
         runBlocking {
             deviceSettings.addTrustedDevice(
-                DeviceInfo(deviceId, Base64.getMimeDecoder().decode(certificateBase64), "name", DeviceType.PHONE, 0)
+                DeviceInfo(deviceId, Base64.Mime.decode(certificateBase64), "name", DeviceType.PHONE, 0)
             )
         }
-        val cert = runBlocking { deviceSettings.getDeviceCertificate(deviceId) }
+        val cert: Certificate = runBlocking { sslHelper.parseCertificate(deviceSettings.getDeviceInfo(deviceId)?.certificate!!) }
         val commonName = sslHelper.getCommonNameFromCertificate(cert as X509Certificate)
         Assert.assertEquals("ee061a75_e403_4ecc_9261_5ffe2722f698", commonName)
     }

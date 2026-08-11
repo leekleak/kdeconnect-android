@@ -8,10 +8,10 @@ package org.kde.kdeconnect
 import org.junit.Assert
 import org.junit.Test
 import org.kde.kdeconnect.helpers.security.SslHelper
-import java.util.Base64
+import kotlin.io.encoding.Base64
 
 class PairingHandlerTest {
-    private val certA = SslHelper.parseCertificate(Base64.getMimeDecoder().decode(
+    private val certA = SslHelper.parseCertificate(Base64.Mime.decode(
         "MIIBkzCCATmgAwIBAgIBATAKBggqhkjOPQQDBDBTMS0wKwYDVQQDDCRlZTA2MWE3NV9lNDAzXzRlY2NfOTI2" +
             "MV81ZmZlMjcyMmY2OTgxFDASBgNVBAsMC0tERSBDb25uZWN0MQwwCgYDVQQKDANLREUwHhcNMjMwOTE1MjIw" +
             "MDAwWhcNMzQwOTE1MjIwMDAwWjBTMS0wKwYDVQQDDCRlZTA2MWE3NV9lNDAzXzRlY2NfOTI2MV81ZmZlMjcy" +
@@ -20,7 +20,7 @@ class PairingHandlerTest {
             "jidE+XrnMAoGCCqGSM49BAMEA0gAMEUCIEpk6VNpbt3tfbWDf0TmoJftRq3wAs3Dke7d5vMZlivyAiEA/ZXt" +
             "SRqPjs/2RN9SynKhSUA9/z0PNq6LYoAaC6TdomM="
     ))
-    private val certB = SslHelper.parseCertificate(Base64.getMimeDecoder().decode(
+    private val certB = SslHelper.parseCertificate(Base64.Mime.decode(
         "MIIBkzCCATmgAwIBAgIBATAKBggqhkjOPQQDBDBTMS0wKwYDVQQDDCQxNTdiYmMyOF82ZjJiXzRiMTZfYmQw" +
             "Ml8xMzM0NWMwMjU0M2MxFDASBgNVBAsMC0tERSBDb25uZWN0MQwwCgYDVQQKDANLREUwHhcNMjQwMTE3MjMw" +
             "MDAwWhcNMzUwMTE3MjMwMDAwWjBTMS0wKwYDVQQDDCQxNTdiYmMyOF82ZjJiXzRiMTZfYmQwMl8xMzM0NWMw" +

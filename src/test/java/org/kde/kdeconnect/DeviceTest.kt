@@ -18,6 +18,7 @@ import io.mockk.mockkStatic
 import io.mockk.unmockkAll
 import io.mockk.unmockkObject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert
@@ -41,6 +42,8 @@ import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 import java.security.cert.CertificateException
+import kotlin.io.encoding.Base64
+import kotlin.time.Duration.Companion.milliseconds
 
 @RunWith(AndroidJUnit4::class)
 class DeviceTest {
@@ -57,8 +60,8 @@ class DeviceTest {
         db = Room.inMemoryDatabaseBuilder(realContext, DevicesRoomDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-        sslHelper = SslHelper(settingsDataStore)
-        deviceSettings = DeviceSettings(db.deviceDao(), sslHelper)
+        deviceSettings = DeviceSettings(db.deviceDao())
+        sslHelper = SslHelper(settingsDataStore, deviceSettings)
         val deviceId = "testDevice"
         val name = "Test Device"
         val encodedCertificate = """
@@ -80,7 +83,7 @@ class DeviceTest {
             7n+KOQ==
             """.trimIndent()
 
-        val certificateBytes = java.util.Base64.getMimeDecoder().decode(encodedCertificate)
+        val certificateBytes = Base64.Mime.decode(encodedCertificate)
         runBlocking {
             deviceSettings.addTrustedDevice(
                 DeviceInfo(
@@ -244,7 +247,7 @@ class DeviceTest {
             yygGiJbDZfAvN2XoaVEBii2GDDCWfaFwPVPYlNTvjkUkMP8YThlMsiJ8Q4693XoLOL94GpNlCfUg
             7n+KOQ==
             """.trimIndent()
-        val certificateBytes = android.util.Base64.decode(certificateString, 0)
+        val certificateBytes = Base64.Mime.decode(certificateString)
         val certificate = SslHelper.parseCertificate(certificateBytes)
         val deviceInfo = fromIdentityPacketAndCert(fakeNetworkPacket, certificate)
 
@@ -284,8 +287,14 @@ class DeviceTest {
 
         device.unpair()
 
-        Assert.assertEquals(PairingHandler.PairState.NotPaired, device.pairingHandler.state.value)
+        Assert.assertEquals(PairState.NotPaired, device.state.value.pairState)
 
-        Assert.assertFalse(deviceSettings.isTrustedDevice(device.deviceId))
+        var isTrusted = true
+        repeat(10) {
+            isTrusted = deviceSettings.isTrustedDevice(device.deviceId)
+            if (!isTrusted) return@repeat
+            delay(100.milliseconds)
+        }
+        Assert.assertFalse("Device should be removed from trusted list", isTrusted)
     }
 }

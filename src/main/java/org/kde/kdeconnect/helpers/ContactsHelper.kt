@@ -10,13 +10,11 @@ import android.content.Context
 import android.net.Uri
 import android.provider.ContactsContract
 import android.provider.ContactsContract.PhoneLookup
-import android.util.Base64
-import android.util.Base64OutputStream
 import android.util.Log
-import org.apache.commons.io.IOUtils
-import java.io.ByteArrayOutputStream
-import kotlin.text.Charsets.UTF_8
 import androidx.core.net.toUri
+import org.apache.commons.io.IOUtils
+import kotlin.io.encoding.Base64
+import kotlin.text.Charsets.UTF_8
 
 object ContactsHelper {
     const val LOG_TAG: String = "ContactsHelper"
@@ -57,17 +55,13 @@ object ContactsHelper {
     fun photoId64Encoded(context: Context, photoId: String): String {
         val photoUri = photoId.toUri()
 
-        val encodedPhoto = ByteArrayOutputStream()
-        try {
+        return try {
             context.contentResolver.openInputStream(photoUri).use { input ->
-                Base64OutputStream(encodedPhoto, Base64.DEFAULT).use { output ->
-                    IOUtils.copy(input, output, 1024)
-                    return encodedPhoto.toString()
-                }
+                input?.readBytes()?.let { Base64.encode(it) } ?: ""
             }
         } catch (ex: Exception) {
             Log.e(LOG_TAG, ex.toString())
-            return ""
+            ""
         }
     }
 

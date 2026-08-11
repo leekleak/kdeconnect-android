@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -37,6 +38,7 @@ class RunCommandPluginTest {
             coEvery { sendPacket(any()) } answers {
                 val sentPacket = arg<NetworkPacket>(0)
                 packet = sentPacket
+                true
             }
         }
         settingsDataStore = mockk(relaxed = true)
@@ -64,6 +66,7 @@ class RunCommandPluginTest {
     fun testRequestCommandList() = runBlocking {
         runCommandPlugin.onCreate() // Simulate plugin creation that requests command list
 
+        coVerify(timeout = 1000) { device.sendPacket(any()) }
         val sentPacket = checkNotNull(packet)
         assertEquals("kdeconnect.runcommand.request", sentPacket.type)
         assertTrue(sentPacket.has("requestCommandList"))

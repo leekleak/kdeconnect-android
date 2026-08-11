@@ -37,6 +37,7 @@ class BatteryPluginTest {
             val packetSlot = slot<NetworkPacket>()
             coEvery { sendPacket(capture(packetSlot)) } answers {
                 packet = packetSlot.captured
+                true
             }
         }
         batteryPlugin = BatteryPlugin(context, device)

@@ -17,7 +17,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.Network
 import android.os.Parcelable
-import android.util.Base64
 import android.util.Log
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -38,6 +37,7 @@ import java.io.InputStreamReader
 import java.io.Reader
 import java.security.cert.CertificateException
 import java.util.UUID
+import kotlin.io.encoding.Base64
 import kotlin.text.Charsets.UTF_8
 
 class BluetoothLinkProvider(
@@ -187,7 +187,7 @@ class BluetoothLinkProvider(
 
                     val myDeviceInfo = deviceHelper.getDeviceInfo()
                     val np = myDeviceInfo.toIdentityPacket()
-                    val myCertificate = Base64.encodeToString(sslHelper.certificate.encoded, 0)
+                    val myCertificate = Base64.encode(sslHelper.certificate.encoded, 0)
                     val pemEncodedCertificate = "-----BEGIN CERTIFICATE-----\n$myCertificate\n-----END CERTIFICATE-----\n"
 
                     np["certificate"] = pemEncodedCertificate
@@ -411,7 +411,7 @@ class BluetoothLinkProvider(
 
                 val myDeviceInfo = deviceHelper.getDeviceInfo()
                 val np2 = myDeviceInfo.toIdentityPacket()
-                val myCertificate = Base64.encodeToString(sslHelper.certificate.encoded, 0)
+                val myCertificate = Base64.encode(sslHelper.certificate.encoded, 0)
                 val pemEncodedCertificate = "-----BEGIN CERTIFICATE-----\n$myCertificate\n-----END CERTIFICATE-----\n"
 
                 np2["certificate"] = pemEncodedCertificate

@@ -7,7 +7,6 @@ package org.kde.kdeconnect.helpers.security
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.util.Base64
 import android.util.Log
 import kotlinx.coroutines.flow.first
 import org.bouncycastle.asn1.x500.X500Name
@@ -17,9 +16,7 @@ import org.bouncycastle.asn1.x500.style.IETFUtils
 import org.bouncycastle.cert.X509v3CertificateBuilder
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
-import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceInfo
-import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.RandomHelper
@@ -46,6 +43,7 @@ import javax.net.ssl.SSLSocket
 import javax.net.ssl.TrustManager
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
+import kotlin.io.encoding.Base64
 
 class SslHelper(
     private val settingsDataStore: SettingsDataStore,
@@ -127,7 +125,7 @@ class SslHelper(
             val certificateBytes = certificateBuilder.build(contentSigner).encoded
             certificate = parseCertificate(certificateBytes)
 
-            settingsDataStore.setCertificate(Base64.encodeToString(certificateBytes, 0))
+            settingsDataStore.setCertificate(Base64.encode(certificateBytes, 0))
 
             setLocale(initialLocale, context)
         }

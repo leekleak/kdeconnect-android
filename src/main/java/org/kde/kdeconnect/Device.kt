@@ -70,7 +70,9 @@ class Device(
     private suspend fun updateState(transform: (DeviceState) -> DeviceState) = stateUpdateMutex.withLock {
         val newState = reloadPluginsFromSettings(transform(state.value))
         state.update { newState }
-        jobScope.launch { if (newState.deviceInfo.trusted) deviceSettings.addTrustedDevice(newState.deviceInfo) }
+        if (newState.pairState == PairState.Paired && newState.deviceInfo.trusted) {
+            jobScope.launch { deviceSettings.addTrustedDevice(newState.deviceInfo) }
+        }
     }
 
     val deviceId: String get() = state.value.deviceInfo.id
@@ -102,7 +104,6 @@ class Device(
             if (pairState != PairState.Requested && pairState != PairState.RequestedByPeer) {
                 null
             } else {
-                Log.e("Device timestampo", timestamp.toString())
                 getVerificationKey(sslHelper.certificate, certificate, timestamp)
             }
         } else {
@@ -180,8 +181,8 @@ class Device(
                             verificationKey = null,
                         )
                     }
+                    deviceSettings.removeTrustedDevice(deviceId)
                 }
-                jobScope.launch { deviceSettings.removeTrustedDevice(deviceId) }
             }
         }
     }
