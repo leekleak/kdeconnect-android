@@ -154,15 +154,6 @@ fun PresenterScreen(
                 onClick = { viewModel.sendEsc() }
             )
         }
-        if (volumeKeys) {
-            Text(
-                text = stringResource(if (offScreenControlsSupported) R.string.presenter_volume_keys_tip else R.string.presenter_volume_keys_foreground_tip),
-                modifier = Modifier
-                    .padding(bottom = 8.dp)
-                    .padding(horizontal = 16.dp),
-                style = MaterialTheme.typography.bodyLarge,
-            )
-        }
         Row(
             modifier = Modifier
                 .fillMaxSize()
