@@ -1,13 +1,14 @@
 package org.kde.kdeconnect.plugins.mousepad
 
 import android.app.Activity
-import android.view.HapticFeedbackConstants
+import android.content.res.Resources
 import android.view.ViewConfiguration
 import android.view.WindowManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -39,6 +40,7 @@ import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,18 +48,22 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.KdeButton
 import org.kde.kdeconnect.ui.compose.components.SearchBar
@@ -69,6 +75,7 @@ import org.kde.kdeconnect_tp.R
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun MousePadScreen(
@@ -234,13 +241,15 @@ fun TouchPad(
     modifier: Modifier = Modifier,
     viewModel: MousePadViewModel
 ) {
-    val view = LocalView.current
     val density = LocalDensity.current.density
-    val xdpi = android.content.res.Resources.getSystem().displayMetrics.xdpi
+    val xdpi = Resources.getSystem().displayMetrics.xdpi
     val displayDpiMultiplier = 240.0f / xdpi
+    val haptic = LocalHapticFeedback.current
+    val scope = rememberCoroutineScope()
 
     val minDistanceToSendScroll = 2.5f * density
     val tapTimeout = ViewConfiguration.getTapTimeout().toLong()
+    val doubleClickTimeout = ViewConfiguration.getDoubleTapTimeout().milliseconds
 
     var lastX by remember { mutableFloatStateOf(0f) }
     var lastY by remember { mutableFloatStateOf(0f) }
@@ -269,10 +278,8 @@ fun TouchPad(
                         if (event.type == PointerEventType.Move) {
                             if (pointerCount == 1) {
                                 if (!isScrolling) {
-                                    val dx =
-                                        (change.position.x - lastX) * displayDpiMultiplier * viewModel.currentSensitivity
-                                    val dy =
-                                        (change.position.y - lastY) * displayDpiMultiplier * viewModel.currentSensitivity
+                                    val dx = (change.position.x - lastX) * displayDpiMultiplier * viewModel.currentSensitivity
+                                    val dy = (change.position.y - lastY) * displayDpiMultiplier * viewModel.currentSensitivity
 
                                     viewModel.accelerationProfile?.let { profile ->
                                         profile.touchMoved(dx, dy, event.calculateTime())
@@ -307,32 +314,68 @@ fun TouchPad(
                 }
             }
             .pointerInput(Unit) {
+                var singleCLickQueued = false
                 awaitEachGesture {
                     val down = awaitFirstDown()
                     val startTime = down.uptimeMillis
                     var maxPointers = 1
+                    if (singleCLickQueued) {
+                        singleCLickQueued = false
+                        if (viewModel.doubleTapDragEnabled) {
+                            if (!viewModel.isDragging) {
+                                viewModel.sendSingleHold()
+                                scope.launch {
+                                    delay(100.milliseconds) // Haptics feel /too/ fast otherwise lol
+                                    haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                                }
+                            }
+                        } else {
+                            viewModel.sendDoubleClick()
+                        }
+                        return@awaitEachGesture
+                    }
+
+                    val longPressJob = scope.launch {
+                        delay(ViewConfiguration.getLongPressTimeout().milliseconds)
+                        if (
+                            !viewModel.doubleTapDragEnabled &&
+                            !viewModel.isDragging &&
+                            maxPointers == 1
+                        ) {
+                            haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                            viewModel.sendSingleHold()
+                        }
+                    }
 
                     while (true) {
                         val event = awaitPointerEvent()
                         if (event.changes.size > maxPointers) maxPointers = event.changes.size
+                        if (event.calculatePan().getDistance() > 0.0001f) longPressJob.cancel()
 
                         if (event.type == PointerEventType.Release || event.changes.all { it.changedToUp() }) {
                             val duration = event.calculateTime() - startTime
-                            if (duration < tapTimeout + 100) {
+
+                            if (duration < tapTimeout) {
+                                longPressJob.cancel()
                                 when (maxPointers) {
-                                    1 -> viewModel.performClickAction(viewModel.singleTapAction)
+                                    1 -> {
+                                        assert(!singleCLickQueued)
+                                        singleCLickQueued = true
+                                        scope.launch {
+                                            delay(doubleClickTimeout)
+
+                                            if (singleCLickQueued) { // If the click hasn't been consumed as two, do simple action
+                                                singleCLickQueued = false
+                                                viewModel.performClickAction(viewModel.singleTapAction)
+                                            }
+                                        }
+
+                                    }
                                     2 -> viewModel.performClickAction(viewModel.doubleTapAction)
                                     3 -> viewModel.performClickAction(viewModel.tripleTapAction)
                                 }
                             }
                             break
-                        }
-
-                        if (!viewModel.doubleTapDragEnabled && maxPointers == 1 && event.calculateTime() - startTime > ViewConfiguration.getLongPressTimeout()) {
-                            if (!viewModel.isDragging) {
-                                view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                                viewModel.sendSingleHold()
-                            }
                         }
                     }
                 }
@@ -340,6 +383,6 @@ fun TouchPad(
     )
 }
 
-private fun androidx.compose.ui.input.pointer.PointerEvent.calculateTime(): Long {
+private fun PointerEvent.calculateTime(): Long {
     return changes.firstOrNull()?.uptimeMillis ?: 0L
 }
