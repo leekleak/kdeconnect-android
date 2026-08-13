@@ -9,9 +9,9 @@ package org.kde.kdeconnect
 import android.content.Context
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import androidx.room3.ColumnInfo
+import androidx.room3.Entity
+import androidx.room3.PrimaryKey
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect_tp.R

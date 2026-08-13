@@ -1,25 +1,19 @@
 package org.kde.kdeconnect.helpers
 
-import androidx.room.Dao
-import androidx.room.Database
-import androidx.room.Query
-import androidx.room.RoomDatabase
-import androidx.room.TypeConverter
-import androidx.room.TypeConverters
-import androidx.room.Upsert
-import kotlinx.coroutines.Dispatchers
+import androidx.room3.ColumnTypeConverter
+import androidx.room3.ColumnTypeConverters
+import androidx.room3.Dao
+import androidx.room3.Database
+import androidx.room3.Query
+import androidx.room3.RoomDatabase
+import androidx.room3.Upsert
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.DeviceType
-import org.kde.kdeconnect.helpers.security.SslHelper
-import org.kde.kdeconnect.plugins.PluginFactory
-import java.security.cert.Certificate
-import java.security.cert.CertificateException
 
 class MapTypeConverter {
-    @TypeConverter
+    @ColumnTypeConverter
     fun fromString(value: String): Map<String, Boolean> {
         return try {
             Json.decodeFromString(value)
@@ -28,14 +22,14 @@ class MapTypeConverter {
         }
     }
 
-    @TypeConverter
+    @ColumnTypeConverter
     fun fromMap(map: Map<String, Boolean>): String {
         return Json.encodeToString(map)
     }
 }
 
 class SetTypeConverter {
-    @TypeConverter
+    @ColumnTypeConverter
     fun fromString(value: String): Set<String> {
         return try {
             Json.decodeFromString(value)
@@ -44,19 +38,19 @@ class SetTypeConverter {
         }
     }
 
-    @TypeConverter
+    @ColumnTypeConverter
     fun fromSet(set: Set<String>): String {
         return Json.encodeToString(set)
     }
 }
 
 class DeviceTypeConverter {
-    @TypeConverter
+    @ColumnTypeConverter
     fun fromString(value: String): DeviceType {
         return DeviceType.fromString(value)
     }
 
-    @TypeConverter
+    @ColumnTypeConverter
     fun fromDeviceType(type: DeviceType): String {
         return type.toString()
     }
@@ -93,7 +87,7 @@ interface DeviceDao {
 }
 
 @Database(entities = [DeviceInfo::class], version = 1)
-@TypeConverters(MapTypeConverter::class, SetTypeConverter::class, DeviceTypeConverter::class)
+@ColumnTypeConverters(MapTypeConverter::class, SetTypeConverter::class, DeviceTypeConverter::class)
 abstract class DevicesRoomDatabase : RoomDatabase() {
     abstract fun deviceDao(): DeviceDao
 }

@@ -17,6 +17,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.koin)
+    alias(libs.plugins.androidx.room3)
 }
 
 val licenseResDir = "$projectDir/build/dependency-license-res"
@@ -163,9 +164,8 @@ dependencies {
 
     implementation(libs.bcpkix.jdk15on) //For SSL certificate generation
 
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.room3.runtime)
+    ksp(libs.androidx.room3.compiler)
 
     ksp(libs.classindexksp)
 
@@ -205,6 +205,10 @@ dependencies {
 licenseReport {
     configurations = LicenseReportExtension.ALL
     renderers = arrayOf<ReportRenderer>(TextReportRenderer())
+}
+
+room3 {
+    schemaDirectory("$projectDir/schemas")
 }
 
 tasks.named("generateLicenseReport") {

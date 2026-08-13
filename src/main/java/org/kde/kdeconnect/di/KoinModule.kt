@@ -16,7 +16,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.scene.DialogSceneStrategy
-import androidx.room.Room
+import androidx.room3.Room
 import coil3.ImageLoader
 import coil3.disk.DiskCache
 import coil3.disk.directory
@@ -143,6 +143,7 @@ import org.kde.kdeconnect.ui.navigation.SettingsKey
 import org.kde.kdeconnect.ui.navigation.SftpPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.TelephonyPluginSettingsKey
 import org.kde.kdeconnect_tp.R
+import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import org.koin.core.annotation.KoinExperimentalAPI
@@ -421,7 +422,7 @@ val appModule = module {
 
     single<DevicesRoomDatabase> {
         Room.databaseBuilder(
-            get(),
+            androidContext(),
             DevicesRoomDatabase::class.java,
             "Devices"
         ).build()
