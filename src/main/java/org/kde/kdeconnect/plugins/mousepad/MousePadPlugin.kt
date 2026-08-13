@@ -13,6 +13,7 @@ import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.helpers.SPECIAL_KEY_ENCODING_MAP
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
+import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE
 import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_REQUEST
 import org.kde.kdeconnect.ui.MainActivity
@@ -29,6 +30,7 @@ class MousePadPlugin(
 
     override fun getUiButtons(): List<PluginUiButton> {
         val mouseAndKeyboardInput = PluginUiButton(
+            pluginKey = pluginKey,
             name = context.getString(R.string.open_mousepad),
             iconRes = R.drawable.trackpad_input_2,
             category = ButtonCategory.CONTROL
@@ -38,6 +40,7 @@ class MousePadPlugin(
         }
         return if (device.deviceType == DeviceType.TV) {
             val tvInput = PluginUiButton(
+                pluginKey = pluginKey,
                 name = context.getString(R.string.open_mousepad_tv),
                 iconRes = R.drawable.tv_remote,
                 category = ButtonCategory.CONTROL

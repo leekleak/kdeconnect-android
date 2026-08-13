@@ -12,6 +12,7 @@ import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
+import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.digitizer.DigitizerPlugin.Companion.PACKET_TYPE_DIGITIZER
 import org.kde.kdeconnect.plugins.digitizer.DigitizerPlugin.Companion.PACKET_TYPE_DIGITIZER_SESSION
 import org.kde.kdeconnect.ui.MainActivity
@@ -24,6 +25,7 @@ class DigitizerPlugin(context: Context, device: Device) : Plugin(context, device
 
     override fun getUiButtons(): List<PluginUiButton> = listOf(
         PluginUiButton(
+            pluginKey = pluginKey,
             name = context.getString(R.string.use_digitizer),
             iconRes = R.drawable.stylus_note,
             category = ButtonCategory.CONTROL

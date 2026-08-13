@@ -1,22 +1,12 @@
 package org.kde.kdeconnect.ui.screen.device
 
 import androidx.activity.compose.LocalActivity
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,18 +15,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.kde.kdeconnect.plugins.Plugin
+import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.ui.components.BackAction
 import org.kde.kdeconnect.ui.components.BatteryComponent
 import org.kde.kdeconnect.ui.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.components.HazeScaffold
 import org.kde.kdeconnect.ui.components.IconHero
 import org.kde.kdeconnect.ui.components.KdeThemePreviews
+import org.kde.kdeconnect.ui.components.PluginButtonsGrid
 import org.kde.kdeconnect.ui.components.googleSans
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
@@ -52,7 +42,6 @@ fun DeviceScreen(
     navigator: Navigator,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val activity = LocalActivity.current
 
     HazeScaffold(
         backAction = BackAction.Normal(navigator),
@@ -87,7 +76,6 @@ fun DeviceScreen(
         if (uiState.isReachable) {
             PluginsScreen(
                 pluginsWithButtons = uiState.loadedPlugins.values.flatMap { it.getUiButtons() },
-                onButtonClick = { button -> activity?.let { button.onClick(it) } },
             )
         } else {
             onNavigateToPairingScreen()
@@ -97,20 +85,18 @@ fun DeviceScreen(
 
 @Composable
 fun PluginsScreen(
-    pluginsWithButtons: List<Plugin.PluginUiButton>,
-    onButtonClick: (Plugin.PluginUiButton) -> Unit,
+    pluginsWithButtons: List<PluginUiButton>,
 ) {
     PluginsScreenContent(
         buttons = pluginsWithButtons,
-        onButtonClick = onButtonClick,
     )
 }
 
 @Composable
 private fun PluginsScreenContent(
-    buttons: List<Plugin.PluginUiButton>,
-    onButtonClick: (Plugin.PluginUiButton) -> Unit
+    buttons: List<PluginUiButton>,
 ) {
+    val activity = LocalActivity.current
     val (sendButtons, controlButtons) = buttons.partition {
         it.category == Plugin.ButtonCategory.SEND
     }
@@ -118,82 +104,12 @@ private fun PluginsScreenContent(
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (sendButtons.isNotEmpty()) {
             CategoryTitleTextSmall(text = stringResource(R.string.category_send))
-            PluginButtonsGrid(sendButtons, onButtonClick)
+            PluginButtonsGrid(sendButtons) { button -> activity?.let { button.onClick(it) } }
         }
         if (controlButtons.isNotEmpty()) {
             CategoryTitleTextSmall(text = stringResource(R.string.category_control))
-            PluginButtonsGrid(controlButtons, onButtonClick)
+            PluginButtonsGrid(controlButtons) { button -> activity?.let { button.onClick(it) } }
         }
-    }
-}
-
-@Composable
-private fun PluginButtonsGrid(
-    buttons: List<Plugin.PluginUiButton>,
-    onButtonClick: (Plugin.PluginUiButton) -> Unit
-) {
-    BoxWithConstraints {
-        val minWidth = 178.dp
-        val spacing = 8.dp
-        val columns = ((maxWidth + spacing) / (minWidth + spacing)).toInt().coerceAtLeast(1)
-
-        Column(
-            verticalArrangement = Arrangement.spacedBy(spacing),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            buttons.chunked(columns).forEach { rowButtons ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(spacing)
-                ) {
-                    rowButtons.forEach { button ->
-                        PluginButton(
-                            modifier = Modifier.weight(1f),
-                            button = button,
-                            onClick = { onButtonClick(button) }
-                        )
-                    }
-                    repeat(columns - rowButtons.size) {
-                        Spacer(modifier = Modifier.weight(1f))
-                    }
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun PluginButton(
-    modifier: Modifier = Modifier,
-    button: Plugin.PluginUiButton,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = modifier
-            .height(64.dp)
-            .widthIn(min = 152.dp)
-            .background(MaterialTheme.colorScheme.primary, MaterialTheme.shapes.large)
-            .padding(vertical = 4.dp, horizontal = 16.dp)
-            .clickable { onClick() },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Icon(
-            modifier = Modifier.size(24.dp),
-            painter = painterResource(id = button.iconRes),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onPrimary
-        )
-        Text(
-            text = button.name,
-            maxLines = 2,
-            fontSize = 16.sp,
-            fontWeight = FontWeight(500),
-            lineHeight = 18.sp,
-            overflow = TextOverflow.Ellipsis,
-            color = MaterialTheme.colorScheme.onPrimary
-        )
     }
 }
 
@@ -204,7 +120,8 @@ private fun PluginsScreenPreview() {
         buttons = buildList {
             repeat(3) {
                 add(
-                    Plugin.PluginUiButton(
+                    PluginUiButton(
+                        pluginKey = "",
                         name = "Send Stuff",
                         iconRes = R.drawable.music_cast,
                         category = Plugin.ButtonCategory.SEND,
@@ -214,7 +131,8 @@ private fun PluginsScreenPreview() {
             }
             repeat(5) {
                 add(
-                    Plugin.PluginUiButton(
+                    PluginUiButton(
+                        pluginKey = "",
                         name = "Presentation Remote",
                         iconRes = R.drawable.play_arrow,
                         category = Plugin.ButtonCategory.CONTROL,
@@ -223,7 +141,6 @@ private fun PluginsScreenPreview() {
                 )
             }
         },
-        onButtonClick = { },
     )
 }
 

@@ -34,6 +34,7 @@ import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.helpers.VideoUrlsHelper
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
+import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.navigation.MprisKey
 import org.kde.kdeconnect.ui.navigation.Navigator
@@ -364,6 +365,7 @@ class MprisPlugin(
 
     override fun getUiButtons(): List<PluginUiButton> = listOf(
         PluginUiButton(
+            pluginKey = pluginKey,
             name = context.getString(R.string.open_mpris_controls),
             iconRes = R.drawable.music_cast,
             category = ButtonCategory.CONTROL

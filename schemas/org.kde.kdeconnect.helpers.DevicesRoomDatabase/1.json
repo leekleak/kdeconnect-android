@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "a2edff7a76cdec86036478cd86dd85ec",
+    "identityHash": "ceb99efc6ea4c5e94392b816261fc537",
     "entities": [
       {
         "tableName": "devices",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`deviceId` TEXT NOT NULL, `certificate` BLOB NOT NULL, `name` TEXT NOT NULL, `type` TEXT NOT NULL, `protocolVersion` INTEGER NOT NULL, `incomingCapabilities` TEXT NOT NULL, `outgoingCapabilities` TEXT NOT NULL, `settings` TEXT NOT NULL, `trusted` INTEGER NOT NULL, PRIMARY KEY(`deviceId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`deviceId` TEXT NOT NULL, `certificate` BLOB NOT NULL, `name` TEXT NOT NULL, `type` TEXT NOT NULL, `protocolVersion` INTEGER NOT NULL, `incomingCapabilities` TEXT NOT NULL, `outgoingCapabilities` TEXT NOT NULL, `settings` TEXT NOT NULL, `trusted` INTEGER NOT NULL, `shortcuts` TEXT NOT NULL, PRIMARY KEY(`deviceId`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -61,6 +61,12 @@
             "columnName": "trusted",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "shortcuts",
+            "columnName": "shortcuts",
+            "affinity": "TEXT",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -73,7 +79,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a2edff7a76cdec86036478cd86dd85ec')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ceb99efc6ea4c5e94392b816261fc537')"
     ]
   }
 }

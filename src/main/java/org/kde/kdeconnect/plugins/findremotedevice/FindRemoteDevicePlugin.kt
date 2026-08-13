@@ -9,9 +9,10 @@ import android.content.Context
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
-import org.kde.kdeconnect.plugins.findmyphone.FindMyPhonePlugin
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
+import org.kde.kdeconnect.plugins.PluginUiButton
+import org.kde.kdeconnect.plugins.findmyphone.FindMyPhonePlugin
 import org.kde.kdeconnect_tp.R
 
 class FindRemoteDevicePlugin(context: Context, device: Device) : Plugin(context, device) {
@@ -19,6 +20,7 @@ class FindRemoteDevicePlugin(context: Context, device: Device) : Plugin(context,
 
     override fun getUiButtons(): List<PluginUiButton> = listOf(
         PluginUiButton(
+            pluginKey = pluginKey,
             name = context.getString(R.string.find_device),
             iconRes = R.drawable.e911_emergency,
             category = ButtonCategory.CONTROL

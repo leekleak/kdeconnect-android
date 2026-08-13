@@ -33,6 +33,7 @@ import org.kde.kdeconnect.helpers.FilesHelper.uriToNetworkPacket
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
+import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect_tp.R
 import java.net.MalformedURLException
@@ -126,9 +127,10 @@ class SharePlugin(
     override fun getUiButtons(): List<PluginUiButton> {
         return listOf(
             PluginUiButton(
-                context.getString(R.string.files),
-                R.drawable.description,
-                ButtonCategory.SEND
+                pluginKey = pluginKey,
+                name = context.getString(R.string.files),
+                iconRes = R.drawable.description,
+                category = ButtonCategory.SEND
             ) { parentActivity: Activity ->
                 if (parentActivity is MainActivity && parentActivity.shareGetResultCallback == null) {
                     parentActivity.shareGetResultCallback = { sendUriList(it) }

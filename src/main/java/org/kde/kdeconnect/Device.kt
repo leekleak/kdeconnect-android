@@ -36,6 +36,7 @@ import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.Plugin.Companion.getPluginKey
 import org.kde.kdeconnect.plugins.PluginFactory
+import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.battery.DeviceBatteryInfo
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.PairingActivity
@@ -403,6 +404,34 @@ class Device(
     internal fun updateBatteryInfo(newInfo: DeviceBatteryInfo) {
         jobScope.launch {
             updateState { it.copy(batteryInfo = newInfo) }
+        }
+    }
+
+    fun addShortcut(button: PluginUiButton) {
+        jobScope.launch {
+            updateState {
+                it.copy(
+                    deviceInfo = it.deviceInfo.copy(
+                        shortcuts = it.deviceInfo.shortcuts.plus(
+                            button.pluginKey
+                        )
+                    )
+                )
+            }
+        }
+    }
+
+    fun removeShortcut(button: PluginUiButton) {
+        jobScope.launch {
+            updateState {
+                it.copy(
+                    deviceInfo = it.deviceInfo.copy(
+                        shortcuts = it.deviceInfo.shortcuts.minus(
+                            button.pluginKey
+                        )
+                    )
+                )
+            }
         }
     }
 

@@ -27,9 +27,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.kde.kdeconnect.DeviceInfo
+import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.DeviceState
 import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.PairState
+import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.ui.components.BackAction
 import org.kde.kdeconnect.ui.components.DeviceCard
 import org.kde.kdeconnect.ui.components.HazeScaffold
@@ -41,6 +43,7 @@ import org.kde.kdeconnect_tp.R
 @Composable
 fun HomeScreen(
     uiState: HomeUiState,
+    deviceManager: DeviceManager?,
     onClick: (String) -> Unit,
     onRefresh: () -> Unit,
     onNavigateToPairingScreen: () -> Unit,
@@ -83,10 +86,14 @@ fun HomeScreen(
                 ) {
                     itemsIndexed(
                         items = uiState.connected,
-                        key = { _, connectedDevice -> connectedDevice.deviceInfo.id }) { _, connectedDevice ->
+                        key = { _, connectedDevice -> connectedDevice.deviceInfo.id }) { _, device ->
+                        val buttons: List<PluginUiButton> = device.deviceInfo.shortcuts.flatMap { key ->
+                            deviceManager?.getDevice(device.deviceInfo.id)?.getPlugin(key)?.getUiButtons() ?: emptyList()
+                        }
                         Spacer(Modifier.height(4.dp))
                         DeviceCard(
-                            device = connectedDevice,
+                            device = device,
+                            shortcuts = buttons,
                             onClick = { onClick(it) }
                         )
                     }
@@ -131,7 +138,7 @@ fun HomeScreen(
     }
 }
 
-@org.kde.kdeconnect.ui.components.KdeThemePreviews
+@KdeThemePreviews
 @Composable
 private fun PreviewCompose() {
     HomeScreen(
@@ -160,9 +167,10 @@ private fun PreviewCompose() {
             ),
             refreshing = false
         ),
+        deviceManager = null,
         onClick = { },
         onRefresh = { },
         onNavigateToPairingScreen = {},
-        onNavigateToSettingsScreen = {}
+        onNavigateToSettingsScreen = {},
     )
 }

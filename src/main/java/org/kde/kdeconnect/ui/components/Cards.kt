@@ -6,6 +6,7 @@
 
 package org.kde.kdeconnect.ui.components
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -16,10 +17,12 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
@@ -33,10 +36,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.DeviceState
+import org.kde.kdeconnect.DeviceType
+import org.kde.kdeconnect.PairState
+import org.kde.kdeconnect.plugins.Plugin
+import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.battery.DeviceBatteryInfo
 import org.kde.kdeconnect_tp.R
 
@@ -84,11 +93,13 @@ fun Modifier.card(backgroundColor: Color = colorScheme.surfaceContainer): Modifi
 @Composable
 fun DeviceCard(
     device: DeviceState,
+    shortcuts: List<PluginUiButton> = emptyList(),
     actionIcon: Painter = painterResource(R.drawable.arrow_forward_ios),
     actionDescription: String = stringResource(R.string.open),
     actionDescriptionVisible: Boolean = false,
     onClick: (String) -> Unit
 ) {
+    val activity = LocalActivity.current
     val font = remember { googleSans(weight = 600f) }
     Column (
         modifier = Modifier
@@ -130,6 +141,14 @@ fun DeviceCard(
                 )
             }
         }
+
+        if (shortcuts.isNotEmpty()) {
+            HorizontalDivider(Modifier.padding(start = 32.dp, end = 32.dp, top = 16.dp, bottom = 8.dp))
+            CategoryTitleTextSmall(stringResource(R.string.shortcuts))
+            Spacer(Modifier.height(4.dp))
+            PluginButtonsGrid(shortcuts) { button -> activity?.let { button.onClick(it) } }
+        }
+
     }
 }
 
@@ -170,4 +189,27 @@ fun BatteryComponent(battery: DeviceBatteryInfo) {
             fontFamily = font
         )
     }
+}
+
+@Composable
+@Preview
+fun DeviceCardPreview() {
+    DeviceCard(
+        device = DeviceState(
+            deviceInfo = DeviceInfo(
+                    id = "",
+                    certificate = ByteArray(0
+                ),
+                name = "Name",
+                type = DeviceType.DESKTOP
+            ),
+            pairState = PairState.Paired,
+            batteryInfo = DeviceBatteryInfo(70, true, 15)
+        ),
+        shortcuts = listOf(
+            PluginUiButton("", "Send Clipboard", R.drawable.assignment, Plugin.ButtonCategory.SEND) {},
+            PluginUiButton("", "Multimedia", R.drawable.music_cast, Plugin.ButtonCategory.CONTROL) {}
+        ),
+        onClick = { }
+    )
 }

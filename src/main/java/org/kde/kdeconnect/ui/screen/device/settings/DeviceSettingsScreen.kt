@@ -29,6 +29,7 @@ import org.kde.kdeconnect.ui.components.HazeScaffold
 import org.kde.kdeconnect.ui.components.NavigatePreference
 import org.kde.kdeconnect.ui.components.NotificationTogglePreference
 import org.kde.kdeconnect.ui.components.SwitchPreference
+import org.kde.kdeconnect.ui.navigation.DeviceShortcutSettingsKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.NotificationSettingsKey
 import org.kde.kdeconnect.ui.navigation.TelephonyPluginSettingsKey
@@ -119,6 +120,11 @@ fun DeviceSettingsScreen(
             icon = painterResource(R.drawable.query_stats),
             value = connectivity == true,
             onValueChanged = { onPluginToggled(ConnectivityReportPluginInfo.pluginKey, it) }
+        )
+        NavigatePreference(
+            title = stringResource(R.string.shortcut_settings),
+            icon = painterResource(R.drawable.action_key),
+            onClick = { navigator.goTo(DeviceShortcutSettingsKey(deviceId)) }
         )
 
         CategoryTitleTextSmall(stringResource(R.string.global_settings))

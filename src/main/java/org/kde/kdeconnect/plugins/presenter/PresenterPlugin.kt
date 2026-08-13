@@ -13,6 +13,7 @@ import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.helpers.SPECIAL_KEY_ENCODING_MAP
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
+import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_REQUEST
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin.Companion.PACKET_TYPE_PRESENTER
 import org.kde.kdeconnect.ui.navigation.Navigator
@@ -37,6 +38,7 @@ class PresenterPlugin(context: Context, device: Device) : Plugin(context, device
 
     override fun getUiButtons(): List<PluginUiButton> = listOf(
         PluginUiButton(
+            pluginKey = pluginKey,
             name = context.getString(R.string.pref_plugin_presenter),
             iconRes = R.drawable.missing_controller,
             category = ButtonCategory.CONTROL

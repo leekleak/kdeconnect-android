@@ -48,8 +48,9 @@ data class RunCommandKey(val deviceId: String) : KdeConnectKey
 data class DigitizerKey(val deviceId: String) : KdeConnectKey
 
 @Serializable
-data class PluginSettingsKey(val deviceId: String) : KdeConnectKey
-
+data class DeviceSettingsKey(val deviceId: String) : KdeConnectKey
+@Serializable
+data class DeviceShortcutSettingsKey(val deviceId: String) : KdeConnectKey
 @Serializable
 data class PresenterKey(val deviceId: String) : KdeConnectKey
 

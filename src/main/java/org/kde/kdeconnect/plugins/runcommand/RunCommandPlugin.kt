@@ -23,6 +23,7 @@ import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.Plugin
+import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.RunCommandKey
@@ -53,6 +54,7 @@ class RunCommandPlugin(
     override fun getUiButtons(): List<PluginUiButton> {
         return listOf(
             PluginUiButton(
+                pluginKey = pluginKey,
                 name = context.getString(R.string.pref_plugin_runcommand),
                 iconRes = R.drawable.code,
                 category = ButtonCategory.CONTROL

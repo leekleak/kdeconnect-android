@@ -14,6 +14,8 @@ import androidx.room3.Entity
 import androidx.room3.PrimaryKey
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.plugins.PluginFactory
+import org.kde.kdeconnect.plugins.clipboard.ClipboardPluginInfo
+import org.kde.kdeconnect.plugins.mpris.MprisPluginInfo
 import org.kde.kdeconnect_tp.R
 import java.security.cert.Certificate
 
@@ -31,6 +33,7 @@ data class DeviceInfo(
     val outgoingCapabilities: Set<String> = emptySet(),
     val settings: Map<String, Boolean> = emptyMap(),
     val trusted: Boolean = false,
+    val shortcuts: Set<String> = setOf(MprisPluginInfo.pluginKey, ClipboardPluginInfo.pluginKey)
 ) {
 
     /**
@@ -100,6 +103,7 @@ data class DeviceInfo(
         if (outgoingCapabilities != other.outgoingCapabilities) return false
         if (settings != other.settings) return false
         if (trusted != other.trusted) return false
+        if (shortcuts != other.shortcuts) return false
 
         return true
     }
@@ -114,6 +118,7 @@ data class DeviceInfo(
         result = 31 * result + outgoingCapabilities.hashCode()
         result = 31 * result + settings.hashCode()
         result = 31 * result + trusted.hashCode()
+        result = 31 * result + shortcuts.hashCode()
         return result
     }
 }

@@ -89,6 +89,8 @@ import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.BigscreenKey
 import org.kde.kdeconnect.ui.navigation.ConnectionsSettingsKey
 import org.kde.kdeconnect.ui.navigation.DeviceKey
+import org.kde.kdeconnect.ui.navigation.DeviceSettingsKey
+import org.kde.kdeconnect.ui.navigation.DeviceShortcutSettingsKey
 import org.kde.kdeconnect.ui.navigation.DigitizerKey
 import org.kde.kdeconnect.ui.navigation.HomeKey
 import org.kde.kdeconnect.ui.navigation.LicensesKey
@@ -101,7 +103,6 @@ import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.NotificationSettingsKey
 import org.kde.kdeconnect.ui.navigation.PairingKey
 import org.kde.kdeconnect.ui.navigation.PermissionsScreenKey
-import org.kde.kdeconnect.ui.navigation.PluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.PresenterKey
 import org.kde.kdeconnect.ui.navigation.PresenterPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.RunCommandKey
@@ -114,6 +115,8 @@ import org.kde.kdeconnect.ui.screen.device.DeviceScreen
 import org.kde.kdeconnect.ui.screen.device.DeviceViewModel
 import org.kde.kdeconnect.ui.screen.device.settings.DeviceSettingsScreen
 import org.kde.kdeconnect.ui.screen.device.settings.DeviceSettingsViewModel
+import org.kde.kdeconnect.ui.screen.device.settings.DeviceShortcutSettingsScreen
+import org.kde.kdeconnect.ui.screen.device.settings.DeviceShortcutSettingsViewModel
 import org.kde.kdeconnect.ui.screen.home.HomeScreen
 import org.kde.kdeconnect.ui.screen.home.HomeViewModel
 import org.kde.kdeconnect.ui.screen.licenses.LicensesScreen
@@ -152,6 +155,7 @@ val homeModule = module {
         val navigator: Navigator = get()
         HomeScreen(
             uiState = state,
+            deviceManager = get(),
             onClick = { deviceId -> navigator.goTo(DeviceKey(deviceId, true)) },
             onRefresh = { viewModel.onRefresh(get()) },
             onNavigateToPairingScreen = { navigator.goTo(PairingKey) },
@@ -261,21 +265,30 @@ val deviceModule = module {
         val navigator: Navigator = get()
         DeviceScreen(
             deviceId = key.deviceId,
-            onNavigateToPluginsSettings = { navigator.goTo(PluginSettingsKey(key.deviceId)) },
+            onNavigateToPluginsSettings = { navigator.goTo(DeviceSettingsKey(key.deviceId)) },
             onNavigateToPairingScreen = { navigator.setTo(HomeKey) },
             navigator = navigator
+        )
+    }
+
+    viewModel<DeviceSettingsViewModel>()
+    navigation<DeviceSettingsKey> { key -> DeviceSettingsScreen(deviceId = key.deviceId, navigator = get()) }
+
+    viewModel<DeviceShortcutSettingsViewModel>()
+    navigation<DeviceShortcutSettingsKey> { key ->
+        DeviceShortcutSettingsScreen(
+            deviceId = key.deviceId,
+            navigator = get()
         )
     }
 }
 
 val pluginSettingsModule = module {
-    viewModel<DeviceSettingsViewModel>()
     viewModel<MousePadSettingsViewModel>()
     viewModel<SftpSettingsViewModel>()
     viewModel<TelephonySettingsViewModel>()
     viewModel<PresenterSettingsViewModel>()
     viewModel<NotificationSettingsViewModel>()
-    navigation<PluginSettingsKey> { key -> DeviceSettingsScreen(deviceId = key.deviceId, navigator = get()) }
     navigation<MousePadPluginSettingsKey> { MousePadSettingsScreen(navigator = get()) }
     navigation<SftpPluginSettingsKey> { SftpSettingsScreen(navigator = get()) }
     navigation<TelephonyPluginSettingsKey> { TelephonySettingsScreen(navigator = get()) }

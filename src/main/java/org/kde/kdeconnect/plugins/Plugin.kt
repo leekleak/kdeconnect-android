@@ -16,6 +16,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.plugins.Plugin.ButtonCategory
 
 abstract class Plugin(
     @JvmField protected val context: Context,
@@ -28,13 +29,6 @@ abstract class Plugin(
         SEND,
         CONTROL
     }
-
-    data class PluginUiButton(
-        val name: String,
-        @get:DrawableRes val iconRes: Int,
-        val category: ButtonCategory,
-        val onClick: (parentActivity: Activity) -> Unit,
-    )
 
     val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO) // Todo: Make private
 
@@ -112,3 +106,11 @@ abstract class Plugin(
         }
     }
 }
+
+data class PluginUiButton(
+    val pluginKey: String,
+    val name: String,
+    @get:DrawableRes val iconRes: Int,
+    val category: ButtonCategory,
+    val onClick: (parentActivity: Activity) -> Unit,
+)
