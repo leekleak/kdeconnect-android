@@ -41,7 +41,6 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -73,12 +72,12 @@ import coil3.BitmapImage
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
+import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.HazeProgressive
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.blur.hazeBlur
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import org.kde.kdeconnect.ui.compose.KdeTheme
 import org.kde.kdeconnect.ui.compose.LocalHazeState
@@ -89,13 +88,11 @@ import org.kde.kdeconnect.ui.navigation.MprisSinkKey
 import org.kde.kdeconnect.ui.navigation.MprisSourceKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
-import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
-@OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
 fun MprisScreen(
     deviceId: String,
@@ -114,8 +111,8 @@ fun MprisScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .hazeEffect(
-                state = hazeState,
+            .hazeBlur(
+                input = HazeInput.Sources(hazeState),
                 style = HazeMaterials.thin()
             )
             .verticalScroll(rememberScrollState())
@@ -129,7 +126,7 @@ fun MprisScreen(
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerIsland(viewModel: MprisViewModel) {
     val playerStatus by viewModel.playerStatus.collectAsStateWithLifecycle()
@@ -194,13 +191,12 @@ fun PlayerIsland(viewModel: MprisViewModel) {
             Spacer(modifier = Modifier
                 .aspectRatio(1.5f)
                 .fillMaxWidth()
-                .hazeEffect(hazeState, HazeMaterials.thick(backgroundColor)) {
-                    progressive =
-                        HazeProgressive.verticalGradient(
-                            startIntensity = 0f,
-                            endIntensity = 1f
-                        )
-                }
+                .hazeBlur(
+                    input = HazeInput.Sources(hazeState),
+                    style = HazeMaterials.thick(backgroundColor).then {
+                        progressive(HazeProgressive.verticalGradient(startIntensity = 0f, endIntensity = 1f))
+                    }
+                )
             )
         }
 

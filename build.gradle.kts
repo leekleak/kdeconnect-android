@@ -185,7 +185,8 @@ dependencies {
 
     // Blur
     implementation(libs.haze)
-    implementation(libs.haze.materials)
+    implementation(libs.haze.blur)
+    implementation(libs.haze.blur.materials)
 
     // Coil
     implementation(libs.coil.compose)

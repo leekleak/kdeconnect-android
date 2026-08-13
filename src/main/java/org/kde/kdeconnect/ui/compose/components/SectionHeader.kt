@@ -1,9 +1,3 @@
-/*
- * SPDX-FileCopyrightText: 2026 Saul Cintero Chocarro <scintero@gmail.com>
- *
- * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
- */
-
 package org.kde.kdeconnect.ui.compose.components
 
 import androidx.compose.foundation.layout.Box
@@ -29,25 +23,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.HazeProgressive
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.chrisbanes.haze.blur.hazeBlur
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import org.kde.kdeconnect_tp.R
 
-@Composable
-fun SectionHeader(title: String) {
-    CategoryTitleTextSmall(title)
-}
-
-@KdePortraitThemePreviews
-@Composable
-private fun SectionHeaderPreview() {
-    SectionHeader(title = stringResource(id = R.string.category_connected_devices))
-}
-
-@OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
 fun PageTitle(
     backAction: BackAction = BackAction.None,
@@ -60,10 +42,12 @@ fun PageTitle(
             .fillMaxWidth()
             .then(
                 hazeState?.let {
-                    Modifier.hazeEffect(state = it, style = HazeMaterials.ultraThin()) {
-                        progressive =
-                            HazeProgressive.verticalGradient(startIntensity = 1f, endIntensity = 0f)
-                    }
+                    Modifier.hazeBlur(
+                        input = HazeInput.Sources(it),
+                        style = HazeMaterials.ultraThin().then {
+                            progressive(HazeProgressive.verticalGradient(startIntensity = 1f, endIntensity = 0f))
+                        }
+                    )
                 } ?: Modifier
             )
     ) {
