@@ -6,7 +6,6 @@
 package org.kde.kdeconnect.backends.lan
 
 import android.content.Context
-import android.util.Log
 import androidx.annotation.WorkerThread
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,6 +21,7 @@ import org.kde.kdeconnect.NetworkPacket.Companion.unserialize
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.helpers.LineTooLongException
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.readLineBounded
 import org.kde.kdeconnect.helpers.security.SslHelper
 import java.io.IOException
@@ -56,14 +56,14 @@ class LanLink @WorkerThread constructor(
     override val name: String = "LanLink"
 
     override suspend fun disconnect() {
-        Log.i("LanLink/Disconnect", "socket:" + socket.hashCode())
+        LoggerTagged.i { "socket:" + socket.hashCode() }
         try {
             withContext(Dispatchers.IO) {
                 socket?.close()
             }
             scope.cancel()
         } catch (e: IOException) {
-            Log.e("LanLink", "Error", e)
+            LoggerTagged.e(e) { "Error" }
         }
     }
 
@@ -97,10 +97,7 @@ class LanLink @WorkerThread constructor(
                     receivedNetworkPacket(np)
                 }
             } catch (e: Exception) {
-                Log.i(
-                    "LanLink",
-                    "Socket closed: " + newSocket.hashCode() + ". Reason: " + e.message
-                )
+                LoggerTagged.i { "Socket closed: " + newSocket.hashCode() + ". Reason: " + e.message }
                 try {
                     Thread.sleep(300)
                 } catch (_: InterruptedException) {
@@ -108,10 +105,7 @@ class LanLink @WorkerThread constructor(
 
                 val thereIsaANewSocket = (newSocket !== socket)
                 if (!thereIsaANewSocket) {
-                    Log.i(
-                        "LanLink",
-                        "Socket closed and there's no new socket, disconnecting device"
-                    )
+                    LoggerTagged.i { "Socket closed and there's no new socket, disconnecting device" }
                     linkProvider.onConnectionLost(this@LanLink)
                 }
             }
@@ -130,7 +124,7 @@ class LanLink @WorkerThread constructor(
         callback: Device.SendPacketStatusCallback,
     ): Boolean {
         if (socket == null) {
-            Log.e("KDE/sendPacket", "Not yet connected")
+            LoggerTagged.e { "Not yet connected" }
             callback.onFailure(NotYetConnectedException())
             return false
         }
@@ -171,11 +165,7 @@ class LanLink @WorkerThread constructor(
                 try {
                     sendPayload(np, callback, server)
                 } catch (e: IOException) {
-                    e.printStackTrace()
-                    Log.e(
-                        "LanLink/sendPacket",
-                        "Async sendPayload failed for packet of type " + np.type + ". The Plugin was NOT notified."
-                    )
+                    LoggerTagged.e(e) { "Async sendPayload failed for packet of type " + np.type + ". The Plugin was NOT notified." }
                 }
             }
 
@@ -220,7 +210,7 @@ class LanLink @WorkerThread constructor(
                 outputStream = payloadSocket.getOutputStream()
                 inputStream = np.payload!!.inputStream
 
-                Log.i("KDE/LanLink", "Beginning to send payload for " + np.type)
+                LoggerTagged.i { "Beginning to send payload for " + np.type }
                 val buffer = ByteArray(4096)
                 var bytesRead: Int = -1
                 val size = np.payloadSize
@@ -238,21 +228,18 @@ class LanLink @WorkerThread constructor(
                     }
                 }
                 outputStream.flush()
-                Log.i("KDE/LanLink", "Finished sending payload ($progress bytes written)")
+                LoggerTagged.i { "Finished sending payload ($progress bytes written)" }
             }
-        } catch (_: SocketTimeoutException) {
-            Log.e(
-                "LanLink",
+        } catch (e: SocketTimeoutException) {
+            LoggerTagged.e(e) {
                 "Socket for payload in packet " + np.type + " timed out. The other end didn't fetch the payload."
-            )
+            }
         } catch (e: CertificateException) {
             // The exception can be due to several causes. "Connection closed by peer" seems to be a common one.
             // If we could distinguish different cases we could react differently for some of them, but I haven't found how.
-            Log.e("sendPacket", "Payload SSLSocket failed")
-            e.printStackTrace()
+            LoggerTagged.e(e) { "Payload SSLSocket failed" }
         } catch (e: SSLHandshakeException) {
-            Log.e("sendPacket", "Payload SSLSocket failed")
-            e.printStackTrace()
+            LoggerTagged.e(e) { "Payload SSLSocket failed" }
         } finally {
             try {
                 server.close()
@@ -292,11 +279,11 @@ class LanLink @WorkerThread constructor(
                     }
                 } catch (_: Exception) {
                 }
-                Log.e("KDE/LanLink", "Exception connecting to payload remote socket", e)
+                LoggerTagged.e(e) { "Exception connecting to payload remote socket" }
             }
         }
 
-        Log.e("Receiving", np.serialize())
+        LoggerTagged.e { np.serialize() }
         packetReceived(np)
     }
 

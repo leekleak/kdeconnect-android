@@ -12,7 +12,6 @@ import android.net.Uri
 import android.os.Environment
 import android.os.storage.StorageManager
 import android.provider.Settings
-import android.util.Log
 import androidx.core.net.toUri
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,6 +24,7 @@ import org.json.JSONObject
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.SftpSettingsDataStore
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.helpers.getLocalIpAddress
 import org.kde.kdeconnect.plugins.Plugin
@@ -270,7 +270,7 @@ object SftpPluginInfo : PluginInfo(
                 storageInfoList.add(StorageInfo.fromJSON(jsonArray.getJSONObject(i)))
             }
         } catch (e: JSONException) {
-            Log.e("SFTPSettings", "Couldn't load storage info", e)
+            LoggerTagged.e(e) { "Couldn't load storage info" }
         }
 
         return storageInfoList

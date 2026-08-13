@@ -3,7 +3,6 @@ package org.kde.kdeconnect.ui.screen.settings.advanced.filesystem
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,6 +14,7 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.SftpSettingsDataStore
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.sftp.SftpPlugin
 import org.kde.kdeconnect_tp.R
 
@@ -36,7 +36,7 @@ class SftpSettingsViewModel(
                     storageInfoList.add(SftpPlugin.StorageInfo.fromJSON(jsonArray.getJSONObject(i)))
                 }
             } catch (e: JSONException) {
-                Log.e("SFTPSettingsViewModel", "Couldn't load storage info", e)
+                LoggerTagged.e(e) { "Couldn't load storage info" }
             }
             storageInfoList.sortBy { it.displayName.lowercase() }
             SftpSettingsUiState(storageInfoList = storageInfoList)
@@ -86,7 +86,7 @@ class SftpSettingsViewModel(
                         Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                     )
                 } catch (e: SecurityException) {
-                    Log.e("SFTPSettingsViewModel", "Exception releasing permission", e)
+                    LoggerTagged.e(e) { "Exception releasing permission" }
                 }
                 false
             } else {

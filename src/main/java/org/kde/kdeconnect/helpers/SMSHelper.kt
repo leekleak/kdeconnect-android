@@ -6,7 +6,6 @@
 */
 package org.kde.kdeconnect.helpers
 
-import android.annotation.SuppressLint
 import android.content.ContentUris
 import android.content.Context
 import android.database.sqlite.SQLiteException
@@ -17,8 +16,8 @@ import android.os.Looper
 import android.provider.Telephony
 import android.telephony.PhoneNumberUtils
 import android.telephony.TelephonyManager
-import android.util.Log
 import androidx.core.net.toUri
+import co.touchlab.kermit.Logger
 import com.google.android.mms.pdu_alt.MultimediaMessagePdu
 import com.google.android.mms.pdu_alt.PduPersister
 import com.google.android.mms.util_alt.PduCache
@@ -266,7 +265,7 @@ object SMSHelper {
                             } else if ("sms" == transportTypeString) {
                                 TransportType.SMS
                             } else {
-                                Log.w("SMSHelper", "Skipping message with unknown TransportType: $transportTypeString")
+                                LoggerTagged.w { "Skipping message with unknown TransportType: $transportTypeString" }
                                 continue
                             }
                         }
@@ -290,7 +289,7 @@ object SMSHelper {
                         } catch (e: Exception) {
                             // Swallow exceptions in case we get an error reading one message so that we
                             // might be able to read some of them
-                            Log.e("SMSHelper", "Got an error reading a message of type $transportType", e)
+                            LoggerTagged.e(e) { "Got an error reading a message of type $transportType" }
                         }
                     } while ((numberToGet == null || toReturn.size < numberToGet) && myCursor.moveToNext())
                 }
@@ -444,19 +443,13 @@ object SMSHelper {
                 }
                 if (messageDate <= 0) {
                     if (!warnedForUnorderedOutputs) {
-                        Log.w(
-                            "SMSHelper",
-                            "Got no value for date of thread. Return order of results is undefined."
-                        )
+                        LoggerTagged.w { "Got no value for date of thread. Return order of results is undefined." }
                         warnedForUnorderedOutputs = true
                     }
                 }
                 if (threadID == null) {
                     if (!warnedForNullThreadIDs) {
-                        Log.w(
-                            "SMSHelper",
-                            "Got null for some thread IDs. If these were valid threads, they will not be returned."
-                        )
+                        LoggerTagged.w { "Got null for some thread IDs. If these were valid threads, they will not be returned." }
                         warnedForNullThreadIDs = true
                     }
                     continue
@@ -478,10 +471,10 @@ object SMSHelper {
                 threadIdsIndex++
                 val firstMessage = getMessagesInThread(context, nextThreadId, 1L)
                 if (firstMessage.size > 1) {
-                    Log.w("SMSHelper", "getConversations got two messages for the same ThreadID: $nextThreadId")
+                    LoggerTagged.w { "getConversations got two messages for the same ThreadID: $nextThreadId" }
                 }
                 if (firstMessage.isEmpty()) {
-                    Log.e("SMSHelper", "ThreadID: $nextThreadId did not return any messages")
+                    LoggerTagged.e { "ThreadID: $nextThreadId did not return any messages" }
                     // This is a strange issue, but I don't know how to say what is wrong, so just continue along
                     continue
                 }
@@ -620,7 +613,7 @@ object SMSHelper {
                             val fileName = data.substring(data.lastIndexOf('/') + 1)
                             attachments.add(Attachment(partID, contentType, null, fileName))
                         } else {
-                            Log.v("SMSHelper", "Unsupported attachment type: $contentType")
+                            LoggerTagged.v { "Unsupported attachment type: $contentType" }
                         }
                     } while (cursor.moveToNext())
                 }
@@ -1034,7 +1027,7 @@ object SMSHelper {
                         }
                     } catch (e: InterruptedException) {
                         // I don't know when this would happen
-                        Log.e("SMSHelper", "Interrupted while waiting for Looper", e)
+                        LoggerTagged.e(e) { "Interrupted while waiting for Looper" }
                         return null
                     } finally {
                         looperReadyLock.unlock()

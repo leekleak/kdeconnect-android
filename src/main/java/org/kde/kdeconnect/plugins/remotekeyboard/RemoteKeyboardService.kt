@@ -9,7 +9,6 @@ import android.content.Intent
 import android.inputmethodservice.InputMethodService
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
@@ -27,12 +26,13 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import kotlinx.coroutines.launch
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPlugin.Companion.acquireInstances
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPlugin.Companion.isConnected
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPlugin.Companion.releaseInstances
-import org.kde.kdeconnect.ui.MainActivity
-import kotlinx.coroutines.launch
 import org.kde.kdeconnect.ui.KdeTheme
+import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import org.kde.kdeconnect_tp.R
 
@@ -69,7 +69,7 @@ class RemoteKeyboardService: InputMethodService(), LifecycleOwner, SavedStateReg
 
         visible = false
         instance = this
-        Log.d("RemoteKeyboardService", "Remote keyboard initialized")
+        LoggerTagged.d { "Remote keyboard initialized" }
     }
 
     override fun onWindowShown() {
@@ -88,7 +88,7 @@ class RemoteKeyboardService: InputMethodService(), LifecycleOwner, SavedStateReg
         super.onDestroy()
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         instance = null
-        Log.d("RemoteKeyboardService", "Destroyed")
+        LoggerTagged.d { "Destroyed" }
     }
 
     override fun onCreateInputView(): View {

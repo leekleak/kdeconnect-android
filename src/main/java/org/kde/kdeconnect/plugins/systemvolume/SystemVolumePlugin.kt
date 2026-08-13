@@ -6,14 +6,14 @@
 package org.kde.kdeconnect.plugins.systemvolume
 
 import android.content.Context
-import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import org.json.JSONException
-import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin.Companion.PACKET_TYPE_SYSTEMVOLUME
@@ -47,7 +47,7 @@ class SystemVolumePlugin(context: Context, device: Device) : Plugin(context, dev
                 }
                 _sinks.value = newList
             } catch (e: JSONException) {
-                Log.e("KDEConnect", "Exception", e)
+                LoggerTagged.e(e) { "Exception" }
             }
         } else {
             val name = np.getString("name")
@@ -67,7 +67,7 @@ class SystemVolumePlugin(context: Context, device: Device) : Plugin(context, dev
     }
 
     override fun onCreate(): Boolean {
-        Log.e("SYSTVOL", "CREATED")
+        LoggerTagged.e { "CREATED" }
         return super.onCreate()
     }
 

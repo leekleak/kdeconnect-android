@@ -7,7 +7,6 @@ package org.kde.kdeconnect.backends.lan
 
 import android.content.Context
 import android.net.Network
-import android.util.Log
 import androidx.annotation.WorkerThread
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +27,7 @@ import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.backends.lan.LanLink.ConnectionStarted
 import org.kde.kdeconnect.helpers.CustomDevicesHelper
 import org.kde.kdeconnect.helpers.DeviceHelper
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 import org.kde.kdeconnect.helpers.isPrivateAddress
 import org.kde.kdeconnect.helpers.readLineBounded
@@ -92,12 +92,12 @@ class LanLinkProvider(
         try {
             identityPacket = unserialize(message)
         } catch (e: JSONException) {
-            Log.w("KDE/LanLinkProvider", "Invalid identity packet received: " + e.message)
+            LoggerTagged.w(e) { "Invalid identity packet received " }
             return@withContext null
         }
 
         if (!isValidIdentityPacket(identityPacket)) {
-            Log.w("KDE/LanLinkProvider", "Invalid identity packet received.")
+            LoggerTagged.w { "Invalid identity packet received." }
             return@withContext null
         }
 
@@ -109,19 +109,15 @@ class LanLinkProvider(
         }
 
         if (rateLimitByDeviceId(deviceId)) {
-            Log.i(
-                "LanLinkProvider",
-                "Discarding second packet from the same device $deviceId received too quickly"
-            )
+            LoggerTagged.i { "Discarding second packet from the same device $deviceId received too quickly" }
             return@withContext null
         }
 
         val deviceTrusted = deviceManager.getDevice(deviceId)?.state?.value?.deviceInfo?.trusted == true
         if (!deviceTrusted && !trustedNetworkHelper.getIsTrustedNetwork()) {
-            Log.i(
-                "KDE/LanLinkProvider",
+            LoggerTagged.i {
                 "Ignoring identity packet because the device is not trusted and I'm not on a trusted network."
-            )
+            }
             return@withContext null
         }
 
@@ -135,15 +131,14 @@ class LanLinkProvider(
         val address = socket.inetAddress
 
         if (!isPrivateAddress(address)) {
-            Log.i("LanLinkProvider", "Discarding TCP packet from a non-local IP")
+            LoggerTagged.i { "Discarding TCP packet from a non-local IP" }
             return@withContext
         }
 
         if (rateLimitByIp(address)) {
-            Log.i(
-                "LanLinkProvider",
+            LoggerTagged.i {
                 "Discarding second TCP packet from the same ip $address received too quickly"
-            )
+            }
             return@withContext
         }
 
@@ -153,9 +148,9 @@ class LanLinkProvider(
             // us to keep a single BufferedInputStream instance and pass it around to make sure we don't lose data.
             // This means we are readying byte by byte directly from the OS, which is slow, but only for the handshake.
             message = readLineBounded(socket.getInputStream(), MAX_IDENTITY_PACKET_SIZE)
-            //Log.e("TcpListener", "Received TCP packet: " + message);
+            //LoggerTagged.e { "TcpListener", "Received TCP packet: " + message);
         } catch (e: Exception) {
-            Log.e("KDE/LanLinkProvider", "Exception while receiving TCP packet", e)
+            LoggerTagged.e(e) {  "Exception while receiving TCP packet" }
             return@withContext
         }
 
@@ -163,25 +158,22 @@ class LanLinkProvider(
         val identityPacket = pair.first
         val deviceTrusted: Boolean = pair.second!!
 
-        Log.i(
-            "KDE/LanLinkProvider",
+        LoggerTagged.i {
             "identity packet received from a TCP connection from " + identityPacket.getString("deviceName")
-        )
+        }
 
         val targetDeviceId = identityPacket.getStringOrNull("targetDeviceId")
         val targetProtocolVersion = identityPacket.getIntOrNull("targetProtocolVersion")
         if (targetDeviceId != null && targetDeviceId != deviceHelper.getDeviceId()) {
-            Log.e(
-                "KDE/LanLinkProvider",
+            LoggerTagged.e {
                 "Received a connection request for a device that isn't me: $targetDeviceId"
-            )
+            }
             return@withContext
         }
         if (targetProtocolVersion != null && targetProtocolVersion != DeviceHelper.PROTOCOL_VERSION) {
-            Log.e(
-                "KDE/LanLinkProvider",
+            LoggerTagged.e {
                 "Received a connection request for a protocol version that isn't mine: $targetProtocolVersion"
-            )
+            }
             return@withContext
         }
 
@@ -220,15 +212,12 @@ class LanLinkProvider(
         val address = packet.address
 
         if (!isPrivateAddress(address)) {
-            Log.i("LanLinkProvider", "Discarding UDP packet from a non-local IP")
+            LoggerTagged.i {  "Discarding UDP packet from a non-local IP" }
             return@withContext
         }
 
         if (rateLimitByIp(address)) {
-            Log.i(
-                "LanLinkProvider",
-                "Discarding second UDP packet from the same ip $address received too quickly"
-            )
+            LoggerTagged.i { "Discarding second UDP packet from the same ip $address received too quickly" }
             return@withContext
         }
 
@@ -238,14 +227,11 @@ class LanLinkProvider(
         val identityPacket = pair.first
         val deviceTrusted: Boolean = pair.second!!
 
-        Log.i(
-            "KDE/LanLinkProvider",
-            "Broadcast identity packet received from " + identityPacket.getString("deviceName")
-        )
+        LoggerTagged.i { "Broadcast identity packet received from " + identityPacket.getString("deviceName") }
 
         val tcpPort = identityPacket.getInt("tcpPort", MIN_PORT)
         if (tcpPort !in MIN_PORT..MAX_PORT) {
-            Log.e("LanLinkProvider", "TCP port outside of kdeconnect's range")
+            LoggerTagged.e { "TCP port outside of kdeconnect's range" }
             return@withContext
         }
 
@@ -270,7 +256,7 @@ class LanLinkProvider(
                 deviceTrusted
             )
         } catch (e: IOException) {
-            Log.e("LanLinkProvider", "Exception receiving incoming UDP connection", e)
+            LoggerTagged.e(e) { "Exception receiving incoming UDP connection" }
             if (socket != null) {
                 try {
                     socket.close()
@@ -278,7 +264,7 @@ class LanLinkProvider(
                 }
             }
         } catch (e: CertificateException) {
-            Log.e("LanLinkProvider", "Exception receiving incoming UDP connection", e)
+            LoggerTagged.e(e) { "Exception receiving incoming UDP connection" }
             if (socket != null) {
                 try {
                     socket.close()
@@ -286,7 +272,7 @@ class LanLinkProvider(
                 }
             }
         } catch (e: JSONException) {
-            Log.e("LanLinkProvider", "Exception receiving incoming UDP connection", e)
+            LoggerTagged.e(e) { "Exception receiving incoming UDP connection" }
             if (socket != null) {
                 try {
                     socket.close()
@@ -300,7 +286,7 @@ class LanLinkProvider(
         try {
             socket.keepAlive = true
         } catch (e: SocketException) {
-            Log.e("LanLink", "Exception", e)
+            LoggerTagged.e(e) { "Exception" }
         }
     }
 
@@ -327,25 +313,22 @@ class LanLinkProvider(
         val protocolVersion = identityPacket.getInt("protocolVersion")
 
         if (deviceTrusted && isProtocolDowngrade(deviceId, protocolVersion)) {
-            Log.w(
-                "KDE/LanLinkProvider",
+            LoggerTagged.w {
                 "Refusing to connect to a device using an older protocol version:$protocolVersion"
-            )
+            }
             return
         }
 
         if (deviceTrusted && device?.certificate == null) {
-            Log.e(
-                "KDE/LanLinkProvider",
+            LoggerTagged.e {
                 "Device trusted but no cert stored. This should not happen."
-            )
+            }
             return
         }
 
-        Log.i(
-            "KDE/LanLinkProvider",
+        LoggerTagged.i {
             "Starting SSL handshake with $deviceId trusted:$deviceTrusted"
-        )
+        }
 
         // If I'm the TCP server I will be the SSL client and vice-versa.
         val clientMode = (connectionStarted == ConnectionStarted.Locally)
@@ -368,25 +351,23 @@ class LanLinkProvider(
                         // Do not trust the identity packet we received unencrypted
                         secureIdentityPacket = unserialize(line)
                         if (!isValidIdentityPacket(secureIdentityPacket)) {
-                            Log.e("KDE/LanLinkProvider", "Identity packet isn't valid")
+                            LoggerTagged.e { "Identity packet isn't valid" }
                             sslSocket.close()
                             return@launch
                         }
                         val newProtocolVersion = secureIdentityPacket.getInt("protocolVersion")
                         if (newProtocolVersion != protocolVersion) {
-                            Log.e(
-                                "KDE/LanLinkProvider",
+                            LoggerTagged.e {
                                 "Protocol version changed half-way through the handshake: $protocolVersion -> $newProtocolVersion"
-                            )
+                            }
                             sslSocket.close()
                             return@launch
                         }
                         val newDeviceId = secureIdentityPacket.getString("deviceId")
                         if (newDeviceId != deviceId) {
-                            Log.e(
-                                "KDE/LanLinkProvider",
+                            LoggerTagged.e {
                                 "Device ID changed half-way through the handshake: $deviceId -> $newDeviceId"
-                            )
+                            }
                             sslSocket.close()
                             return@launch
                         }
@@ -395,27 +376,22 @@ class LanLinkProvider(
                     }
                     val certificate = event!!.peerCertificates[0]
                     val deviceInfo = fromIdentityPacketAndCert(secureIdentityPacket, certificate)
-                    Log.i(
-                        "KDE/LanLinkProvider",
+                    LoggerTagged.i {
                         "Handshake as " + mode + " successful with " + deviceInfo.name + " secured with " + event.cipherSuite
-                    )
+                    }
                     addOrUpdateLink(sslSocket, deviceInfo)
                 } catch (e: JSONException) {
-                    Log.e(
-                        "KDE/LanLinkProvider",
-                        "Remote device doesn't correctly implement protocol version 8",
-                        e
-                    )
+                    LoggerTagged.e(e) {
+                        "Remote device doesn't correctly implement protocol version 8"
+                    }
                     try {
                         sslSocket.close()
                     } catch (_: IOException) {
                     }
                 } catch (e: IOException) {
-                    Log.e(
-                        "KDE/LanLinkProvider",
-                        "Handshake as $mode failed with $deviceId",
-                        e
-                    )
+                    LoggerTagged.e(e) {
+                        "Handshake as $mode failed with $deviceId"
+                    }
                     try {
                         sslSocket.close()
                     } catch (_: IOException) {
@@ -425,9 +401,9 @@ class LanLinkProvider(
         }
 
         //Handshake is blocking, so do it on another thread and free this thread to keep receiving new connection
-        Log.d("LanLinkProvider", "Starting handshake")
+        LoggerTagged.d { "Starting handshake" }
         sslSocket.startHandshake()
-        Log.d("LanLinkProvider", "Handshake done")
+        LoggerTagged.d { "Handshake done" }
     }
 
     private fun isProtocolDowngrade(deviceId: String, protocolVersion: Int): Boolean {
@@ -448,19 +424,16 @@ class LanLinkProvider(
         var link = visibleDevices[deviceInfo.id]
         if (link != null) {
             if (!link.deviceInfo.certificate.contentEquals(deviceInfo.certificate)) {
-                Log.e(
-                    "LanLinkProvider",
-                    "LanLink was asked to replace a socket but the certificate doesn't match, aborting"
-                )
+                LoggerTagged.e { "LanLink was asked to replace a socket but the certificate doesn't match, aborting" }
                 return
             }
             // Update existing link
-            Log.d("KDE/LanLinkProvider", "Reusing same link for device " + deviceInfo.id)
+            LoggerTagged.d { "Reusing same link for device " + deviceInfo.id }
             link.reset(socket, deviceInfo)
             onDeviceInfoUpdated(deviceInfo)
         } else {
             // Create a new link
-            Log.d("KDE/LanLinkProvider", "Creating a new link for device " + deviceInfo.id)
+            LoggerTagged.d { "Creating a new link for device " + deviceInfo.id }
             link = LanLink(context, deviceInfo, this, socket, sslHelper)
             visibleDevices[deviceInfo.id] = link
             onConnectionReceived(link)
@@ -475,11 +448,7 @@ class LanLinkProvider(
             udpServer!!.bind(InetSocketAddress(UDP_PORT))
         } catch (e: SocketException) {
             // We ignore this exception and continue without being able to receive broadcasts instead of crashing the app.
-            Log.e(
-                "LanLinkProvider",
-                "Error binding udp server. We can send udp broadcasts but not receive them",
-                e
-            )
+            LoggerTagged.e(e) { "Error binding udp server. We can send udp broadcasts but not receive them" }
             if (udpServer != null) {
                 try {
                     udpServer!!.close()
@@ -490,7 +459,7 @@ class LanLinkProvider(
             return
         }
         scope?.launch {
-            Log.i("UdpListener", "Starting UDP listener")
+            LoggerTagged.i { "Starting UDP listener" }
             while (listening) {
                 try {
                     val packet = DatagramPacket(ByteArray(MAX_UDP_PACKET_SIZE), MAX_UDP_PACKET_SIZE)
@@ -499,19 +468,15 @@ class LanLinkProvider(
                         try {
                             udpPacketReceived(packet)
                         } catch (e: Exception) {
-                            Log.e(
-                                "LanLinkProvider",
-                                "Unhandled exception receiving incoming UDP connection",
-                                e
-                            )
+                            LoggerTagged.e(e) { "Unhandled exception receiving incoming UDP connection" }
                         }
                     }
                 } catch (e: IOException) {
-                    Log.e("LanLinkProvider", "UdpReceive exception", e)
+                    LoggerTagged.e(e) { "UdpReceive exception" }
                     onNetworkChange(null) // Trigger a UDP broadcast to try to get them to connect to us instead
                 }
             }
-            Log.w("UdpListener", "Stopping UDP listener")
+            LoggerTagged.w { "Stopping UDP listener" }
         }
     }
 
@@ -519,7 +484,7 @@ class LanLinkProvider(
         try {
             tcpServer = openServerSocketOnFreePort(MIN_PORT)
         } catch (e: IOException) {
-            Log.e("LanLinkProvider", "Error creating tcp server", e)
+            LoggerTagged.e(e) { "Error creating tcp server" }
             throw RuntimeException(e)
         }
         scope?.launch {
@@ -535,28 +500,20 @@ class LanLinkProvider(
                                 socket.close()
                             } catch (_: IOException) {
                             }
-                            Log.e(
-                                "LanLinkProvider",
-                                "Exception receiving incoming TCP connection",
-                                e
-                            )
+                            LoggerTagged.e(e) { "Exception receiving incoming TCP connection" }
                         } catch (e: CertificateException) {
                             try {
                                 socket.close()
                             } catch (_: IOException) {
                             }
-                            Log.e(
-                                "LanLinkProvider",
-                                "Exception receiving incoming TCP connection",
-                                e
-                            )
+                            LoggerTagged.e(e) { "Exception receiving incoming TCP connection" }
                         }
                     }
                 } catch (e: Exception) {
-                    Log.e("LanLinkProvider", "TcpReceive exception", e)
+                    LoggerTagged.e(e) { "TcpReceive exception" }
                 }
             }
-            Log.w("TcpListener", "Stopping TCP listener")
+            LoggerTagged.w { "Stopping TCP listener" }
         }
     }
 
@@ -566,7 +523,7 @@ class LanLinkProvider(
             if (trustedNetworkHelper.getIsTrustedNetwork()) {
                 hostList.add(DeviceHost.BROADCAST) //Default: broadcast.
             } else {
-                Log.i("LanLinkProvider", "Current network isn't trusted, not broadcasting")
+                LoggerTagged.i { "Current network isn't trusted, not broadcasting" }
             }
 
             val ipList = ArrayList<InetAddress>()
@@ -588,7 +545,7 @@ class LanLinkProvider(
     @WorkerThread
     suspend fun sendUdpIdentityPacket(ipList: MutableList<InetAddress>, network: Network?) = withContext(Dispatchers.IO) {
         if (tcpServer == null || !tcpServer!!.isBound) {
-            Log.i("LanLinkProvider", "Won't broadcast UDP packet if TCP socket is not ready yet")
+            LoggerTagged.i {  "Won't broadcast UDP packet if TCP socket is not ready yet" }
             return@withContext
         }
 
@@ -602,7 +559,7 @@ class LanLinkProvider(
         try {
             bytes = identity.serialize().toByteArray(UTF_8)
         } catch (e: JSONException) {
-            Log.e("KDE/LanLinkProvider", "Failed to serialize identity packet", e)
+            LoggerTagged.e(e) { "Failed to serialize identity packet" }
             return@withContext
         }
 
@@ -613,27 +570,21 @@ class LanLinkProvider(
                 try {
                     network.bindSocket(socket)
                 } catch (e: IOException) {
-                    Log.w("LanLinkProvider", "Couldn't bind socket to the network")
-                    e.printStackTrace()
+                    LoggerTagged.w(e) { "Couldn't bind socket to the network" }
                 }
             }
             socket.reuseAddress = true
             socket.broadcast = true
         } catch (e: SocketException) {
-            Log.e("KDE/LanLinkProvider", "Failed to create DatagramSocket", e)
+            LoggerTagged.e(e) { "Failed to create DatagramSocket" }
             return@withContext
         }
 
         for (ip in ipList) {
             try {
                 socket.send(DatagramPacket(bytes, bytes.size, ip, MIN_PORT))
-                //Log.i("KDE/LanLinkProvider","Udp identity packet sent to address "+client);
             } catch (e: IOException) {
-                Log.e(
-                    "KDE/LanLinkProvider",
-                    "Sending udp identity packet failed. Invalid address? ($ip)",
-                    e
-                )
+                LoggerTagged.e(e) { "Sending udp identity packet failed. Invalid address? ($ip)" }
             }
         }
 
@@ -660,7 +611,7 @@ class LanLinkProvider(
 
     override suspend fun onNetworkChange(network: Network?) {
         if (System.currentTimeMillis() < lastBroadcast + DELAY_BETWEEN_BROADCASTS) {
-            Log.i("LanLinkProvider", "onNetworkChange: relax cowboy")
+            LoggerTagged.i { "onNetworkChange: relax cowboy" }
             return
         }
         lastBroadcast = System.currentTimeMillis()
@@ -677,7 +628,6 @@ class LanLinkProvider(
     }
 
     override fun onStop() {
-        //Log.i("KDE/LanLinkProvider", "onStop");
         listening = false
 
         scope?.cancel()
@@ -690,12 +640,12 @@ class LanLinkProvider(
         try {
             tcpServer!!.close()
         } catch (e: Exception) {
-            Log.e("LanLink", "Exception", e)
+            LoggerTagged.e(e) { "Exception" }
         }
         try {
             udpServer!!.close()
         } catch (e: Exception) {
-            Log.e("LanLink", "Exception", e)
+            LoggerTagged.e(e) { "Exception" }
         }
     }
 
@@ -726,12 +676,12 @@ class LanLinkProvider(
             while (tcpPort <= MAX_PORT) {
                 try {
                     val candidateServer = ServerSocket(tcpPort)
-                    Log.i("KDE/LanLink", "Using port $tcpPort")
+                    LoggerTagged.i { "Using port $tcpPort" }
                     return candidateServer
                 } catch (e: IOException) {
                     tcpPort++
                     if (tcpPort == MAX_PORT) {
-                        Log.e("KDE/LanLink", "No ports available")
+                        LoggerTagged.e(e) { "No ports available" }
                         throw e //Propagate exception
                     }
                 }

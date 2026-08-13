@@ -10,13 +10,12 @@ import android.content.Context
 import android.net.Uri
 import android.provider.ContactsContract
 import android.provider.ContactsContract.PhoneLookup
-import android.util.Log
 import androidx.core.net.toUri
+import co.touchlab.kermit.Logger
 import kotlin.io.encoding.Base64
 import kotlin.text.Charsets.UTF_8
 
 object ContactsHelper {
-    const val LOG_TAG: String = "ContactsHelper"
 
     /**
      * Lookup the name and photoID of a contact given a phone number
@@ -59,7 +58,7 @@ object ContactsHelper {
                 input?.readBytes()?.let { Base64.encode(it) } ?: ""
             }
         } catch (ex: Exception) {
-            Log.e(LOG_TAG, ex.toString())
+            LoggerTagged.e { ex.toString() }
             ""
         }
     }
@@ -100,7 +99,7 @@ object ContactsHelper {
                         } else {
                             // Something went wrong with this contact
                             // If you are experiencing this, please open a bug report indicating how you got here
-                            Log.e(LOG_TAG, "Got a contact which does not have a LOOKUP_KEY")
+                            LoggerTagged.e { "Got a contact which does not have a LOOKUP_KEY" }
                             continue
                         }
 
@@ -137,17 +136,14 @@ object ContactsHelper {
             try {
                 context.contentResolver.openInputStream(vcardURI).use { input ->
                     if (input == null) {
-                        Log.w(
-                            "Contacts",
-                            "ContentResolver did not give us a stream for the VCard for uID $id"
-                        )
+                        LoggerTagged.w { "ContentResolver did not give us a stream for the VCard for uID $id" }
                         continue
                     }
                     toReturn.put(id, VCardBuilder(input.bufferedReader(UTF_8).readText()))
                 }
             } catch (e: Exception) {
                 // If you are experiencing this, please open a bug report indicating how you got here
-                Log.e("Contacts", "Exception while fetching vcards", e)
+                LoggerTagged.e(e) { "Exception while fetching vcards" }
             }
         }
 
@@ -210,10 +206,7 @@ object ContactsHelper {
         }
 
         if (databaseValue.size != 1) {
-            Log.w(
-                LOG_TAG,
-                "Received an improper number of return values from the database in getContactTimestamp: " + databaseValue.size
-            )
+            LoggerTagged.w { "Received an improper number of return values from the database in getContactTimestamp: " + databaseValue.size }
         }
 
         val timestamp = databaseValue[contactID]?.get(ContactsContract.Contacts.CONTACT_LAST_UPDATED_TIMESTAMP)?.toLong()
@@ -260,7 +253,7 @@ object ContactsHelper {
                         if (index == -1) {
                             // This contact didn't have the requested column? Something is very wrong.
                             // If you are experiencing this, please open a bug report indicating how you got here
-                            Log.e(LOG_TAG, "Got a contact which does not have a requested column")
+                            LoggerTagged.e { "Got a contact which does not have a requested column" }
                             continue
                         }
                         // Since we might be getting various kinds of data, Object is the best we can do

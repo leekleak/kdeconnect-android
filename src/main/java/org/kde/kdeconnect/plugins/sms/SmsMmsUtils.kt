@@ -18,7 +18,6 @@ import android.provider.Telephony
 import android.telephony.SmsManager
 import android.text.TextUtils
 import android.util.Base64
-import android.util.Log
 import com.android.mms.dom.smil.parser.SmilXmlSerializer
 import com.google.android.mms.ContentType
 import com.google.android.mms.InvalidHeaderValueException
@@ -37,11 +36,12 @@ import com.klinker.android.send_message.Message
 import com.klinker.android.send_message.Settings
 import com.klinker.android.send_message.Transaction
 import com.klinker.android.send_message.Utils
+import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.SMSHelper
 import org.kde.kdeconnect.helpers.TelephonyHelper
 import org.kde.kdeconnect.helpers.TelephonyHelper.LocalPhoneNumber
-import org.kde.kdeconnect.NetworkPacket
-import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -53,7 +53,6 @@ import kotlin.concurrent.thread
 import kotlin.math.abs
 
 object SmsMmsUtils {
-    private const val SENDING_MESSAGE = "Sending message"
 
     private fun getSendingPhoneNumber(context: Context, subscriptionID: Int): LocalPhoneNumber {
         val sendingPhoneNumber: LocalPhoneNumber
@@ -71,16 +70,17 @@ object SmsMmsUtils {
                 // The only more-correct thing we could do here is query the user (maybe in a
                 // persistent configuration) for their phone number(s).
                 sendingPhoneNumber = LocalPhoneNumber("dummy", subscriptionID)
-                Log.w(SENDING_MESSAGE, ("We do not know *any* phone numbers for this device. "
-                        + "Attempting to send a message without knowing the local phone number is likely "
-                        + "to result in strange behavior, such as the message being sent to yourself, "
-                        + "or might entirely fail to send (or be received).")
-                )
+                LoggerTagged.w {
+                    "We do not know *any* phone numbers for this device. " +
+                    "Attempting to send a message without knowing the local phone number is likely " +
+                    "to result in strange behavior, such as the message being sent to yourself, " +
+                    "or might entirely fail to send (or be received)."
+                }
             } else {
                 // Pick an arbitrary phone number
                 sendingPhoneNumber = allPhoneNumbers[0]
             }
-            Log.w(SENDING_MESSAGE, "Unable to determine correct outgoing address for sub ID $subscriptionID. Using $sendingPhoneNumber")
+            LoggerTagged.w { "Unable to determine correct outgoing address for sub ID $subscriptionID. Using $sendingPhoneNumber" }
         }
         return sendingPhoneNumber
     }
@@ -156,16 +156,16 @@ object SmsMmsUtils {
             // but sending SMS doesn't needs the app to be set as the default app.
             // This is the reason why there are separate branch handling for SMS and MMS.
             if (transaction.checkMMS(message)) {
-                Log.v(SENDING_MESSAGE, "Sending new MMS")
+                LoggerTagged.v { "Sending new MMS" }
                 sendMmsMessageNative(context, message, settings)
             } else {
-                Log.v(SENDING_MESSAGE, "Sending new SMS")
+                LoggerTagged.v { "Sending new SMS" }
                 transaction.sendNewMessage(message, Transaction.NO_THREAD_ID)
             }
             // TODO: Notify other end
         } catch (e: Exception) {
             // TODO: Notify other end
-            Log.e(SENDING_MESSAGE, "Exception", e)
+            LoggerTagged.e(e) { "Exception" }
         }
     }
 
@@ -220,7 +220,7 @@ object SmsMmsUtils {
                 writer.write(PduComposer(context, sendReq).make())
             }
         } catch (e: IOException) {
-            Log.e(SENDING_MESSAGE, "Error while writing temporary PDU file: ", e)
+            LoggerTagged.e(e) { "Error while writing temporary PDU file: " }
         }
 
         val mSmsManager = if (klinkerSettings.subscriptionId < 0) {
@@ -405,7 +405,7 @@ object SmsMmsUtils {
                 bitmap = BitmapFactory.decodeStream(inputStream)
             }
         } catch (e: IOException) {
-            Log.e("SmsMmsUtils", "Exception", e)
+            LoggerTagged.e(e) { "Exception" }
         }
 
         return bitmap
@@ -443,7 +443,7 @@ object SmsMmsUtils {
         val attachment = loadAttachment(context, partID)
         val size = attachment.size.toLong()
         if (size == 0L) {
-            Log.e("SmsMmsUtils", "Loaded attachment is empty.")
+            LoggerTagged.e { "Loaded attachment is empty." }
         }
 
         try {
@@ -477,7 +477,7 @@ object SmsMmsUtils {
     }
 
     private fun markAsRead(context: Context?, uri: Uri?, threadId: Long) {
-        Log.v("SMSPlugin", "marking thread with threadId $threadId as read at Uri$uri")
+        LoggerTagged.v { "marking thread with threadId $threadId as read at Uri$uri" }
 
         if (uri != null && context != null) {
             val values = ContentValues(2)

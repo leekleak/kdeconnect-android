@@ -10,41 +10,37 @@ import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
-import android.util.Log
+import org.kde.kdeconnect.helpers.LoggerTagged
 
 class KdeConnectBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        // Log.e("KdeConnect", "Broadcast event: "+intent.getAction());
-
-        val action = intent.action
-
-        when (action) {
+        when (intent.action) {
             Intent.ACTION_MY_PACKAGE_REPLACED -> {
-                Log.i("KdeConnect", "MyUpdateReceiver")
+                LoggerTagged.i { "MyUpdateReceiver" }
                 BackgroundService.start(context)
             }
 
             Intent.ACTION_BOOT_COMPLETED -> {
-                Log.i("KdeConnect", "KdeConnectBroadcastReceiver")
+                LoggerTagged.i { "KdeConnectBroadcastReceiver" }
                 try {
                     BackgroundService.start(context)
                 } catch (e: IllegalStateException) { // To catch ForegroundServiceStartNotAllowedException
-                    Log.w("BroadcastReceiver", "Couldn't start the foreground service.", e)
+                    LoggerTagged.w(e) { "Couldn't start the foreground service." }
                 }
             }
 
             WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION, WifiManager.WIFI_STATE_CHANGED_ACTION, ConnectivityManager.CONNECTIVITY_ACTION -> {
-                Log.i("KdeConnect", "Connection state changed, trying to connect")
+                LoggerTagged.i { "Connection state changed, trying to connect" }
                 BackgroundService.forceRefreshConnections(context)
             }
 
             Intent.ACTION_SCREEN_ON -> try {
                 BackgroundService.forceRefreshConnections(context)
             } catch (e: IllegalStateException) { // To catch ForegroundServiceStartNotAllowedException
-                Log.w("BroadcastReceiver", "Couldn't start the foreground service.", e)
+                LoggerTagged.w(e) { "Couldn't start the foreground service." }
             }
 
-            else -> Log.i("BroadcastReceiver", "Ignoring broadcast event: ${intent.action}")
+            else -> LoggerTagged.i { "Ignoring broadcast event: ${intent.action}" }
         }
     }
 }

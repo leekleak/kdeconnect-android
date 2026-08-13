@@ -13,7 +13,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.widget.Toast
 import androidx.annotation.WorkerThread
 import androidx.core.content.ContextCompat
@@ -31,6 +30,7 @@ import org.kde.kdeconnect.async.BackgroundJobHandler
 import org.kde.kdeconnect.async.BackgroundJobHandler.Companion.newFixedThreadPoolBackgroundJobHandler
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.FilesHelper.uriToNetworkPacket
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.ui.MainActivity
@@ -149,9 +149,9 @@ class SharePlugin(
                             )
                         )
                     } else {
-                        Log.d("SharePlugin", "Received update packet but CompositeUploadJob is not running")
+                        LoggerTagged.d { "Received update packet but CompositeUploadJob is not running" }
                     }
-                } ?: Log.d("SharePlugin", "Received update packet but CompositeUploadJob is null")
+                } ?: LoggerTagged.d { "Received update packet but CompositeUploadJob is null" }
 
                 return true
             }
@@ -159,16 +159,15 @@ class SharePlugin(
             if (np.has("filename")) {
                 receiveFile(np)
             } else if (np.has("text")) {
-                Log.i("SharePlugin", "hasText")
+                LoggerTagged.i { "hasText" }
                 receiveText(np)
             } else if (np.has("url")) {
                 receiveUrl(np)
             } else {
-                Log.e("SharePlugin", "Error: Nothing attached!")
+                LoggerTagged.e { "Error: Nothing attached!" }
             }
         } catch (e: Exception) {
-            Log.e("SharePlugin", "Exception")
-            e.printStackTrace()
+            LoggerTagged.e(e) { "Exception" }
         }
 
         return true
@@ -177,7 +176,7 @@ class SharePlugin(
     private fun receiveUrl(np: NetworkPacket) {
         val url = np.getString("url")
 
-        Log.i("SharePlugin", "hasUrl: $url")
+        LoggerTagged.i { "hasUrl: $url" }
 
         val intent = Intent(Intent.ACTION_VIEW, url.toUri()).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -249,7 +248,7 @@ class SharePlugin(
         }
         var text = intent.getStringExtra(Intent.EXTRA_TEXT)
         if (!text.isNullOrEmpty()) {
-            Log.i("SharePlugin", "Intent contains text to share")
+            LoggerTagged.i { "Intent contains text to share" }
 
             //Hack: Detect shared youtube videos, so we can open them in the browser instead of as text
             val subject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
@@ -271,12 +270,12 @@ class SharePlugin(
             np[if (isUrl) "url" else "text"] = text
             device.sendPacket(np)
         } else {
-            Log.e("SharePlugin", "There's nothing we know how to share")
+            LoggerTagged.e { "There's nothing we know how to share" }
         }
     }
 
     private fun streamsFromIntent(intent: Intent): List<Uri> {
-        Log.i("SharePlugin", "Intent contains streams to share")
+        LoggerTagged.i { "Intent contains streams to share" }
         val uriList = if (Intent.ACTION_SEND_MULTIPLE == intent.action) {
             val list = IntentCompat.getParcelableArrayListExtra(
                 intent,
@@ -292,7 +291,7 @@ class SharePlugin(
             )
         }
         if (uriList.isEmpty()) {
-            Log.w("SharePlugin", "All streams were null")
+            LoggerTagged.w { "All streams were null" }
         }
         return uriList
     }

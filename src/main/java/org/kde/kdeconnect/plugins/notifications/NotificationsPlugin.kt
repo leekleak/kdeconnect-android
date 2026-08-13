@@ -24,7 +24,6 @@ import android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS
 import android.service.notification.StatusBarNotification
 import android.text.SpannableString
 import android.text.TextUtils
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.createBitmap
 import kotlinx.coroutines.CoroutineScope
@@ -42,6 +41,7 @@ import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
 import org.kde.kdeconnect.helpers.AppsHelper.appNameLookup
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION
@@ -350,9 +350,9 @@ class NotificationsPlugin(
             val foreignIcon = foreignResources.getDrawable(notification.icon) // Might throw Resources.NotFoundException
             return drawableToBitmap(foreignIcon)
         } catch (e: PackageManager.NameNotFoundException) {
-            Log.e(TAG, "Package name not found", e)
+            LoggerTagged.e(e) { "Package name not found" }
         } catch (e: Resources.NotFoundException) {
-            Log.e(TAG, "Package not found", e)
+            LoggerTagged.e(e) { "Package not found" }
         }
         return null
     }
@@ -422,7 +422,7 @@ class NotificationsPlugin(
     private fun replyToNotification(id: String, message: String) {
         val repliableNotification = pendingIntents[id]
         if (repliableNotification == null) {
-            Log.e(TAG, "No such notification")
+            LoggerTagged.e { "No such notification" }
             return
         }
         val remoteInputs = arrayOfNulls<RemoteInput>(repliableNotification.remoteInputs.size)
@@ -439,7 +439,7 @@ class NotificationsPlugin(
         try {
             repliableNotification.pendingIntent.send(context, 0, localIntent)
         } catch (e: PendingIntent.CanceledException) {
-            Log.e(TAG, "replyToNotification error: " + e.message)
+            LoggerTagged.e { "replyToNotification error: " + e.message }
         }
         pendingIntents.remove(id)
     }
@@ -481,7 +481,7 @@ class NotificationsPlugin(
                 ticker = extraText
             }
         } catch (e: Exception) {
-            Log.e(TAG, "problem parsing notification extras for " + notification.tickerText, e)
+            LoggerTagged.e(e) { "problem parsing notification extras for " + notification.tickerText }
         }
 
         if (ticker.isEmpty()) {
@@ -527,7 +527,7 @@ class NotificationsPlugin(
                 try {
                     intent.send()
                 } catch (e: PendingIntent.CanceledException) {
-                    Log.e(TAG, "Triggering action failed", e)
+                    LoggerTagged.e(e) { "Triggering action failed" }
                 }
             }
         } else if (np.getBoolean("request")) {
@@ -558,8 +558,6 @@ class NotificationsPlugin(
         const val PACKET_TYPE_NOTIFICATION_ACTION = "kdeconnect.notification.action"
         const val NOTIFICATION_SYNC_DELAY_MS = 50L
 
-        private const val TAG = "KDE/NotificationsPlugin"
-
         private fun extractStringFromExtra(extras: Bundle, key: String): String? {
             val extra = extras.get(key)
             return when (extra) {
@@ -567,7 +565,7 @@ class NotificationsPlugin(
                 is String -> extra
                 is SpannableString -> extra.toString()
                 else -> {
-                    Log.e(TAG, "Don't know how to extract text from extra of type: " + extra.javaClass.getCanonicalName())
+                    LoggerTagged.e { "Don't know how to extract text from extra of type: " + extra.javaClass.getCanonicalName() }
                     null
                 }
             }

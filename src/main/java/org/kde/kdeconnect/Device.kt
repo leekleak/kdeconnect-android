@@ -8,7 +8,6 @@ package org.kde.kdeconnect
 import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Drawable
-import android.util.Log
 import androidx.annotation.WorkerThread
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,6 +31,7 @@ import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLink.PacketReceiver
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.DeviceSettings
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.Plugin.Companion.getPluginKey
@@ -128,13 +128,13 @@ class Device(
 
     /* This method is called after accepting pair request form GUI */
     suspend fun acceptPairing() {
-        Log.i("Device", "Accepted pair request started by the other device")
+        LoggerTagged.i { "Accepted pair request started by the other device" }
         pairingHandler.acceptPairing()
     }
 
     /* This method is called after rejecting pairing from GUI */
     suspend fun cancelPairing() {
-        Log.i("Device", "This side cancelled the pair request")
+        LoggerTagged.i { "This side cancelled the pair request" }
         pairingHandler.cancelPairing()
     }
 
@@ -149,7 +149,7 @@ class Device(
             }
 
             override fun pairingSuccessful() {
-                Log.i("Device", "pairing successful, adding to trusted devices list")
+                LoggerTagged.i { "pairing successful, adding to trusted devices list" }
 
                 jobScope.launch {
                     updateState {
@@ -171,7 +171,7 @@ class Device(
 
             override fun unpaired(device: Device) {
                 assert(device == this@Device)
-                Log.i("Device", "unpaired, removing from trusted devices list")
+                LoggerTagged.i { "unpaired, removing from trusted devices list" }
                 jobScope.launch {
                     updateState {
                         it.copy(
@@ -203,13 +203,12 @@ class Device(
         updateState { state ->
             val newLinks = state.links.minus(link)
 
-            Log.i("KDE/Device", "removeLink: ${link.linkProvider.name} -> $name active links: ${newLinks.size}")
+            LoggerTagged.i { "removeLink: ${link.linkProvider.name} -> $name active links: ${newLinks.size}" }
             state.copy(links = newLinks)
         }
     }
 
     suspend fun updateDeviceInfo(newDeviceInfo: DeviceInfo) {
-        Log.e("Updating device info", "${newDeviceInfo.name}: ${newDeviceInfo.protocolVersion}")
         val updatedSupportedPlugins: List<String> = PluginFactory.pluginsForCapabilities(
             newDeviceInfo.incomingCapabilities,
             newDeviceInfo.outgoingCapabilities
@@ -228,14 +227,13 @@ class Device(
                 supportedPlugins = updatedSupportedPlugins
             )
         }
-        Log.e("Updated device info", "${newDeviceInfo.name}: ${state.value.deviceInfo.protocolVersion}")
     }
 
     override suspend fun onPacketReceived(np: NetworkPacket): Unit = stateUpdateMutex.withLock {
         countReceived(deviceId, np.type)
 
         if (NetworkPacket.PACKET_TYPE_PAIR == np.type) {
-            Log.i("KDE/Device", "Pair packet")
+            LoggerTagged.i { "Pair packet" }
             pairingHandler.packetReceived(np)
             return
         }
@@ -258,7 +256,7 @@ class Device(
     private suspend fun notifyPluginPacketReceived(np: NetworkPacket) {
         val targetPlugins = state.value.pluginsByIncomingInterface[np.type] // Returns an empty collection if the key doesn't exist
         if (targetPlugins == null) {
-            Log.e("Device", "Ignoring packet with type ${np.type} because no plugin can handle it")
+            LoggerTagged.e { "Ignoring packet with type ${np.type} because no plugin can handle it" }
 
             // If there is a payload close it to not leak sockets
             np.payload?.close()
@@ -275,7 +273,7 @@ class Device(
                         plugin.onUnpairedDevicePacketReceived(np)
                     }
                 }.onFailure { e ->
-                    Log.e("Device", "Exception in ${plugin.pluginKey}'s onPacketReceived()", e)
+                    LoggerTagged.e(e) { "Exception in ${plugin.pluginKey}'s onPacketReceived()" }
                 }
             }
     }
@@ -293,7 +291,7 @@ class Device(
         }
 
         override fun onFailure(e: Throwable) {
-            Log.e("Device", "Send packet exception", e)
+            LoggerTagged.e(e) { "Send packet exception" }
         }
     }
 
@@ -314,7 +312,7 @@ class Device(
     ): Boolean {
         while (!isReachable) delay(200.milliseconds)
         if (!supportsPacketType(np.type)) {
-            Log.e("KDE/sendPacket", "Tried to send an unsupported packet type ${np.type} to: ${deviceInfo.name}")
+            LoggerTagged.e { "Tried to send an unsupported packet type ${np.type} to: ${deviceInfo.name}" }
             return false
         }
 
@@ -323,7 +321,7 @@ class Device(
             try {
                 link.sendPacket(np, callback)
             } catch (e: IOException) {
-                Log.w("KDE/sendPacket", "Failed to send packet", e)
+                LoggerTagged.w(e) { "Failed to send packet" }
                 false
             }.also { sent ->
                 countSent(deviceId, np.type, sent)
@@ -331,10 +329,9 @@ class Device(
         }
 
         if (!success) {
-            Log.e(
-                "KDE/sendPacket",
+            LoggerTagged.e {
                 "No device link (of ${currentLinks.size} available) could send the packet. Packet ${np.type} to ${deviceInfo.name} lost!"
-            )
+            }
         }
 
         return success
@@ -356,7 +353,7 @@ class Device(
 
     @WorkerThread
     fun reloadPluginsFromSettings(deviceState: DeviceState): DeviceState {
-        Log.i("Device", "${this@Device.deviceInfo.name}: reloading plugins")
+        LoggerTagged.i { "${this@Device.deviceInfo.name}: reloading plugins" }
         val newPluginsByIncomingInterface: MutableMap<String, MutableList<String>> = mutableMapOf()
         val deviceInfo = deviceState.deviceInfo
 
@@ -385,7 +382,7 @@ class Device(
             runCatching {
                 plugin.onDestroy()
             }.onFailure {
-                Log.e("KDE/removePlugin", "Exception calling onDestroy for plugin $pluginKey")
+                LoggerTagged.e(it) { "Exception calling onDestroy for plugin $pluginKey" }
             }
         }
 
@@ -393,7 +390,7 @@ class Device(
             runCatching {
                 plugin.onCreate()
             }.onFailure {
-                Log.e("KDE/addPlugin", "plugin failed to load $pluginKey", it)
+                LoggerTagged.e(it) { "plugin failed to load $pluginKey" }
             }
         }
 

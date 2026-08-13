@@ -7,7 +7,7 @@
 package org.kde.kdeconnect.backends.bluetooth
 
 import android.bluetooth.BluetoothSocket
-import android.util.Log
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.ThreadHelper.execute
 import java.io.Closeable
 import java.io.IOException
@@ -20,7 +20,7 @@ import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-class ConnectionMultiplexer(socket: BluetoothSocket) : Closeable {
+class ConnectionMultiplexer(private val socket: BluetoothSocket) : Closeable {
     private class ChannelInputStream(val channel: Channel) : InputStream(), Closeable {
         override fun available(): Int {
             return channel.available()
@@ -122,7 +122,7 @@ class ConnectionMultiplexer(socket: BluetoothSocket) : Closeable {
                     if (readBuffer.position() <= 0) {
                         try {
                             lockCondition.await()
-                        } catch (ignored: Exception) {
+                        } catch (_: Exception) {
                         }
                     }
                 }
@@ -178,14 +178,12 @@ class ConnectionMultiplexer(socket: BluetoothSocket) : Closeable {
         }
     }
 
-    private val socket: BluetoothSocket
     private val channels: MutableMap<UUID, Channel> = HashMap()
     private val channelsLock = ReentrantLock()
     private var open = true
     private var receivedProtocolVersion = false
 
     init {
-        this.socket = socket
         channels[DEFAULT_CHANNEL] = Channel(this, DEFAULT_CHANNEL)
         sendProtocolVersion()
         execute(ListenRunnable(socket))
@@ -203,7 +201,8 @@ class ConnectionMultiplexer(socket: BluetoothSocket) : Closeable {
         socket.outputStream.write(data)
     }
 
-    private fun handleException(ignored: Exception) {
+    private fun handleException(e: Exception) {
+        LoggerTagged.e(e) { "Handling exception" }
         channelsLock.withLock {
             open = false
             for (channel in channels.values) {
@@ -407,9 +406,9 @@ class ConnectionMultiplexer(socket: BluetoothSocket) : Closeable {
             val channelIdLeastSigBits = message.long
             val channelId = UUID(channelIdMostSigBits, channelIdLeastSigBits)
             if (!receivedProtocolVersion && type != MESSAGE_PROTOCOL_VERSION) {
-                Log.w("ConnectionMultiplexer", "Received invalid message '$message'")
-                Log.w("ConnectionMultiplexer", "'data_buffer:(" + byteArrayToHexString(data) + ") ")
-                Log.w("ConnectionMultiplexer", "as string: '$data' ")
+                LoggerTagged.w { "Received invalid message '$message'" }
+                LoggerTagged.w { "'data_buffer:(" + byteArrayToHexString(data) + ") " }
+                LoggerTagged.w { "as string: '${data.contentToString()}' " }
 
                 throw IOException("Did not receive protocol version message!")
             }
@@ -496,14 +495,14 @@ class ConnectionMultiplexer(socket: BluetoothSocket) : Closeable {
             while (true) {
                 channelsLock.withLock {
                     if (!open) {
-                        Log.w("ConnectionMultiplexer", "connection not open, returning")
+                        LoggerTagged.w { "connection not open, returning" }
                         return
                     }
                 }
                 try {
                     readMessage()
                 } catch (e: IOException) {
-                    Log.w("ConnectionMultiplexer", "run caught IOException", e)
+                    LoggerTagged.w(e) { "run caught IOException" }
                     handleException(e)
                     return
                 }

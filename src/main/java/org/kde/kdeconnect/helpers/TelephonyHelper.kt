@@ -10,11 +10,10 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Telephony
 import android.telephony.SubscriptionManager
-import android.util.Log
 import androidx.core.content.ContextCompat
+import co.touchlab.kermit.Logger
 
 object TelephonyHelper {
-    const val LOGGING_TAG: String = "TelephonyHelper"
 
     /**
      * Try to get the phone number currently active on the phone
@@ -32,13 +31,13 @@ object TelephonyHelper {
         val subscriptionManager = ContextCompat.getSystemService(context, SubscriptionManager::class.java)
         if (subscriptionManager == null) {
             // I don't know why or when this happens...
-            Log.w(LOGGING_TAG, "Could not get SubscriptionManager")
+            LoggerTagged.w { "Could not get SubscriptionManager" }
             return mutableListOf()
         }
         val subscriptionInfos = subscriptionManager.activeSubscriptionInfoList
         if (subscriptionInfos == null) {
             // This happens when there is no SIM card inserted
-            Log.w(LOGGING_TAG, "Could not get SubscriptionInfos")
+            LoggerTagged.w { "Could not get SubscriptionInfos" }
             return mutableListOf()
         }
         val phoneNumbers: MutableList<LocalPhoneNumber> = mutableListOf()
@@ -124,7 +123,7 @@ object TelephonyHelper {
                 }
             }
         } catch (e: Exception) {
-            Log.e(LOGGING_TAG, "Error encountered while trying to read APNs", e)
+            LoggerTagged.e(e) { "Error encountered while trying to read APNs" }
         }
 
         return null

@@ -7,12 +7,12 @@ package org.kde.kdeconnect.ui
 
 import android.app.Application
 import android.os.Build
-import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import com.google.android.material.color.DynamicColors
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.datastore.SettingsDataStore
+import org.kde.kdeconnect.helpers.LoggerTagged
 
 /**
  * Utilities for working with android [Themes][android.content.res.Resources.Theme].
@@ -32,9 +32,9 @@ class ThemeUtil(private val dataStore: SettingsDataStore) {
 
             else -> {
                 if (themePref == AppTheme.Default) {
-                    Log.d("ThemeUtil", "Theme preference not set, using system default.")
+                    LoggerTagged.d { "Theme preference not set, using system default." }
                 } else {
-                    Log.w("ThemeUtil", "Unknown theme preference: $themePref, falling back to system default.")
+                    LoggerTagged.w { "Unknown theme preference: $themePref, falling back to system default." }
                 }
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

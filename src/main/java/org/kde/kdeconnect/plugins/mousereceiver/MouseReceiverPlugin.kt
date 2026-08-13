@@ -8,9 +8,9 @@ package org.kde.kdeconnect.plugins.mousereceiver
 import android.content.Context
 import android.os.Build
 import android.provider.Settings
-import android.util.Log
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
@@ -30,7 +30,7 @@ class MouseReceiverPlugin(
 
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         if (np.type != PACKET_TYPE_MOUSEPAD_REQUEST) {
-            Log.e("MouseReceiverPlugin", "Invalid packet type for MouseReceiverPlugin: ${np.type}")
+            LoggerTagged.e { "Invalid packet type for MouseReceiverPlugin: ${np.type}" }
             return false
         }
 
@@ -63,15 +63,15 @@ class MouseReceiverPlugin(
             // Perform click
             return when {
                 isSingleClick -> {
-                    // Log.i("MouseReceiverPlugin", "singleClick")
+                    // LoggerTagged.i { "MouseReceiverPlugin", "singleClick")
                     MouseReceiverService.click()
                 }
                 isDoubleClick -> { // left & right
-                    // Log.i("MouseReceiverPlugin", "doubleClick")
+                    // LoggerTagged.i { "MouseReceiverPlugin", "doubleClick")
                     MouseReceiverService.recentButton()
                 }
                 isMiddleClick -> {
-                    // Log.i("MouseReceiverPlugin", "middleClick")
+                    // LoggerTagged.i { "MouseReceiverPlugin", "middleClick")
                     MouseReceiverService.homeButton()
                 }
                 isRightClick -> {
@@ -86,14 +86,14 @@ class MouseReceiverPlugin(
                 }
                 isSingleHold -> {
                     // For drag'n drop
-                    // Log.i("MouseReceiverPlugin", "singleHold")
+                    // LoggerTagged.i { "MouseReceiverPlugin", "singleHold")
                     MouseReceiverService.longClickSwipe()
                 }
                 isSingleRelease -> {
                     MouseReceiverService.instance?.stopSwipe() ?: false
                 }
                 isScroll -> {
-                    // Log.i("MouseReceiverPlugin", "scroll dx: $dx dy: $dy")
+                    // LoggerTagged.i { "MouseReceiverPlugin", "scroll dx: $dx dy: $dy")
                     MouseReceiverService.scroll(dy) // dx is always 0
                 }
                 else -> false
@@ -101,7 +101,7 @@ class MouseReceiverPlugin(
         } else {
             // Mouse Move
             if (dx != 0 || dy != 0) {
-                // Log.i("MouseReceiverPlugin", "move Mouse dx: $dx dy: $dy")
+                // LoggerTagged.i { "MouseReceiverPlugin", "move Mouse dx: $dx dy: $dy")
                 return MouseReceiverService.move(dx, dy)
             } else if (x != 0 || y != 0) {
                 return MouseReceiverService.setPos(x, y)

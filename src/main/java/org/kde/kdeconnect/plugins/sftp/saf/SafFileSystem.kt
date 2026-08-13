@@ -7,9 +7,9 @@ package org.kde.kdeconnect.plugins.sftp.saf
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.documentfile.provider.DocumentFile
 import org.apache.sshd.common.file.util.BaseFileSystem
+import org.kde.kdeconnect.helpers.LoggerTagged
 import java.nio.file.attribute.UserPrincipalLookupService
 import java.nio.file.spi.FileSystemProvider
 
@@ -48,7 +48,7 @@ class SafFileSystem(
     }
 
     override fun create(root: String?, names: List<String>): SafPath {
-        Log.v(TAG, "create: $root, $names")
+        LoggerTagged.v { "create: $root, $names" }
         if ((root == "/") && names.isEmpty()) {
             return SafPath.newRootPath(this)
         }
@@ -70,9 +70,5 @@ class SafFileSystem(
         }
 
         return SafPath(this, null, root, names)
-    }
-
-    companion object {
-        private const val TAG = "SafFileSystem"
     }
 }

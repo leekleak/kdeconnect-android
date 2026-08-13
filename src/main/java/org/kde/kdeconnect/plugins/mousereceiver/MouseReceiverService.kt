@@ -15,7 +15,6 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.DisplayMetrics
-import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
@@ -23,6 +22,7 @@ import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.ImageView
 import androidx.core.content.ContextCompat
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.inputdevicesreceiver.InputDevicesReceiverPlugin
 import org.kde.kdeconnect_tp.R
 import java.lang.ref.WeakReference
@@ -40,7 +40,7 @@ class MouseReceiverService : AccessibilityService() {
 
     override fun onCreate() {
         instanceRef = WeakReference(this)
-        Log.i("MouseReceiverService", "created")
+        LoggerTagged.i { "created" }
     }
 
     override fun onServiceConnected() {
@@ -74,7 +74,7 @@ class MouseReceiverService : AccessibilityService() {
 
         hideRunnable = Runnable {
             cursorView.visibility = View.GONE
-            Log.i("MouseReceiverService", "Hiding pointer due to inactivity")
+            LoggerTagged.i { "Hiding pointer due to inactivity" }
         }
 
         cursorView.visibility = View.GONE
@@ -119,7 +119,7 @@ class MouseReceiverService : AccessibilityService() {
         InputDevicesReceiverPlugin.Cursor.y = this.y
 
         runHandler.post {
-            // Log.i("MouseReceiverService", "performing move");
+            // LoggerTagged.i { "MouseReceiverService", "performing move");
             try {
                 windowManager!!.updateViewLayout(
                     cursorView,
@@ -242,7 +242,7 @@ class MouseReceiverService : AccessibilityService() {
         fun click(): Boolean {
             val service = instance ?: return false
 
-            // Log.i("MouseReceiverService", "x: " + instance.getX() + " y:" + instance.getY());
+            // LoggerTagged.i { "MouseReceiverService", "x: " + instance.getX() + " y:" + instance.getY());
             if (service.isSwiping) {
                 return service.stopSwipe()
             }

@@ -5,7 +5,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.util.Log
 import androidx.media3.session.MediaSession
 import coil3.BitmapImage
 import coil3.ImageLoader
@@ -23,6 +22,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import java.io.ByteArrayOutputStream
@@ -48,7 +48,7 @@ class MprisMediaSession(
 
     @SuppressLint("UnsafeOptInUsageError")
     fun onCreate(context: Context, plugin: MprisPlugin, deviceId: String) {
-        Log.d(TAG, "onCreate for device $deviceId")
+        LoggerTagged.d { "onCreate for device $deviceId" }
         if (currentPlugin == plugin) return
         collectionJob?.cancel()
         currentPlugin = plugin
@@ -139,9 +139,5 @@ class MprisMediaSession(
         _mediaSession.value?.release()
         _mediaSession.value = null
         currentPlugin = null
-    }
-    
-    companion object {
-        const val TAG = "MprisMediaSession"
     }
 }

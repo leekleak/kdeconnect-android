@@ -5,8 +5,8 @@
 */
 package org.kde.kdeconnect
 
-import android.util.Log
 import androidx.annotation.VisibleForTesting
+import org.kde.kdeconnect.helpers.LoggerTagged
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.atomics.AtomicLong
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
@@ -55,7 +55,7 @@ object DeviceStats {
     private fun cleanupIfNeeded() {
         val cutoutTimestamp = System.currentTimeMillis() - EVENT_KEEP_WINDOW_MILLIS
         if (System.currentTimeMillis() > nextCleanup.load()) {
-            Log.i("PacketStats", "Doing periodic cleanup")
+            LoggerTagged.i { "Doing periodic cleanup" }
             for (de in eventsByDevice.values) {
                 removeOldEvents(de.receivedByType, cutoutTimestamp)
                 removeOldEvents(de.sentFailedByType, cutoutTimestamp)

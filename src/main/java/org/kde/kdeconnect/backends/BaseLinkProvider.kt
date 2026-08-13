@@ -37,7 +37,7 @@ abstract class BaseLinkProvider {
      */
     @WorkerThread
     protected suspend fun onConnectionReceived(link: BaseLink) {
-        //Log.i("KDE/LinkProvider", "onConnectionReceived");
+        //LoggerTagged.i { "KDE/LinkProvider", "onConnectionReceived");
         for (cr in connectionReceivers) {
             cr.onConnectionReceived(link)
         }
@@ -48,7 +48,7 @@ abstract class BaseLinkProvider {
      */
     @WorkerThread
     open suspend fun onConnectionLost(link: BaseLink) {
-        //Log.i("KDE/LinkProvider", "connectionLost");
+        //LoggerTagged.i { "KDE/LinkProvider", "connectionLost");
         for (cr in connectionReceivers) {
             cr.onConnectionLost(link)
         }

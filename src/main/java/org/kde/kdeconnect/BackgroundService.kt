@@ -20,7 +20,6 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
 import android.os.IBinder
-import android.util.Log
 import androidx.annotation.MainThread
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -35,6 +34,7 @@ import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.backends.BaseLinkProvider.ConnectionReceiver
 import org.kde.kdeconnect.backends.bluetooth.BluetoothLinkProvider
 import org.kde.kdeconnect.backends.lan.LanLinkProvider
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.helpers.PermissionHelper
 import org.kde.kdeconnect.plugins.clipboard.ClipboardFloatingActivity
@@ -43,7 +43,6 @@ import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect_tp.R
 import org.koin.android.ext.android.get
 import org.koin.android.ext.android.inject
-import org.koin.core.parameter.parametersOf
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
@@ -77,10 +76,10 @@ class BackgroundService : Service() {
     @OptIn(ExperimentalAtomicApi::class)
     suspend fun onNetworkChange(network: Network?) {
         if (!initialized.load()) {
-            Log.d(LOG_TAG, "ignoring onNetworkChange called before the service is initialized")
+            LoggerTagged.d { "ignoring onNetworkChange called before the service is initialized" }
             return
         }
-        Log.d(LOG_TAG, "onNetworkChange")
+        LoggerTagged.d { "onNetworkChange" }
         for (linkProvider in linkProviders) {
             linkProvider.onNetworkChange(network)
         }
@@ -96,7 +95,7 @@ class BackgroundService : Service() {
     @MainThread
     override fun onCreate() {
         super.onCreate()
-        Log.d("KdeConnect/BgService", "onCreate")
+        LoggerTagged.d { "onCreate" }
         instance = this
 
         serviceScope.launch {
@@ -120,13 +119,13 @@ class BackgroundService : Service() {
 
             // All callbacks runs on a dedicated thread that isn't the main thread
             override fun onAvailable(network: Network) {
-                Log.i("BackgroundService", "Valid network available")
+                LoggerTagged.i { "Valid network available" }
                 data.setConnected(true)
                 runBlocking { onNetworkChange(network) }
             }
 
             override fun onLost(network: Network) {
-                Log.i("BackgroundService", "Valid network lost")
+                LoggerTagged.i { "Valid network lost" }
                 data.setConnected(false)
             }
         })
@@ -188,7 +187,7 @@ class BackgroundService : Service() {
     }
 
     override fun onDestroy() {
-        Log.d("KdeConnect/BgService", "onDestroy")
+        LoggerTagged.d { "onDestroy" }
         initialized.store(false)
         for (linkProvider in linkProviders) {
             linkProvider.onStop()
@@ -200,10 +199,10 @@ class BackgroundService : Service() {
     override fun onBind(intent: Intent): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(LOG_TAG, "onStartCommand")
+        LoggerTagged.d { "onStartCommand" }
 
         if (!PermissionHelper.hasRequiredPermissions(this)) {
-            Log.w(LOG_TAG, "BackgroundService started without required permissions, stopping")
+            LoggerTagged.w { "BackgroundService started without required permissions, stopping" }
             stopSelf()
             return START_NOT_STICKY
         }
@@ -212,7 +211,7 @@ class BackgroundService : Service() {
             try {
                 startForeground(FOREGROUND_NOTIFICATION_ID, createForegroundNotification(emptyMap()), ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE)
             } catch (e: IllegalStateException) { // To catch ForegroundServiceStartNotAllowedException
-                Log.w("BackgroundService", "Couldn't startForeground", e)
+                LoggerTagged.w(e) { "Couldn't startForeground" }
                 return START_STICKY
             }
         }
@@ -226,8 +225,6 @@ class BackgroundService : Service() {
     }
 
     companion object {
-        const val LOG_TAG = "KDE/BackgroundService"
-
         const val UPDATE_IMMUTABLE_FLAGS = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         private const val FOREGROUND_NOTIFICATION_ID = 1
 
@@ -254,9 +251,9 @@ class BackgroundService : Service() {
         }
 
         fun start(context: Context) {
-            Log.d(LOG_TAG, "Start")
+            LoggerTagged.d { "Start" }
             if (!PermissionHelper.hasRequiredPermissions(context)) {
-                Log.w(LOG_TAG, "Skipping start because required permissions are not granted")
+                LoggerTagged.w { "Skipping start because required permissions are not granted" }
                 return
             }
             val intent = Intent(context, BackgroundService::class.java)
@@ -265,9 +262,9 @@ class BackgroundService : Service() {
 
         @JvmStatic
         fun forceRefreshConnections(context: Context) {
-            Log.d(LOG_TAG, "ForceRefreshConnections")
+            LoggerTagged.d { "ForceRefreshConnections" }
             if (!PermissionHelper.hasRequiredPermissions(context)) {
-                Log.w(LOG_TAG, "Skipping forceRefreshConnections because required permissions are not granted")
+                LoggerTagged.w { "Skipping forceRefreshConnections because required permissions are not granted" }
                 return
             }
             val intent = Intent(context, BackgroundService::class.java)

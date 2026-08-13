@@ -8,8 +8,8 @@ package org.kde.kdeconnect.plugins.sftp
 
 import android.content.Context
 import android.os.Build
-import android.util.Log
 import androidx.core.net.toUri
+import co.touchlab.kermit.Logger
 import org.apache.sshd.common.file.nativefs.NativeFileSystemFactory
 import org.apache.sshd.common.keyprovider.AbstractKeyPairProvider
 import org.apache.sshd.common.session.SessionContext
@@ -27,6 +27,7 @@ import org.apache.sshd.sftp.server.SftpFileSystemAccessor
 import org.apache.sshd.sftp.server.SftpSubsystemFactory
 import org.apache.sshd.sftp.server.SftpSubsystemProxy
 import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.MediaStoreHelper
 import org.kde.kdeconnect.helpers.RandomHelper
 import org.kde.kdeconnect.helpers.security.EcHelper
@@ -112,8 +113,8 @@ internal class SimpleSftpServer {
                             MediaStoreHelper.indexFile(context, uri)
                             uri
                         }.fold(
-                            onSuccess = { Log.i(TAG, "Notified media store: $path, $it") },
-                            onFailure = { Log.w(TAG, "Failed to notify media store: $path", it) }
+                            onSuccess = { LoggerTagged.i { "Notified media store: $path, $it" } },
+                            onFailure = { LoggerTagged.w(it) { "Failed to notify media store: $path" } }
                         )
                     }
 
@@ -208,11 +209,11 @@ internal class SimpleSftpServer {
 
                 return true
             } catch (e: IOException) {
-                Log.w("SftpServer", "Failed to start server on port $port, trying next port", e)
+                LoggerTagged.w(e) { "Failed to start server on port $port, trying next port" }
             }
         }
 
-        Log.e("SftpServer", "No more ports available")
+        LoggerTagged.e { "No more ports available" }
         return false
     }
 
@@ -222,7 +223,7 @@ internal class SimpleSftpServer {
         try {
             sshd.stop(true)
         } catch (e: Exception) {
-            Log.e("SFTP", "Exception while stopping the server", e)
+            LoggerTagged.e(e) { "Exception while stopping the server" }
         }
     }
 
@@ -258,8 +259,6 @@ internal class SimpleSftpServer {
     }
 
     companion object {
-        private const val TAG = "SimpleSftpServer"
-
         val SUPPORTS_NATIVEFS = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
 
         private val PORT_RANGE = 1739..1764

@@ -5,9 +5,8 @@
 */
 package org.kde.kdeconnect.plugins
 
-import android.content.Context
-import android.util.Log
 import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.battery.BatteryPluginInfo
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPluginInfo
 import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityReportPluginInfo
@@ -32,10 +31,6 @@ import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePluginInfo
 import org.kde.kdeconnect.plugins.telephony.TelephonyPluginInfo
 
 object PluginFactory {
-    fun sortPluginList(context: Context, plugins: List<String>): List<String> {
-        return plugins.sortedBy { getPluginInfo(it).getDisplayName(context) }
-    }
-
     private val pluginInfo: Map<String, PluginInfo> = mapOf(
         TelephonyPluginInfo.pluginKey to TelephonyPluginInfo,
         BatteryPluginInfo.pluginKey to BatteryPluginInfo,
@@ -83,7 +78,7 @@ object PluginFactory {
         val (used, unused) = pluginInfo.entries.partition { hasCommonCapabilities(it.value) }
 
         for (pluginId in unused.map { it.key }) {
-            Log.d("PluginFactory", "Won't load $pluginId because of unmatched capabilities")
+            LoggerTagged.d { "Won't load $pluginId because of unmatched capabilities" }
         }
 
         return used.map { it.key }.toSet()

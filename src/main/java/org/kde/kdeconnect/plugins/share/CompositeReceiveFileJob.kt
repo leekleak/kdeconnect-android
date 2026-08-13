@@ -13,7 +13,6 @@ import android.content.Intent
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
-import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
@@ -28,6 +27,7 @@ import org.kde.kdeconnect.async.BackgroundJob
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.FilesHelper.findValidNonExistingFileName
 import org.kde.kdeconnect.helpers.FilesHelper.getMimeTypeFromFile
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.MediaStoreHelper.indexFile
 import org.kde.kdeconnect_tp.R
 import java.io.BufferedOutputStream
@@ -186,7 +186,7 @@ class CompositeReceiveFileJob(
                             )
                         }
                     } catch (e: Exception) {
-                        Log.e("SharePlugin", "Can't set date on file")
+                        LoggerTagged.e { "Can't set date on file" }
                         e.printStackTrace()
                     }
                 }
@@ -246,7 +246,7 @@ class CompositeReceiveFileJob(
         } catch (e: Exception) {
             isRunning.set(false)
 
-            Log.e("Shareplugin", "Error receiving file", e)
+            LoggerTagged.e(e) { "Error receiving file" }
 
             val failedFiles: Int = (totalNumFiles.load() - currentFileNum + 1)
 
@@ -300,16 +300,13 @@ class CompositeReceiveFileJob(
             return treeDocumentFile
         } else {
             //Maybe permission was revoked
-            Log.w(
-                "SharePlugin",
-                "Share destination is not writable, falling back to default path."
-            )
+            LoggerTagged.w { "Share destination is not writable, falling back to default path." }
         }
         val defaultDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         try {
             defaultDir.mkdirs()
         } catch (e: Exception) {
-            Log.e("KDEConnect", "Exception", e)
+            LoggerTagged.e(e) { "Exception" }
         }
         return DocumentFile.fromFile(defaultDir)
     }
@@ -365,7 +362,7 @@ class CompositeReceiveFileJob(
 
     private suspend fun publishFile(fileDocument: DocumentFile, size: Long) {
         if (settingsDataStore.isFileDestinationDefault.first()) {
-            Log.i("SharePlugin", "Adding to downloads")
+            LoggerTagged.i { "Adding to downloads" }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 val contentValues = ContentValues()
                 contentValues.put(MediaStore.Downloads.TITLE, fileDocument.uri.lastPathSegment)
@@ -391,7 +388,7 @@ class CompositeReceiveFileJob(
             }
         } else {
             //Make sure it is added to the Android Gallery anyway
-            Log.i("SharePlugin", "Adding to gallery")
+            LoggerTagged.i { "Adding to gallery" }
             indexFile(context, fileDocument.uri)
         }
     }

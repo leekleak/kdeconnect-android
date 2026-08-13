@@ -7,11 +7,10 @@ package org.kde.kdeconnect.backends.lan
 
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
-import android.util.Log
+import org.kde.kdeconnect.helpers.LoggerTagged
 import java.util.LinkedList
 
 class NsdResolveQueue {
-    val LOG_TAG: String = "NsdResolveQueue"
 
     private val nsdManager: NsdManager
     private val lock: Any
@@ -28,7 +27,7 @@ class NsdResolveQueue {
     fun resolveOrEnqueue(serviceInfo: NsdServiceInfo, listener: NsdManager.ResolveListener) {
         synchronized(lock) {
             if (resolveRequests.any { r -> serviceInfo.serviceName == r.serviceInfo.serviceName }) {
-                Log.i(LOG_TAG, "Not enqueuing a new resolve request for the same service: " + serviceInfo.serviceName)
+                LoggerTagged.i { "Not enqueuing a new resolve request for the same service: " + serviceInfo.serviceName }
                 return
             }
             resolveRequests.addLast(PendingResolve(serviceInfo, ListenerWrapper(listener)))

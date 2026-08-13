@@ -10,7 +10,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.KeyEvent
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -34,7 +33,6 @@ import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
-import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -45,11 +43,10 @@ import org.kde.kdeconnect.BackgroundService
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.DeviceHelper
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.mousepad.MousePadViewModel
 import org.kde.kdeconnect.plugins.mpris.MprisViewModel
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
-import org.kde.kdeconnect.ui.KdeTheme
-import org.kde.kdeconnect.ui.LocalHazeState
 import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.DigitizerKey
 import org.kde.kdeconnect.ui.navigation.HomeKey
@@ -211,7 +208,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
     var shareGetResultCallback: ((List<Uri>) -> Unit)? = null
     val shareGetResult = registerForActivityResult(GetMultipleContents()) { uris: List<Uri> ->
             if (uris.isEmpty()) {
-                Log.w("SendFileActivity", "No files to send?")
+                LoggerTagged.w { "No files to send?" }
             } else {
                 shareGetResultCallback?.invoke(uris)
             }

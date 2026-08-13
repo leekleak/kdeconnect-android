@@ -5,7 +5,6 @@
  */
 package org.kde.kdeconnect
 
-import android.util.Log
 import androidx.annotation.VisibleForTesting
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -15,6 +14,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.bouncycastle.util.Arrays
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect_tp.R
 import java.security.MessageDigest
 import java.security.cert.Certificate
@@ -59,15 +59,12 @@ class PairingHandler(
             when (state) {
                 PairState.Requested -> pairingDone()
                 PairState.RequestedByPeer -> {
-                    Log.w(
-                        "PairingHandler",
-                        "Ignoring second pairing request before the first one timed out"
-                    )
+                    LoggerTagged.w { "Ignoring second pairing request before the first one timed out" }
                 }
 
                 PairState.Paired, PairState.NotPaired -> {
                     if (state == PairState.Paired) {
-                        Log.w("PairingHandler", "Received pairing request from a device we already trusted.")
+                        LoggerTagged.w { "Received pairing request from a device we already trusted." }
                         // It would be nice to auto-accept the pairing request here, but since the pairing accept and pairing request
                         // messages are identical, this could create an infinite loop if both devices are "accepting" each other pairs.
                         // Instead, unpair and handle as if "NotPaired". TODO: No longer true in protocol version 8
@@ -94,7 +91,7 @@ class PairingHandler(
 
                     pairingScope.launch {
                         delay(25.seconds)
-                        Log.w("PairingHandler", "Unpairing (timeout after we started pairing)")
+                        LoggerTagged.w { "Unpairing (timeout after we started pairing)" }
                         updateState(PairState.NotPaired)
                         callback.pairingFailed(R.string.error_timed_out)
                     } // Time to show notification, waiting for user to accept (peer will timeout in 30 seconds)
@@ -103,9 +100,9 @@ class PairingHandler(
                 }
             }
         } else {
-            Log.i("PairingHandler", "Unpair request received")
+            LoggerTagged.i { "Unpair request received" }
             when (state) {
-                PairState.NotPaired -> Log.i("PairingHandler", "Ignoring unpair request for already unpaired device")
+                PairState.NotPaired -> LoggerTagged.i { "Ignoring unpair request for already unpaired device" }
                 // Requested: We started pairing and got rejected
                 // RequestedByPeer: They stared pairing, then cancelled
                 PairState.Requested, PairState.RequestedByPeer -> {
@@ -125,13 +122,13 @@ class PairingHandler(
         cancelTimer()
 
         if (state == PairState.Paired) {
-            Log.w("PairingHandler", "requestPairing was called on an already paired device")
+            LoggerTagged.w { "requestPairing was called on an already paired device" }
             callback.pairingFailed(R.string.error_already_paired)
             return
         }
 
         if (state == PairState.RequestedByPeer) {
-            Log.w("PairingHandler", "Pairing already started by the other end, accepting their request.")
+            LoggerTagged.w { "Pairing already started by the other end, accepting their request." }
             acceptPairing()
             return
         }
@@ -146,7 +143,7 @@ class PairingHandler(
 
         pairingScope.launch {
             delay(30.seconds)
-            Log.w("PairingHandler", "Unpairing (timeout after receiving pair request)")
+            LoggerTagged.w { "Unpairing (timeout after receiving pair request)" }
             updateState(PairState.NotPaired)
             callback.pairingFailed(R.string.error_timed_out)
         } // Time to wait for the other to accept
@@ -156,7 +153,7 @@ class PairingHandler(
 
             override fun onFailure(e: Throwable) {
                 cancelTimer()
-                Log.e("PairingHandler", "Exception sending pairing request", e)
+                LoggerTagged.e(e) { "Exception sending pairing request" }
                 updateState(PairState.NotPaired)
                 callback.pairingFailed(R.string.runcommand_notreachable)
             }
@@ -175,7 +172,7 @@ class PairingHandler(
             }
 
             override fun onFailure(e: Throwable) {
-                Log.e("PairingHandler", "Exception sending accept pairing packet", e)
+                LoggerTagged.e(e) { "Exception sending accept pairing packet" }
                 updateState(PairState.NotPaired)
                 callback.pairingFailed(R.string.error_not_reachable)
             }
@@ -196,12 +193,12 @@ class PairingHandler(
 
     @VisibleForTesting
     fun pairingDone() {
-        Log.i("PairingHandler", "Pairing done")
+        LoggerTagged.i { "Pairing done" }
         updateState(PairState.Paired)
         runCatching {
             callback.pairingSuccessful()
         }.onFailure { e ->
-            Log.e("PairingHandler", "Exception in pairingSuccessful callback, unpairing", e)
+            LoggerTagged.e(e) { "Exception in pairingSuccessful callback, unpairing" }
             updateState(PairState.NotPaired)
         }
     }

@@ -21,7 +21,6 @@ import android.telephony.PhoneNumberUtils
 import android.telephony.SmsMessage
 import androidx.annotation.WorkerThread
 import androidx.core.content.ContextCompat
-import com.klinker.android.logger.Log
 import com.klinker.android.send_message.Transaction
 import kotlinx.coroutines.launch
 import org.json.JSONArray
@@ -31,6 +30,7 @@ import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 import org.kde.kdeconnect.helpers.ContactsHelper
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.helpers.SMSHelper
 import org.kde.kdeconnect.helpers.SMSHelper.MessageLooper.Companion.getLooper
@@ -69,7 +69,7 @@ class SMSPlugin(
         override fun onReceive(context: Context, intent: Intent) {
             val action: String? = intent.action
 
-            //Log.e("TelephonyPlugin","Telephony event: " + action)
+            //LoggerTagged.e { "TelephonyPlugin","Telephony event: " + action)
             if (Telephony.Sms.Intents.SMS_RECEIVED_ACTION == action) {
                 val bundle: Bundle = intent.extras ?: return
                 val pdus: Array<ByteArray?> = bundle.get("pdus") as Array<ByteArray?>
@@ -527,7 +527,7 @@ class SMSPlugin(
 
                     body.put(json)
                 } catch (e: JSONException) {
-                    Log.e("Conversations", "Error serializing message", e)
+                    LoggerTagged.e(e) { "Error serializing message" }
                 }
             }
 

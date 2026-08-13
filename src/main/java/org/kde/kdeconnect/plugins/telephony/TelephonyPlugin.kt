@@ -5,10 +5,8 @@
  */
 package org.kde.kdeconnect.plugins.telephony
 
-import android.Manifest
 import android.Manifest.permission.READ_CALL_LOG
 import android.Manifest.permission.READ_CONTACTS
-import android.Manifest.permission.READ_PHONE_NUMBERS
 import android.Manifest.permission.READ_PHONE_STATE
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -18,13 +16,13 @@ import android.content.pm.PackageManager
 import android.media.AudioManager
 import android.telephony.PhoneNumberUtils
 import android.telephony.TelephonyManager
-import android.util.Log
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 import org.kde.kdeconnect.helpers.ContactsHelper
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin.Companion.PACKET_TYPE_TELEPHONY
@@ -45,7 +43,7 @@ class TelephonyPlugin(
 
     private val receiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {
-            //Log.e("TelephonyPlugin", "Telephony event: $action")
+            //LoggerTagged.e { "TelephonyPlugin", "Telephony event: $action")
             if (TelephonyManager.ACTION_PHONE_STATE_CHANGED == intent.action) {
                 val state = intent.getStringExtra(TelephonyManager.EXTRA_STATE)
                 val intState = when (state) {
@@ -94,7 +92,7 @@ class TelephonyPlugin(
                             np["phoneThumbnail"] = base64photo
                         }
                     } catch (e: Exception) {
-                        Log.e("TelephonyPlugin", "Failed to get contact photo")
+                        LoggerTagged.e(e) { "Failed to get contact photo" }
                     }
                 }
             }

@@ -10,20 +10,19 @@ package org.kde.kdeconnect.plugins.contacts
 
 import android.Manifest
 import android.content.Context
-import android.util.Log
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.helpers.ContactsHelper
 import org.kde.kdeconnect.helpers.ContactsHelper.ContactNotFoundException
 import org.kde.kdeconnect.helpers.ContactsHelper.UID
 import org.kde.kdeconnect.helpers.ContactsHelper.VCardBuilder
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_REQUEST_ALL_UIDS_TIMESTAMPS
 import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_REQUEST_VCARDS_BY_UIDS
 import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_RESPONSE_UIDS_TIMESTAMPS
 import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_RESPONSE_VCARDS
-import org.kde.kdeconnect.ui.PermissionRequest
 import org.kde.kdeconnect_tp.R
 
 class ContactsPlugin(context: Context, device: Device) : Plugin(context, device) {
@@ -83,13 +82,13 @@ class ContactsPlugin(context: Context, device: Device) : Plugin(context, device)
 
     private suspend fun handleRequestVCardsByUIDs(np: NetworkPacket): Boolean {
         if (PACKET_UIDS_KEY !in np) {
-            Log.e("ContactsPlugin", "handleRequestNamesByUIDs received a malformed packet with no uids key")
+            LoggerTagged.e { "handleRequestNamesByUIDs received a malformed packet with no uids key" }
             return false
         }
 
         val storedUIDs: List<UID>? = np.getStringList("uids")?.distinct()?.map { UID(it) }
         if (storedUIDs == null) {
-            Log.e("ContactsPlugin", "handleRequestNamesByUIDs received a malformed packet with no uids")
+            LoggerTagged.e { "handleRequestNamesByUIDs received a malformed packet with no uids" }
             return false
         }
 
@@ -106,7 +105,7 @@ class ContactsPlugin(context: Context, device: Device) : Plugin(context, device)
                     // Add the uid -> vcard pairing to the packet
                     set(uID.toString(), vcardWithMetadata.toString())
                 } catch (e: ContactNotFoundException) {
-                    Log.e("ContactsPlugin", "handleRequestVCardsByUIDs failed to find contact with uID $uID")
+                    LoggerTagged.e { "handleRequestVCardsByUIDs failed to find contact with uID $uID" }
                 }
             }
             set(PACKET_UIDS_KEY, uIDsAsStrings)
@@ -121,7 +120,7 @@ class ContactsPlugin(context: Context, device: Device) : Plugin(context, device)
         PACKET_TYPE_CONTACTS_REQUEST_ALL_UIDS_TIMESTAMPS -> this.handleRequestAllUIDsTimestamps(np)
         PACKET_TYPE_CONTACTS_REQUEST_VCARDS_BY_UIDS -> this.handleRequestVCardsByUIDs(np)
         else -> {
-            Log.e("ContactsPlugin", "Contacts plugin received an unexpected packet!")
+            LoggerTagged.e { "Contacts plugin received an unexpected packet!" }
             false
         }
     }

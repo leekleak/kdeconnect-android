@@ -7,9 +7,9 @@
 package org.kde.kdeconnect.plugins.digitizer
 
 import android.content.Context
-import android.util.Log
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.digitizer.DigitizerPlugin.Companion.PACKET_TYPE_DIGITIZER
@@ -33,7 +33,7 @@ class DigitizerPlugin(context: Context, device: Device) : Plugin(context, device
         })
 
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
-        Log.e(TAG, "The drawing tablet plugin should not be able to receive any packets!")
+        LoggerTagged.e { "The drawing tablet plugin should not be able to receive any packets!" }
         return false
     }
 
@@ -56,7 +56,7 @@ class DigitizerPlugin(context: Context, device: Device) : Plugin(context, device
     }
 
     suspend fun reportEvent(event: ToolEvent) {
-        Log.d(TAG, "reportEvent: $event")
+        LoggerTagged.d { "reportEvent: $event" }
 
         val np = NetworkPacket(PACKET_TYPE_DIGITIZER).also { packet ->
             event.active?.let { packet["active"] = it }
@@ -72,8 +72,6 @@ class DigitizerPlugin(context: Context, device: Device) : Plugin(context, device
     companion object {
         const val PACKET_TYPE_DIGITIZER_SESSION = "kdeconnect.digitizer.session"
         const val PACKET_TYPE_DIGITIZER = "kdeconnect.digitizer"
-
-        private const val TAG = "DigitizerPlugin"
     }
 }
 

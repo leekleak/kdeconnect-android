@@ -13,9 +13,9 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import android.widget.RemoteViews
 import androidx.core.net.toUri
+import co.touchlab.kermit.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -26,6 +26,7 @@ import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect_tp.BuildConfig
 import org.kde.kdeconnect_tp.R
 import org.koin.core.component.KoinComponent
@@ -71,7 +72,7 @@ class RunCommandWidgetProvider : AppWidgetProvider(), KoinComponent {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d("WidgetProvider", "onReceive " + intent.action)
+        LoggerTagged.d { "onReceive " + intent.action }
 
         if (intent.action == RUN_COMMAND_ACTION) {
             val targetCommand = intent.getStringExtra(TARGET_COMMAND)
@@ -83,10 +84,10 @@ class RunCommandWidgetProvider : AppWidgetProvider(), KoinComponent {
                         plugin.runCommand(targetCommand)
                     }
                 } catch (ex: Exception) {
-                    Log.e("RunCommandWidget", "Error running command", ex)
+                    LoggerTagged.e(ex) { "Error running command" }
                 }
             } else {
-                Log.w("RunCommandWidget", "Device not available or runcommand plugin disabled")
+                LoggerTagged.w { "Device not available or runcommand plugin disabled" }
             }
         } else {
             super.onReceive(context, intent)
@@ -128,7 +129,7 @@ internal suspend fun updateAppWidget(
     runCommandSettingsDataStore: RunCommandSettingsDataStore,
     deviceManager: DeviceManager
 ) {
-    Log.d("WidgetProvider", "updateAppWidget: $appWidgetId")
+    Logger.d { "updateAppWidget: $appWidgetId" }
 
     // Determine which device provided these commands
     val deviceId = runCommandSettingsDataStore.getWidgetDeviceId(appWidgetId).first()
@@ -137,7 +138,7 @@ internal suspend fun updateAppWidget(
     val views = RemoteViews(BuildConfig.APPLICATION_ID, R.layout.widget_remotecommandplugin)
     assignTitleIntent(context, appWidgetId, views)
 
-    Log.d("WidgetProvider", "updateAppWidget device: " + (device?.name ?: "null"))
+    Logger.d { "updateAppWidget device: " + (device?.name ?: "null") }
 
     // Android should automatically toggle between the command list and the error text
     views.setEmptyView(R.id.widget_command_list, R.id.widget_error_text)

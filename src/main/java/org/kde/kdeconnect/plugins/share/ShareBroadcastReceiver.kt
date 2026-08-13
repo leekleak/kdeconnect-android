@@ -8,8 +8,8 @@ package org.kde.kdeconnect.plugins.share
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -19,10 +19,7 @@ class ShareBroadcastReceiver : BroadcastReceiver(), KoinComponent {
     override fun onReceive(context: Context?, intent: Intent) {
         when (intent.action) {
             SharePlugin.ACTION_CANCEL_SHARE -> cancelShare(intent)
-            else -> Log.d(
-                "ShareBroadcastReceiver",
-                "Unhandled Action received: ${intent.action}"
-            )
+            else -> LoggerTagged.d { "Unhandled Action received: ${intent.action}" }
         }
     }
 
@@ -30,10 +27,7 @@ class ShareBroadcastReceiver : BroadcastReceiver(), KoinComponent {
         if (!intent.hasExtra(SharePlugin.CANCEL_SHARE_BACKGROUND_JOB_ID_EXTRA) ||
             !intent.hasExtra(SharePlugin.CANCEL_SHARE_DEVICE_ID_EXTRA)
         ) {
-            Log.e(
-                "ShareBroadcastReceiver",
-                "cancelShare() - not all expected extra's are present. Ignoring this cancel intent"
-            )
+            LoggerTagged.e { "cancelShare() - not all expected extra's are present. Ignoring this cancel intent" }
             return
         }
 

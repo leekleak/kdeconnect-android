@@ -10,10 +10,10 @@ import android.os.Build
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
 import android.os.StrictMode.VmPolicy
-import android.util.Log
 import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.di.appModule
 import org.kde.kdeconnect.helpers.DeviceHelper
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.helpers.security.EcHelper
 import org.kde.kdeconnect.helpers.security.SslHelper
@@ -42,7 +42,7 @@ class KdeConnect : Application() {
             androidContext(this@KdeConnect)
             modules(appModule)
         }
-        Log.d("KdeConnect/Application", "onCreate")
+        LoggerTagged.d { "onCreate" }
         themeUtil.setUserPreferredTheme(this)
         runBlocking { deviceHelper.initializeDeviceId() }
         EcHelper.ensureKeyPair()
@@ -86,7 +86,7 @@ class KdeConnect : Application() {
     }
 
     override fun onTerminate() {
-        Log.d("KdeConnect/Application", "onTerminate")
+        LoggerTagged.d { "onTerminate" }
         super.onTerminate()
     }
 }

@@ -1,4 +1,3 @@
-import com.mikepenz.aboutlibraries.plugin.StrictMode
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 buildscript {
@@ -84,6 +83,9 @@ android {
         abortOnError = false
         checkReleaseBuilds = false
     }
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 ksp {
@@ -167,7 +169,6 @@ dependencies {
     // However, that version is under-loved. I have therefore made "some fixes" and published it.
     // Please see https://invent.kde.org/sredman/android-smsmms/-/tree/master
     implementation(libs.android.smsmms)
-    implementation(libs.logger)
 
     // Kotlin
     implementation(libs.kotlinx.coroutines.core)
@@ -182,9 +183,9 @@ dependencies {
     implementation(libs.coil.compose)
 
     // Testing
+    implementation(libs.kermit)
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
-    testImplementation(libs.slf4j.simple) // do not try to use the Android logger backend in tests
     testImplementation(libs.jsonassert)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.junit)

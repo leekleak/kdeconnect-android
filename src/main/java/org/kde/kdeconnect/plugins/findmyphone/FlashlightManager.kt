@@ -12,12 +12,11 @@ import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
+import org.kde.kdeconnect.helpers.LoggerTagged
 
 class FlashlightManager(context: Context) {
 
     companion object {
-        private const val TAG = "FlashlightManager"
         private const val FLASH_INTERVAL_MS = 500L
     }
 
@@ -51,14 +50,14 @@ class FlashlightManager(context: Context) {
                     .get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
             }
         } catch (e: CameraAccessException) {
-            Log.e(TAG, "Failed to access camera", e)
+            LoggerTagged.e(e) { "Failed to access camera" }
             null
         }
     }
 
     fun startFlashing() {
         cameraId ?: run {
-            Log.w(TAG, "Flashlight not available on this device")
+            LoggerTagged.w { "Flashlight not available on this device" }
             return
         }
 
@@ -86,9 +85,9 @@ class FlashlightManager(context: Context) {
         try {
             cameraManager.setTorchMode(cameraId!!, enabled)
         } catch (e: CameraAccessException) {
-            Log.e(TAG, "Failed to set flashlight mode", e)
+            LoggerTagged.e(e) { "Failed to set flashlight mode" }
         } catch (e: IllegalArgumentException) {
-            Log.e(TAG, "Invalid camera ID or flashlight not available", e)
+            LoggerTagged.e(e) { "Invalid camera ID or flashlight not available" }
         }
     }
 }

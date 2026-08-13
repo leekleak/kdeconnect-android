@@ -9,7 +9,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Process
 import android.os.UserManager
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +23,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.notifications.AppDatabase
 import org.koin.core.annotation.KoinViewModel
 
@@ -115,7 +115,7 @@ class NotificationSettingsViewModel(
                     }
                 }
             } catch (e: Exception) {
-                Log.e("NotificationFilterVM", "Failed to get apps from work profile", e)
+                LoggerTagged.e(e) { "Failed to get apps from work profile" }
             }
 
             _allApps.value.union(workResult).sortedBy { it.name.lowercase() }

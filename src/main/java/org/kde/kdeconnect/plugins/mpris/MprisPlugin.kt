@@ -13,7 +13,6 @@ import android.content.Intent
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
@@ -30,6 +29,7 @@ import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.NetworkPacket.Payload
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.helpers.VideoUrlsHelper
 import org.kde.kdeconnect.plugins.Plugin
@@ -198,7 +198,7 @@ class MprisPlugin(
                 if (newAlbumArtUrl.scheme in ALLOWED_SCHEMES) {
                     newState = newState.copy(albumArtUrl = newAlbumArtUrl.toString())
                 } else if (newAlbumArtUrlString.isNotEmpty()) {
-                    Log.w("MprisControl", "Invalid album art URL: $newAlbumArtUrlString")
+                    LoggerTagged.w { "Invalid album art URL: $newAlbumArtUrlString" }
                     newState = newState.copy(albumArtUrl = "")
                 }
 
@@ -216,7 +216,7 @@ class MprisPlugin(
 
         val newPlayerList = np.getStringList("playerList")
         if (newPlayerList != null) {
-            Log.e("MPRIS", "Updating player list")
+            LoggerTagged.e { "Updating player list" }
             _players.update { current ->
                 val updatedMap = current.toMutableMap()
 

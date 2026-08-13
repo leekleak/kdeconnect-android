@@ -7,7 +7,7 @@ package org.kde.kdeconnect.helpers
 
 import android.content.Context
 import android.content.pm.PackageManager
-import android.util.Log
+import co.touchlab.kermit.Logger
 import org.kde.kdeconnect_tp.R
 
 object AppsHelper {
@@ -19,7 +19,7 @@ object AppsHelper {
 
             manager.getApplicationLabel(info).toString()
         } catch (e: PackageManager.NameNotFoundException) {
-            Log.e("AppsHelper", "Could not resolve name $packageName", e)
+            LoggerTagged.e(e) { "Could not resolve name $packageName" }
             context.getString(R.string.unknown_app)
         }
     }

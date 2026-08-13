@@ -9,7 +9,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract
-import android.util.Log
+import org.kde.kdeconnect.helpers.LoggerTagged
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.URI
@@ -46,19 +46,19 @@ class SafFileSystemProvider(
 
     override fun newFileSystem(uri: URI, env: MutableMap<String, *>?): FileSystem {
         // SSHD Core does not use this method, so we can just throw an exception
-        Log.w(TAG, "newFileSystem($uri) not implemented")
+        LoggerTagged.w { "newFileSystem($uri) not implemented" }
         throw NotImplementedError("newFileSystem($uri) not implemented")
     }
 
     override fun getFileSystem(uri: URI): FileSystem {
         // SSHD Core does not use this method, so we can just throw an exception
-        Log.w(TAG, "getFileSystem($uri) not implemented")
+        LoggerTagged.w { "getFileSystem($uri) not implemented" }
         throw NotImplementedError("getFileSystem($uri) not implemented")
     }
 
     override fun getPath(uri: URI): Path {
         // SSHD Core does not use this method, so we can just throw an exception
-        Log.w(TAG, "getPath($uri) not implemented")
+        LoggerTagged.w { "getPath($uri) not implemented" }
         throw NotImplementedError("getPath($uri) not implemented")
     }
 
@@ -146,7 +146,7 @@ class SafFileSystemProvider(
             }
 
             else -> {
-                Log.w(TAG, "newFileChannel($path, $options, $attrs) not implemented")
+                LoggerTagged.w { "newFileChannel($path, $options, $attrs) not implemented" }
                 throw IOException("newFileChannel($path, $options, $attrs) not implemented")
             }
         }
@@ -306,7 +306,7 @@ class SafFileSystemProvider(
 
     override fun getFileStore(path: Path): FileStore? {
         // SAF does not support file store
-        Log.i(TAG, "getFileStore($path) not implemented")
+        LoggerTagged.i { "getFileStore($path) not implemented" }
         return null
     }
 
@@ -393,10 +393,7 @@ class SafFileSystemProvider(
                     lastAccessTime: FileTime?,
                     createTime: FileTime?
                 ) {
-                    Log.w(
-                        TAG,
-                        "setTimes($path, $lastModifiedTime, $lastAccessTime, $createTime) for SAF is impossible. Ignored."
-                    )
+                    LoggerTagged.w { "setTimes($path, $lastModifiedTime, $lastAccessTime, $createTime) for SAF is impossible. Ignored." }
                 }
             } as V
         }
@@ -413,31 +410,28 @@ class SafFileSystemProvider(
                     lastAccessTime: FileTime?,
                     createTime: FileTime?
                 ) {
-                    Log.w(
-                        TAG,
-                        "setTimes($path, $lastModifiedTime, $lastAccessTime, $createTime) for SAF is impossible. Ignored."
-                    )
+                    LoggerTagged.w { "setTimes($path, $lastModifiedTime, $lastAccessTime, $createTime) for SAF is impossible. Ignored." }
                 }
 
                 override fun getOwner(): UserPrincipal? {
-                    Log.i(TAG, "getOwner($path) not implemented")
+                    LoggerTagged.i { "getOwner($path) not implemented" }
                     return null
                 }
 
                 override fun setOwner(owner: UserPrincipal?) {
-                    Log.i(TAG, "setOwner($path, $owner) not implemented")
+                    LoggerTagged.i { "setOwner($path, $owner) not implemented" }
                 }
 
                 override fun setPermissions(perms: MutableSet<PosixFilePermission>?) {
-                    Log.i(TAG, "setPermissions($path, $perms) not implemented")
+                    LoggerTagged.i { "setPermissions($path, $perms) not implemented" }
                 }
 
                 override fun setGroup(group: GroupPrincipal?) {
-                    Log.i(TAG, "setGroup($path, $group) not implemented")
+                    LoggerTagged.i { "setGroup($path, $group) not implemented" }
                 }
             } as V
         }
-        Log.w(TAG, "getFileAttributeView($path)[${type.getSimpleName()}] not implemented")
+        LoggerTagged.w { "getFileAttributeView($path)[${type.getSimpleName()}] not implemented" }
         return null
     }
 
@@ -487,7 +481,7 @@ class SafFileSystemProvider(
             }
         }
 
-        Log.w(TAG, "readAttributes($path)[${type.getSimpleName()}] not implemented")
+        LoggerTagged.w { "readAttributes($path)[${type.getSimpleName()}] not implemented" }
         throw UnsupportedOperationException("readAttributes($path)[${type.getSimpleName()}] N/A")
     }
 
@@ -547,7 +541,7 @@ class SafFileSystemProvider(
                 )
             )
         }
-        Log.w(TAG, "readAttributes($path, $attributes) not implemented")
+        LoggerTagged.w { "readAttributes($path, $attributes) not implemented" }
         throw UnsupportedOperationException("readAttributes($path, $attributes) N/A")
     }
 
@@ -565,19 +559,15 @@ class SafFileSystemProvider(
             }
 
             "posix:owner", "posix:group", "posix:permissions" -> {
-                Log.w(TAG, "set posix attribute $attribute not implemented")
+                LoggerTagged.w { "set posix attribute $attribute not implemented" }
                 // We can't throw an exception here because the SSHD server will crash
                 return
             }
 
             else -> {
-                Log.w(TAG, "setAttribute($path, $attribute, $value) not implemented")
+                LoggerTagged.w { "setAttribute($path, $attribute, $value) not implemented" }
                 // We can't throw an exception here because the SSHD server will crash
             }
         }
-    }
-
-    companion object {
-        private const val TAG = "SafFileSystemProvider"
     }
 }

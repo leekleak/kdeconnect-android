@@ -11,16 +11,15 @@ import android.net.Uri
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
-import android.util.Log
 import android.webkit.MimeTypeMap
 import androidx.annotation.WorkerThread
 import androidx.documentfile.provider.DocumentFile
+import co.touchlab.kermit.Logger
 import org.kde.kdeconnect.NetworkPacket
 import java.io.File
 import java.nio.charset.StandardCharsets
 
 object FilesHelper {
-    private const val LOG_TAG: String = "SendFileActivity"
 
     @JvmStatic
     fun getMimeTypeFromFile(file: String?): String {
@@ -125,7 +124,7 @@ object FilesHelper {
                     return Triple(filename, size, lastModified)
                 }
                 else {
-                    Log.e(LOG_TAG, "Received bad file URI, path was null")
+                    LoggerTagged.e { "Received bad file URI, path was null" }
                     return Triple(null, sizeDefault, null)
                 }
             }
@@ -148,7 +147,7 @@ object FilesHelper {
                     }
                 }
                 catch (e: Exception) {
-                    Log.e(LOG_TAG, "Problem getting file information", e)
+                    LoggerTagged.e(e) { "Problem getting file information" }
                 }
                 return Triple(null, sizeDefault, null)
             }
@@ -163,7 +162,7 @@ object FilesHelper {
             }
             else {
                 // It would be very surprising if this happens
-                Log.e(LOG_TAG, "Unable to read filename")
+                LoggerTagged.e { "Unable to read filename" }
             }
 
             if (lastModified != null) {
@@ -171,7 +170,7 @@ object FilesHelper {
             }
             else {
                 // This would not be too surprising, and probably means we need to improve FilesHelper.getLastModifiedTime
-                Log.w(LOG_TAG, "Unable to read file last modified time")
+                LoggerTagged.w { "Unable to read file last modified time" }
             }
 
             packet.payload = NetworkPacket.Payload(inputStream, size)
@@ -179,7 +178,7 @@ object FilesHelper {
             return packet
         }
         catch (e: Exception) {
-            Log.e(LOG_TAG, "Exception creating network packet", e)
+            LoggerTagged.e(e) { "Exception creating network packet" }
             return null
         }
     }
@@ -226,7 +225,7 @@ object FilesHelper {
                     imageDateTakenColumnIndex >= 0 -> Pair(imageDateTakenColumnIndex, true)
                     else -> {
                         // Nothing worked :(
-                        Log.w("SendFileActivity", "Unable to get file modification time. Available columns were: ${allColumns.contentToString()}")
+                        LoggerTagged.w { "Unable to get file modification time. Available columns were: ${allColumns.contentToString()}" }
                         return null
                     }
                 }

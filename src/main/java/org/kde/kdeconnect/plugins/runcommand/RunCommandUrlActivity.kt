@@ -10,12 +10,12 @@ import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.VibrationEffect.DEFAULT_AMPLITUDE
 import android.os.Vibrator
-import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect_tp.R
 import org.koin.android.ext.android.inject
 
@@ -59,7 +59,7 @@ class RunCommandUrlActivity : AppCompatActivity() {
                 }
                 this@RunCommandUrlActivity.finish()
             } catch (e: Exception) {
-                Log.e("RuncommandPlugin", "Exception", e)
+                LoggerTagged.e(e) { "Exception" }
             }
         }
     }

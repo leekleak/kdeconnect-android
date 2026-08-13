@@ -10,7 +10,6 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_ID
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import android.view.View
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
@@ -19,6 +18,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect_tp.R
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -32,7 +32,7 @@ internal class RunCommandWidgetDataProvider(private val context: Context, val in
     override fun onCreate() {
         widgetId = intent?.getIntExtra(EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID) ?: AppWidgetManager.INVALID_APPWIDGET_ID
         if (widgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
-            Log.e("KDEConnect/Widget", "RunCommandWidgetDataProvider: No widget id extra was set")
+            LoggerTagged.e { "RunCommandWidgetDataProvider: No widget id extra was set" }
             return
         }
         deviceId = runBlocking { runCommandSettingsDataStore.getWidgetDeviceId(widgetId).first() }
@@ -59,7 +59,7 @@ internal class RunCommandWidgetDataProvider(private val context: Context, val in
         if (plugin == null) {
             // Either the deviceId was null, or the plugin is not available.
             if (deviceId != null) {
-                Log.e("getViewAt", "RunCommandWidgetDataProvider: Plugin not found")
+                LoggerTagged.e { "RunCommandWidgetDataProvider: Plugin not found" }
             }
             // Return a new, not-configured layout as a fallback
             return remoteView

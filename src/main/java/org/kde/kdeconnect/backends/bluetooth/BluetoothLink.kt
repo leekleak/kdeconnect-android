@@ -8,15 +8,15 @@ package org.kde.kdeconnect.backends.bluetooth
 
 import android.bluetooth.BluetoothDevice
 import android.content.Context
-import android.util.Log
 import androidx.annotation.WorkerThread
 import kotlinx.coroutines.runBlocking
 import org.json.JSONException
 import org.json.JSONObject
-import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.backends.BaseLink
+import org.kde.kdeconnect.helpers.LoggerTagged
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -63,7 +63,7 @@ class BluetoothLink(
                     }
                 }
             } catch (e: IOException) {
-                Log.e("BluetoothLink/receiving", "Connection to " + remoteAddress.address + " likely broken.", e)
+                LoggerTagged.e(e) { "Connection to " + remoteAddress.address + " likely broken." }
                 runBlocking { disconnect() }
             }
         }
@@ -72,7 +72,7 @@ class BluetoothLink(
             val np = try {
                 NetworkPacket.unserialize(message)
             } catch (e: JSONException) {
-                Log.e("BluetoothLink/receiving", "Unable to parse message.", e)
+                LoggerTagged.e(e) { "Unable to parse message." }
                 return
             }
             if (np.hasPayloadTransferInfo()) {
@@ -81,7 +81,7 @@ class BluetoothLink(
                     val payloadInputStream = connection.getChannelInputStream(transferUuid)
                     np.payload = NetworkPacket.Payload(payloadInputStream, np.payloadSize)
                 } catch (e: Exception) {
-                    Log.e("BluetoothLink/receiving", "Unable to get payload", e)
+                    LoggerTagged.e(e) { "Unable to get payload" }
                 }
             }
             packetReceived(np)

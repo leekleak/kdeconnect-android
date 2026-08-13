@@ -1,6 +1,5 @@
 package org.kde.kdeconnect
-
-import android.util.Log
+ 
 import androidx.annotation.WorkerThread
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -15,6 +14,7 @@ import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLinkProvider.ConnectionReceiver
 import org.kde.kdeconnect.helpers.DeviceSettings
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.Plugin
 import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
@@ -57,7 +57,7 @@ class DeviceManager(
 
     private fun loadRememberedDevicesFromSettings() {
         runBlocking { deviceSettings.getAllTrustedDevices() }
-            .onEach { Log.d("DeviceManager", "Loading device $it") }
+            .onEach { LoggerTagged.d { "Loading device $it" } }
             .forEach { trustedDevice ->
                 try {
                     val device: Device = deviceFactory(trustedDevice, null)
@@ -70,10 +70,9 @@ class DeviceManager(
                     }
                     _devices.update { it + (trustedDevice to device) }
                 } catch (e: CertificateException) {
-                    Log.w(
-                        "DeviceManager",
-                        "Couldn't load the certificate for a remembered device. Removing from trusted list.", e
-                    )
+                    LoggerTagged.w(e) {
+                        "Couldn't load the certificate for a remembered device. Removing from trusted list."
+                    }
                     runBlocking { deviceSettings.removeTrustedDevice(trustedDevice) }
                 }
             }
@@ -94,21 +93,17 @@ class DeviceManager(
 
         @WorkerThread
         override suspend fun onConnectionLost(link: BaseLink) {
-            val device = devices.value[link.deviceId]
-            Log.i("DeviceManager/onConnectionLost", "removeLink, deviceId: ${link.deviceId}")
-            if (device != null) {
-                device.removeLink(link)
-                device.cancel()
-            } else {
-                Log.d("DeviceManager/onConnectionLost", "Removing connection to unknown device")
-            }
+            LoggerTagged.i { "Connection lost, removing link deviceId: ${link.deviceId}" }
+            val device = devices.value[link.deviceId] ?: return
+            device.removeLink(link)
+            device.cancel()
         }
 
         @WorkerThread
         override suspend fun onDeviceInfoUpdated(deviceInfo: DeviceInfo) {
             val device = devices.value[deviceInfo.id]
             if (device == null) {
-                Log.e("DeviceManager", "onDeviceInfoUpdated for an unknown device")
+                LoggerTagged.e { "onDeviceInfoUpdated for an unknown device" }
                 return
             }
             device.updateDeviceInfo(deviceInfo)

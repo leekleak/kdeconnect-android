@@ -7,7 +7,6 @@ package org.kde.kdeconnect.async
 
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -15,6 +14,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import org.kde.kdeconnect.helpers.LoggerTagged
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ThreadPoolExecutor
 
@@ -40,7 +40,7 @@ class BackgroundJobHandler(numThreads: Int) {
                     bgJob.setBackgroundJobHandler(this@BackgroundJobHandler)
                     bgJob.run()
                 }.onFailure { e ->
-                    Log.d(LOG_TAG, "Failed to launch a background job: ${e.message}")
+                    LoggerTagged.d(e) { "Failed to launch a background job" }
                     bgJob.reportError(e)
                 }
             }
@@ -66,7 +66,6 @@ class BackgroundJobHandler(numThreads: Int) {
     }
 
     companion object {
-        private val LOG_TAG: String = BackgroundJobHandler::class.java.simpleName
 
         @JvmStatic
         fun newFixedThreadPoolBackgroundJobHandler(numThreads: Int): BackgroundJobHandler = BackgroundJobHandler(numThreads)

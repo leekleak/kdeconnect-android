@@ -7,7 +7,6 @@ package org.kde.kdeconnect.plugins.remotekeyboard
 
 import android.content.Context
 import android.os.SystemClock
-import android.util.Log
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.ExtractedText
@@ -16,6 +15,7 @@ import androidx.core.util.Pair
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.helpers.SPECIAL_KEY_MAP
 import org.kde.kdeconnect.plugins.Plugin
@@ -29,7 +29,7 @@ class RemoteKeyboardPlugin(
     override val pluginInfo: RemoteKeyboardPluginInfo = RemoteKeyboardPluginInfo
 
     override fun onCreate(): Boolean {
-        Log.d("RemoteKeyboardPlugin", "Creating for device " + device.name)
+        LoggerTagged.d { "Creating for device " + device.name }
         acquireInstances()
         try {
             instances.add(this)
@@ -57,7 +57,7 @@ class RemoteKeyboardPlugin(
             releaseInstances()
         }
 
-        Log.d("RemoteKeyboardPlugin", "Destroying for device " + device.name)
+        LoggerTagged.d { "Destroying for device " + device.name }
     }
 
     private fun isValidSpecialKey(key: Int): Boolean {
@@ -98,8 +98,6 @@ class RemoteKeyboardPlugin(
         if (keyEvent == 0) return false
         val inputConn = RemoteKeyboardService.instance?.currentInputConnection ?: return false
 
-        //        Log.d("RemoteKeyboardPlugin", "Handling special key " + key + " translated to " + keyEvent + " shift=" + shift + " ctrl=" + ctrl + " alt=" + alt);
-
         // special sequences:
         if (ctrl && (keyEvent == KeyEvent.KEYCODE_DPAD_RIGHT)) {
             // Ctrl + right -> next word
@@ -112,7 +110,6 @@ class RemoteKeyboardPlugin(
             if (shift) { // Shift -> select word (otherwise jump)
                 val sel = currentSelection(extractedText)
                 val cursor = currentCursorPos(extractedText)
-                //                Log.d("RemoteKeyboardPlugin", "Selection (to right): " + sel.first + " / " + sel.second + " cursor: " + cursor);
                 startPos = cursor
                 if (sel.first < cursor ||  // active selection from left to right -> grow
                     sel.first > sel.second
@@ -131,7 +128,6 @@ class RemoteKeyboardPlugin(
             if (shift) {
                 val sel = currentSelection(extractedText)
                 val cursor = currentCursorPos(extractedText)
-                //                Log.d("RemoteKeyboardPlugin", "Selection (to left): " + sel.first + " / " + sel.second + " cursor: " + cursor);
                 startPos = cursor
                 if (cursor < sel.first ||  // active selection from right to left -> grow
                     sel.first < sel.second
@@ -189,7 +185,6 @@ class RemoteKeyboardPlugin(
         ) {
             // Enter key
             val editorInfo = RemoteKeyboardService.instance?.currentInputEditorInfo
-            //            Log.d("RemoteKeyboardPlugin", "Enter: " + editorInfo.imeOptions);
             if (editorInfo != null
                 && (((editorInfo.imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION) == 0)
                         || ctrl)
@@ -202,14 +197,12 @@ class RemoteKeyboardPlugin(
                 ) // note: DONE should be last or we might hide the ime instead of "go"
                 for (action in actions) {
                     if ((editorInfo.imeOptions and action) == action) {
-//                        Log.d("RemoteKeyboardPlugin", "Enter-action: " + actions[i]);
                         inputConn.performEditorAction(action)
                         return true
                     }
                 }
             } else {
                 // else: fall back to regular Enter-event:
-//                Log.d("RemoteKeyboardPlugin", "Enter: normal keypress");
                 inputConn.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, keyEvent))
                 inputConn.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, keyEvent))
             }
@@ -226,7 +219,6 @@ class RemoteKeyboardPlugin(
         key: String,
         ctrl: Boolean
     ): Boolean {
-//        Log.d("RemoteKeyboardPlugin", "Handling visible key " + key + " shift=" + shift + " ctrl=" + ctrl + " alt=" + alt + " " + key.equalsIgnoreCase("c") + " " + key.length());
 
         if (key.isEmpty()) return false
 
@@ -251,7 +243,7 @@ class RemoteKeyboardPlugin(
             ) && ctrl
         ) return inputConn.performContextMenuAction(android.R.id.selectAll)
 
-        //        Log.d("RemoteKeyboardPlugin", "Committing visible key '" + key + "'");
+        //        LoggerTagged.d { "RemoteKeyboardPlugin", "Committing visible key '" + key + "'");
         inputConn.commitText(key, key.length)
         return true
     }
@@ -277,10 +269,7 @@ class RemoteKeyboardPlugin(
 
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         if (np.type != PACKET_TYPE_MOUSEPAD_REQUEST) {
-            Log.e(
-                "RemoteKeyboardPlugin",
-                "Invalid packet type for RemoteKeyboardPlugin: " + np.type
-            )
+            LoggerTagged.e { "Invalid packet type for RemoteKeyboardPlugin: " + np.type }
             return false
         }
 
@@ -294,20 +283,17 @@ class RemoteKeyboardPlugin(
         }
 
         if (RemoteKeyboardService.instance == null) {
-            Log.i(
-                "RemoteKeyboardPlugin",
-                "Remote keyboard is not the currently selected input method, dropping key"
-            )
+            LoggerTagged.i { "Remote keyboard is not the currently selected input method, dropping key" }
             return false
         }
 
         if (RemoteKeyboardService.instance?.visible == false) {
-            Log.i("RemoteKeyboardPlugin", "Remote keyboard is currently not visible, dropping key")
+            LoggerTagged.i { "Remote keyboard is currently not visible, dropping key" }
             return false
         }
 
         if (!handleEvent(np)) {
-            Log.i("RemoteKeyboardPlugin", "Could not handle event!")
+            LoggerTagged.i { "Could not handle event!" }
             return false
         }
 
@@ -326,7 +312,7 @@ class RemoteKeyboardPlugin(
     }
 
     suspend fun notifyKeyboardState(state: Boolean) {
-        Log.d("RemoteKeyboardPlugin", "Keyboardstate changed to $state")
+        LoggerTagged.d { "Keyboardstate changed to $state" }
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE)
         np["state"] = state
         device.sendPacket(np)

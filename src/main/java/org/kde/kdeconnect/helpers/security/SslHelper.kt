@@ -7,7 +7,6 @@ package org.kde.kdeconnect.helpers.security
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.util.Log
 import kotlinx.coroutines.flow.first
 import org.bouncycastle.asn1.x500.X500Name
 import org.bouncycastle.asn1.x500.X500NameBuilder
@@ -19,6 +18,7 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.DeviceSettings
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.RandomHelper
 import org.kde.kdeconnect.helpers.security.EcHelper.getPrivateKey
 import org.kde.kdeconnect.helpers.security.EcHelper.getPublicKey
@@ -64,7 +64,7 @@ class SslHelper(
         val privateKey: PrivateKey = getPrivateKey()
         val publicKey: PublicKey = getPublicKey()
 
-        Log.i(LOG_TAG, "Key algorithm: " + publicKey.algorithm)
+        LoggerTagged.i { "Key algorithm: " + publicKey.algorithm }
 
         var needsToGenerateCertificate = false
         val deviceId: String = settingsDataStore.deviceId.first()
@@ -78,19 +78,19 @@ class SslHelper(
 
                 val certDeviceId = getCommonNameFromCertificate(cert)
                 if (certDeviceId != deviceId) {
-                    Log.e(LOG_TAG,"The certificate stored is from a different device id! (found: $certDeviceId expected:$deviceId)")
+                    LoggerTagged.e { "The certificate stored is from a different device id! (found: $certDeviceId expected:$deviceId)" }
                     needsToGenerateCertificate = true
                 } else if (cert.notAfter.time < currDate.time) {
-                    Log.e(LOG_TAG, "The certificate expired: " + cert.notAfter)
+                    LoggerTagged.e { "The certificate expired: " + cert.notAfter }
                     needsToGenerateCertificate = true
                 } else if (cert.notBefore.time > currDate.time) {
-                    Log.e(LOG_TAG, "The certificate is not effective yet: " + cert.notBefore)
+                    LoggerTagged.e { "The certificate is not effective yet: " + cert.notBefore }
                     needsToGenerateCertificate = true
                 } else {
                     certificate = cert
                 }
             } catch (e: Exception) {
-                Log.e(LOG_TAG, "Exception reading own certificate", e)
+                LoggerTagged.e(e) { "Exception reading own certificate" }
                 needsToGenerateCertificate = true
             }
         } else {
@@ -99,7 +99,7 @@ class SslHelper(
 
         if (needsToGenerateCertificate) {
             deviceSettings.removeAllTrustedDevices()
-            Log.i(LOG_TAG, "Generating a certificate")
+            LoggerTagged.i { "Generating a certificate" }
             //Fix for https://issuetracker.google.com/issues/37095309
             val initialLocale = Locale.getDefault()
             setLocale(Locale.ENGLISH, context)
@@ -215,8 +215,6 @@ class SslHelper(
     }
 
     companion object {
-        private const val LOG_TAG = "KDE/SslHelper"
-
         private val factory: CertificateFactory = CertificateFactory.getInstance("X.509")
 
         fun parseCertificate(certificateBytes: ByteArray): Certificate {

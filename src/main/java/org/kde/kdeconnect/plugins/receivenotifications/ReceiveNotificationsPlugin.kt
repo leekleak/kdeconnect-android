@@ -14,14 +14,14 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.scale
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.helpers.LoggerTagged
+import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.receivenotifications.ReceiveNotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION
@@ -43,7 +43,7 @@ class ReceiveNotificationsPlugin(context: Context, device: Device) : Plugin(cont
 
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         if ("ticker" !in np || "appName" !in np || "id" !in np) {
-            Log.e("NotificationsPlugin", "Received notification packet lacks properties")
+            LoggerTagged.e { "Received notification packet lacks properties" }
             return true
         }
 
@@ -63,7 +63,7 @@ class ReceiveNotificationsPlugin(context: Context, device: Device) : Plugin(cont
             payload.close()
 
             if (largeIcon != null) {
-                // Log.i("NotificationsPlugin", "hasPayload: size=${largeIcon.width}/${largeIcon.height} opti=$width/$height")
+                // LoggerTagged.i { "NotificationsPlugin", "hasPayload: size=${largeIcon.width}/${largeIcon.height} opti=$width/$height")
                 if (largeIcon.width > width || largeIcon.height > height) {
                     // older API levels don't scale notification icons automatically, therefore:
                     largeIcon = largeIcon.scale(width, height, false)

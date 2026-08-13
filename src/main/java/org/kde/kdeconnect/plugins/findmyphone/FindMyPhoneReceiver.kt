@@ -8,8 +8,8 @@ package org.kde.kdeconnect.plugins.findmyphone
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.koin.core.context.GlobalContext
 
 class FindMyPhoneReceiver : BroadcastReceiver() {
@@ -21,13 +21,13 @@ class FindMyPhoneReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
             ACTION_FOUND_IT -> foundIt(context, intent)
-            else -> Log.d("ShareBroadcastReceiver", "Unhandled Action received: ${intent.action}")
+            else -> LoggerTagged.d { "Unhandled Action received: ${intent.action}" }
         }
     }
 
     private fun foundIt(context: Context, intent: Intent) {
         if (!intent.hasExtra(EXTRA_DEVICE_ID)) {
-            Log.e("FindMyPhoneReceiver", "foundIt() - deviceId extra is not present, ignoring")
+            LoggerTagged.e { "foundIt() - deviceId extra is not present, ignoring" }
             return
         }
         val deviceId = intent.getStringExtra(EXTRA_DEVICE_ID)

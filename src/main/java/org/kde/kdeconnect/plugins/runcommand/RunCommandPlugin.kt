@@ -9,7 +9,6 @@ package org.kde.kdeconnect.plugins.runcommand
 import android.app.Activity
 import android.content.Context
 import android.os.Build
-import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -22,6 +21,7 @@ import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.navigation.Navigator
@@ -85,7 +85,7 @@ class RunCommandPlugin(
 
                 forceRefreshWidgets(context)
             } catch (e: Exception) {
-                Log.e("RunCommand", "Error parsing command list", e)
+                LoggerTagged.e(e) { "Error parsing command list" }
             }
 
             _canAddCommand.value = np.getBoolean("canAddCommand", false)
@@ -97,11 +97,11 @@ class RunCommandPlugin(
             checkNotNull(stdOut)
             checkNotNull(stdErr)
             for (line in stdOut) {
-                Log.d("STDOUT", "Line:$line")
+                LoggerTagged.d { "Line:$line" }
                 output.add(RunCommandOutput(line, false))
             }
             for (line in stdErr) {
-                Log.d("STDERR", "Line:$line")
+                LoggerTagged.d { "Line:$line" }
                 output.add(RunCommandOutput(line, false))
             }
 
@@ -127,7 +127,7 @@ class RunCommandPlugin(
     }
 
     suspend fun runCommand(cmdKey: String) {
-        Log.d("RunCommand", "Sending $cmdKey")
+        LoggerTagged.d { "Sending $cmdKey" }
         val np = NetworkPacket(PACKET_TYPE_RUNCOMMAND_REQUEST)
         np["key"] = cmdKey
         device.sendPacket(np)

@@ -12,12 +12,12 @@ import android.media.session.MediaSessionManager
 import android.media.session.MediaSessionManager.OnActiveSessionsChangedListener
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.helpers.AppsHelper.appNameLookup
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.notifications.NotificationReceiver
 import java.util.concurrent.ConcurrentHashMap
@@ -58,7 +58,7 @@ class MprisReceiverPlugin(context: Context, device: Device) : Plugin(context, de
             )
             coroutineScope.launch { sendPlayerList() }
         } catch (e: Exception) {
-            Log.e(TAG, "Exception", e)
+            LoggerTagged.e(e) { "Exception" }
         }
 
         return true
@@ -92,7 +92,7 @@ class MprisReceiverPlugin(context: Context, device: Device) : Plugin(context, de
         if (artUrl.isNotEmpty()) {
             val playerName = player.name
             val cb = playerCbs[playerName] ?: run {
-                Log.e(TAG, "no callback for $playerName (player likely stopped)")
+                LoggerTagged.e { "no callback for $playerName (player likely stopped)" }
                 return false
             }
             sendAlbumArt(playerName, cb, artUrl)
@@ -172,18 +172,18 @@ class MprisReceiverPlugin(context: Context, device: Device) : Plugin(context, de
         // For now, we just continue to send the art- cb stores the bitmap, so it will be valid.
         //   cb will get GC'd after this method completes.
         val localArtUrl = cb.artUrl ?: run {
-            Log.w(TAG, "art not found!")
+            LoggerTagged.w { "art not found!" }
             return
         }
         val artUrl = requestedUrl ?: localArtUrl
         if (requestedUrl != null && requestedUrl != localArtUrl) {
-            Log.w(TAG, "sendAlbumArt: Doesn't match current url")
-            Log.d(TAG, "current:   $localArtUrl")
-            Log.d(TAG, "requested: $requestedUrl")
+            LoggerTagged.w { "sendAlbumArt: Doesn't match current url" }
+            LoggerTagged.d { "current:   $localArtUrl" }
+            LoggerTagged.d { "requested: $requestedUrl" }
             return
         }
         val p = cb.artAsArray ?: run {
-            Log.w(TAG, "sendAlbumArt: Failed to get art stream")
+            LoggerTagged.w { "sendAlbumArt: Failed to get art stream" }
             return
         }
         val np = NetworkPacket(PACKET_TYPE_MPRIS)
@@ -217,7 +217,5 @@ class MprisReceiverPlugin(context: Context, device: Device) : Plugin(context, de
     companion object {
         private const val PACKET_TYPE_MPRIS = "kdeconnect.mpris"
         private const val PACKET_TYPE_MPRIS_REQUEST = "kdeconnect.mpris.request"
-
-        private const val TAG = "MprisReceiver"
     }
 }

@@ -6,7 +6,7 @@
 package org.kde.kdeconnect.helpers
 
 import android.content.Context
-import androidx.room.Room
+import androidx.room3.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.mockk.mockk

@@ -8,7 +8,7 @@ package org.kde.kdeconnect
 import android.app.NotificationManager
 import android.content.Context
 import androidx.core.content.ContextCompat
-import androidx.room.Room
+import androidx.room3.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.mockk.every
@@ -31,13 +31,13 @@ import org.kde.kdeconnect.DeviceInfo.Companion.isValidIdentityPacket
 import org.kde.kdeconnect.DeviceType.Companion.fromString
 import org.kde.kdeconnect.backends.lan.LanLink
 import org.kde.kdeconnect.backends.lan.LanLinkProvider
+import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.DevicesRoomDatabase
 import org.kde.kdeconnect.helpers.security.EcHelper
 import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.plugins.PluginFactory
-import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
@@ -101,15 +101,6 @@ class DeviceTest {
 
         mockkStatic(ContextCompat::class)
         every { ContextCompat.getSystemService(context, NotificationManager::class.java) } returns mockk(relaxed = true)
-
-        mockkStatic(android.util.Log::class)
-        every { android.util.Log.i(any<String>(), any<String>()) } returns 0
-        every { android.util.Log.e(any<String>(), any<String>()) } returns 0
-        every { android.util.Log.e(any<String>(), any<String>(), any<Throwable>()) } returns 0
-        every { android.util.Log.d(any<String>(), any<String>()) } returns 0
-        every { android.util.Log.w(any<String>(), any<String>()) } returns 0
-        every { android.util.Log.w(any<String>(), any<Throwable>()) } returns 0
-        every { android.util.Log.v(any<String>(), any<String>()) } returns 0
 
         mockkStatic(Dispatchers::class)
         every { Dispatchers.IO } returns Dispatchers.Unconfined

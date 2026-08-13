@@ -13,15 +13,14 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.wifi.SupplicantState
 import android.net.wifi.WifiManager
-import android.util.Log
 import androidx.core.content.ContextCompat
+import co.touchlab.kermit.Logger
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.datastore.ConnectionsSettingsDataStore
 
 class TrustedNetworkHelper(
@@ -41,7 +40,7 @@ class TrustedNetworkHelper(
             return when {
                 ssid == null -> null
                 ssid.equals(NOT_AVAILABLE_SSID_RESULT, ignoreCase = true) -> {
-                    Log.d("TrustedNetworkHelper", "Current SSID is unknown")
+                    LoggerTagged.d { "Current SSID is unknown" }
                     null
                 }
                 ssid.isBlank() -> null
@@ -91,7 +90,6 @@ class TrustedNetworkHelper(
     }
 
     companion object {
-        private const val NETWORK_SSID_DELIMITER = "\u0000"
         private const val NOT_AVAILABLE_SSID_RESULT = "<unknown ssid>"
     }
 }

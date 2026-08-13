@@ -13,11 +13,11 @@ import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.provider.Settings
-import android.util.Log
 import androidx.core.net.toUri
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
+import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo.Companion.isPermissionGranted
@@ -57,7 +57,7 @@ class FindMyPhonePlugin(
             mediaPlayer.isLooping = true
             mediaPlayer.prepare()
         } catch (e: Exception) {
-            Log.e("FindMyPhoneActivity", "Exception", e)
+            LoggerTagged.e(e) { "Exception" }
             return false
         }
 

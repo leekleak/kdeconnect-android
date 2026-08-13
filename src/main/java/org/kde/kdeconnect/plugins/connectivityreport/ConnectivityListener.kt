@@ -17,10 +17,10 @@ import android.telephony.SignalStrength
 import android.telephony.SubscriptionManager
 import android.telephony.SubscriptionManager.OnSubscriptionsChangedListener
 import android.telephony.TelephonyManager
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 import androidx.core.content.ContextCompat
+import org.kde.kdeconnect.helpers.LoggerTagged
 import java.lang.ref.WeakReference
 
 /**
@@ -39,7 +39,6 @@ class ConnectivityListener(private val context: Context) {
     }
 
     companion object {
-        private const val TAG: String = "ConnectivityListener"
         private var instanceRef: WeakReference<ConnectivityListener>? = null
         val instance: ConnectivityListener? get() = instanceRef?.get()
 
@@ -77,7 +76,7 @@ class ConnectivityListener(private val context: Context) {
 
                 val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
                 for (subID in removedSubs) {
-                    Log.i(TAG, "Removed subscription ID $subID")
+                    LoggerTagged.i { "Removed subscription ID $subID" }
                     try {
                         tm.listen(connectivityListeners[subID], PhoneStateListener.LISTEN_NONE)
                     } catch (_: Exception) {
@@ -89,7 +88,7 @@ class ConnectivityListener(private val context: Context) {
                 }
                 for (subID in addedSubs) {
                     val subTm = tm.createForSubscriptionId(subID)
-                    Log.i(TAG, "Added subscription ID $subID")
+                    LoggerTagged.i { "Added subscription ID $subID" }
                     val gotPermission = context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && gotPermission) {
                         states[subID] = SubscriptionState(subTm)
@@ -114,7 +113,7 @@ class ConnectivityListener(private val context: Context) {
             externalListeners.add(listener)
             listener.statesChanged(states)
         }
-        Log.d(TAG, "listeners: ${externalListeners.size}")
+        LoggerTagged.d { "listeners: ${externalListeners.size}" }
         if (wasEmpty) {
             startListening()
         }
@@ -149,7 +148,7 @@ class ConnectivityListener(private val context: Context) {
             val sm = ContextCompat.getSystemService(context, SubscriptionManager::class.java)
             sm?.removeOnSubscriptionsChangedListener(subscriptionsListener)
             for (subID in connectivityListeners.keys) {
-                Log.i(TAG, "Removed subscription ID $subID")
+                LoggerTagged.i { "Removed subscription ID $subID" }
                 tm.listen(connectivityListeners[subID], PhoneStateListener.LISTEN_NONE)
             }
             connectivityListeners.clear()
@@ -195,13 +194,13 @@ class ConnectivityListener(private val context: Context) {
     fun getActiveSubscriptionIDs(): List<Int> {
         val subscriptionManager = ContextCompat.getSystemService(context, SubscriptionManager::class.java)
         if (subscriptionManager == null) {
-            Log.w(TAG, "Could not get SubscriptionManager")
+            LoggerTagged.w { "Could not get SubscriptionManager" }
             return emptyList()
         }
         val subscriptionInfos = subscriptionManager.activeSubscriptionInfoList
         if (subscriptionInfos == null) {
             // This happens when there is no SIM card inserted
-            Log.w(TAG, "Could not get SubscriptionInfos")
+            LoggerTagged.w { "Could not get SubscriptionInfos" }
             return emptyList()
         }
         return subscriptionInfos.map { it.subscriptionId }

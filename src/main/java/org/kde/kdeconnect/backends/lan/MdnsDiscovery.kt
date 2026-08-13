@@ -12,11 +12,11 @@ import android.net.nsd.NsdManager.RegistrationListener
 import android.net.nsd.NsdServiceInfo
 import android.net.wifi.WifiManager
 import android.net.wifi.WifiManager.MulticastLock
-import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.kde.kdeconnect.helpers.DeviceHelper
+import org.kde.kdeconnect.helpers.LoggerTagged
 
 class MdnsDiscovery(
     context: Context,
@@ -60,7 +60,7 @@ class MdnsDiscovery(
             try {
                 serviceInfo = createNsdServiceInfo()
             } catch (e: IllegalAccessException) {
-                Log.w(LOG_TAG, "Couldn't start announcing via MDNS: " + e.message)
+                LoggerTagged.w { "Couldn't start announcing via MDNS: " + e.message }
                 return
             }
             registrationListener = createRegistrationListener()
@@ -82,19 +82,19 @@ class MdnsDiscovery(
     fun createRegistrationListener() = object : RegistrationListener {
         override fun onServiceRegistered(serviceInfo: NsdServiceInfo) {
             // If Android changed the service name to avoid conflicts, here we can read it.
-            Log.i(LOG_TAG, "Registered ${serviceInfo.serviceName}")
+            LoggerTagged.i { "Registered ${serviceInfo.serviceName}" }
         }
 
         override fun onRegistrationFailed(serviceInfo: NsdServiceInfo?, errorCode: Int) {
-            Log.e(LOG_TAG, "Registration failed with: $errorCode")
+            LoggerTagged.e { "Registration failed with: $errorCode" }
         }
 
         override fun onServiceUnregistered(serviceInfo: NsdServiceInfo?) {
-            Log.d(LOG_TAG, "Service unregistered: $serviceInfo")
+            LoggerTagged.d { "Service unregistered: $serviceInfo" }
         }
 
         override fun onUnregistrationFailed(serviceInfo: NsdServiceInfo?, errorCode: Int) {
-            Log.e(LOG_TAG, "Unregister of $serviceInfo failed with: $errorCode")
+            LoggerTagged.e { "Unregister of $serviceInfo failed with: $errorCode" }
         }
     }
 
@@ -120,7 +120,7 @@ class MdnsDiscovery(
         serviceInfo.setAttribute("type", deviceType)
         serviceInfo.setAttribute("protocol", protocolVersion)
 
-        Log.i(LOG_TAG, "My MDNS info: $serviceInfo")
+        LoggerTagged.i { "My MDNS info: $serviceInfo" }
 
         return@withContext serviceInfo
     }
@@ -129,21 +129,21 @@ class MdnsDiscovery(
         val myId: String = deviceHelper.getDeviceId()
 
         override fun onDiscoveryStarted(serviceType: String?) {
-            Log.i(LOG_TAG, "Service discovery started: $serviceType")
+            LoggerTagged.i { "Service discovery started: $serviceType" }
         }
 
         override fun onServiceFound(serviceInfo: NsdServiceInfo) {
-            Log.d(LOG_TAG, "Service discovered: $serviceInfo")
+            LoggerTagged.d { "Service discovered: $serviceInfo" }
 
             val deviceId = serviceInfo.serviceName
 
             if (myId == deviceId) {
-                Log.d(LOG_TAG, "Discovered myself, ignoring.")
+                LoggerTagged.d { "Discovered myself, ignoring." }
                 return
             }
 
             if (lanLinkProvider.visibleDevices.containsKey(deviceId)) {
-                Log.i(LOG_TAG, "MDNS discovered $deviceId to which I'm already connected to. Ignoring.")
+                LoggerTagged.i { "MDNS discovered $deviceId to which I'm already connected to. Ignoring." }
                 return
             }
 
@@ -153,22 +153,22 @@ class MdnsDiscovery(
         }
 
         override fun onServiceLost(serviceInfo: NsdServiceInfo?) {
-            Log.w(LOG_TAG, "Service lost: $serviceInfo")
+            LoggerTagged.w { "Service lost: $serviceInfo" }
             // We can't see this device via mdns. This probably means it's not reachable anymore
             // but we do nothing here since we have other ways to do detect unreachable devices
             // that hopefully will also trigger.
         }
 
         override fun onDiscoveryStopped(serviceType: String?) {
-            Log.i(LOG_TAG, "MDNS discovery stopped: $serviceType")
+            LoggerTagged.i { "MDNS discovery stopped: $serviceType" }
         }
 
         override fun onStartDiscoveryFailed(serviceType: String?, errorCode: Int) {
-            Log.e(LOG_TAG, "MDNS discovery start failed: $errorCode")
+            LoggerTagged.e { "MDNS discovery start failed: $errorCode" }
         }
 
         override fun onStopDiscoveryFailed(serviceType: String?, errorCode: Int) {
-            Log.e(LOG_TAG, "MDNS discovery stop failed: $errorCode")
+            LoggerTagged.e { "MDNS discovery stop failed: $errorCode" }
         }
     }
 
@@ -177,11 +177,11 @@ class MdnsDiscovery(
      */
     fun createResolveListener() = object : NsdManager.ResolveListener {
         override fun onResolveFailed(serviceInfo: NsdServiceInfo?, errorCode: Int) {
-            Log.w(LOG_TAG, "MDNS error $errorCode resolving service: $serviceInfo")
+            LoggerTagged.w { "MDNS error $errorCode resolving service: $serviceInfo" }
         }
 
         override fun onServiceResolved(serviceInfo: NsdServiceInfo) {
-            Log.i(LOG_TAG, "MDNS successfully resolved $serviceInfo")
+            LoggerTagged.i { "MDNS successfully resolved $serviceInfo" }
 
             // Let the LanLinkProvider handle the connection
             val remoteAddress = serviceInfo.host
@@ -195,7 +195,6 @@ class MdnsDiscovery(
     }
 
     companion object {
-        const val LOG_TAG: String = "MdnsDiscovery"
 
         const val SERVICE_TYPE: String = "_kdeconnect._udp"
     }
