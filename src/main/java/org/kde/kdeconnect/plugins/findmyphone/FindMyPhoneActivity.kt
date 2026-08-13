@@ -6,7 +6,7 @@ import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import org.kde.kdeconnect.ui.compose.KdeTheme
+import org.kde.kdeconnect.ui.KdeTheme
 
 class FindMyPhoneActivity : AppCompatActivity() {
 

@@ -11,10 +11,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import org.kde.kdeconnect.ui.compose.components.BackAction
-import org.kde.kdeconnect.ui.compose.components.HazeScaffold
-import org.kde.kdeconnect.ui.compose.components.SliderPreference
-import org.kde.kdeconnect.ui.compose.components.SwitchPreference
+import org.kde.kdeconnect.ui.components.BackAction
+import org.kde.kdeconnect.ui.components.HazeScaffold
+import org.kde.kdeconnect.ui.components.SliderPreference
+import org.kde.kdeconnect.ui.components.SwitchPreference
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.viewmodel.koinViewModel

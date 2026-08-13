@@ -41,11 +41,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
-import org.kde.kdeconnect.ui.compose.components.BackAction
-import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
-import org.kde.kdeconnect.ui.compose.components.FancyDialog
-import org.kde.kdeconnect.ui.compose.components.HazeScaffold
-import org.kde.kdeconnect.ui.compose.components.Preference
+import org.kde.kdeconnect.ui.components.BackAction
+import org.kde.kdeconnect.ui.components.CategoryTitleTextSmall
+import org.kde.kdeconnect.ui.components.FancyDialog
+import org.kde.kdeconnect.ui.components.HazeScaffold
+import org.kde.kdeconnect.ui.components.Preference
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.viewmodel.koinViewModel

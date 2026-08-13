@@ -43,10 +43,10 @@ import androidx.compose.ui.unit.sp
 import kotlinx.serialization.json.Json
 import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect.helpers.PermissionRequestHelper
-import org.kde.kdeconnect.ui.compose.KdeTheme
-import org.kde.kdeconnect.ui.compose.components.IconHero
-import org.kde.kdeconnect.ui.compose.components.card
-import org.kde.kdeconnect.ui.compose.components.googleSans
+import org.kde.kdeconnect.ui.KdeTheme
+import org.kde.kdeconnect.ui.components.IconHero
+import org.kde.kdeconnect.ui.components.card
+import org.kde.kdeconnect.ui.components.googleSans
 import org.kde.kdeconnect_tp.R
 import org.koin.android.ext.android.inject
 

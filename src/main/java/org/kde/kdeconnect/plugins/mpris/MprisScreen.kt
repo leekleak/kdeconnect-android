@@ -79,11 +79,11 @@ import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
-import org.kde.kdeconnect.ui.compose.KdeTheme
-import org.kde.kdeconnect.ui.compose.LocalHazeState
-import org.kde.kdeconnect.ui.compose.components.FancyDialog
-import org.kde.kdeconnect.ui.compose.components.card
-import org.kde.kdeconnect.ui.compose.components.googleSans
+import org.kde.kdeconnect.ui.KdeTheme
+import org.kde.kdeconnect.ui.LocalHazeState
+import org.kde.kdeconnect.ui.components.FancyDialog
+import org.kde.kdeconnect.ui.components.card
+import org.kde.kdeconnect.ui.components.googleSans
 import org.kde.kdeconnect.ui.navigation.MprisSinkKey
 import org.kde.kdeconnect.ui.navigation.MprisSourceKey
 import org.kde.kdeconnect.ui.navigation.Navigator

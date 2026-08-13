@@ -48,8 +48,8 @@ import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.plugins.mousepad.MousePadViewModel
 import org.kde.kdeconnect.plugins.mpris.MprisViewModel
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
-import org.kde.kdeconnect.ui.compose.KdeTheme
-import org.kde.kdeconnect.ui.compose.LocalHazeState
+import org.kde.kdeconnect.ui.KdeTheme
+import org.kde.kdeconnect.ui.LocalHazeState
 import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.DigitizerKey
 import org.kde.kdeconnect.ui.navigation.HomeKey

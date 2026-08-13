@@ -38,10 +38,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
-import org.kde.kdeconnect.ui.compose.KdeTheme
-import org.kde.kdeconnect.ui.compose.components.IconHero
-import org.kde.kdeconnect.ui.compose.components.card
-import org.kde.kdeconnect.ui.compose.components.googleSans
+import org.kde.kdeconnect.ui.KdeTheme
+import org.kde.kdeconnect.ui.components.IconHero
+import org.kde.kdeconnect.ui.components.card
+import org.kde.kdeconnect.ui.components.googleSans
 import org.kde.kdeconnect_tp.R
 import org.koin.android.ext.android.inject
 

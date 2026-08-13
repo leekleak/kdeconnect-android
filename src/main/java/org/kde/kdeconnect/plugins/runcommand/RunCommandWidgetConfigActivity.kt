@@ -35,8 +35,8 @@ import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.DeviceState
 import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper
-import org.kde.kdeconnect.ui.compose.KdeTheme
-import org.kde.kdeconnect.ui.compose.screen.share.DeviceSelectScreen
+import org.kde.kdeconnect.ui.KdeTheme
+import org.kde.kdeconnect.ui.components.DeviceSelectScreen
 import org.kde.kdeconnect_tp.R
 import org.koin.android.ext.android.inject
 import kotlin.time.Duration.Companion.milliseconds

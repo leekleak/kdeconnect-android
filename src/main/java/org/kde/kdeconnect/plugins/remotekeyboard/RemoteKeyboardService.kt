@@ -32,7 +32,7 @@ import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPlugin.Companion.
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPlugin.Companion.releaseInstances
 import org.kde.kdeconnect.ui.MainActivity
 import kotlinx.coroutines.launch
-import org.kde.kdeconnect.ui.compose.KdeTheme
+import org.kde.kdeconnect.ui.KdeTheme
 import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import org.kde.kdeconnect_tp.R
 

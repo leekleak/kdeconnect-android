@@ -38,9 +38,9 @@ import kotlinx.serialization.json.Json
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.ui.PermissionExplanationActivity
 import org.kde.kdeconnect.ui.PermissionRequest
-import org.kde.kdeconnect.ui.compose.components.BackAction
-import org.kde.kdeconnect.ui.compose.components.HazeScaffold
-import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
+import org.kde.kdeconnect.ui.components.BackAction
+import org.kde.kdeconnect.ui.components.HazeScaffold
+import org.kde.kdeconnect.ui.components.KdeThemePreviews
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 import org.koin.androidx.compose.koinViewModel

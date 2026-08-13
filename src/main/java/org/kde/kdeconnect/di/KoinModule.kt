@@ -4,14 +4,7 @@ package org.kde.kdeconnect.di
 
 import android.content.Context
 import android.content.Intent
-import androidx.compose.foundation.layout.Row
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -22,8 +15,6 @@ import coil3.disk.DiskCache
 import coil3.disk.directory
 import coil3.memory.MemoryCache
 import coil3.request.crossfade
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.launch
 import org.kde.kdeconnect.BackgroundServiceData
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
@@ -78,8 +69,10 @@ import org.kde.kdeconnect.plugins.mprisreceiver.MprisReceiverPlugin
 import org.kde.kdeconnect.plugins.notifications.AppDatabase
 import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
+import org.kde.kdeconnect.plugins.presenter.PresenterScreen
 import org.kde.kdeconnect.plugins.presenter.PresenterSettingsScreen
 import org.kde.kdeconnect.plugins.presenter.PresenterSettingsViewModel
+import org.kde.kdeconnect.plugins.presenter.PresenterViewModel
 import org.kde.kdeconnect.plugins.receivenotifications.ReceiveNotificationsPlugin
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPlugin
 import org.kde.kdeconnect.plugins.runcommand.RunCommandPlugin
@@ -92,32 +85,6 @@ import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin
 import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin
 import org.kde.kdeconnect.ui.ThemeUtil
 import org.kde.kdeconnect.ui.about.getApplicationAboutData
-import org.kde.kdeconnect.ui.compose.screen.about.AboutScreen
-import org.kde.kdeconnect.ui.compose.screen.device.DeviceScreen
-import org.kde.kdeconnect.ui.compose.screen.device.DeviceViewModel
-import org.kde.kdeconnect.ui.compose.screen.device.settings.DeviceSettingsScreen
-import org.kde.kdeconnect.ui.compose.screen.device.settings.DeviceSettingsViewModel
-import org.kde.kdeconnect.ui.compose.screen.home.HomeScreen
-import org.kde.kdeconnect.ui.compose.screen.home.HomeViewModel
-import org.kde.kdeconnect.ui.compose.screen.licenses.LicensesEvent
-import org.kde.kdeconnect.ui.compose.screen.licenses.LicensesScreen
-import org.kde.kdeconnect.ui.compose.screen.pairing.PairingScreen
-import org.kde.kdeconnect.ui.compose.screen.pairing.PairingViewModel
-import org.kde.kdeconnect.ui.compose.screen.permissions.PermissionsScreen
-import org.kde.kdeconnect.ui.compose.screen.presenter.PresenterScreen
-import org.kde.kdeconnect.ui.compose.screen.presenter.PresenterViewModel
-import org.kde.kdeconnect.ui.compose.screen.settings.SettingsScreen
-import org.kde.kdeconnect.ui.compose.screen.settings.SettingsViewModel
-import org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages.TelephonySettingsScreen
-import org.kde.kdeconnect.ui.compose.screen.settings.advanced.calls_and_messages.TelephonySettingsViewModel
-import org.kde.kdeconnect.ui.compose.screen.settings.advanced.connections.ConnectionsSettingsScreen
-import org.kde.kdeconnect.ui.compose.screen.settings.advanced.connections.ConnectionsSettingsViewModel
-import org.kde.kdeconnect.ui.compose.screen.settings.advanced.filesystem.SftpSettingsScreen
-import org.kde.kdeconnect.ui.compose.screen.settings.advanced.filesystem.SftpSettingsViewModel
-import org.kde.kdeconnect.ui.compose.screen.settings.advanced.notifications.NotificationSettings
-import org.kde.kdeconnect.ui.compose.screen.settings.advanced.notifications.NotificationSettingsViewModel
-import org.kde.kdeconnect.ui.compose.screen.settings.advanced.paired.SavedDevices
-import org.kde.kdeconnect.ui.compose.screen.settings.advanced.paired.SavedDevicesViewModel
 import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.BigscreenKey
 import org.kde.kdeconnect.ui.navigation.ConnectionsSettingsKey
@@ -142,7 +109,29 @@ import org.kde.kdeconnect.ui.navigation.SavedDevicesKey
 import org.kde.kdeconnect.ui.navigation.SettingsKey
 import org.kde.kdeconnect.ui.navigation.SftpPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.TelephonyPluginSettingsKey
-import org.kde.kdeconnect_tp.R
+import org.kde.kdeconnect.ui.screen.about.AboutScreen
+import org.kde.kdeconnect.ui.screen.device.DeviceScreen
+import org.kde.kdeconnect.ui.screen.device.DeviceViewModel
+import org.kde.kdeconnect.ui.screen.device.settings.DeviceSettingsScreen
+import org.kde.kdeconnect.ui.screen.device.settings.DeviceSettingsViewModel
+import org.kde.kdeconnect.ui.screen.home.HomeScreen
+import org.kde.kdeconnect.ui.screen.home.HomeViewModel
+import org.kde.kdeconnect.ui.screen.licenses.LicensesScreen
+import org.kde.kdeconnect.ui.screen.pairing.PairingScreen
+import org.kde.kdeconnect.ui.screen.pairing.PairingViewModel
+import org.kde.kdeconnect.ui.screen.permissions.PermissionsScreen
+import org.kde.kdeconnect.ui.screen.settings.SettingsScreen
+import org.kde.kdeconnect.ui.screen.settings.SettingsViewModel
+import org.kde.kdeconnect.ui.screen.settings.advanced.calls_and_messages.TelephonySettingsScreen
+import org.kde.kdeconnect.ui.screen.settings.advanced.calls_and_messages.TelephonySettingsViewModel
+import org.kde.kdeconnect.ui.screen.settings.advanced.connections.ConnectionsSettingsScreen
+import org.kde.kdeconnect.ui.screen.settings.advanced.connections.ConnectionsSettingsViewModel
+import org.kde.kdeconnect.ui.screen.settings.advanced.filesystem.SftpSettingsScreen
+import org.kde.kdeconnect.ui.screen.settings.advanced.filesystem.SftpSettingsViewModel
+import org.kde.kdeconnect.ui.screen.settings.advanced.notifications.NotificationSettings
+import org.kde.kdeconnect.ui.screen.settings.advanced.notifications.NotificationSettingsViewModel
+import org.kde.kdeconnect.ui.screen.settings.advanced.paired.SavedDevices
+import org.kde.kdeconnect.ui.screen.settings.advanced.paired.SavedDevicesViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -173,11 +162,10 @@ val homeModule = module {
     navigation<PairingKey> {
         val viewModel: PairingViewModel = koinViewModel()
         val state by viewModel.uiState.collectAsStateWithLifecycle()
-        val context = LocalContext.current
         PairingScreen(
             uiState = state,
             onClick = { viewModel.pair(it) },
-            onRefresh = { viewModel.onRefresh(context) },
+            onRefresh = { viewModel.onRefresh(get()) },
             navigator = get(),
         )
     }
@@ -188,7 +176,7 @@ val homeModule = module {
 
 val aboutModule = module {
     navigation<AboutKey> {
-        val context = LocalContext.current
+        val context: Context = get()
         val aboutData = getApplicationAboutData(context)
         val navigator: Navigator = get()
 

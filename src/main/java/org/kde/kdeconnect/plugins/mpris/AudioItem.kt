@@ -30,7 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import org.kde.kdeconnect.plugins.systemvolume.Sink
-import org.kde.kdeconnect.ui.compose.components.googleSans
+import org.kde.kdeconnect.ui.components.googleSans
 
 
 @Composable

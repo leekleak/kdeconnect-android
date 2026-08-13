@@ -21,9 +21,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.kde.kdeconnect.DeviceManager
-import org.kde.kdeconnect.ui.compose.components.BackAction
-import org.kde.kdeconnect.ui.compose.components.HazeScaffold
-import org.kde.kdeconnect.ui.compose.components.googleSans
+import org.kde.kdeconnect.ui.components.BackAction
+import org.kde.kdeconnect.ui.components.HazeScaffold
+import org.kde.kdeconnect.ui.components.googleSans
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.koinInject
 
