@@ -49,6 +49,7 @@ import org.kde.kdeconnect.plugins.mousepad.MousePadViewModel
 import org.kde.kdeconnect.plugins.mpris.MprisViewModel
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
 import org.kde.kdeconnect.ui.compose.KdeTheme
+import org.kde.kdeconnect.ui.compose.LocalHazeState
 import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.DigitizerKey
 import org.kde.kdeconnect.ui.navigation.HomeKey
@@ -146,7 +147,6 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
     private fun MainActivityContent() {
         val entryProvider = koinEntryProvider<Any>()
         val navigator: Navigator = koinInject()
-        val hazeState: HazeState = koinInject()
 
         val activeIntent by lastIntent.collectAsStateWithLifecycle()
 
@@ -165,6 +165,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
         }
 
         KdeTheme {
+            val hazeState = LocalHazeState.current
             NavDisplay(
                 modifier = Modifier.hazeSource(hazeState),
                 backStack = navigator.backStack,

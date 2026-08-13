@@ -3,12 +3,13 @@ package org.kde.kdeconnect
 import org.junit.Assert
 import org.junit.Test
 import org.kde.kdeconnect.DeviceStats.removeOldEvents
+import java.util.concurrent.ConcurrentHashMap
 
 class DeviceStatsTest {
     @Test
     fun removeOldEvents_cutoutExists() {
         val key = "kdeconnect.ping"
-        val eventsByType = HashMap<String, ArrayList<Long>>().apply {
+        val eventsByType = ConcurrentHashMap<String, ArrayList<Long>>().apply {
             val events = arrayListOf(10L, 20L, 30L)
             put(key, events)
         }
@@ -24,7 +25,7 @@ class DeviceStatsTest {
     @Test
     fun removeOldEvents_cutoutDoesntExist() {
         val key = "kdeconnect.ping"
-        val eventsByType = HashMap<String, ArrayList<Long>>().apply {
+        val eventsByType = ConcurrentHashMap<String, ArrayList<Long>>().apply {
             val events = arrayListOf(10L, 20L, 30L)
             put(key, events)
         }
@@ -39,7 +40,7 @@ class DeviceStatsTest {
     @Test
     fun removeOldEvents_OnlyOldEvents() {
         val key = "kdeconnect.ping"
-        val eventsByType = HashMap<String, ArrayList<Long>>().apply {
+        val eventsByType = ConcurrentHashMap<String, ArrayList<Long>>().apply {
             val events = arrayListOf(10L, 20L)
             put(key, events)
         }
@@ -52,7 +53,7 @@ class DeviceStatsTest {
     @Test
     fun removeOldEvents_OnlyNewEvents() {
         val key = "kdeconnect.ping"
-        val eventsByType = HashMap<String, ArrayList<Long>>().apply {
+        val eventsByType = ConcurrentHashMap<String, ArrayList<Long>>().apply {
             val events = arrayListOf(10L)
             put(key, events)
         }

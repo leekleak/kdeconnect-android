@@ -81,6 +81,7 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import org.kde.kdeconnect.ui.compose.KdeTheme
+import org.kde.kdeconnect.ui.compose.LocalHazeState
 import org.kde.kdeconnect.ui.compose.components.FancyDialog
 import org.kde.kdeconnect.ui.compose.components.card
 import org.kde.kdeconnect.ui.compose.components.googleSans
@@ -101,7 +102,7 @@ fun MprisScreen(
     viewModel: MprisViewModel = koinViewModel(key = "MprisViewModel_$deviceId") { parametersOf(deviceId) }
 ) {
     val pagerState = rememberPagerState(pageCount = { 2 })
-    val hazeState: HazeState = koinInject()
+    val hazeState: HazeState = LocalHazeState.current
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->

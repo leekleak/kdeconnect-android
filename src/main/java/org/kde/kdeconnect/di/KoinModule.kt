@@ -362,10 +362,6 @@ val digitizerModule = module {
     }
 }
 
-val hazeModule = module {
-    single { HazeState() }
-}
-
 fun buildImageLoader(context: Context, deviceManager: DeviceManager): ImageLoader =
     ImageLoader.Builder(context)
         .components {
@@ -391,7 +387,7 @@ val appModule = module {
     single<KdeConnect> { get<Context>() as KdeConnect }
     single<BackgroundServiceData>()
     includes(homeModule, deviceModule, pluginSettingsModule, presenterModule, mprisModule,
-        mousePadModule, runCommandModule, digitizerModule, settingsModule, aboutModule, hazeModule)
+        mousePadModule, runCommandModule, digitizerModule, settingsModule, aboutModule)
 
     single {
         val startDestination = if (PermissionHelper.hasRequiredPermissions(get())) {
