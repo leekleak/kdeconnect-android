@@ -3,7 +3,7 @@ activityCompose = "1.13.0"
 androidGradlePlugin = "9.3.1"
 androidSmsmms = "kdeconnect-1-21-0"
 appcompat = "1.8.0"
-bcpkixJdk15on = "1.70"
+bcpkixJdk18on = "1.85"
 classindexksp = "1.2"
 commonsIo = "2.22.0"
 datastore = "1.2.1"
@@ -54,7 +54,7 @@ androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-view
 androidx-media3-session = { module = "androidx.media3:media3-session", version.ref = "media3" }
 androidx-room3-runtime = { module = "androidx.room3:room3-runtime", version.ref = "room3" }
 androidx-room3-compiler = { module = "androidx.room3:room3-compiler", version.ref = "room3" }
-bcpkix-jdk15on = { module = "org.bouncycastle:bcpkix-jdk15on", version.ref = "bcpkixJdk15on" }
+bcpkix-jdk18on = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bcpkixJdk18on" }
 classindexksp = { module = "com.github.albertvaka:classindexksp", version.ref = "classindexksp" }
 commons-io = { module = "commons-io:commons-io", version.ref = "commonsIo" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }

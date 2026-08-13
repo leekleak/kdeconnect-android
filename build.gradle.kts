@@ -64,7 +64,7 @@ android {
 
     packaging {
         resources {
-            merges += listOf("META-INF/DEPENDENCIES", "META-INF/LICENSE", "META-INF/NOTICE")
+            merges += listOf("META-INF/DEPENDENCIES", "META-INF/LICENSE", "META-INF/NOTICE", "META-INF/LICENSE.md")
         }
     }
     signingConfigs {
@@ -162,7 +162,7 @@ dependencies {
     implementation(libs.apache.sshd.sftp)
     implementation(libs.apache.sshd.scp)
 
-    implementation(libs.bcpkix.jdk15on) //For SSL certificate generation
+    implementation(libs.bcpkix.jdk18on) //For SSL certificate generation
 
     implementation(libs.androidx.room3.runtime)
     ksp(libs.androidx.room3.compiler)
