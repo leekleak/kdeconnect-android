@@ -15,7 +15,6 @@ import android.util.Log
 import android.webkit.MimeTypeMap
 import androidx.annotation.WorkerThread
 import androidx.documentfile.provider.DocumentFile
-import org.apache.commons.io.FilenameUtils
 import org.kde.kdeconnect.NetworkPacket
 import java.io.File
 import java.nio.charset.StandardCharsets
@@ -25,7 +24,9 @@ object FilesHelper {
 
     @JvmStatic
     fun getMimeTypeFromFile(file: String?): String {
-        val mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(FilenameUtils.getExtension(file))
+        val mime = file?.let {
+            MimeTypeMap.getSingleton().getMimeTypeFromExtension(File(it).extension)
+        }
         return mime ?: "*/*"
     }
 

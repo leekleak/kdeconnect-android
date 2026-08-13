@@ -15,12 +15,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.apache.commons.io.IOUtils
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.ui.AppTheme
 import org.kde.kdeconnect.ui.ThemeUtil
 import org.kde.kdeconnect_tp.BuildConfig
 import java.io.InputStreamReader
+import kotlin.text.Charsets.UTF_8
 
 class SettingsViewModel(
     private val dataStore: SettingsDataStore,
@@ -91,9 +91,9 @@ class SettingsViewModel(
             val process = Runtime.getRuntime().exec(arrayOf("logcat", "-d"))
             val reader = InputStreamReader(process.inputStream)
             output.use {
-                it.write("KDE Connect ${BuildConfig.VERSION_NAME}\n".toByteArray(Charsets.UTF_8))
-                it.write("Android ${Build.VERSION.RELEASE} (${Build.MANUFACTURER} ${Build.MODEL})\n".toByteArray(Charsets.UTF_8))
-                IOUtils.copy(reader, it, Charsets.UTF_8)
+                it.write("KDE Connect ${BuildConfig.VERSION_NAME}\n".toByteArray(UTF_8))
+                it.write("Android ${Build.VERSION.RELEASE} (${Build.MANUFACTURER} ${Build.MODEL})\n".toByteArray(UTF_8))
+                reader.copyTo(it.writer(UTF_8))
             }
         }
     }

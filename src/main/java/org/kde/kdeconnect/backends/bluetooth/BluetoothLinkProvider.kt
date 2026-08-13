@@ -19,7 +19,6 @@ import android.os.Parcelable
 import android.util.Log
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import org.apache.commons.io.IOUtils
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.DeviceInfo.Companion.fromIdentityPacketAndCert
@@ -127,7 +126,7 @@ class BluetoothLinkProvider(
         fun stopProcessing() {
             continueProcessing = false
             try {
-                IOUtils.close(serverSocket)
+                serverSocket?.close()
             } catch (e: IOException) {
                 Log.e("KDEConnect", "Exception", e)
             }

@@ -169,8 +169,6 @@ dependencies {
     implementation(libs.android.smsmms)
     implementation(libs.logger)
 
-    implementation(libs.commons.io)
-
     // Kotlin
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)

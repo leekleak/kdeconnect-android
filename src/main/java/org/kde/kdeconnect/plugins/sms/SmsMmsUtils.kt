@@ -37,7 +37,6 @@ import com.klinker.android.send_message.Message
 import com.klinker.android.send_message.Settings
 import com.klinker.android.send_message.Transaction
 import com.klinker.android.send_message.Utils
-import org.apache.commons.io.IOUtils
 import org.kde.kdeconnect.helpers.SMSHelper
 import org.kde.kdeconnect.helpers.TelephonyHelper
 import org.kde.kdeconnect.helpers.TelephonyHelper.LocalPhoneNumber
@@ -427,7 +426,7 @@ object SmsMmsUtils {
             context.contentResolver.openInputStream(partURI).use { inputStream ->
                 // Try read from the InputStream
                 if (inputStream != null) {
-                    byteArray = IOUtils.toByteArray(inputStream)
+                    byteArray = inputStream.readBytes()
                 }
             }
         } catch (e: IOException) {

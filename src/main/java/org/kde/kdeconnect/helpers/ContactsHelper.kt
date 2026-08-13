@@ -12,7 +12,6 @@ import android.provider.ContactsContract
 import android.provider.ContactsContract.PhoneLookup
 import android.util.Log
 import androidx.core.net.toUri
-import org.apache.commons.io.IOUtils
 import kotlin.io.encoding.Base64
 import kotlin.text.Charsets.UTF_8
 
@@ -144,7 +143,7 @@ object ContactsHelper {
                         )
                         continue
                     }
-                    toReturn.put(id, VCardBuilder(IOUtils.toString(input, UTF_8)))
+                    toReturn.put(id, VCardBuilder(input.bufferedReader(UTF_8).readText()))
                 }
             } catch (e: Exception) {
                 // If you are experiencing this, please open a bug report indicating how you got here

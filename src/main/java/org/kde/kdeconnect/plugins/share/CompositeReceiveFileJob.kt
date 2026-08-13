@@ -22,7 +22,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import org.apache.commons.io.IOUtils
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.async.BackgroundJob
@@ -265,9 +264,11 @@ class CompositeReceiveFileJob(
         } finally {
             closeAllInputStreams()
             networkPacketList.clear()
-            try {
-                IOUtils.close(outputStream)
-            } catch (_: IOException) {
+            withContext(Dispatchers.IO) {
+                try {
+                    outputStream?.close()
+                } catch (_: IOException) {
+                }
             }
         }
     }
