@@ -46,11 +46,11 @@ import androidx.media3.common.SimpleBasePlayer
 import androidx.media3.session.MediaSession
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import org.kde.kdeconnect.ui.compose.components.BackAction
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.PresenterPluginSettingsKey
 import org.kde.kdeconnect_tp.R
-import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -59,10 +59,10 @@ import org.koin.core.parameter.parametersOf
 @Composable
 fun PresenterScreen(
     deviceId: String,
-    viewModel: PresenterViewModel = koinViewModel(key = "PresenterViewModel_$deviceId") { parametersOf(deviceId) }
+    viewModel: PresenterViewModel = koinViewModel(key = "PresenterViewModel_$deviceId") { parametersOf(deviceId) },
+    navigator: Navigator,
 ) {
     val context = LocalContext.current
-    val navigator: Navigator = koinInject()
     val sensorManager = context.getSystemService(android.content.Context.SENSOR_SERVICE) as? SensorManager
 
     val offScreenControlsSupported = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA
@@ -128,7 +128,7 @@ fun PresenterScreen(
 
     HazeScaffold(
         title = stringResource(R.string.pref_plugin_presenter),
-        backButton = true,
+        backAction = BackAction.Normal(navigator),
         actions = {
             IconButton(
                 onClick = { navigator.goTo(PresenterPluginSettingsKey) }

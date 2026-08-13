@@ -17,9 +17,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.kde.kdeconnect.PairState
 import org.kde.kdeconnect.PairingHandler
+import org.kde.kdeconnect.ui.compose.components.BackAction
 import org.kde.kdeconnect.ui.compose.components.DeviceCard
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.PairingExplanations
+import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,12 +29,13 @@ import org.kde.kdeconnect_tp.R
 fun PairingScreen(
     uiState: PairingUiState,
     onClick: (String) -> Unit,
-    onRefresh: () -> Unit = {}
+    onRefresh: () -> Unit = {},
+    navigator: Navigator,
 ) {
     HazeScaffold(
         title = stringResource(R.string.pair_devices),
         scrollState = null,
-        backButton = false
+        backAction = BackAction.Normal(navigator)
     ) { paddingValues ->
         val pullRefreshState = rememberPullToRefreshState()
         val state = rememberLazyListState()

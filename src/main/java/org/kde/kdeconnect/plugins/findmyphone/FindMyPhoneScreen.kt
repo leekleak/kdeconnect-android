@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.ui.compose.components.BackAction
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.googleSans
 import org.kde.kdeconnect_tp.R
@@ -51,6 +52,7 @@ fun FindMyPhoneScreen(
 
     HazeScaffold(
         title = stringResource(R.string.findmydevice_title),
+        backAction = BackAction.None,
         scrollState = null
     ) {
         val font = remember { googleSans(weight = 600f) }

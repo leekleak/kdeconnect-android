@@ -27,7 +27,9 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import org.kde.kdeconnect.ui.compose.components.BackAction
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
+import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -36,7 +38,8 @@ import org.koin.core.parameter.parametersOf
 @Composable
 fun DigitizerScreen(
     deviceId: String,
-    viewModel: DigitizerViewModel = koinViewModel(key = "DigitizerViewModel_$deviceId") { parametersOf(deviceId) }
+    viewModel: DigitizerViewModel = koinViewModel(key = "DigitizerViewModel_$deviceId") { parametersOf(deviceId) },
+    navigator: Navigator
 ) {
     val context = LocalContext.current
     var isFullscreen by remember { mutableStateOf(false) }
@@ -73,7 +76,7 @@ fun DigitizerScreen(
 
     HazeScaffold(
         title = stringResource(R.string.pref_plugin_digitizer),
-        backButton = true,
+        backAction = BackAction.Normal(navigator),
         scrollState = null,
         showTitle = !isFullscreen,
         actions = {

@@ -99,7 +99,8 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 fun MprisScreen(
     deviceId: String,
-    viewModel: MprisViewModel = koinViewModel(key = "MprisViewModel_$deviceId") { parametersOf(deviceId) }
+    viewModel: MprisViewModel = koinViewModel(key = "MprisViewModel_$deviceId") { parametersOf(deviceId) },
+    navigator: Navigator,
 ) {
     val pagerState = rememberPagerState(pageCount = { 2 })
     val hazeState: HazeState = LocalHazeState.current
@@ -123,7 +124,7 @@ fun MprisScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
     ) {
         PlayerIsland(viewModel)
-        ControlsIsland(deviceId, viewModel)
+        ControlsIsland(deviceId, viewModel, navigator)
     }
 }
 
@@ -401,9 +402,9 @@ fun PlayerIsland(viewModel: MprisViewModel) {
 @Composable
 fun ControlsIsland(
     deviceId: String,
-    viewModel: MprisViewModel
+    viewModel: MprisViewModel,
+    navigator: Navigator
 ) {
-    val navigator: Navigator = koinInject()
     val playerStatus by viewModel.playerStatus.collectAsStateWithLifecycle()
     val sinks by viewModel.sinks.collectAsStateWithLifecycle()
     val outputName by remember { derivedStateOf {
@@ -485,9 +486,9 @@ private fun RowScope.ControlButton(
 @Composable
 fun SinkSelector(
     deviceId: String,
-    viewModel: MprisViewModel = koinViewModel(key = "MprisViewModel_$deviceId") { parametersOf(deviceId) }
+    viewModel: MprisViewModel = koinViewModel(key = "MprisViewModel_$deviceId") { parametersOf(deviceId) },
+    navigator: Navigator,
 ) {
-    val navigator: Navigator = koinInject()
     val sinks by viewModel.sinks.collectAsStateWithLifecycle()
     KdeTheme {
         FancyDialog(
@@ -513,9 +514,9 @@ fun SinkSelector(
 @Composable
 fun SourceSelector(
     deviceId: String,
-    viewModel: MprisViewModel = koinViewModel(key = "MprisViewModel_$deviceId") { parametersOf(deviceId) }
+    viewModel: MprisViewModel = koinViewModel(key = "MprisViewModel_$deviceId") { parametersOf(deviceId) },
+    navigator: Navigator,
 ) {
-    val navigator: Navigator = koinInject()
     val playerList by viewModel.playerList.collectAsStateWithLifecycle()
     val selectedPlayerName by viewModel.selectedPlayerName.collectAsStateWithLifecycle()
 

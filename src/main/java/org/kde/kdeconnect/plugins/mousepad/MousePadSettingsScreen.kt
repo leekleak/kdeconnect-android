@@ -11,24 +11,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.kde.kdeconnect.ui.compose.components.BackAction
 import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.compose.components.DialogItemSelectPreference
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
-import org.kde.kdeconnect.ui.compose.components.SectionHeader
+import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
 import org.kde.kdeconnect.ui.compose.components.SliderPreference
 import org.kde.kdeconnect.ui.compose.components.SwitchPreference
+import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun MousePadSettingsScreen(
-    viewModel: MousePadSettingsViewModel = koinViewModel()
+    viewModel: MousePadSettingsViewModel = koinViewModel(),
+    navigator: Navigator,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     MousePadSettingsScreenContent(
         uiState = uiState,
+        navigator = navigator,
         onSingleTapChanged = viewModel::setSingleTap,
         onDoubleTapChanged = viewModel::setDoubleTap,
         onTripleTapChanged = viewModel::setTripleTap,
@@ -46,6 +51,7 @@ fun MousePadSettingsScreen(
 @Composable
 fun MousePadSettingsScreenContent(
     uiState: MousePadSettingsUiState,
+    navigator: Navigator,
     onSingleTapChanged: (String) -> Unit,
     onDoubleTapChanged: (String) -> Unit,
     onTripleTapChanged: (String) -> Unit,
@@ -66,7 +72,7 @@ fun MousePadSettingsScreenContent(
 
     HazeScaffold(
         title = stringResource(R.string.plugin_settings_with_name, stringResource(R.string.pref_plugin_mousepad)),
-        backButton = true,
+        backAction = BackAction.Normal(navigator),
     ) {
         CategoryTitleTextSmall(stringResource(R.string.actions))
         Row (
@@ -167,4 +173,24 @@ fun MousePadSettingsScreenContent(
             onValueChanged = onSendSafeTextImmediatelyChanged
         )
     }
+}
+
+@KdeThemePreviews
+@Composable
+fun MousePadSettingsPreview() {
+    MousePadSettingsScreenContent(
+        uiState = MousePadSettingsUiState(),
+        navigator = Navigator(),
+        onSingleTapChanged = {},
+        onDoubleTapChanged = {},
+        onTripleTapChanged = {},
+        onSensitivityChanged = {},
+        onAccelerationProfileChanged = {},
+        onScrollDirectionChanged = {},
+        onScrollSensitivityChanged = {},
+        onGyroSensitivityChanged = {},
+        onDoubleTapDragEnabledChanged = {},
+        onSendKeystrokesEnabledChanged = {},
+        onSendSafeTextImmediatelyChanged = {}
+    )
 }

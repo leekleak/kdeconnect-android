@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,9 +34,7 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
-import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
-import org.koin.compose.koinInject
 
 @Composable
 fun SectionHeader(title: String) {
@@ -53,7 +50,7 @@ private fun SectionHeaderPreview() {
 @OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
 fun PageTitle(
-    backButton: Boolean = false,
+    backAction: BackAction = BackAction.None,
     hazeState: HazeState? = null,
     text: String?,
     customElement: @Composable (RowScope.() -> Unit)? = null,
@@ -76,7 +73,25 @@ fun PageTitle(
             .padding(bottom = 6.dp)
             .fillMaxWidth()
         ) {
-            text?.let { CategoryTitleText(it, backButton) }
+            Row (modifier = Modifier.height(TOP_BAR_HEIGHT), verticalAlignment = Alignment.CenterVertically) {
+                if (backAction is BackAction.Normal) {
+                    IconButton(onClick = { backAction.navigator.goBack() }) {
+                        Icon(
+                            painter = painterResource(R.drawable.arrow_back_ios_new),
+                            contentDescription = stringResource(R.string.bigscreen_back),
+                        )
+                    }
+                }
+                text?.let {
+                    Text(
+                        modifier = Modifier.padding(8.dp),
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        overflow = TextOverflow.Ellipsis,
+                        text = text
+                    )
+                }
+            }
             Spacer(Modifier.weight(1f))
             customElement?.let { it() }
         }
@@ -84,28 +99,6 @@ fun PageTitle(
 }
 
 val TOP_BAR_HEIGHT: Dp = 52.dp
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-fun CategoryTitleText(text: String, backButton: Boolean = false) {
-    val navigator: Navigator = koinInject()
-    Row (modifier = Modifier.height(TOP_BAR_HEIGHT), verticalAlignment = Alignment.CenterVertically){
-        if (backButton) {
-            IconButton(onClick = { navigator.goBack() }) {
-                Icon(
-                    painter = painterResource(R.drawable.arrow_back_ios_new),
-                    contentDescription = stringResource(R.string.bigscreen_back),
-                )
-            }
-        }
-        Text(
-            modifier = Modifier.padding(8.dp),
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            overflow = TextOverflow.Ellipsis,
-            text = text
-        )
-    }
-}
 
 @Composable
 fun CategoryTitleTextSmall(text: String) {

@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
+import org.kde.kdeconnect.ui.navigation.Navigator
 
 /**
  * Haze scaffold provides a top bar with a title and a back button.
@@ -46,7 +47,7 @@ import dev.chrisbanes.haze.rememberHazeState
  * @param modifier The modifier to be applied to the scaffold.
  * @param scrollState The scroll state of the scaffold. IMPORTANT: Should be null if content contains LazyColumn
  * @param hazeState The haze state of the scaffold.
- * @param backButton Whether to show the back button.
+ * @param backAction Object to be defined if we want a "back" button.
  * @param verticalArrangement The vertical arrangement of the content.
  * @param actions The actions to be displayed in the top bar.
  * @param content The content of the scaffold.
@@ -59,9 +60,9 @@ fun HazeScaffold(
     title: String? = null,
     scrollState: ScrollState? = rememberScrollState(),
     hazeState: HazeState = rememberHazeState(),
-    backButton: Boolean = false,
     showTitle: Boolean = true,
     verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(8.dp, Alignment.Top),
+    backAction: BackAction,
     actions: @Composable RowScope.() -> Unit = {},
     content: @Composable ColumnScope.(PaddingValues) -> Unit,
 ) {
@@ -91,8 +92,14 @@ fun HazeScaffold(
                 enter = slideIn { IntOffset(x = 0, y = -it.height) },
                 exit = slideOut { IntOffset(x = 0, y = -it.height) },
             ) {
-                PageTitle(backButton, hazeState, title, actions)
+                PageTitle(backAction, hazeState, title, actions)
             }
         }
     }
 }
+
+sealed interface BackAction {
+    data object None : BackAction
+    data class Normal(val navigator: Navigator) : BackAction
+}
+

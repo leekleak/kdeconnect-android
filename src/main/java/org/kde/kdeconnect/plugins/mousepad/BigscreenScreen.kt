@@ -38,20 +38,19 @@ import kotlinx.serialization.json.Json
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.ui.PermissionExplanationActivity
 import org.kde.kdeconnect.ui.PermissionRequest
+import org.kde.kdeconnect.ui.compose.components.BackAction
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.KoinApplication
 import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
-import org.koin.dsl.koinConfiguration
-import org.koin.dsl.module
 
 @Composable
 fun BigscreenScreen(
     deviceId: String,
+    navigator: Navigator
 ) {
     val viewModel: BigscreenViewModel = koinViewModel(parameters = { parametersOf(deviceId) })
     val deviceManager = koinInject<DeviceManager>()
@@ -109,6 +108,7 @@ fun BigscreenScreen(
         onRightClick = viewModel::sendRight,
         onBackClick = viewModel::sendBack,
         onDownClick = viewModel::sendDown,
+        navigator = navigator
     )
 }
 
@@ -145,10 +145,11 @@ private fun BigscreenContent(
     onRightClick: () -> Unit,
     onBackClick: () -> Unit,
     onDownClick: () -> Unit,
+    navigator: Navigator,
 ) {
     HazeScaffold(
         title = stringResource(R.string.pref_plugin_bigscreen),
-        backButton = true,
+        backAction = BackAction.Normal(navigator),
         scrollState = null,
     ) { padding ->
         Column(
@@ -257,5 +258,6 @@ private fun BigscreenPreview() {
         onRightClick = {},
         onBackClick = {},
         onDownClick = {},
+        navigator = Navigator()
     )
 }

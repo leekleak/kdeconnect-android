@@ -34,6 +34,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import org.kde.kdeconnect.BackgroundService
+import org.kde.kdeconnect.ui.compose.components.BackAction
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.IconPreference
 import org.kde.kdeconnect.ui.compose.components.Preference
@@ -41,12 +42,12 @@ import org.kde.kdeconnect.ui.compose.components.googleSans
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.HomeKey
 import org.kde.kdeconnect_tp.R
-import org.koin.compose.koinInject
 
 @Composable
-fun PermissionsScreen() {
+fun PermissionsScreen(
+    navigator: Navigator,
+) {
     val context = LocalContext.current
-    val navigator: Navigator = koinInject()
 
     var hasNotificationPermission by remember {
         mutableStateOf(
@@ -104,7 +105,7 @@ fun PermissionsScreen() {
 
     val font = remember { googleSans(weight = 600f, roundness = 70f) }
 
-    HazeScaffold {
+    HazeScaffold(backAction = BackAction.None) {
         Icon(
             modifier = Modifier
                 .padding(top = 56.dp)

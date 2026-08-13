@@ -32,15 +32,18 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.kde.kdeconnect.helpers.StorageHelper
 import org.kde.kdeconnect.plugins.sftp.SftpPlugin
+import org.kde.kdeconnect.ui.compose.components.BackAction
 import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.Preference
+import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun SftpSettingsScreen(
-    viewModel: SftpSettingsViewModel = koinViewModel()
+    viewModel: SftpSettingsViewModel = koinViewModel(),
+    navigator: Navigator,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var storageToEdit by remember { mutableStateOf<SftpPlugin.StorageInfo?>(null) }
@@ -64,7 +67,7 @@ fun SftpSettingsScreen(
 
     HazeScaffold(
         title = stringResource(R.string.pref_plugin_sftp),
-        backButton = true,
+        backAction = BackAction.Normal(navigator),
         scrollState = null
     ) { paddingValues ->
         LazyColumn(

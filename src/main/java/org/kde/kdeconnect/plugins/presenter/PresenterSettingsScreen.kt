@@ -11,19 +11,23 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.kde.kdeconnect.ui.compose.components.BackAction
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.SliderPreference
 import org.kde.kdeconnect.ui.compose.components.SwitchPreference
+import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun PresenterSettingsScreen(
-    viewModel: PresenterSettingsViewModel = koinViewModel()
+    viewModel: PresenterSettingsViewModel = koinViewModel(),
+    navigator: Navigator,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     PresenterSettingsScreenContent(
         uiState = uiState,
+        navigator = navigator,
         onEnableVolumeKeysChanged = viewModel::setEnableVolumeKeys,
         onSensitivityChanged = viewModel::setSensitivity
     )
@@ -32,6 +36,7 @@ fun PresenterSettingsScreen(
 @Composable
 fun PresenterSettingsScreenContent(
     uiState: PresenterSettingsUiState,
+    navigator: Navigator,
     onEnableVolumeKeysChanged: (Boolean) -> Unit,
     onSensitivityChanged: (Long) -> Unit
 ) {
@@ -39,7 +44,7 @@ fun PresenterSettingsScreenContent(
 
     HazeScaffold(
         title = stringResource(R.string.plugin_settings_with_name, stringResource(R.string.pref_plugin_presenter)),
-        backButton = true,
+        backAction = BackAction.Normal(navigator),
     ) { 
         SwitchPreference(
             title = stringResource(R.string.pref_presenter_enable_volume_keys_title),

@@ -7,7 +7,6 @@ import android.content.Intent
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
@@ -23,7 +22,6 @@ import coil3.disk.DiskCache
 import coil3.disk.directory
 import coil3.memory.MemoryCache
 import coil3.request.crossfade
-import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.BackgroundServiceData
@@ -99,10 +97,10 @@ import org.kde.kdeconnect.ui.compose.screen.device.DeviceScreen
 import org.kde.kdeconnect.ui.compose.screen.device.DeviceViewModel
 import org.kde.kdeconnect.ui.compose.screen.device.settings.DeviceSettingsScreen
 import org.kde.kdeconnect.ui.compose.screen.device.settings.DeviceSettingsViewModel
-import org.kde.kdeconnect.ui.compose.screen.licenses.LicensesEvent
-import org.kde.kdeconnect.ui.compose.screen.licenses.LicensesScreen
 import org.kde.kdeconnect.ui.compose.screen.home.HomeScreen
 import org.kde.kdeconnect.ui.compose.screen.home.HomeViewModel
+import org.kde.kdeconnect.ui.compose.screen.licenses.LicensesEvent
+import org.kde.kdeconnect.ui.compose.screen.licenses.LicensesScreen
 import org.kde.kdeconnect.ui.compose.screen.pairing.PairingScreen
 import org.kde.kdeconnect.ui.compose.screen.pairing.PairingViewModel
 import org.kde.kdeconnect.ui.compose.screen.permissions.PermissionsScreen
@@ -161,7 +159,7 @@ val homeModule = module {
     navigation<HomeKey> {
         val viewModel: HomeViewModel = koinViewModel()
         val state by viewModel.uiState.collectAsStateWithLifecycle()
-        val navigator = koinInject<Navigator>()
+        val navigator: Navigator = get()
         HomeScreen(
             uiState = state,
             onClick = { deviceId -> navigator.goTo(DeviceKey(deviceId, true)) },
@@ -179,10 +177,11 @@ val homeModule = module {
             uiState = state,
             onClick = { viewModel.pair(it) },
             onRefresh = { viewModel.onRefresh(context) },
+            navigator = get(),
         )
     }
     navigation<PermissionsScreenKey> {
-        PermissionsScreen()
+        PermissionsScreen(navigator = get())
     }
 }
 
@@ -190,7 +189,7 @@ val aboutModule = module {
     navigation<AboutKey> {
         val context = LocalContext.current
         val aboutData = getApplicationAboutData(context)
-        val navigator = koinInject<Navigator>()
+        val navigator: Navigator = get()
 
         AboutScreen(
             aboutData = aboutData,
@@ -216,7 +215,8 @@ val aboutModule = module {
                 aboutData.websiteURL?.let {
                     context.startActivity(Intent(Intent.ACTION_VIEW, it.toUri()))
                 }
-            }
+            },
+            navigator = navigator
         )
     }
     navigation<LicensesKey> {
@@ -224,6 +224,7 @@ val aboutModule = module {
         val scope = rememberCoroutineScope()
         LicensesScreen(
             eventFlow = scrollEvents,
+            navigator = get(),
             actions = {
                 Row {
                     IconButton(onClick = {
@@ -274,25 +275,35 @@ val settingsModule = module {
     viewModel<SettingsViewModel>()
     viewModel<ConnectionsSettingsViewModel>()
     navigation<SettingsKey> {
-        SettingsScreen()
+        val viewModel: SettingsViewModel = koinViewModel()
+
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        SettingsScreen(
+            uiState = uiState,
+            exportLogs = viewModel::exportLogs,
+            setBluetoothEnabled = viewModel::setBluetoothEnabled,
+            setDeviceName = viewModel::setDeviceName,
+            setTheme = viewModel::setTheme,
+            saveStorageLocation = viewModel::saveStorageLocation,
+            resetStorageLocation = viewModel::resetStorageLocation,
+            getDisplayPath = viewModel::getDisplayPath,
+            navigator = get()
+        )
     }
-    navigation<ConnectionsSettingsKey> {
-        ConnectionsSettingsScreen()
-    }
+    navigation<ConnectionsSettingsKey> { ConnectionsSettingsScreen(navigator = get()) }
     viewModel<SavedDevicesViewModel>()
-    navigation<SavedDevicesKey> {
-        SavedDevices()
-    }
+    navigation<SavedDevicesKey> { SavedDevices(navigator = get()) }
 }
 
 val deviceModule = module {
     viewModel<DeviceViewModel>()
     navigation<DeviceKey> { key ->
-        val navigator = koinInject<Navigator>()
+        val navigator: Navigator = get()
         DeviceScreen(
             deviceId = key.deviceId,
             onNavigateToPluginsSettings = { navigator.goTo(PluginSettingsKey(key.deviceId)) },
-            onNavigateToPairingScreen = { navigator.setTo(HomeKey) }
+            onNavigateToPairingScreen = { navigator.setTo(HomeKey) },
+            navigator = navigator
         )
     }
 }
@@ -304,18 +315,18 @@ val pluginSettingsModule = module {
     viewModel<TelephonySettingsViewModel>()
     viewModel<PresenterSettingsViewModel>()
     viewModel<NotificationSettingsViewModel>()
-    navigation<PluginSettingsKey> { key -> DeviceSettingsScreen(key.deviceId) }
-    navigation<MousePadPluginSettingsKey> { MousePadSettingsScreen() }
-    navigation<SftpPluginSettingsKey> { SftpSettingsScreen() }
-    navigation<TelephonyPluginSettingsKey> { TelephonySettingsScreen() }
-    navigation<PresenterPluginSettingsKey> { PresenterSettingsScreen() }
-    navigation<NotificationSettingsKey> { NotificationSettings() }
+    navigation<PluginSettingsKey> { key -> DeviceSettingsScreen(deviceId = key.deviceId, navigator = get()) }
+    navigation<MousePadPluginSettingsKey> { MousePadSettingsScreen(navigator = get()) }
+    navigation<SftpPluginSettingsKey> { SftpSettingsScreen(navigator = get()) }
+    navigation<TelephonyPluginSettingsKey> { TelephonySettingsScreen(navigator = get()) }
+    navigation<PresenterPluginSettingsKey> { PresenterSettingsScreen(navigator = get()) }
+    navigation<NotificationSettingsKey> { NotificationSettings(navigator = get()) }
 }
 
 val presenterModule = module {
     viewModel<PresenterViewModel>()
     navigation<PresenterKey> { key ->
-        PresenterScreen(deviceId = key.deviceId)
+        PresenterScreen(deviceId = key.deviceId, navigator = get())
     }
 }
 
@@ -327,13 +338,13 @@ val mprisModule = module {
             decorFitsSystemWindows = false
         )
     )) { key ->
-        MprisScreen(deviceId = key.deviceId)
+        MprisScreen(deviceId = key.deviceId, navigator = get())
     }
     navigation<MprisSinkKey>(metadata = DialogSceneStrategy.dialog()) { key ->
-        SinkSelector(deviceId = key.deviceId)
+        SinkSelector(deviceId = key.deviceId, navigator = get())
     }
     navigation<MprisSourceKey>(metadata = DialogSceneStrategy.dialog()) { key ->
-        SourceSelector(deviceId = key.deviceId)
+        SourceSelector(deviceId = key.deviceId, navigator = get())
     }
 }
 
@@ -341,24 +352,29 @@ val mousePadModule = module {
     viewModel<MousePadViewModel>()
     viewModel<BigscreenViewModel>()
     navigation<MousePadKey> { key ->
-        MousePadScreen(deviceId = key.deviceId)
+        val navigator: Navigator = koinInject()
+        MousePadScreen(
+            deviceId = key.deviceId,
+            navigator = navigator
+        )
     }
     navigation<BigscreenKey> { key ->
-        BigscreenScreen(deviceId = key.deviceId)
+        BigscreenScreen(deviceId = key.deviceId, navigator = get())
     }
 }
 
 val runCommandModule = module {
     viewModel<RunCommandViewModel>()
     navigation<RunCommandKey> { key ->
-        RunCommandScreen(deviceId = key.deviceId)
+        RunCommandScreen(deviceId = key.deviceId, navigator = get())
     }
 }
 
 val digitizerModule = module {
     viewModel<DigitizerViewModel>()
     navigation<DigitizerKey> { key ->
-        DigitizerScreen(deviceId = key.deviceId)
+        val navigator: Navigator = koinInject()
+        DigitizerScreen(deviceId = key.deviceId, navigator = navigator)
     }
 }
 

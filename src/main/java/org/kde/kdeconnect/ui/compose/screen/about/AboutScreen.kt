@@ -40,8 +40,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.kde.kdeconnect.ui.about.AboutData
 import org.kde.kdeconnect.ui.about.AboutPerson
+import org.kde.kdeconnect.ui.compose.components.BackAction
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
+import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 
 @Composable
@@ -51,12 +53,13 @@ fun AboutScreen(
     onDonateClicked: () -> Unit,
     onSourceCodeClicked: () -> Unit,
     onLicensesClicked: () -> Unit,
-    onWebsiteClicked: () -> Unit
+    onWebsiteClicked: () -> Unit,
+    navigator: Navigator,
 ) {
     HazeScaffold(
         title = stringResource(id = R.string.about),
         scrollState = null,
-        backButton = true
+        backAction = BackAction.Normal(navigator)
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -312,7 +315,8 @@ private fun AboutScreenPreview() {
             onDonateClicked = {},
             onSourceCodeClicked = {},
             onLicensesClicked = {},
-            onWebsiteClicked = {}
+            onWebsiteClicked = {},
+            navigator = Navigator()
         )
     }
 }

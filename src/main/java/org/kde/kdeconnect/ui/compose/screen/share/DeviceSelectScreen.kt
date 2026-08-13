@@ -27,6 +27,7 @@ import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.DeviceState
 import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.PairState
+import org.kde.kdeconnect.ui.compose.components.BackAction
 import org.kde.kdeconnect.ui.compose.components.DeviceCard
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
@@ -49,7 +50,7 @@ fun DeviceSelectScreen(
     HazeScaffold(
         title = pageTitle,
         scrollState = null,
-        backButton = false
+        backAction = BackAction.None
     ) { paddingValues ->
         DeviceSelectScreenContent(
             paddingValues = paddingValues,

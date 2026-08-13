@@ -64,6 +64,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.kde.kdeconnect.ui.compose.components.BackAction
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.KdeButton
 import org.kde.kdeconnect.ui.compose.components.SearchBar
@@ -72,7 +73,6 @@ import org.kde.kdeconnect.ui.compose.components.smartDashBorder
 import org.kde.kdeconnect.ui.navigation.MousePadPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
-import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import kotlin.time.Duration.Companion.milliseconds
@@ -80,11 +80,11 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 fun MousePadScreen(
     deviceId: String,
-    viewModel: MousePadViewModel = koinViewModel(key = "MousePadViewModel_$deviceId") { parametersOf(deviceId) }
+    viewModel: MousePadViewModel = koinViewModel(key = "MousePadViewModel_$deviceId") { parametersOf(deviceId) },
+    navigator: Navigator,
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
-    val navigator = koinInject<Navigator>()
 
     val focusRequester = remember { FocusRequester() }
     var focusCaptured by remember { mutableStateOf(false) }
@@ -110,7 +110,7 @@ fun MousePadScreen(
 
     HazeScaffold(
         title = stringResource(R.string.pref_plugin_mousepad),
-        backButton = true,
+        backAction = BackAction.Normal(navigator),
         actions = {
             IconButton(
                 modifier = Modifier.focusable(false),

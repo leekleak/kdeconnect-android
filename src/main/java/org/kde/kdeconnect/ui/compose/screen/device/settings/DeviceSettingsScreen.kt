@@ -23,6 +23,7 @@ import org.kde.kdeconnect.plugins.contacts.ContactsPluginInfo
 import org.kde.kdeconnect.plugins.notifications.NotificationsPluginInfo
 import org.kde.kdeconnect.plugins.receivenotifications.ReceiveNotificationsPluginInfo
 import org.kde.kdeconnect.ui.PermissionExplanationActivity
+import org.kde.kdeconnect.ui.compose.components.BackAction
 import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.NavigatePreference
@@ -32,7 +33,6 @@ import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.NotificationSettingsKey
 import org.kde.kdeconnect.ui.navigation.TelephonyPluginSettingsKey
 import org.kde.kdeconnect_tp.R
-import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -41,11 +41,11 @@ import org.koin.core.parameter.parametersOf
 fun DeviceSettingsScreen(
     deviceId: String,
     viewModel: DeviceSettingsViewModel = koinViewModel(key = "DeviceSettingsViewModel_$deviceId") { parametersOf(deviceId) },
+    navigator: Navigator,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val navigator: Navigator = koinInject()
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         viewModel.onPermissionResult(result.resultCode)
@@ -71,7 +71,7 @@ fun DeviceSettingsScreen(
 
     HazeScaffold(
         title = uiState.deviceName,
-        backButton = true,
+        backAction = BackAction.Normal(navigator),
         actions = {
             IconButton (viewModel::unpair) { // Todo: Confirmation dialog would be nice
                 Icon(

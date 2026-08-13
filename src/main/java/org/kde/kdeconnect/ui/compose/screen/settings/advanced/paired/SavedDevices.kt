@@ -17,16 +17,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.kde.kdeconnect.ui.compose.components.BackAction
 import org.kde.kdeconnect.ui.compose.components.DeviceCard
 import org.kde.kdeconnect.ui.compose.components.FancyDialog
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.PairingExplanations
+import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun SavedDevices(
-    viewModel: SavedDevicesViewModel = koinViewModel()
+    viewModel: SavedDevicesViewModel = koinViewModel(),
+    navigator: Navigator,
 ) {
     val uiState by viewModel.pairingUiState.collectAsStateWithLifecycle()
     val deviceToUnpair by viewModel.deviceToUnpair
@@ -34,7 +37,7 @@ fun SavedDevices(
     HazeScaffold(
         title = stringResource(R.string.saved_devices),
         scrollState = null,
-        backButton = true,
+        backAction = BackAction.Normal(navigator),
     ) { padding ->
         if (uiState.saved.isNotEmpty()) {
             LazyColumn(

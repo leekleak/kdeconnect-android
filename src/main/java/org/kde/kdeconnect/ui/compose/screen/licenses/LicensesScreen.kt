@@ -32,13 +32,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.withContext
+import org.kde.kdeconnect.ui.compose.components.BackAction
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
+import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 
 @Composable
 fun LicensesScreen(
     eventFlow: SharedFlow<LicensesEvent>,
+    navigator: Navigator,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     val resources = LocalResources.current
@@ -74,7 +77,7 @@ fun LicensesScreen(
     HazeScaffold(
         title = stringResource(id = R.string.licenses),
         scrollState = null,
-        backButton = true,
+        backAction = BackAction.Normal(navigator),
         actions = actions
     ) { paddingValues ->
         if (licenseChunks.isEmpty()) {
@@ -113,5 +116,5 @@ fun LicensesScreen(
 @KdeThemePreviews
 @Composable
 private fun LicensesScreenPreview() {
-    LicensesScreen(eventFlow = remember { MutableSharedFlow() })
+    LicensesScreen(eventFlow = remember { MutableSharedFlow() }, navigator = Navigator())
 }

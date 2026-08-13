@@ -3,8 +3,10 @@ package org.kde.kdeconnect.ui.compose.screen.settings
 import android.Manifest.permission.BLUETOOTH_CONNECT
 import android.Manifest.permission.BLUETOOTH_SCAN
 import android.app.Activity.RESULT_OK
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -13,7 +15,6 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -21,7 +22,6 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.serialization.json.Json
 import org.kde.kdeconnect.helpers.CreateFileParams
 import org.kde.kdeconnect.helpers.CreateFileResultContract
@@ -33,12 +33,13 @@ import org.kde.kdeconnect.ui.PermissionRequest
 import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.compose.components.DialogItemSelectPreference
 import org.kde.kdeconnect.ui.compose.components.DialogTextPreference
+import org.kde.kdeconnect.ui.compose.components.BackAction
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.IconPreference
+import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
 import org.kde.kdeconnect.ui.compose.components.NavigatePreference
 import org.kde.kdeconnect.ui.compose.components.Preference
 import org.kde.kdeconnect.ui.compose.components.SwitchPreference
-import org.kde.kdeconnect.ui.compose.screen.settings.advanced.paired.SavedDevices
 import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.ConnectionsSettingsKey
 import org.kde.kdeconnect.ui.navigation.Navigator
@@ -47,32 +48,36 @@ import org.kde.kdeconnect.ui.navigation.SavedDevicesKey
 import org.kde.kdeconnect.ui.navigation.SftpPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.TelephonyPluginSettingsKey
 import org.kde.kdeconnect_tp.R
-import org.koin.compose.koinInject
-import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun SettingsScreen(
-    viewModel: SettingsViewModel = koinViewModel()
+    uiState: SettingsUiState,
+    exportLogs: (Context, Uri) -> Unit,
+    setBluetoothEnabled: (Boolean) -> Unit,
+    setDeviceName: (String) -> Unit,
+    setTheme: (AppTheme) -> Unit,
+    saveStorageLocation: (Context, Uri) -> Unit,
+    resetStorageLocation: () -> Unit,
+    getDisplayPath: (Context, Uri) -> String,
+    navigator: Navigator
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val navigator: Navigator = koinInject()
 
     val exportLogsLauncher = rememberLauncherForActivityResult(
         contract = CreateFileResultContract()
     ) { uri ->
-        uri?.let { viewModel.exportLogs(context, it) }
+        uri?.let { exportLogs(context, it) }
     }
 
     val bluetoothPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        viewModel.setBluetoothEnabled(result.resultCode == RESULT_OK)
+        setBluetoothEnabled(result.resultCode == RESULT_OK)
     }
 
     HazeScaffold(
         title = stringResource(R.string.settings),
-        backButton = true,
+        backAction = BackAction.Normal(navigator),
     ) {
         CategoryTitleTextSmall(stringResource(R.string.app))
         DialogTextPreference(
@@ -84,7 +89,7 @@ fun SettingsScreen(
                     .take(DeviceHelper.MAX_DEVICE_NAME_LENGTH)
             },
             onValueChanged = {
-                viewModel.setDeviceName(it)
+                setDeviceName(it)
             }
         )
 
@@ -96,7 +101,7 @@ fun SettingsScreen(
             icon = painterResource(R.drawable.colors),
             value = uiState.theme,
             values = themeOptions.toList(),
-            onValueChanged = { viewModel.setTheme(it) }
+            onValueChanged = { setTheme(it) }
         )
 
         NavigatePreference(
@@ -154,14 +159,14 @@ fun SettingsScreen(
                         return@SwitchPreference
                     }
                 }
-                viewModel.setBluetoothEnabled(newValue)
+                setBluetoothEnabled(newValue)
             }
         )
 
         val destinationSelector = rememberLauncherForActivityResult(
             contract = ActivityResultContracts.OpenDocumentTree()
         ) { uri ->
-            uri?.let { viewModel.saveStorageLocation(context, it) }
+            uri?.let { saveStorageLocation(context, it) }
         }
 
         Row (
@@ -171,7 +176,7 @@ fun SettingsScreen(
             Preference(
                 modifier = Modifier.weight(1f),
                 title = stringResource(R.string.share_destination_folder_preference),
-                summary = uiState.fileDestination?.let { viewModel.getDisplayPath(context, it) },
+                summary = uiState.fileDestination?.let { getDisplayPath(context, it) },
                 icon = painterResource(R.drawable.file_export),
                 onClick = {
                     destinationSelector.launch(null)
@@ -182,7 +187,7 @@ fun SettingsScreen(
                 painter = painterResource(R.drawable.replay),
                 enabled = !uiState.fileDestinationIsDefault
             ) {
-                viewModel.resetStorageLocation()
+                resetStorageLocation()
             }
         }
 
@@ -203,4 +208,20 @@ fun SettingsScreen(
             onClick = { navigator.goTo(AboutKey) }
         )
     }
+}
+
+@KdeThemePreviews
+@Composable
+fun SettingsPreview() {
+    SettingsScreen(
+        uiState = SettingsUiState(),
+        exportLogs = { _, _ -> },
+        setBluetoothEnabled = {},
+        setDeviceName = {},
+        setTheme = {},
+        saveStorageLocation = { _, _ -> },
+        resetStorageLocation = {},
+        getDisplayPath = { _, _ -> ""},
+        navigator = Navigator()
+    )
 }

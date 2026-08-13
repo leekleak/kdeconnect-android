@@ -43,24 +43,27 @@ import coil3.compose.rememberAsyncImagePainter
 import org.kde.kdeconnect.helpers.AppIcon
 import org.kde.kdeconnect.plugins.notifications.AppDatabase
 import org.kde.kdeconnect.ui.compose.components.AppSelector
+import org.kde.kdeconnect.ui.compose.components.BackAction
 import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.Preference
 import org.kde.kdeconnect.ui.compose.components.SearchField
 import org.kde.kdeconnect.ui.compose.components.SwitchPreference
 import org.kde.kdeconnect.ui.compose.components.card
+import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun NotificationSettings(
-    viewModel: NotificationSettingsViewModel = koinViewModel()
+    viewModel: NotificationSettingsViewModel = koinViewModel(),
+    navigator: Navigator,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     HazeScaffold(
         title = stringResource(R.string.notifications),
-        backButton = true,
+        backAction = BackAction.Normal(navigator),
     ) {
         CategoryTitleTextSmall(stringResource(R.string.synchronization))
         SwitchPreference(

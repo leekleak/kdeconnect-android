@@ -28,23 +28,26 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.kde.kdeconnect.DeviceHost
+import org.kde.kdeconnect.ui.compose.components.BackAction
 import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.Preference
 import org.kde.kdeconnect.ui.compose.components.SettingsSearchBar
 import org.kde.kdeconnect.ui.compose.components.SwitchPreference
+import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun ConnectionsSettingsScreen(
-    viewModel: ConnectionsSettingsViewModel = koinViewModel()
+    viewModel: ConnectionsSettingsViewModel = koinViewModel(),
+    navigator: Navigator,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     HazeScaffold(
         title = stringResource(R.string.connections),
-        backButton = true,
+        backAction = BackAction.Normal(navigator),
     ) {
         CategoryTitleTextSmall(stringResource(R.string.networks))
         WhitelistComponent(viewModel, uiState)

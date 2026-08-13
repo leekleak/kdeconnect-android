@@ -33,10 +33,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.ui.compose.components.BatteryComponent
 import org.kde.kdeconnect.ui.compose.components.CategoryTitleTextSmall
+import org.kde.kdeconnect.ui.compose.components.BackAction
 import org.kde.kdeconnect.ui.compose.components.HazeScaffold
 import org.kde.kdeconnect.ui.compose.components.IconHero
 import org.kde.kdeconnect.ui.compose.components.KdeThemePreviews
 import org.kde.kdeconnect.ui.compose.components.googleSans
+import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -47,12 +49,13 @@ fun DeviceScreen(
     viewModel: DeviceViewModel = koinViewModel(key = "DeviceViewModel_$deviceId") { parametersOf(deviceId) },
     onNavigateToPluginsSettings: () -> Unit,
     onNavigateToPairingScreen: () -> Unit,
+    navigator: Navigator,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val activity = LocalActivity.current
 
     HazeScaffold(
-        backButton = true,
+        backAction = BackAction.Normal(navigator),
         actions = {
             IconButton(onNavigateToPluginsSettings) {
                 Icon(
