@@ -10,14 +10,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLinkProvider.ConnectionReceiver
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginFactory
 import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
 import java.util.Date
@@ -100,10 +98,7 @@ class DeviceManager(
             Log.i("DeviceManager/onConnectionLost", "removeLink, deviceId: ${link.deviceId}")
             if (device != null) {
                 device.removeLink(link)
-                if (!device.isReachable) {
-                    _devices.update { it.minus(device.deviceId) }
-                    device.close()
-                }
+                device.cancel()
             } else {
                 Log.d("DeviceManager/onConnectionLost", "Removing connection to unknown device")
             }
