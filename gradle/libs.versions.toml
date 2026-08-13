@@ -37,6 +37,7 @@ room3 = "3.0.1"
 uiToolingPreview = "1.12.0"
 haze = "2.0.0-alpha05"
 foundation = "1.12.0"
+aboutLibraries = "15.0.4"
 
 [libraries]
 android-smsmms = { module = "org.kde.invent.sredman:android-smsmms", version.ref = "androidSmsmms" }
@@ -88,12 +89,14 @@ haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 haze-blur = { module = "dev.chrisbanes.haze:haze-blur", version.ref = "haze" }
 haze-blur-materials = { module = "dev.chrisbanes.haze:haze-blur-materials", version.ref = "haze" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+aboutlibraries-core = { module = "com.mikepenz:aboutlibraries-core", version.ref = "aboutLibraries" }
+aboutlibraries-compose-core = { module = "com.mikepenz:aboutlibraries-compose-core", version.ref = "aboutLibraries" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "kspPlugin" }
-dependencyLicenseReport = { id = "com.github.jk1.dependency-license-report", version.ref = "dependencyLicenseReport" }
 koin = { id = "io.insert-koin.compiler.plugin", version.ref = "koinPlugin" }
 androidx-room3 = { id = "androidx.room3", version.ref = "room3" }
+aboutLibraries = { id = "com.mikepenz.aboutlibraries.plugin.android", version.ref = "aboutLibraries" }

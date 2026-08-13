@@ -221,36 +221,7 @@ val aboutModule = module {
         )
     }
     navigation<LicensesKey> {
-        val scrollEvents = MutableSharedFlow<LicensesEvent>()
-        val scope = rememberCoroutineScope()
-        LicensesScreen(
-            eventFlow = scrollEvents,
-            navigator = get(),
-            actions = {
-                Row {
-                    IconButton(onClick = {
-                        scope.launch {
-                            scrollEvents.emit(LicensesEvent.ScrollToTop)
-                        }
-                    }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.arrow_upward),
-                            contentDescription = stringResource(R.string.scroll_to_top)
-                        )
-                    }
-                    IconButton(onClick = {
-                        scope.launch {
-                            scrollEvents.emit(LicensesEvent.ScrollToBottom)
-                        }
-                    }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.arrow_downward),
-                            contentDescription = stringResource(R.string.scroll_to_bottom)
-                        )
-                    }
-                }
-            }
-        )
+        LicensesScreen(navigator = get())
     }
 }
 

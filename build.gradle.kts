@@ -1,6 +1,4 @@
-import com.github.jk1.license.LicenseReportExtension
-import com.github.jk1.license.render.ReportRenderer
-import com.github.jk1.license.render.TextReportRenderer
+import com.mikepenz.aboutlibraries.plugin.StrictMode
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 buildscript {
@@ -13,14 +11,12 @@ buildscript {
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.ksp)
-    alias(libs.plugins.dependencyLicenseReport)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.koin)
     alias(libs.plugins.androidx.room3)
+    alias(libs.plugins.aboutLibraries)
 }
-
-val licenseResDir = "$projectDir/build/dependency-license-res"
 
 kotlin {
     compilerOptions {
@@ -49,10 +45,6 @@ android {
         buildConfig = true
     }
 
-    sourceSets.getByName("main") {
-        res.directories += licenseResDir
-    }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -64,7 +56,7 @@ android {
 
     packaging {
         resources {
-            merges += listOf("META-INF/DEPENDENCIES", "META-INF/LICENSE", "META-INF/NOTICE", "META-INF/LICENSE.md")
+            merges += listOf("META-INF/DEPENDENCIES", "META-INF/LICENSE.md")
         }
     }
     signingConfigs {
@@ -201,32 +193,17 @@ dependencies {
 
     // For device controls
     implementation(libs.kotlinx.coroutines.jdk9)
-}
 
-licenseReport {
-    configurations = LicenseReportExtension.ALL
-    renderers = arrayOf<ReportRenderer>(TextReportRenderer())
+    implementation(libs.aboutlibraries.core)
+    implementation(libs.aboutlibraries.compose.core)
 }
 
 room3 {
     schemaDirectory("$projectDir/schemas")
 }
 
-tasks.named("generateLicenseReport") {
-    val outputFile = file("$licenseResDir/raw/license")
-    val inputFiles = files(
-        layout.projectDirectory.file("COPYING"),
-        layout.buildDirectory.file("reports/dependency-license/THIRD-PARTY-NOTICES.txt")
-    )
-    outputs.file(outputFile)
-    doLast {
-        outputFile.apply {
-            parentFile.mkdirs()
-            writeText(inputFiles.joinToString(separator = "\n") { it.readText() })
-        }
+aboutLibraries {
+    collect {
+        fetchRemoteLicense = true // Required for bouncy castle, otherwise the license is not detected
     }
-}
-
-tasks.named("preBuild") {
-    dependsOn("generateLicenseReport")
 }
