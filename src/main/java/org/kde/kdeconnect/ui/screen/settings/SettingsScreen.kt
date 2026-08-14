@@ -30,13 +30,12 @@ import org.kde.kdeconnect.plugins.sftp.SimpleSftpServer
 import org.kde.kdeconnect.ui.AppTheme
 import org.kde.kdeconnect.ui.PermissionExplanationActivity
 import org.kde.kdeconnect.ui.PermissionRequest
+import org.kde.kdeconnect.ui.components.BackAction
 import org.kde.kdeconnect.ui.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.components.DialogItemSelectPreference
 import org.kde.kdeconnect.ui.components.DialogTextPreference
-import org.kde.kdeconnect.ui.components.BackAction
 import org.kde.kdeconnect.ui.components.HazeScaffold
 import org.kde.kdeconnect.ui.components.IconPreference
-import org.kde.kdeconnect.ui.components.KdeThemePreviews
 import org.kde.kdeconnect.ui.components.NavigatePreference
 import org.kde.kdeconnect.ui.components.Preference
 import org.kde.kdeconnect.ui.components.SwitchPreference
@@ -148,8 +147,8 @@ fun SettingsScreen(
                             ) != PackageManager.PERMISSION_GRANTED
                         }.map { permission ->
                             PermissionRequest(
-                                title = R.string.kde_connect,
-                                description = R.string.unreachable_description,
+                                title = R.string.enable_bluetooth,
+                                description = R.string.bluetooth_permission_request,
                                 intentAction = permission,
                                 positiveButton = R.string.grant
                             )

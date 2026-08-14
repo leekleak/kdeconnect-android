@@ -173,7 +173,7 @@ fun DeviceCard(
                 )
                 CategoryTitleTextSmall(stringResource(R.string.shortcuts))
                 Spacer(Modifier.height(8.dp))
-                PluginButtonsGrid(shortcuts) { button -> activity?.let { button.onClick(it) } }
+                PluginButtonsGrid(shortcuts, fullName = true) { button -> activity?.let { button.onClick(it) } }
             }
         }
     }
@@ -235,8 +235,8 @@ fun DeviceCardPreview() {
             batteryInfo = DeviceBatteryInfo(70, true, 15),
         ),
         shortcuts = listOf(
-            PluginUiButton("", "Send Clipboard", R.drawable.assignment, Plugin.ButtonCategory.SEND) {},
-            PluginUiButton("", "Multimedia", R.drawable.music_cast, Plugin.ButtonCategory.CONTROL) {}
+            PluginUiButton("", "Send Clipboard", "", R.drawable.assignment, Plugin.ButtonCategory.SEND) {},
+            PluginUiButton("", "Multimedia", "", R.drawable.music_cast, Plugin.ButtonCategory.CONTROL) {}
         ),
         onClick = { }
     )

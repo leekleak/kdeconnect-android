@@ -15,7 +15,7 @@ import androidx.room3.PrimaryKey
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPluginInfo
-import org.kde.kdeconnect.plugins.mpris.MprisPluginInfo
+import org.kde.kdeconnect.plugins.share.SharePluginInfo
 import org.kde.kdeconnect_tp.R
 import java.security.cert.Certificate
 
@@ -33,7 +33,7 @@ data class DeviceInfo(
     val outgoingCapabilities: Set<String> = emptySet(),
     val settings: Map<String, Boolean> = emptyMap(),
     val trusted: Boolean = false,
-    val shortcuts: Set<String> = setOf(MprisPluginInfo.pluginKey, ClipboardPluginInfo.pluginKey)
+    val shortcuts: Set<String> = setOf(ClipboardPluginInfo.pluginKey, SharePluginInfo.pluginKey)
 ) {
 
     /**

@@ -29,6 +29,7 @@ import org.kde.kdeconnect.plugins.PluginUiButton
 @Composable
 fun PluginButtonsGrid(
     buttons: List<PluginUiButton>,
+    fullName: Boolean = false,
     onClick: (PluginUiButton) -> Unit,
 ) {
     BoxWithConstraints {
@@ -49,6 +50,7 @@ fun PluginButtonsGrid(
                         PluginButton(
                             modifier = Modifier.weight(1f),
                             button = button,
+                            fullName = fullName,
                             onClick = { onClick(button) }
                         )
                     }
@@ -66,6 +68,7 @@ fun PluginButtonsGrid(
 fun PluginButton(
     modifier: Modifier = Modifier,
     button: PluginUiButton,
+    fullName: Boolean = false,
     onClick: () -> Unit
 ) {
     Row(
@@ -85,7 +88,7 @@ fun PluginButton(
             tint = MaterialTheme.colorScheme.onPrimary
         )
         Text(
-            text = button.name,
+            text = if (fullName) button.nameFull else button.name,
             maxLines = 2,
             fontSize = 16.sp,
             fontWeight = FontWeight(500),

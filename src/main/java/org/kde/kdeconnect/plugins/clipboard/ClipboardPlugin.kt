@@ -34,6 +34,7 @@ class ClipboardPlugin(context: Context, device: Device) : Plugin(context, device
         return listOf(PluginUiButton(
             pluginKey = pluginKey,
             name = context.getString(R.string.clipboard),
+            nameFull = context.getString(R.string.send_clipboard),
             iconRes = R.drawable.assignment,
             category = ButtonCategory.SEND,
         ){ _: Activity? -> coroutineScope.launch { userInitiatedSendClipboard() } })

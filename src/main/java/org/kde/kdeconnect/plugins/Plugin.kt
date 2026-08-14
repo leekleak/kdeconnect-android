@@ -110,6 +110,7 @@ abstract class Plugin(
 data class PluginUiButton(
     val pluginKey: String,
     val name: String,
+    val nameFull: String = name,
     @get:DrawableRes val iconRes: Int,
     val category: ButtonCategory,
     val onClick: (parentActivity: Activity) -> Unit,

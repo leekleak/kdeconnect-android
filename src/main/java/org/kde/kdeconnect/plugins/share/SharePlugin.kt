@@ -129,6 +129,7 @@ class SharePlugin(
             PluginUiButton(
                 pluginKey = pluginKey,
                 name = context.getString(R.string.files),
+                nameFull = context.getString(R.string.send_files),
                 iconRes = R.drawable.description,
                 category = ButtonCategory.SEND
             ) { parentActivity: Activity ->
