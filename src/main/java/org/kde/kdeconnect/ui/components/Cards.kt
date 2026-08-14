@@ -12,6 +12,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -101,54 +102,80 @@ fun DeviceCard(
 ) {
     val activity = LocalActivity.current
     val font = remember { googleSans(weight = 600f) }
-    Column (
+
+    @Composable
+    fun action() {
+        Icon(
+            painter = actionIcon,
+            contentDescription = if (actionDescriptionVisible) null else actionDescription,
+        )
+        if (actionDescriptionVisible) {
+            Text(
+                text = actionDescription,
+                fontFamily = font
+            )
+        }
+    }
+
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.large)
             .background(colorScheme.surfaceContainerLowest)
-            .clickable { onClick(device.deviceInfo.id) }
             .border(BorderStroke(1.dp, colorScheme.outline), MaterialTheme.shapes.large)
-            .padding(16.dp)
     ) {
-        Icon(
-            modifier = Modifier.size(40.dp),
-            painter = painterResource(device.deviceInfo.type.toDrawableId()),
-            contentDescription = null
-        )
-        Text(
-            fontSize = 42.sp,
-            lineHeight = 42.sp,
-            text = device.deviceInfo.name,
-            fontFamily = font
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            device.batteryInfo?.let { battery ->
-                BatteryComponent(battery)
+        Box {
+            Row(
+                modifier = Modifier.align(Alignment.TopEnd).padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                device.links.forEach { link ->
+                    Icon(painterResource(link.linkProvider.icon), link.linkProvider.name)
+                }
             }
-            Spacer(modifier = Modifier.weight(1f))
-            Icon(
-                painter = actionIcon,
-                contentDescription = if (actionDescriptionVisible) null else actionDescription,
-            )
-            if (actionDescriptionVisible) {
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onClick(device.deviceInfo.id) }
+                    .padding(16.dp)
+            ) {
+                Icon(
+                    modifier = Modifier.size(40.dp),
+                    painter = painterResource(device.deviceInfo.type.toDrawableId()),
+                    contentDescription = null
+                )
                 Text(
-                    text = actionDescription,
+                    modifier = Modifier.fillMaxWidth(0.7f),
+                    fontSize = 42.sp,
+                    lineHeight = 42.sp,
+                    text = device.deviceInfo.name,
                     fontFamily = font
                 )
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    device.batteryInfo?.let { battery ->
+                        BatteryComponent(battery)
+                    }
+                    Spacer(Modifier.weight(1f))
+                    action()
+                }
             }
         }
 
         if (shortcuts.isNotEmpty()) {
-            HorizontalDivider(Modifier.padding(start = 32.dp, end = 32.dp, top = 16.dp, bottom = 8.dp))
-            CategoryTitleTextSmall(stringResource(R.string.shortcuts))
-            Spacer(Modifier.height(4.dp))
-            PluginButtonsGrid(shortcuts) { button -> activity?.let { button.onClick(it) } }
+            Column(Modifier.padding(start = 12.dp, end = 12.dp, top = 0.dp, bottom = 12.dp)) {
+                HorizontalDivider(
+                    Modifier.padding(start = 4.dp, end = 4.dp, top = 0.dp, bottom = 8.dp)
+                )
+                CategoryTitleTextSmall(stringResource(R.string.shortcuts))
+                Spacer(Modifier.height(8.dp))
+                PluginButtonsGrid(shortcuts) { button -> activity?.let { button.onClick(it) } }
+            }
         }
-
     }
 }
 
@@ -156,6 +183,7 @@ fun DeviceCard(
 fun BatteryComponent(battery: DeviceBatteryInfo) {
     val font = remember { googleSans(weight = 600f) }
     Row(
+        modifier = Modifier.height(32.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
@@ -204,11 +232,30 @@ fun DeviceCardPreview() {
                 type = DeviceType.DESKTOP
             ),
             pairState = PairState.Paired,
-            batteryInfo = DeviceBatteryInfo(70, true, 15)
+            batteryInfo = DeviceBatteryInfo(70, true, 15),
         ),
         shortcuts = listOf(
             PluginUiButton("", "Send Clipboard", R.drawable.assignment, Plugin.ButtonCategory.SEND) {},
             PluginUiButton("", "Multimedia", R.drawable.music_cast, Plugin.ButtonCategory.CONTROL) {}
+        ),
+        onClick = { }
+    )
+}
+
+@Composable
+@Preview
+fun DeviceCardPreviewEmpty() {
+    DeviceCard(
+        device = DeviceState(
+            deviceInfo = DeviceInfo(
+                id = "",
+                certificate = ByteArray(0
+                ),
+                name = "Name",
+                type = DeviceType.DESKTOP
+            ),
+            pairState = PairState.Paired,
+            batteryInfo = null,
         ),
         onClick = { }
     )

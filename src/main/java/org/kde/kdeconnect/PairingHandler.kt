@@ -75,6 +75,7 @@ class PairingHandler(
                     if (device.protocolVersion >= 8) {
                         pairingTimestamp.value = np.getLong("timestamp", -1L)
                         if (pairingTimestamp.value == -1L) {
+                            LoggerTagged.w { "Unpairing due to invalid timestamp." }
                             updateState(PairState.NotPaired)
                             callback.unpaired(device)
                             return

@@ -7,6 +7,7 @@ package org.kde.kdeconnect.backends.lan
 
 import android.content.Context
 import android.net.Network
+import androidx.annotation.DrawableRes
 import androidx.annotation.WorkerThread
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,6 +33,7 @@ import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 import org.kde.kdeconnect.helpers.isPrivateAddress
 import org.kde.kdeconnect.helpers.readLineBounded
 import org.kde.kdeconnect.helpers.security.SslHelper
+import org.kde.kdeconnect_tp.R
 import java.io.IOException
 import java.net.DatagramPacket
 import java.net.DatagramSocket
@@ -650,6 +652,7 @@ class LanLinkProvider(
     }
 
     override val name: String = "LanLinkProvider"
+    override val icon: Int @DrawableRes get() = R.drawable.wifi
 
     override val priority: Int = 20
 

@@ -9,6 +9,7 @@ import android.content.Context
 import android.net.Network
 import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.helpers.DeviceHelper
+import org.kde.kdeconnect_tp.R
 
 class LoopbackLinkProvider(
     private val context: Context,
@@ -16,6 +17,7 @@ class LoopbackLinkProvider(
 ) : BaseLinkProvider() {
 
     override val name: String = "LoopbackLinkProvider"
+    override val icon: Int = R.drawable.replay
     override val priority: Int = 0
 
     override suspend fun onStart() {

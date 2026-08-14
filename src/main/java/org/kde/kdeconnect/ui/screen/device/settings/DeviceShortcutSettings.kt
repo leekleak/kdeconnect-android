@@ -2,10 +2,12 @@ package org.kde.kdeconnect.ui.screen.device.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -54,9 +56,9 @@ fun DeviceShortcutSettingsScreen(
                     onClick = { viewModel.removeShortcut(button) }
                 )
             }
-//            item(span = { GridItemSpan(maxLineSpan) }, key = "divider") {
-//                HorizontalDivider(Modifier.padding(vertical = 4.dp))
-//            }
+            item(span = { GridItemSpan(maxLineSpan) }, key = "divider") {
+                HorizontalDivider(Modifier.padding(vertical = 4.dp))
+            }
             item(span = { GridItemSpan(maxLineSpan) }, key = "text2") {
                 CategoryTitleTextSmall(stringResource(R.string.available_shortcuts))
             }

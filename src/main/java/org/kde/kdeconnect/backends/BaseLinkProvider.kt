@@ -67,7 +67,8 @@ abstract class BaseLinkProvider {
     abstract suspend fun onStart()
     abstract fun onStop()
     abstract suspend fun onNetworkChange(network: Network?)
-    abstract val name: String?
+    abstract val name: String
+    abstract val icon: Int
 
     abstract val priority: Int
 }
