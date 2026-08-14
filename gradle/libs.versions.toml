@@ -37,6 +37,7 @@ uiToolingPreview = "1.12.0"
 haze = "2.0.0-alpha05"
 foundation = "1.12.0"
 aboutLibraries = "15.0.4"
+reorderable = "3.1.0"
 
 [libraries]
 android-smsmms = { module = "org.kde.invent.sredman:android-smsmms", version.ref = "androidSmsmms" }
@@ -87,6 +88,7 @@ haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 haze-blur = { module = "dev.chrisbanes.haze:haze-blur", version.ref = "haze" }
 haze-blur-materials = { module = "dev.chrisbanes.haze:haze-blur-materials", version.ref = "haze" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 aboutlibraries-core = { module = "com.mikepenz:aboutlibraries-core", version.ref = "aboutLibraries" }
 aboutlibraries-compose-core = { module = "com.mikepenz:aboutlibraries-compose-core", version.ref = "aboutLibraries" }
 

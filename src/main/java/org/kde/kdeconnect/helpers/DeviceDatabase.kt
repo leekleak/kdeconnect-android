@@ -28,6 +28,22 @@ class MapTypeConverter {
     }
 }
 
+class ListTypeConverter {
+    @ColumnTypeConverter
+    fun fromString(value: String): List<String> {
+        return try {
+            Json.decodeFromString(value)
+        } catch (_: Exception) {
+            emptyList()
+        }
+    }
+
+    @ColumnTypeConverter
+    fun fromList(list: List<String>): String {
+        return Json.encodeToString(list)
+    }
+}
+
 class SetTypeConverter {
     @ColumnTypeConverter
     fun fromString(value: String): Set<String> {
@@ -87,7 +103,7 @@ interface DeviceDao {
 }
 
 @Database(entities = [DeviceInfo::class], version = 1)
-@ColumnTypeConverters(MapTypeConverter::class, SetTypeConverter::class, DeviceTypeConverter::class)
+@ColumnTypeConverters(MapTypeConverter::class, ListTypeConverter::class, SetTypeConverter::class, DeviceTypeConverter::class)
 abstract class DevicesRoomDatabase : RoomDatabase() {
     abstract fun deviceDao(): DeviceDao
 }

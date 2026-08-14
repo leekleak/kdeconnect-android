@@ -33,7 +33,7 @@ data class DeviceInfo(
     val outgoingCapabilities: Set<String> = emptySet(),
     val settings: Map<String, Boolean> = emptyMap(),
     val trusted: Boolean = false,
-    val shortcuts: Set<String> = setOf(ClipboardPluginInfo.pluginKey, SharePluginInfo.pluginKey)
+    val shortcuts: List<String> = listOf(ClipboardPluginInfo.pluginKey, SharePluginInfo.pluginKey)
 ) {
 
     /**
