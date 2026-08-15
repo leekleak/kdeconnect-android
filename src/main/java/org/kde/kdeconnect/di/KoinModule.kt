@@ -4,6 +4,7 @@ package org.kde.kdeconnect.di
 
 import android.content.Context
 import android.content.Intent
+import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
@@ -180,7 +181,7 @@ val homeModule = module {
 
 val aboutModule = module {
     navigation<AboutKey> {
-        val context: Context = get()
+        val context = LocalActivity.current
         val aboutData = AboutData()
         val navigator: Navigator = get()
 
@@ -188,17 +189,17 @@ val aboutModule = module {
             aboutData = aboutData,
             onReportBugClicked = {
                 aboutData.bugURL.let {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, it.toUri()))
+                    context?.startActivity(Intent(Intent.ACTION_VIEW, it.toUri()))
                 }
             },
             onDonateClicked = {
                 aboutData.donateURL.let {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, it.toUri()))
+                    context?.startActivity(Intent(Intent.ACTION_VIEW, it.toUri()))
                 }
             },
             onSourceCodeClicked = {
                 aboutData.sourceCodeURL.let {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, it.toUri()))
+                    context?.startActivity(Intent(Intent.ACTION_VIEW, it.toUri()))
                 }
             },
             onLicensesClicked = {
@@ -206,7 +207,7 @@ val aboutModule = module {
             },
             onWebsiteClicked = {
                 aboutData.websiteURL.let {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, it.toUri()))
+                    context?.startActivity(Intent(Intent.ACTION_VIEW, it.toUri()))
                 }
             },
             navigator = navigator

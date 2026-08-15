@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import org.kde.kdeconnect.ui.about.AboutData
 import org.kde.kdeconnect.ui.about.AboutPerson
 import org.kde.kdeconnect.ui.components.BackAction
+import org.kde.kdeconnect.ui.components.CategoryTitleTextSmall
 import org.kde.kdeconnect.ui.components.HazeScaffold
 import org.kde.kdeconnect.ui.components.KdeThemePreviews
 import org.kde.kdeconnect.ui.components.card
@@ -129,7 +130,10 @@ private fun ActionButtons(
     onWebsiteClicked: () -> Unit
 ) {
     FlowRow(
-        modifier = Modifier.fillMaxWidth().card().padding(vertical = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .card()
+            .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceAround,
         maxItemsInEachRow = 3
     ) {
@@ -196,25 +200,38 @@ private fun ActionIconTextButton(
 @Composable
 private fun AuthorsCard(aboutData: AboutData) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .card()
-            .padding(16.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(
-            text = stringResource(id = R.string.authors),
-            style = MaterialTheme.typography.titleLarge
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        aboutData.authors.forEach { author ->
-            AuthorItemRow(author = author)
+        CategoryTitleTextSmall(stringResource(id = R.string.redesign))
+        Column(
+            modifier = Modifier
+                .card()
+                .padding(horizontal = 16.dp, vertical = 4.dp)
+        ) {
+            AuthorItemRow(
+                author = AboutPerson(
+                    "Vytautas Butenas",
+                    task = R.string.ui_design_implementation_backend_refactoring
+                )
+            )
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = stringResource(aboutData.authorsFooterText),
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(start = 4.dp)
-        )
+
+        CategoryTitleTextSmall(stringResource(id = R.string.authors))
+        Column(
+            modifier = Modifier
+                .card()
+                .padding(horizontal = 16.dp, vertical = 4.dp)
+        ) {
+            aboutData.authors.forEach { author ->
+                AuthorItemRow(author = author)
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(aboutData.authorsFooterText),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(start = 4.dp)
+            )
+        }
     }
 }
 
