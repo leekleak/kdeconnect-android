@@ -13,6 +13,7 @@
     <td><img src="https://github.com/user-attachments/assets/fbde4e79-070a-4eb6-869c-8a3815edb139" alt="permissions"/></td>
   </tr>
   <tr>
+    <td><img src="https://github.com/user-attachments/assets/c8024c3b-2128-44bf-8e61-fb00c5caf361" alt="pairing"/></td>
     <td><img src="https://github.com/user-attachments/assets/57e283ac-5949-4412-9d65-3a17e80469b0" alt="device_settings"/></td>
     <td><img src="https://github.com/user-attachments/assets/7428797b-e6d6-41b8-825b-8d3c182fcb43" alt="app_settings"/></td>
   </tr>
