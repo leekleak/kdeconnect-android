@@ -7,12 +7,10 @@ package org.kde.kdeconnect.plugins.share
 
 import android.app.DownloadManager
 import android.content.ActivityNotFoundException
-import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Environment
-import android.provider.MediaStore
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
@@ -364,16 +362,7 @@ class CompositeReceiveFileJob(
         if (settingsDataStore.isFileDestinationDefault.first()) {
             LoggerTagged.i { "Adding to downloads" }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val contentValues = ContentValues()
-                contentValues.put(MediaStore.Downloads.TITLE, fileDocument.uri.lastPathSegment)
-                contentValues.put(MediaStore.Downloads.DISPLAY_NAME, fileDocument.uri.lastPathSegment)
-                contentValues.put(MediaStore.Downloads.MIME_TYPE, fileDocument.type)
-                contentValues.put(MediaStore.Downloads.SIZE, size)
-
-                contentValues.put(MediaStore.Downloads.RELATIVE_PATH, fileDocument.uri.path)
-
-                val database = context.contentResolver
-                database.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+                indexFile(context, fileDocument.uri)
             } else {
                 val manager = ContextCompat.getSystemService(context, DownloadManager::class.java)
                 manager?.addCompletedDownload(

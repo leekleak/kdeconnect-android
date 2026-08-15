@@ -6,15 +6,13 @@
 package org.kde.kdeconnect.helpers
 
 import android.content.Context
-import android.content.Intent
+import android.media.MediaScannerConnection
 import android.net.Uri
 
 object MediaStoreHelper {
-    // Maybe this class could batch successive calls together
     @JvmStatic
     fun indexFile(context: Context, path: Uri?) {
-        val mediaScanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)
-        mediaScanIntent.setData(path)
-        context.sendBroadcast(mediaScanIntent)
+        val uriPath = path?.path ?: return
+        MediaScannerConnection.scanFile(context, arrayOf(uriPath), null, null)
     }
 }
