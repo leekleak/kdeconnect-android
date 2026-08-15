@@ -84,7 +84,7 @@ import org.kde.kdeconnect.plugins.sms.SMSPlugin
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin
 import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin
 import org.kde.kdeconnect.ui.ThemeUtil
-import org.kde.kdeconnect.ui.about.getApplicationAboutData
+import org.kde.kdeconnect.ui.about.AboutData
 import org.kde.kdeconnect.ui.navigation.AboutKey
 import org.kde.kdeconnect.ui.navigation.BigscreenKey
 import org.kde.kdeconnect.ui.navigation.ConnectionsSettingsKey
@@ -181,23 +181,23 @@ val homeModule = module {
 val aboutModule = module {
     navigation<AboutKey> {
         val context: Context = get()
-        val aboutData = getApplicationAboutData(context)
+        val aboutData = AboutData()
         val navigator: Navigator = get()
 
         AboutScreen(
             aboutData = aboutData,
             onReportBugClicked = {
-                aboutData.bugURL?.let {
+                aboutData.bugURL.let {
                     context.startActivity(Intent(Intent.ACTION_VIEW, it.toUri()))
                 }
             },
             onDonateClicked = {
-                aboutData.donateURL?.let {
+                aboutData.donateURL.let {
                     context.startActivity(Intent(Intent.ACTION_VIEW, it.toUri()))
                 }
             },
             onSourceCodeClicked = {
-                aboutData.sourceCodeURL?.let {
+                aboutData.sourceCodeURL.let {
                     context.startActivity(Intent(Intent.ACTION_VIEW, it.toUri()))
                 }
             },
@@ -205,7 +205,7 @@ val aboutModule = module {
                 navigator.goTo(LicensesKey)
             },
             onWebsiteClicked = {
-                aboutData.websiteURL?.let {
+                aboutData.websiteURL.let {
                     context.startActivity(Intent(Intent.ACTION_VIEW, it.toUri()))
                 }
             },

@@ -10,9 +10,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -24,16 +22,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -43,6 +39,7 @@ import org.kde.kdeconnect.ui.about.AboutPerson
 import org.kde.kdeconnect.ui.components.BackAction
 import org.kde.kdeconnect.ui.components.HazeScaffold
 import org.kde.kdeconnect.ui.components.KdeThemePreviews
+import org.kde.kdeconnect.ui.components.card
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 
@@ -63,7 +60,7 @@ fun AboutScreen(
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = paddingValues
         ) {
             item {
@@ -74,7 +71,6 @@ fun AboutScreen(
 
             item {
                 ActionButtons(
-                    aboutData = aboutData,
                     onReportBugClicked = onReportBugClicked,
                     onDonateClicked = onDonateClicked,
                     onSourceCodeClicked = onSourceCodeClicked,
@@ -94,34 +90,31 @@ fun AboutScreen(
 private fun AppInfoCard(
     aboutData: AboutData,
 ) {
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .card()
+            .padding(16.dp),
+        verticalAlignment = Alignment.Top
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.Top
-        ) {
-            Image(
-                painter = painterResource(id = aboutData.icon),
-                contentDescription = null,
-                modifier = Modifier.size(52.dp)
-            )
+        Image(
+            painter = painterResource(id = aboutData.icon),
+            contentDescription = null,
+            modifier = Modifier.size(52.dp)
+        )
 
-            Column(
-                modifier = Modifier.align(Alignment.CenterVertically)
-            ) {
-                Text(
-                    text = aboutData.name,
-                    style = MaterialTheme.typography.titleLarge
-                )
-                Text(
-                    text = stringResource(id = R.string.version, aboutData.versionName),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+        Column(
+            modifier = Modifier.align(Alignment.CenterVertically)
+        ) {
+            Text(
+                text = stringResource(aboutData.name),
+                style = MaterialTheme.typography.titleLarge
+            )
+            Text(
+                text = stringResource(id = R.string.version, aboutData.versionName),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -129,76 +122,42 @@ private fun AppInfoCard(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ActionButtons(
-    aboutData: AboutData,
     onReportBugClicked: () -> Unit,
     onDonateClicked: () -> Unit,
     onSourceCodeClicked: () -> Unit,
     onLicensesClicked: () -> Unit,
     onWebsiteClicked: () -> Unit
 ) {
-    val buttons = remember(aboutData) {
-        val list = mutableListOf<@Composable () -> Unit>()
-        if (aboutData.bugURL != null) {
-            list.add {
-                ActionIconTextButton(
-                    textRes = R.string.report_bug,
-                    iconRes = R.drawable.bug_report,
-                    onClick = onReportBugClicked
-                )
-            }
-        }
-        if (aboutData.donateURL != null) {
-            list.add {
-                ActionIconTextButton(
-                    textRes = R.string.donate,
-                    iconRes = R.drawable.attach_money,
-                    onClick = onDonateClicked
-                )
-            }
-        }
-        if (aboutData.sourceCodeURL != null) {
-            list.add {
-                ActionIconTextButton(
-                    textRes = R.string.source_code,
-                    iconRes = R.drawable.code,
-                    onClick = onSourceCodeClicked
-                )
-            }
-        }
-
-        list.add {
-            ActionIconTextButton(
-                textRes = R.string.licenses,
-                iconRes = R.drawable.gavel,
-                onClick = onLicensesClicked
-            )
-        }
-
-        if (aboutData.websiteURL != null) {
-            list.add {
-                ActionIconTextButton(
-                    textRes = R.string.website,
-                    iconRes = R.drawable.web,
-                    onClick = onWebsiteClicked
-                )
-            }
-        }
-        list
-    }
-
-    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-        val buttonWidth = 84.dp
-        val totalNeededWidth = buttonWidth.times(buttons.size)
-
-        val maxItemsInRow = if (totalNeededWidth <= this.maxWidth) buttons.size else 3
-
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            maxItemsInEachRow = maxItemsInRow
-        ) {
-            buttons.forEach { button -> button() }
-        }
+    FlowRow(
+        modifier = Modifier.fillMaxWidth().card().padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceAround,
+        maxItemsInEachRow = 3
+    ) {
+        ActionIconTextButton(
+            textRes = R.string.report_bug,
+            iconRes = R.drawable.bug_report,
+            onClick = onReportBugClicked
+        )
+        ActionIconTextButton(
+            textRes = R.string.donate,
+            iconRes = R.drawable.attach_money,
+            onClick = onDonateClicked
+        )
+        ActionIconTextButton(
+            textRes = R.string.source_code,
+            iconRes = R.drawable.code,
+            onClick = onSourceCodeClicked
+        )
+        ActionIconTextButton(
+            textRes = R.string.licenses,
+            iconRes = R.drawable.gavel,
+            onClick = onLicensesClicked
+        )
+        ActionIconTextButton(
+            textRes = R.string.website,
+            iconRes = R.drawable.web,
+            onClick = onWebsiteClicked
+        )
     }
 }
 
@@ -208,17 +167,12 @@ private fun ActionIconTextButton(
     @DrawableRes iconRes: Int,
     onClick: () -> Unit
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
 
     Column(
         modifier = Modifier
             .size(84.dp)
+            .clip(MaterialTheme.shapes.large)
             .clickable(
-                interactionSource = interactionSource,
-                indication = ripple(
-                    color = MaterialTheme.colorScheme.onBackground,
-                    bounded = false
-                ),
                 onClick = onClick
             ),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -228,7 +182,6 @@ private fun ActionIconTextButton(
             painter = painterResource(id = iconRes),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
@@ -242,31 +195,26 @@ private fun ActionIconTextButton(
 
 @Composable
 private fun AuthorsCard(aboutData: AboutData) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = stringResource(id = R.string.authors),
-                style = MaterialTheme.typography.titleLarge
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            aboutData.authors.forEach { author ->
-                AuthorItemRow(author = author)
-            }
-
-            aboutData.authorsFooterText?.let { footerResId ->
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = stringResource(id = footerResId),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(start = 4.dp)
-                )
-            }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .card()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = stringResource(id = R.string.authors),
+            style = MaterialTheme.typography.titleLarge
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        aboutData.authors.forEach { author ->
+            AuthorItemRow(author = author)
         }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = stringResource(aboutData.authorsFooterText),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(start = 4.dp)
+        )
     }
 }
 
@@ -291,26 +239,12 @@ private fun AuthorItemRow(author: AboutPerson) {
     }
 }
 
-@org.kde.kdeconnect.ui.components.KdeThemePreviews
+@KdeThemePreviews
 @Composable
 private fun AboutScreenPreview() {
-    val sampleAboutData = AboutData(
-        name = "KDE Connect",
-        icon = R.drawable.icon,
-        versionName = "1.27.0",
-        bugURL = "https://bugs.kde.org",
-        websiteURL = "https://kdeconnect.kde.org",
-        sourceCodeURL = "https://invent.kde.org/network/kdeconnect-android",
-        donateURL = "https://www.kde.org/community/donations",
-        authorsFooterText = R.string.everyone_else
-    ).apply {
-        authors += AboutPerson("Albert Vaca Cintora", R.string.maintainer_and_developer)
-        authors += AboutPerson("Aleix Pol", R.string.developer)
-    }
-
     Surface {
         AboutScreen(
-            aboutData = sampleAboutData,
+            aboutData = AboutData(),
             onReportBugClicked = {},
             onDonateClicked = {},
             onSourceCodeClicked = {},
