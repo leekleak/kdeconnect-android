@@ -92,7 +92,15 @@ class DeviceManager(
             LoggerTagged.i { "Connection lost, removing link deviceId: ${link.deviceId}" }
             val device = devices.value[link.deviceId] ?: return
             device.removeLink(link)
-            device.cancel()
+
+            /**
+             * We want to kill a device only if these two criteria are fulfiled as paired devices should
+             * always be loaded
+             */
+            if (!device.isReachable && !device.isPaired) {
+                device.kill()
+                _devices.update { it.minus(device.deviceId) }
+            }
         }
 
         override fun onDeviceInfoUpdated(deviceInfo: DeviceInfo) {

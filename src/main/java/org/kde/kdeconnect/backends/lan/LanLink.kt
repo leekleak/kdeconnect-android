@@ -202,7 +202,7 @@ class LanLink @WorkerThread constructor(
 
                 //Convert to SSL if needed
                 payloadSocket =
-                    sslHelper.convertToSslSocket(context, payloadSocket!!, deviceInfo,
+                    sslHelper.convertToSslSocket(payloadSocket!!, deviceInfo,
                         isDeviceTrusted = true,
                         clientMode = false,
                     )
@@ -267,7 +267,7 @@ class LanLink @WorkerThread constructor(
                     payloadSocket.connect(InetSocketAddress(deviceAddress.address, tcpPort))
                 }
                 payloadSocket =
-                    sslHelper.convertToSslSocket(context, payloadSocket, deviceInfo,
+                    sslHelper.convertToSslSocket(payloadSocket, deviceInfo,
                         isDeviceTrusted = true,
                         clientMode = true,
                     )

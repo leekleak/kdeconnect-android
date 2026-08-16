@@ -334,7 +334,7 @@ class LanLinkProvider(
 
         // If I'm the TCP server I will be the SSL client and vice-versa.
         val clientMode = (connectionStarted == ConnectionStarted.Locally)
-        val sslSocket = sslHelper.convertToSslSocket(context, socket, device?.deviceInfo, deviceTrusted, clientMode)
+        val sslSocket = sslHelper.convertToSslSocket(socket, device?.deviceInfo, deviceTrusted, clientMode)
         sslSocket.addHandshakeCompletedListener { event: HandshakeCompletedEvent? ->
             val mode = if (clientMode) "client" else "server"
             try {

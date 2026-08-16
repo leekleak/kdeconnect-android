@@ -163,7 +163,7 @@ class SslHelper(
         trustManagerFactory.init(keyStore)
 
         // Setup custom trust manager if device not trusted
-        val tlsContext = SSLContext.getInstance("TLSv1.2") // Use TLS up to 1.2, since 1.3 seems to cause issues in some (older?) devices
+        val tlsContext = SSLContext.getInstance("TLS")
         if (isDeviceTrusted) {
             tlsContext.init(keyManagerFactory.keyManagers, trustManagerFactory.trustManagers, RandomHelper.secureRandom)
         } else {
@@ -187,7 +187,7 @@ class SslHelper(
     }
 
     @Throws(java.security.cert.CertificateException::class)
-    fun convertToSslSocket(context: Context, socket: Socket, deviceInfo: DeviceInfo?, isDeviceTrusted: Boolean, clientMode: Boolean): SSLSocket {
+    fun convertToSslSocket(socket: Socket, deviceInfo: DeviceInfo?, isDeviceTrusted: Boolean, clientMode: Boolean): SSLSocket {
         val sslSocketFactory = getSslContextForDevice(deviceInfo, isDeviceTrusted).socketFactory
         val sslSocket = sslSocketFactory.createSocket(socket, socket.inetAddress.hostAddress, socket.port, true) as SSLSocket
         configureSslSocket(sslSocket, isDeviceTrusted, clientMode)

@@ -73,7 +73,6 @@ class BackgroundService : Service() {
         linkProviders.add(get<BluetoothLinkProvider>())
     }
 
-    @OptIn(ExperimentalAtomicApi::class)
     suspend fun onNetworkChange(network: Network?) {
         if (!initialized.load()) {
             LoggerTagged.d { "ignoring onNetworkChange called before the service is initialized" }
@@ -219,7 +218,9 @@ class BackgroundService : Service() {
             startForeground(FOREGROUND_NOTIFICATION_ID, createForegroundNotification(emptyMap()))
         }
         if (intent != null && intent.getBooleanExtra("refresh", false)) {
-            runBlocking { onNetworkChange(null) }
+            serviceScope.launch {
+                onNetworkChange(null)
+            }
         }
         return START_STICKY
     }

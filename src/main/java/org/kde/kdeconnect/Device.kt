@@ -412,8 +412,9 @@ class Device(
         }
     }
 
-    fun cancel() {
+    fun kill() {
         jobScope.cancel()
+        scope.close()
     }
 
     override fun toString(): String {
