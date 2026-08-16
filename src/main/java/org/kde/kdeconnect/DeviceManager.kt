@@ -1,6 +1,5 @@
 package org.kde.kdeconnect
  
-import androidx.annotation.WorkerThread
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -79,8 +78,7 @@ class DeviceManager(
     }
 
     val connectionListener: ConnectionReceiver = object : ConnectionReceiver {
-        @WorkerThread
-        override suspend fun onConnectionReceived(link: BaseLink) {
+        override fun onConnectionReceived(link: BaseLink) {
             var device: Device? = devices.value[link.deviceId]
             if (device != null) {
                 device.addLink(link)
@@ -88,19 +86,16 @@ class DeviceManager(
                 device = deviceFactory(link.deviceId, link)
                 _devices.update { it + (link.deviceId to device) }
             }
-            device.updateDeviceInfo(link.deviceInfo)
         }
 
-        @WorkerThread
-        override suspend fun onConnectionLost(link: BaseLink) {
+        override fun onConnectionLost(link: BaseLink) {
             LoggerTagged.i { "Connection lost, removing link deviceId: ${link.deviceId}" }
             val device = devices.value[link.deviceId] ?: return
             device.removeLink(link)
             device.cancel()
         }
 
-        @WorkerThread
-        override suspend fun onDeviceInfoUpdated(deviceInfo: DeviceInfo) {
+        override fun onDeviceInfoUpdated(deviceInfo: DeviceInfo) {
             val device = devices.value[deviceInfo.id]
             if (device == null) {
                 LoggerTagged.e { "onDeviceInfoUpdated for an unknown device" }

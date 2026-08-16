@@ -63,11 +63,11 @@ class Device(
         field = MutableStateFlow(DeviceState(
             deviceInfo = link?.deviceInfo ?: runBlocking { deviceSettings.getDeviceInfo(deviceId) ?: throw RuntimeException("Device $deviceId not found in settings") },
             pairState = if (link == null) PairState.Paired else PairState.NotPaired,
-            supportedPlugins = PluginFactory.availablePlugins.toList(),
+            supportedPlugins = emptyList(),
         ))
 
     private val stateUpdateMutex = Mutex()
-    private suspend fun updateState(transform: (DeviceState) -> DeviceState) = stateUpdateMutex.withLock {
+    private fun updateState(transform: (DeviceState) -> DeviceState) {
         val newState = reloadPluginsFromSettings(transform(state.value))
         state.update { newState }
         if (newState.pairState == PairState.Paired && newState.deviceInfo.trusted) {
@@ -109,7 +109,7 @@ class Device(
         } else {
             getVerificationKeyV7(sslHelper.certificate, certificate)
         }
-        jobScope.launch { updateState { it.copy(pairState = pairState, verificationKey = key) } }
+        updateState { it.copy(pairState = pairState, verificationKey = key) }
     }
 
     // Returns 0 if the version matches, < 0 if it is older or > 0 if it is newer
@@ -151,19 +151,17 @@ class Device(
             override fun pairingSuccessful() {
                 LoggerTagged.i { "pairing successful, adding to trusted devices list" }
 
-                jobScope.launch {
-                    updateState {
-                        it.copy(
-                            deviceInfo = it.deviceInfo.copy(trusted = true),
-                            pairState = PairState.Paired,
-                        )
-                    }
-                    val intent = Intent(context, MainActivity::class.java).apply {
-                        putExtra(MainActivity.EXTRA_DEVICE_ID, deviceId)
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    }
-                    context.startActivity(intent)
+                updateState {
+                    it.copy(
+                        deviceInfo = it.deviceInfo.copy(trusted = true),
+                        pairState = PairState.Paired,
+                    )
                 }
+                val intent = Intent(context, MainActivity::class.java).apply {
+                    putExtra(MainActivity.EXTRA_DEVICE_ID, deviceId)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(intent)
             }
 
             override fun pairingFailed(error: Int) {
@@ -172,33 +170,33 @@ class Device(
             override fun unpaired(device: Device) {
                 assert(device == this@Device)
                 LoggerTagged.i { "unpaired, removing from trusted devices list" }
+                updateState {
+                    it.copy(
+                        deviceInfo = it.deviceInfo.copy(trusted = false),
+                        pairState = PairState.NotPaired,
+                        batteryInfo = null,
+                        verificationKey = null,
+                    )
+                }
                 jobScope.launch {
-                    updateState {
-                        it.copy(
-                            deviceInfo = it.deviceInfo.copy(trusted = false),
-                            pairState = PairState.NotPaired,
-                            batteryInfo = null,
-                            verificationKey = null,
-                        )
-                    }
                     deviceSettings.removeTrustedDevice(deviceId)
                 }
             }
         }
     }
 
-    suspend fun addLink(link: BaseLink){
-        link.addPacketReceiver(this@Device)
-
+    fun addLink(link: BaseLink){
+        updateDeviceInfo(link.deviceInfo)
         updateState { state ->
             state.copy(
                 links = (state.links + link).sortedByDescending { it.linkProvider.priority }
             )
         }
+        link.addPacketReceiver(this@Device)
     }
 
     @WorkerThread
-    suspend fun removeLink(link: BaseLink) {
+    fun removeLink(link: BaseLink) {
         link.removePacketReceiver(this)
         updateState { state ->
             val newLinks = state.links.minus(link)
@@ -208,7 +206,7 @@ class Device(
         }
     }
 
-    suspend fun updateDeviceInfo(newDeviceInfo: DeviceInfo) {
+    fun updateDeviceInfo(newDeviceInfo: DeviceInfo) {
         val updatedSupportedPlugins: List<String> = PluginFactory.pluginsForCapabilities(
             newDeviceInfo.incomingCapabilities,
             newDeviceInfo.outgoingCapabilities
@@ -401,20 +399,16 @@ class Device(
     }
 
     internal fun updateBatteryInfo(newInfo: DeviceBatteryInfo) {
-        jobScope.launch {
-            updateState { it.copy(batteryInfo = newInfo) }
-        }
+        updateState { it.copy(batteryInfo = newInfo) }
     }
 
     fun updateShortcuts(shortcuts: List<String>) {
-        jobScope.launch {
-            updateState {
-                it.copy(
-                    deviceInfo = it.deviceInfo.copy(
-                        shortcuts = shortcuts
-                    )
+        updateState {
+            it.copy(
+                deviceInfo = it.deviceInfo.copy(
+                    shortcuts = shortcuts
                 )
-            }
+            )
         }
     }
 

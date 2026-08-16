@@ -13,13 +13,13 @@ import java.util.concurrent.CopyOnWriteArrayList
 abstract class BaseLinkProvider {
     interface ConnectionReceiver {
         @WorkerThread
-        suspend fun onConnectionReceived(link: BaseLink)
+        fun onConnectionReceived(link: BaseLink)
 
         @WorkerThread
-        suspend fun onDeviceInfoUpdated(deviceInfo: DeviceInfo)
+        fun onDeviceInfoUpdated(deviceInfo: DeviceInfo)
 
         @WorkerThread
-        suspend fun onConnectionLost(link: BaseLink)
+        fun onConnectionLost(link: BaseLink)
     }
 
     private val connectionReceivers = CopyOnWriteArrayList<ConnectionReceiver>()
@@ -36,8 +36,7 @@ abstract class BaseLinkProvider {
      * To be called from the child classes when a link to a new device is established
      */
     @WorkerThread
-    protected suspend fun onConnectionReceived(link: BaseLink) {
-        //LoggerTagged.i { "KDE/LinkProvider", "onConnectionReceived");
+    protected fun onConnectionReceived(link: BaseLink) {
         for (cr in connectionReceivers) {
             cr.onConnectionReceived(link)
         }
@@ -47,8 +46,7 @@ abstract class BaseLinkProvider {
      * To be called from the child classes when a link to an existing device is disconnected
      */
     @WorkerThread
-    open suspend fun onConnectionLost(link: BaseLink) {
-        //LoggerTagged.i { "KDE/LinkProvider", "connectionLost");
+    open fun onConnectionLost(link: BaseLink) {
         for (cr in connectionReceivers) {
             cr.onConnectionLost(link)
         }
@@ -58,7 +56,7 @@ abstract class BaseLinkProvider {
      * To be called from the child classes when we discover new DeviceInfo for an already linked device.
      */
     @WorkerThread
-    protected suspend fun onDeviceInfoUpdated(deviceInfo: DeviceInfo) {
+    protected fun onDeviceInfoUpdated(deviceInfo: DeviceInfo) {
         for (cr in connectionReceivers) {
             cr.onDeviceInfoUpdated(deviceInfo)
         }

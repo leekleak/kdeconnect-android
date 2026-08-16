@@ -83,7 +83,7 @@ class LanLinkProvider(
 
     private var scope: CoroutineScope? = null
 
-    override suspend fun onConnectionLost(link: BaseLink) {
+    override fun onConnectionLost(link: BaseLink) {
         val deviceId = link.deviceId
         visibleDevices.remove(deviceId)
         super.onConnectionLost(link)
@@ -336,68 +336,65 @@ class LanLinkProvider(
         val clientMode = (connectionStarted == ConnectionStarted.Locally)
         val sslSocket = sslHelper.convertToSslSocket(context, socket, device?.deviceInfo, deviceTrusted, clientMode)
         sslSocket.addHandshakeCompletedListener { event: HandshakeCompletedEvent? ->
-            // Start a new thread because some Android versions don't allow calling sslSocket.getOutputStream() from the callback
-            scope?.launch {
-                val mode = if (clientMode) "client" else "server"
-                try {
-                    val secureIdentityPacket: NetworkPacket?
-                    if (protocolVersion >= 8) {
-                        val myDeviceInfo = deviceHelper.getDeviceInfo()
-                        val myIdentity = myDeviceInfo.toIdentityPacket()
+            val mode = if (clientMode) "client" else "server"
+            try {
+                val secureIdentityPacket: NetworkPacket?
+                if (protocolVersion >= 8) {
+                    val myDeviceInfo = deviceHelper.getDeviceInfo()
+                    val myIdentity = myDeviceInfo.toIdentityPacket()
 
-                        val writer = sslSocket.getOutputStream()
-                        writer.write(myIdentity.serialize().toByteArray(UTF_8))
-                        writer.flush()
-                        val line =
-                            readLineBounded(sslSocket.getInputStream(), MAX_IDENTITY_PACKET_SIZE)
-                        // Do not trust the identity packet we received unencrypted
-                        secureIdentityPacket = unserialize(line)
-                        if (!isValidIdentityPacket(secureIdentityPacket)) {
-                            LoggerTagged.e { "Identity packet isn't valid" }
-                            sslSocket.close()
-                            return@launch
-                        }
-                        val newProtocolVersion = secureIdentityPacket.getInt("protocolVersion")
-                        if (newProtocolVersion != protocolVersion) {
-                            LoggerTagged.e {
-                                "Protocol version changed half-way through the handshake: $protocolVersion -> $newProtocolVersion"
-                            }
-                            sslSocket.close()
-                            return@launch
-                        }
-                        val newDeviceId = secureIdentityPacket.getString("deviceId")
-                        if (newDeviceId != deviceId) {
-                            LoggerTagged.e {
-                                "Device ID changed half-way through the handshake: $deviceId -> $newDeviceId"
-                            }
-                            sslSocket.close()
-                            return@launch
-                        }
-                    } else {
-                        secureIdentityPacket = identityPacket
-                    }
-                    val certificate = event!!.peerCertificates[0]
-                    val deviceInfo = fromIdentityPacketAndCert(secureIdentityPacket, certificate)
-                    LoggerTagged.i {
-                        "Handshake as " + mode + " successful with " + deviceInfo.name + " secured with " + event.cipherSuite
-                    }
-                    addOrUpdateLink(sslSocket, deviceInfo)
-                } catch (e: JSONException) {
-                    LoggerTagged.e(e) {
-                        "Remote device doesn't correctly implement protocol version 8"
-                    }
-                    try {
+                    val writer = sslSocket.getOutputStream()
+                    writer.write(myIdentity.serialize().toByteArray(UTF_8))
+                    writer.flush()
+                    val line =
+                        readLineBounded(sslSocket.getInputStream(), MAX_IDENTITY_PACKET_SIZE)
+                    // Do not trust the identity packet we received unencrypted
+                    secureIdentityPacket = unserialize(line)
+                    if (!isValidIdentityPacket(secureIdentityPacket)) {
+                        LoggerTagged.e { "Identity packet isn't valid" }
                         sslSocket.close()
-                    } catch (_: IOException) {
+                        return@addHandshakeCompletedListener
                     }
-                } catch (e: IOException) {
-                    LoggerTagged.e(e) {
-                        "Handshake as $mode failed with $deviceId"
-                    }
-                    try {
+                    val newProtocolVersion = secureIdentityPacket.getInt("protocolVersion")
+                    if (newProtocolVersion != protocolVersion) {
+                        LoggerTagged.e {
+                            "Protocol version changed half-way through the handshake: $protocolVersion -> $newProtocolVersion"
+                        }
                         sslSocket.close()
-                    } catch (_: IOException) {
+                        return@addHandshakeCompletedListener
                     }
+                    val newDeviceId = secureIdentityPacket.getString("deviceId")
+                    if (newDeviceId != deviceId) {
+                        LoggerTagged.e {
+                            "Device ID changed half-way through the handshake: $deviceId -> $newDeviceId"
+                        }
+                        sslSocket.close()
+                        return@addHandshakeCompletedListener
+                    }
+                } else {
+                    secureIdentityPacket = identityPacket
+                }
+                val certificate = event!!.peerCertificates[0]
+                val deviceInfo = fromIdentityPacketAndCert(secureIdentityPacket, certificate)
+                LoggerTagged.i {
+                    "Handshake as " + mode + " successful with " + deviceInfo.name + " secured with " + event.cipherSuite
+                }
+                addOrUpdateLink(sslSocket, deviceInfo)
+            } catch (e: JSONException) {
+                LoggerTagged.e(e) {
+                    "Remote device doesn't correctly implement protocol version 8"
+                }
+                try {
+                    sslSocket.close()
+                } catch (_: IOException) {
+                }
+            } catch (e: IOException) {
+                LoggerTagged.e(e) {
+                    "Handshake as $mode failed with $deviceId"
+                }
+                try {
+                    sslSocket.close()
+                } catch (_: IOException) {
                 }
             }
         }
@@ -422,7 +419,7 @@ class LanLinkProvider(
      */
     @WorkerThread
     @Throws(IOException::class)
-    private suspend fun addOrUpdateLink(socket: SSLSocket, deviceInfo: DeviceInfo) {
+    private fun addOrUpdateLink(socket: SSLSocket, deviceInfo: DeviceInfo) {
         var link = visibleDevices[deviceInfo.id]
         if (link != null) {
             if (!link.deviceInfo.certificate.contentEquals(deviceInfo.certificate)) {
