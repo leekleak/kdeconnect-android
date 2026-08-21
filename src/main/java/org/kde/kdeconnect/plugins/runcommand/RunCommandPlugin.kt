@@ -6,7 +6,6 @@
  */
 package org.kde.kdeconnect.plugins.runcommand
 
-import android.app.Activity
 import android.content.Context
 import android.os.Build
 import androidx.compose.runtime.MutableState
@@ -23,11 +22,6 @@ import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginUiButton
-import org.kde.kdeconnect.ui.MainActivity
-import org.kde.kdeconnect.ui.navigation.Navigator
-import org.kde.kdeconnect.ui.navigation.RunCommandKey
-import org.kde.kdeconnect_tp.R
 import java.util.stream.Collectors
 
 class RunCommandPlugin(
@@ -50,21 +44,6 @@ class RunCommandPlugin(
     }
 
     var commandRunning: MutableState<Boolean> = mutableStateOf(false)
-
-    override fun getUiButtons(): List<PluginUiButton> {
-        return listOf(
-            PluginUiButton(
-                pluginKey = pluginKey,
-                name = context.getString(R.string.pref_plugin_runcommand),
-                iconRes = R.drawable.code,
-                category = ButtonCategory.CONTROL
-            ) { parentActivity: Activity ->
-                val navigator = (parentActivity as MainActivity).scope.get<Navigator>(
-                    Navigator::class.java.kotlin, null, null
-                )
-                navigator.goTo(RunCommandKey(device.deviceId))
-            })
-    }
 
     override fun onCreate(): Boolean {
         coroutineScope.launch { requestCommandList() }

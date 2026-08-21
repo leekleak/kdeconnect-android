@@ -9,6 +9,7 @@ import android.content.Context
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.plugins.ButtonCategory
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.PluginUiButton
@@ -17,18 +18,6 @@ import org.kde.kdeconnect_tp.R
 
 class FindRemoteDevicePlugin(context: Context, device: Device) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = FindRemoteDevicePluginInfo
-
-    override fun getUiButtons(): List<PluginUiButton> = listOf(
-        PluginUiButton(
-            pluginKey = pluginKey,
-            name = context.getString(R.string.find_device),
-            iconRes = R.drawable.e911_emergency,
-            category = ButtonCategory.CONTROL
-        ) { _ ->
-            coroutineScope.launch {
-                device.sendPacket(NetworkPacket(FindMyPhonePlugin.PACKET_TYPE_FINDMYPHONE_REQUEST))
-            }
-        })
 
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean = true
 }
@@ -41,4 +30,18 @@ object FindRemoteDevicePluginInfo: PluginInfo(
     supportedPacketTypes = emptyArray(),
     outgoingPacketTypes = arrayOf(FindMyPhonePlugin.PACKET_TYPE_FINDMYPHONE_REQUEST),
     lazy = true
-)
+) {
+    override fun getUiButtons(device: Device): List<PluginUiButton> = listOf(
+        PluginUiButton(
+            pluginKey = pluginKey,
+            name = R.string.find_device,
+            iconRes = R.drawable.e911_emergency,
+            category = ButtonCategory.CONTROL
+        ) { _, _ ->
+            device.getPlugin(FindRemoteDevicePlugin::class.java)?.let {
+                it.coroutineScope.launch {
+                    device.sendPacket(NetworkPacket(FindMyPhonePlugin.PACKET_TYPE_FINDMYPHONE_REQUEST))
+                }
+            }
+        })
+}

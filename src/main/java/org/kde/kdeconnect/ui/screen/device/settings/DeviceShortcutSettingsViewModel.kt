@@ -1,6 +1,11 @@
 package org.kde.kdeconnect.ui.screen.device.settings
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.plugins.PluginUiButton
@@ -12,23 +17,20 @@ class DeviceShortcutSettingsViewModel(
 ): ViewModel() {
     private val device: Device = deviceManager.getDevice(deviceId)!!
 
-    fun getEnabledShortcuts(): List<PluginUiButton> {
-        return device.state.value.deviceInfo.shortcuts
-            .flatMap { device.getPlugin(it)?.getUiButtons() ?: emptyList() }
-    }
-
-    fun getDisabledShortcuts(): List<PluginUiButton> {
-        return device.loadedPlugins.keys
-            .filter { key -> key !in device.state.value.deviceInfo.shortcuts }
-            .flatMap { device.getPlugin(it)?.getUiButtons() ?: emptyList() }
-    }
+    val uiState: StateFlow<ShortcutSettingsUiState> = device.state.map { state ->
+        val enabledInSettings = state.uiButtons.filter { state.deviceInfo.settings[it.pluginKey] == true }
+        ShortcutSettingsUiState(
+            enabled = enabledInSettings.filter { it.pluginKey in state.deviceInfo.shortcuts },
+            disabled = enabledInSettings.filter { it.pluginKey !in state.deviceInfo.shortcuts }
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ShortcutSettingsUiState())
 
     fun updateShortcuts(shortcuts: List<String>) {
         device.updateShortcuts(shortcuts)
     }
 }
 
-data class DeviceShortcutSettingsState(
-    val enabledShortcuts: List<PluginUiButton> = emptyList(),
-    val disabledShortcuts: List<PluginUiButton> = emptyList()
+data class ShortcutSettingsUiState(
+    val enabled: List<PluginUiButton> = emptyList(),
+    val disabled: List<PluginUiButton> = emptyList()
 )

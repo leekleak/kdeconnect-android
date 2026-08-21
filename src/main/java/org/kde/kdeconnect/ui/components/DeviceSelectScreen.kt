@@ -56,7 +56,7 @@ fun DeviceSelectScreen(
             onDeviceClick = onDeviceClick,
             onRefresh = onRefresh,
             wifiAvailable = wifiAvailable,
-            trustedNetwork = trustedNetwork
+            trustedNetwork = trustedNetwork,
         )
     }
 }
@@ -102,6 +102,7 @@ private fun DeviceSelectScreenContent(
                 ) { device ->
                     DeviceCard(
                         device = device,
+                        navigator = null,
                         actionIcon = actionIcon,
                         actionDescription = actionDescription,
                         actionDescriptionVisible = true,
@@ -150,6 +151,6 @@ private fun ShareScreenPreview() {
         onDeviceClick = { /* Do nothing */ },
         onRefresh = { /* Do nothing */ },
         wifiAvailable = true,
-        trustedNetwork = true
+        trustedNetwork = true,
     )
 }

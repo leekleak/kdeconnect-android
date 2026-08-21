@@ -27,23 +27,22 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.kde.kdeconnect.DeviceInfo
-import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.DeviceState
 import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.PairState
-import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.ui.components.BackAction
 import org.kde.kdeconnect.ui.components.DeviceCard
 import org.kde.kdeconnect.ui.components.HazeScaffold
 import org.kde.kdeconnect.ui.components.KdeThemePreviews
 import org.kde.kdeconnect.ui.components.PairingExplanations
+import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     uiState: HomeUiState,
-    deviceManager: DeviceManager?,
+    navigator: Navigator,
     onClick: (String) -> Unit,
     onRefresh: () -> Unit,
     onNavigateToPairingScreen: () -> Unit,
@@ -87,13 +86,13 @@ fun HomeScreen(
                     itemsIndexed(
                         items = uiState.connected,
                         key = { _, connectedDevice -> connectedDevice.deviceInfo.id }) { _, device ->
-                        val buttons: List<PluginUiButton> = device.deviceInfo.shortcuts.flatMap { key ->
-                            deviceManager?.getDevice(device.deviceInfo.id)?.getPlugin(key)?.getUiButtons() ?: emptyList()
-                        }
                         Spacer(Modifier.height(4.dp))
                         DeviceCard(
                             device = device,
-                            shortcuts = buttons,
+                            navigator = navigator,
+                            shortcuts = device.uiButtons.filter { 
+                                it.pluginKey in device.deviceInfo.shortcuts && device.deviceInfo.settings[it.pluginKey] == true 
+                            },
                             onClick = { onClick(it) }
                         )
                     }
@@ -167,7 +166,7 @@ private fun PreviewCompose() {
             ),
             refreshing = false
         ),
-        deviceManager = null,
+        navigator = Navigator(),
         onClick = { },
         onRefresh = { },
         onNavigateToPairingScreen = {},

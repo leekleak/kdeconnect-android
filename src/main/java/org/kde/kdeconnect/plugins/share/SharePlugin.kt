@@ -5,7 +5,6 @@
  */
 package org.kde.kdeconnect.plugins.share
 
-import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -33,7 +32,6 @@ import org.kde.kdeconnect.helpers.FilesHelper.uriToNetworkPacket
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
-import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect_tp.R
 import java.net.MalformedURLException
@@ -122,22 +120,6 @@ class SharePlugin(
         } else {
             ShortcutManagerCompat.updateShortcuts(context, listOf(shortcut))
         }
-    }
-
-    override fun getUiButtons(): List<PluginUiButton> {
-        return listOf(
-            PluginUiButton(
-                pluginKey = pluginKey,
-                name = context.getString(R.string.files),
-                nameFull = context.getString(R.string.send_files),
-                iconRes = R.drawable.description,
-                category = ButtonCategory.SEND
-            ) { parentActivity: Activity ->
-                if (parentActivity is MainActivity && parentActivity.shareGetResultCallback == null) {
-                    parentActivity.shareGetResultCallback = { sendUriList(it) }
-                    parentActivity.shareGetResult.launch("*/*")
-                }
-            })
     }
 
     @WorkerThread

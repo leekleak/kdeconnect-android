@@ -11,15 +11,14 @@ import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.helpers.SPECIAL_KEY_ENCODING_MAP
+import org.kde.kdeconnect.plugins.ButtonCategory
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE
 import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_REQUEST
-import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.navigation.BigscreenKey
 import org.kde.kdeconnect.ui.navigation.MousePadKey
-import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 
 class MousePadPlugin(
@@ -27,32 +26,6 @@ class MousePadPlugin(
     device: Device,
 ) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = MousePadPluginSettings
-
-    override fun getUiButtons(): List<PluginUiButton> {
-        val mouseAndKeyboardInput = PluginUiButton(
-            pluginKey = pluginKey,
-            name = context.getString(R.string.open_mousepad),
-            iconRes = R.drawable.trackpad_input_2,
-            category = ButtonCategory.CONTROL
-        ) { parentActivity ->
-            val navigator: Navigator = (parentActivity as MainActivity).scope.get(Navigator::class, null, null)
-            device.let { navigator.goTo(MousePadKey(it.deviceId)) }
-        }
-        return if (device.deviceType == DeviceType.TV) {
-            val tvInput = PluginUiButton(
-                pluginKey = pluginKey,
-                name = context.getString(R.string.open_mousepad_tv),
-                iconRes = R.drawable.tv_remote,
-                category = ButtonCategory.CONTROL
-            ) { parentActivity ->
-                val navigator: Navigator = (parentActivity as MainActivity).scope.get(Navigator::class, null, null)
-                navigator.goTo(BigscreenKey(device.deviceId))
-            }
-            listOf(mouseAndKeyboardInput, tvInput)
-        } else {
-            listOf(mouseAndKeyboardInput)
-        }
-    }
 
     var isKeyboardEnabled: Boolean = true
         private set
@@ -181,4 +154,28 @@ object MousePadPluginSettings: PluginInfo(
     supportedPacketTypes = arrayOf(PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_MOUSEPAD_REQUEST),
     lazy = true
-)
+) {
+    override fun getUiButtons(device: Device): List<PluginUiButton> {
+        val mouseAndKeyboardInput = PluginUiButton(
+            pluginKey = pluginKey,
+            name = R.string.open_mousepad,
+            iconRes = R.drawable.trackpad_input_2,
+            category = ButtonCategory.CONTROL
+        ) { _, navigator ->
+            navigator.goTo(MousePadKey(device.deviceId))
+        }
+        return if (device.deviceType == DeviceType.TV) {
+            val tvInput = PluginUiButton(
+                pluginKey = pluginKey,
+                name = R.string.open_mousepad_tv,
+                iconRes = R.drawable.tv_remote,
+                category = ButtonCategory.CONTROL
+            ) { _, navigator ->
+                navigator.goTo(BigscreenKey(device.deviceId))
+            }
+            listOf(mouseAndKeyboardInput, tvInput)
+        } else {
+            listOf(mouseAndKeyboardInput)
+        }
+    }
+}

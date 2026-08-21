@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.ui.components.BackAction
 import org.kde.kdeconnect.ui.components.CategoryTitleTextSmall
@@ -46,7 +47,7 @@ private data object SectionDivider : ShortcutListItem {
     override val key: String = KEY_DIVIDER
 }
 private data class ButtonEntry(val button: PluginUiButton) : ShortcutListItem {
-    override val key: String get() = button.pluginKey
+    override val key: String get() = button.name.toString()
 }
 
 @Composable
@@ -56,20 +57,18 @@ fun DeviceShortcutSettingsScreen(
     navigator: Navigator,
 ) {
     val flatItems = remember { mutableStateListOf<ShortcutListItem>() }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val enabledHeaderLabel = stringResource(R.string.shortcuts)
     val disabledHeaderLabel = stringResource(R.string.available_shortcuts)
 
-    LaunchedEffect(Unit) {
-        val enabled = viewModel.getEnabledShortcuts()
-        val disabled = viewModel.getDisabledShortcuts()
-
+    LaunchedEffect(uiState) {
         flatItems.clear()
         flatItems += SectionHeader(enabledHeaderLabel, KEY_HEADER_ENABLED)
-        flatItems += enabled.map { ButtonEntry(it) }
+        flatItems += uiState.enabled.map { ButtonEntry(it) }
         flatItems += SectionDivider
         flatItems += SectionHeader(disabledHeaderLabel, KEY_HEADER_DISABLED)
-        flatItems += disabled.map { ButtonEntry(it) }
+        flatItems += uiState.disabled.map { ButtonEntry(it) }
     }
 
     val lazyGridState = rememberLazyGridState()

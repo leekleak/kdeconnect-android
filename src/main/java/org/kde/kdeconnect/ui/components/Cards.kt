@@ -45,9 +45,10 @@ import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.DeviceState
 import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.PairState
-import org.kde.kdeconnect.plugins.Plugin
+import org.kde.kdeconnect.plugins.ButtonCategory
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.battery.DeviceBatteryInfo
+import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 
 @Composable
@@ -94,6 +95,7 @@ fun Modifier.card(backgroundColor: Color = colorScheme.surfaceContainer): Modifi
 @Composable
 fun DeviceCard(
     device: DeviceState,
+    navigator: Navigator?,
     shortcuts: List<PluginUiButton> = emptyList(),
     actionIcon: Painter = painterResource(R.drawable.arrow_forward_ios),
     actionDescription: String = stringResource(R.string.open),
@@ -166,14 +168,14 @@ fun DeviceCard(
             }
         }
 
-        if (shortcuts.isNotEmpty()) {
+        if (shortcuts.isNotEmpty() && navigator != null) {
             Column(Modifier.padding(start = 12.dp, end = 12.dp, top = 0.dp, bottom = 12.dp)) {
                 HorizontalDivider(
                     Modifier.padding(start = 4.dp, end = 4.dp, top = 0.dp, bottom = 8.dp)
                 )
                 CategoryTitleTextSmall(stringResource(R.string.shortcuts))
                 Spacer(Modifier.height(8.dp))
-                PluginButtonsGrid(shortcuts, fullName = true) { button -> activity?.let { button.onClick(it) } }
+                PluginButtonsGrid(shortcuts, fullName = true) { button -> activity?.let { button.onClick(it, navigator) } }
             }
         }
     }
@@ -234,9 +236,10 @@ fun DeviceCardPreview() {
             pairState = PairState.Paired,
             batteryInfo = DeviceBatteryInfo(70, true, 15),
         ),
+        navigator = Navigator(),
         shortcuts = listOf(
-            PluginUiButton("", "Send Clipboard", "", R.drawable.assignment, Plugin.ButtonCategory.SEND) {},
-            PluginUiButton("", "Multimedia", "", R.drawable.music_cast, Plugin.ButtonCategory.CONTROL) {}
+            PluginUiButton("", R.string.clipboard, R.string.send_clipboard, R.drawable.assignment, ButtonCategory.SEND) { _, _ -> },
+            PluginUiButton("", R.string.open_mpris_controls, R.string.open_mpris_controls, R.drawable.music_cast, ButtonCategory.CONTROL) { _, _ -> }
         ),
         onClick = { }
     )
@@ -257,6 +260,7 @@ fun DeviceCardPreviewEmpty() {
             pairState = PairState.Paired,
             batteryInfo = null,
         ),
+        navigator = Navigator(),
         onClick = { }
     )
 }

@@ -32,12 +32,11 @@ import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.helpers.VideoUrlsHelper
+import org.kde.kdeconnect.plugins.ButtonCategory
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.PluginUiButton
-import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.navigation.MprisKey
-import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 import java.net.MalformedURLException
 import java.util.concurrent.ConcurrentHashMap
@@ -363,20 +362,6 @@ class MprisPlugin(
         }
     }
 
-    override fun getUiButtons(): List<PluginUiButton> = listOf(
-        PluginUiButton(
-            pluginKey = pluginKey,
-            name = context.getString(R.string.open_mpris_controls),
-            iconRes = R.drawable.music_cast,
-            category = ButtonCategory.CONTROL
-        ) { parentActivity ->
-            val navigator = (parentActivity as MainActivity).scope.get<Navigator>(
-                Navigator::class.java.kotlin, null, null
-            )
-            navigator.goTo(MprisKey(device.deviceId))
-        }
-    )
-
     fun getPlayerStatus(player: String?): MprisPlayerState? = if (player == null) {
         null
     } else _players.value[player]
@@ -456,4 +441,15 @@ object MprisPluginInfo: PluginInfo(
     supportedPacketTypes = arrayOf(MprisPlugin.PACKET_TYPE_MPRIS),
     outgoingPacketTypes = arrayOf(MprisPlugin.PACKET_TYPE_MPRIS_REQUEST),
     lazy = false,
-)
+) {
+    override fun getUiButtons(device: Device): List<PluginUiButton> = listOf(
+        PluginUiButton(
+            pluginKey = pluginKey,
+            name = R.string.open_mpris_controls,
+            iconRes = R.drawable.music_cast,
+            category = ButtonCategory.CONTROL
+        ) { _, navigator ->
+            navigator.goTo(MprisKey(device.deviceId))
+        }
+    )
+}

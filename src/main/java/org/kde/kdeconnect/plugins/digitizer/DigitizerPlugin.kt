@@ -10,29 +10,17 @@ import android.content.Context
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.helpers.LoggerTagged
+import org.kde.kdeconnect.plugins.ButtonCategory
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.digitizer.DigitizerPlugin.Companion.PACKET_TYPE_DIGITIZER
 import org.kde.kdeconnect.plugins.digitizer.DigitizerPlugin.Companion.PACKET_TYPE_DIGITIZER_SESSION
-import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.navigation.DigitizerKey
-import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
 
 class DigitizerPlugin(context: Context, device: Device) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = DigitizerPluginInfo
-
-    override fun getUiButtons(): List<PluginUiButton> = listOf(
-        PluginUiButton(
-            pluginKey = pluginKey,
-            name = context.getString(R.string.use_digitizer),
-            iconRes = R.drawable.stylus_note,
-            category = ButtonCategory.CONTROL
-        ) { parentActivity ->
-            val navigator: Navigator = (parentActivity as MainActivity).scope.get(Navigator::class, null, null)
-            navigator.goTo(DigitizerKey(device.deviceId))
-        })
 
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         LoggerTagged.e { "The drawing tablet plugin should not be able to receive any packets!" }
@@ -85,4 +73,14 @@ object DigitizerPluginInfo: PluginInfo(
     supportedPacketTypes = emptyArray(),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_DIGITIZER_SESSION, PACKET_TYPE_DIGITIZER),
     lazy = true
-)
+) {
+    override fun getUiButtons(device: Device): List<PluginUiButton> = listOf(
+        PluginUiButton(
+            pluginKey = pluginKey,
+            name = R.string.use_digitizer,
+            iconRes = R.drawable.stylus_note,
+            category = ButtonCategory.CONTROL
+        ) { _, navigator ->
+            navigator.goTo(DigitizerKey(device.deviceId))
+        })
+}

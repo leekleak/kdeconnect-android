@@ -11,15 +11,14 @@ import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.helpers.SPECIAL_KEY_ENCODING_MAP
+import org.kde.kdeconnect.plugins.ButtonCategory
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_REQUEST
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin.Companion.PACKET_TYPE_PRESENTER
-import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.PresenterKey
 import org.kde.kdeconnect_tp.R
-import org.koin.java.KoinJavaComponent.inject
 
 object PresenterPluginInfo : PluginInfo(
     pluginKey = "PresenterPlugin",
@@ -29,24 +28,23 @@ object PresenterPluginInfo : PluginInfo(
     supportedPacketTypes = emptyArray(),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_MOUSEPAD_REQUEST, PACKET_TYPE_PRESENTER),
     lazy = true
-)
+) {
+    override fun getUiButtons(device: Device): List<PluginUiButton> = listOf(
+        PluginUiButton(
+            pluginKey = pluginKey,
+            name = R.string.pref_plugin_presenter,
+            iconRes = R.drawable.missing_controller,
+            category = ButtonCategory.CONTROL
+        ) { _, navigator ->
+            navigator?.goTo(PresenterKey(device.deviceId))
+        })
+}
 
 class PresenterPlugin(context: Context, device: Device) : Plugin(context, device) {
 
     override val pluginInfo: PluginInfo = PresenterPluginInfo
     override val isCompatible: Boolean
         get() = device.deviceType != DeviceType.PHONE && super.isCompatible
-
-    override fun getUiButtons(): List<PluginUiButton> = listOf(
-        PluginUiButton(
-            pluginKey = pluginKey,
-            name = context.getString(R.string.pref_plugin_presenter),
-            iconRes = R.drawable.missing_controller,
-            category = ButtonCategory.CONTROL
-        ) {
-            val navigator: Navigator by inject(Navigator::class.java)
-            navigator.goTo(PresenterKey(device.deviceId))
-        })
 
     suspend fun sendNext() {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)

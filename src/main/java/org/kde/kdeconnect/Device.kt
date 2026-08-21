@@ -16,6 +16,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -36,6 +37,7 @@ import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.Plugin.Companion.getPluginKey
 import org.kde.kdeconnect.plugins.PluginFactory
+import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.battery.DeviceBatteryInfo
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.PairingActivity
@@ -59,17 +61,39 @@ class Device(
 
     private val jobScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    val state: StateFlow<DeviceState>
-        field = MutableStateFlow(DeviceState(
-            deviceInfo = link?.deviceInfo ?: runBlocking { deviceSettings.getDeviceInfo(deviceId) ?: throw RuntimeException("Device $deviceId not found in settings") },
-            pairState = if (link == null) PairState.Paired else PairState.NotPaired,
-            supportedPlugins = emptyList(),
-        ))
+    val loadedPlugins: StateFlow<Map<String, Plugin>>
+        field = MutableStateFlow<Map<String, Plugin>>(emptyMap())
 
-    private val stateUpdateMutex = Mutex()
+    val state: StateFlow<DeviceState>
+        field = MutableStateFlow(
+            DeviceState(
+                deviceInfo = link?.deviceInfo ?: runBlocking {
+                    deviceSettings.getDeviceInfo(deviceId) ?: throw RuntimeException("Device $deviceId not found in settings")
+                },
+                pairState = if (link == null) PairState.Paired else PairState.NotPaired,
+                supportedPlugins = emptyList(),
+            )
+        )
+
+    private fun calculateButtons(deviceState: DeviceState): List<PluginUiButton> {
+        return deviceState.supportedPlugins.flatMap { pluginKey ->
+            val pluginInfo = runCatching { PluginFactory.getPluginInfo(pluginKey) }.getOrNull()
+            pluginInfo?.getUiButtons(this) ?: emptyList()
+        }
+    }
+
+    private val pluginReloadMutex = Mutex()
+
     private fun updateState(transform: (DeviceState) -> DeviceState) {
-        val newState = reloadPluginsFromSettings(transform(state.value))
-        state.update { newState }
+        state.update { oldState ->
+            val newState = transform(oldState)
+            if ((newState.supportedPlugins == oldState.supportedPlugins) && oldState.uiButtons.isNotEmpty()) {
+                newState.copy(uiButtons = oldState.uiButtons)
+            } else {
+                newState.copy(uiButtons = calculateButtons(newState))
+            }
+        }
+        val newState = state.value
         if (newState.pairState == PairState.Paired && newState.deviceInfo.trusted) {
             jobScope.launch { deviceSettings.addTrustedDevice(newState.deviceInfo) }
         }
@@ -78,7 +102,6 @@ class Device(
     val deviceId: String get() = state.value.deviceInfo.id
     val certificate: Certificate get() = sslHelper.parseCertificate(state.value.deviceInfo.certificate)
     val deviceInfo: DeviceInfo get() = state.value.deviceInfo
-    val loadedPlugins: Map<String, Plugin> get() = state.value.loadedPlugins
     val isReachable: Boolean get() = state.value.isReachable
     val name: String get() = deviceInfo.name
     val icon: Drawable get() = deviceInfo.type.getIcon(context)
@@ -94,8 +117,14 @@ class Device(
         NetworkPacket.PROTOCOL_PACKET_TYPES.contains(type) || deviceInfo.incomingCapabilities.contains(type)
 
     init {
-        runBlocking {
-            link?.let { addLink(it) }
+        link?.let { addLink(it) }
+        jobScope.launch {
+            state.distinctUntilChanged { old, new ->
+                old.supportedPlugins == new.supportedPlugins &&
+                old.pairState == new.pairState &&
+                old.isReachable == new.isReachable &&
+                old.deviceInfo.settings == new.deviceInfo.settings
+            }.collect { reloadNonLazyPlugins(it) }
         }
     }
 
@@ -185,14 +214,15 @@ class Device(
         }
     }
 
-    fun addLink(link: BaseLink){
+    fun addLink(link: BaseLink) {
         updateDeviceInfo(link.deviceInfo)
-        updateState { state ->
-            state.copy(
-                links = (state.links + link).sortedByDescending { it.linkProvider.priority }
+        updateState {
+            it.copy(
+                links = (it.links + link).sortedByDescending { link -> link.linkProvider.priority }
             )
         }
-        link.addPacketReceiver(this@Device)
+
+        link.addPacketReceiver(this)
     }
 
     @WorkerThread
@@ -227,7 +257,7 @@ class Device(
         }
     }
 
-    override suspend fun onPacketReceived(np: NetworkPacket): Unit = stateUpdateMutex.withLock {
+    override suspend fun onPacketReceived(np: NetworkPacket) {
         countReceived(deviceId, np.type)
 
         if (NetworkPacket.PACKET_TYPE_PAIR == np.type) {
@@ -262,7 +292,7 @@ class Device(
         }
         targetPlugins
             .asSequence()
-            .mapNotNull { loadedPlugins[it] }
+            .mapNotNull { getPlugin(it) } // This triggers lazy loading if needed
             .forEach { plugin ->
                 runCatching {
                     if (isPaired) {
@@ -343,34 +373,70 @@ class Device(
         return plugin?.let(pluginClass::cast)
     }
 
-    fun getPlugin(pluginKey: String): Plugin? = loadedPlugins[pluginKey]
+    fun getPlugin(pluginKey: String): Plugin? {
+        loadedPlugins.value[pluginKey]?.let { return it }
+
+        val pluginInfo = runCatching { PluginFactory.getPluginInfo(pluginKey) }.getOrNull() ?: return null
+        if (!pluginInfo.lazy) return null
+
+        val currentState = state.value
+        if (pluginKey !in currentState.supportedPlugins) return null
+
+        val pluginEnabled = currentState.pairState == PairState.Paired
+            && currentState.isReachable
+            && (currentState.deviceInfo.settings[pluginKey] == true)
+        if (!pluginEnabled) return null
+
+        return runBlocking {
+            pluginReloadMutex.withLock {
+                LoggerTagged.i { "lazy loading $pluginKey" }
+                loadedPlugins.value[pluginKey]?.let { return@withLock it }
+
+                val plugin = PluginFactory.instantiatePluginForDevice(pluginKey, this@Device) ?: return@withLock null
+                if (!plugin.isCompatible) return@withLock null
+
+                runCatching { plugin.onCreate() }
+                    .onFailure { LoggerTagged.e(it) { "plugin failed to load $pluginKey" } }
+
+                loadedPlugins.update { it + (pluginKey to plugin) }
+
+                plugin
+            }
+        }
+    }
 
     suspend fun setPluginEnabled(pluginKey: String, value: Boolean) = withContext(Dispatchers.IO) {
         updateState { it.copy(deviceInfo = it.deviceInfo.copy(settings = it.deviceInfo.settings + (pluginKey to value))) }
     }
 
-    @WorkerThread
-    fun reloadPluginsFromSettings(deviceState: DeviceState): DeviceState {
+    private suspend fun reloadNonLazyPlugins(state: DeviceState) = pluginReloadMutex.withLock {
         LoggerTagged.i { "${this@Device.deviceInfo.name}: reloading plugins" }
         val newPluginsByIncomingInterface: MutableMap<String, MutableList<String>> = mutableMapOf()
-        val deviceInfo = deviceState.deviceInfo
 
-        val oldLoadedPlugins = deviceState.loadedPlugins
+        val info = state.deviceInfo
+        val oldLoadedPlugins = loadedPlugins.value
         val newLoadedPlugins = mutableMapOf<String, Plugin>()
 
-        deviceState.supportedPlugins.forEach { pluginKey ->
+        state.supportedPlugins.forEach { pluginKey ->
             val pluginInfo = PluginFactory.getPluginInfo(pluginKey)
 
-            val pluginEnabled = deviceState.pairState == PairState.Paired && deviceState.isReachable && (deviceInfo.settings[pluginKey] == true)
+            val pluginEnabled = state.pairState == PairState.Paired && isReachable && (info.settings[pluginKey] == true)
 
             if (pluginEnabled) {
-                val plugin = oldLoadedPlugins[pluginKey] ?: PluginFactory.instantiatePluginForDevice(pluginKey, this)
+                pluginInfo.supportedPacketTypes.forEach { packetType ->
+                    newPluginsByIncomingInterface.getOrPut(packetType) { mutableListOf() }.add(pluginKey)
+                }
 
-                if (plugin != null && plugin.isCompatible) {
-                    newLoadedPlugins[pluginKey] = plugin
+                if (!pluginInfo.lazy) {
+                    val plugin = oldLoadedPlugins[pluginKey] ?: PluginFactory.instantiatePluginForDevice(pluginKey, this)
 
-                    pluginInfo.supportedPacketTypes.forEach { packetType ->
-                        newPluginsByIncomingInterface.getOrPut(packetType){mutableListOf()}.add(pluginKey)
+                    if (plugin != null && plugin.isCompatible) {
+                        newLoadedPlugins[pluginKey] = plugin
+                    }
+                } else if (oldLoadedPlugins.containsKey(pluginKey)) {
+                    val plugin = oldLoadedPlugins[pluginKey]!!
+                    if (plugin.isCompatible) {
+                        newLoadedPlugins[pluginKey] = plugin
                     }
                 }
             }
@@ -392,10 +458,8 @@ class Device(
             }
         }
 
-        return deviceState.copy(
-            pluginsByIncomingInterface = newPluginsByIncomingInterface,
-            loadedPlugins = newLoadedPlugins
-        )
+        loadedPlugins.value = newLoadedPlugins
+        updateState { it.copy(pluginsByIncomingInterface = newPluginsByIncomingInterface) }
     }
 
     internal fun updateBatteryInfo(newInfo: DeviceBatteryInfo) {
@@ -413,6 +477,12 @@ class Device(
     }
 
     fun kill() {
+        val plugins = loadedPlugins.value
+        plugins.forEach { (key, plugin) ->
+            runCatching { plugin.onDestroy() }
+                .onFailure { LoggerTagged.e(it) { "Exception calling onDestroy for plugin $key during kill" } }
+        }
+        loadedPlugins.value = emptyMap()
         jobScope.cancel()
         scope.close()
     }
@@ -438,10 +508,10 @@ data class DeviceState(
     val pairState: PairState,
     val batteryInfo: DeviceBatteryInfo? = null,
     val verificationKey: String? = null,
-    val loadedPlugins: Map<String, Plugin> = emptyMap(),
     val supportedPlugins: List<String> = emptyList(),
     val pluginsByIncomingInterface: Map<String, List<String>> = emptyMap(),
     val links: List<BaseLink> = emptyList(),
+    val uiButtons: List<PluginUiButton> = emptyList(),
 ) {
     val isReachable: Boolean get() = links.isNotEmpty()
 }

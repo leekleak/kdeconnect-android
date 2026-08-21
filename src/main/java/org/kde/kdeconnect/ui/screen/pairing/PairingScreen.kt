@@ -16,7 +16,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.kde.kdeconnect.PairState
-import org.kde.kdeconnect.PairingHandler
 import org.kde.kdeconnect.ui.components.BackAction
 import org.kde.kdeconnect.ui.components.DeviceCard
 import org.kde.kdeconnect.ui.components.HazeScaffold
@@ -75,6 +74,7 @@ fun PairingScreen(
 
                         DeviceCard(
                             device = device,
+                            navigator = null,
                             actionIcon = actionIcon,
                             actionDescription = actionDescription,
                             actionDescriptionVisible = true,

@@ -6,7 +6,6 @@
 package org.kde.kdeconnect.plugins.clipboard
 
 import android.Manifest
-import android.app.Activity
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.pm.PackageManager
@@ -19,6 +18,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.plugins.ButtonCategory
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.PluginUiButton
@@ -29,16 +29,6 @@ import org.kde.kdeconnect_tp.R
 
 class ClipboardPlugin(context: Context, device: Device) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = ClipboardPluginInfo
-
-    override fun getUiButtons(): List<PluginUiButton> {
-        return listOf(PluginUiButton(
-            pluginKey = pluginKey,
-            name = context.getString(R.string.clipboard),
-            nameFull = context.getString(R.string.send_clipboard),
-            iconRes = R.drawable.assignment,
-            category = ButtonCategory.SEND,
-        ){ _: Activity? -> coroutineScope.launch { userInitiatedSendClipboard() } })
-    }
 
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         val content = np.getString("content")
@@ -98,7 +88,7 @@ class ClipboardPlugin(context: Context, device: Device) : Plugin(context, device
         ClipboardListener.instance(context).removeObserver(observer)
     }
 
-    private suspend fun userInitiatedSendClipboard() {
+    internal suspend fun userInitiatedSendClipboard() {
         val clipboardManager = ContextCompat.getSystemService<ClipboardManager>(this.context, ClipboardManager::class.java)
         if (clipboardManager!!.hasPrimaryClip()) {
             val item = clipboardManager.primaryClip!!.getItemAt(0)
@@ -158,4 +148,18 @@ object ClipboardPluginInfo: PluginInfo(
     outgoingPacketTypes = arrayOf(PACKET_TYPE_CLIPBOARD, PACKET_TYPE_CLIPBOARD_CONNECT),
     instantiableClass = ClipboardPlugin::class.java,
     lazy = false
-)
+) {
+    override fun getUiButtons(device: Device): List<PluginUiButton> {
+        return listOf(PluginUiButton(
+            pluginKey = pluginKey,
+            name = R.string.clipboard,
+            nameFull = R.string.send_clipboard,
+            iconRes = R.drawable.assignment,
+            category = ButtonCategory.SEND,
+        ){ _, _ ->
+            device.getPlugin(ClipboardPlugin::class.java)?.let {
+                it.coroutineScope.launch { it.userInitiatedSendClipboard() }
+            }
+        })
+    }
+}

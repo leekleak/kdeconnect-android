@@ -50,6 +50,7 @@ fun SavedDevices(
                     Spacer(Modifier.height(4.dp))
                     DeviceCard(
                         device = device,
+                        navigator = null,
                         actionIcon = painterResource(R.drawable.link_off),
                         actionDescription = stringResource(R.string.device_menu_unpair),
                         actionDescriptionVisible = true,

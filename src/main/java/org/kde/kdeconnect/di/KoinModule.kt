@@ -156,7 +156,7 @@ val homeModule = module {
         val navigator: Navigator = get()
         HomeScreen(
             uiState = state,
-            deviceManager = get(),
+            navigator = navigator,
             onClick = { deviceId -> navigator.goTo(DeviceKey(deviceId, true)) },
             onRefresh = { viewModel.onRefresh(get()) },
             onNavigateToPairingScreen = { navigator.goTo(PairingKey) },

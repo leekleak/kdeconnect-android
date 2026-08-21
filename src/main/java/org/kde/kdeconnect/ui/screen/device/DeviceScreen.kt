@@ -18,7 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import org.kde.kdeconnect.plugins.Plugin
+import org.kde.kdeconnect.plugins.ButtonCategory
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.ui.components.BackAction
 import org.kde.kdeconnect.ui.components.BatteryComponent
@@ -64,18 +64,19 @@ fun DeviceScreen(
             IconHero(
                 backgroundSize = 164.dp,
                 iconSize = 88.dp,
-                icon = uiState.deviceInfo.type.toDrawableId()
+                icon = uiState.deviceState.deviceInfo.type.toDrawableId()
             )
             Text(
-                text = uiState.deviceInfo.name,
+                text = uiState.deviceState.deviceInfo.name,
                 fontFamily = font,
                 fontSize = 32.sp
             )
-            uiState.batteryInfo?.let { BatteryComponent(it) }
+            uiState.deviceState.batteryInfo?.let { BatteryComponent(it) }
         }
-        if (uiState.isReachable) {
+        if (uiState.deviceState.isReachable) {
             PluginsScreen(
-                pluginsWithButtons = uiState.loadedPlugins.values.flatMap { it.getUiButtons() },
+                pluginsWithButtons = uiState.pluginButtons,
+                navigator = navigator
             )
         } else {
             onNavigateToPairingScreen()
@@ -86,29 +87,32 @@ fun DeviceScreen(
 @Composable
 fun PluginsScreen(
     pluginsWithButtons: List<PluginUiButton>,
+    navigator: Navigator,
 ) {
     PluginsScreenContent(
         buttons = pluginsWithButtons,
+        navigator = navigator
     )
 }
 
 @Composable
 private fun PluginsScreenContent(
     buttons: List<PluginUiButton>,
+    navigator: Navigator,
 ) {
     val activity = LocalActivity.current
     val (sendButtons, controlButtons) = buttons.partition {
-        it.category == Plugin.ButtonCategory.SEND
+        it.category == ButtonCategory.SEND
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (sendButtons.isNotEmpty()) {
             CategoryTitleTextSmall(text = stringResource(R.string.category_send))
-            PluginButtonsGrid(sendButtons) { button -> activity?.let { button.onClick(it) } }
+            PluginButtonsGrid(sendButtons) { button -> activity?.let { button.onClick(it, navigator) } }
         }
         if (controlButtons.isNotEmpty()) {
             CategoryTitleTextSmall(text = stringResource(R.string.category_control))
-            PluginButtonsGrid(controlButtons) { button -> activity?.let { button.onClick(it) } }
+            PluginButtonsGrid(controlButtons) { button -> activity?.let { button.onClick(it, navigator) } }
         }
     }
 }
@@ -122,10 +126,10 @@ private fun PluginsScreenPreview() {
                 add(
                     PluginUiButton(
                         pluginKey = "",
-                        name = "Send Stuff",
+                        name = R.string.send_clipboard,
                         iconRes = R.drawable.music_cast,
-                        category = Plugin.ButtonCategory.SEND,
-                        onClick = { }
+                        category = ButtonCategory.SEND,
+                        onClick = { _, _ -> }
                     )
                 )
             }
@@ -133,14 +137,15 @@ private fun PluginsScreenPreview() {
                 add(
                     PluginUiButton(
                         pluginKey = "",
-                        name = "Presentation Remote",
+                        name = R.string.send_clipboard,
                         iconRes = R.drawable.play_arrow,
-                        category = Plugin.ButtonCategory.CONTROL,
-                        onClick = { }
+                        category = ButtonCategory.CONTROL,
+                        onClick = { _, _ -> }
                     )
                 )
             }
         },
+        navigator = Navigator()
     )
 }
 
