@@ -8,6 +8,9 @@ package org.kde.kdeconnect.plugins.share
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.koin.core.component.KoinComponent
@@ -34,7 +37,14 @@ class ShareBroadcastReceiver : BroadcastReceiver(), KoinComponent {
         val jobId = intent.getLongExtra(SharePlugin.CANCEL_SHARE_BACKGROUND_JOB_ID_EXTRA, -1)
         val deviceId = intent.getStringExtra(SharePlugin.CANCEL_SHARE_DEVICE_ID_EXTRA)
 
-        val plugin = deviceManager.getDevicePlugin(deviceId, SharePlugin::class.java) ?: return
-        plugin.cancelJob(jobId)
+        val pendingResult = goAsync()
+        CoroutineScope(Dispatchers.Default).launch {
+            try {
+                val plugin = deviceManager.getDevicePlugin(deviceId, SharePlugin::class.java)
+                plugin?.cancelJob(jobId)
+            } finally {
+                pendingResult.finish()
+            }
+        }
     }
 }

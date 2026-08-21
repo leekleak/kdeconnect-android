@@ -48,14 +48,16 @@ class RunCommandUrlActivity : AppCompatActivity() {
                 } else if (!device.isReachable) {
                     error(R.string.runcommand_notreachable)
                 } else {
-                    val plugin = device.getPlugin(RunCommandPlugin::class.java)
-                    if (plugin == null) {
-                        error(R.string.runcommand_noruncommandplugin)
-                    } else {
-                        lifecycleScope.launch {
+                    lifecycleScope.launch {
+                        val plugin = device.getPlugin(RunCommandPlugin::class.java)
+                        if (plugin == null) {
+                            error(R.string.runcommand_noruncommandplugin)
+                        } else {
                             plugin.runCommand(uri.pathSegments[1])
                         }
+                        this@RunCommandUrlActivity.finish()
                     }
+                    return
                 }
                 this@RunCommandUrlActivity.finish()
             } catch (e: Exception) {

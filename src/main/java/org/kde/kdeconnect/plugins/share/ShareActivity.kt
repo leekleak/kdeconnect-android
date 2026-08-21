@@ -76,11 +76,11 @@ class ShareActivity : AppCompatActivity() {
         device: Device,
         intent: Intent
     ) {
-        val plugin: SharePlugin? = deviceManager.getDevicePlugin(device.deviceId, SharePlugin::class.java)
         lifecycleScope.launch {
+            val plugin: SharePlugin? = deviceManager.getDevicePlugin(device.deviceId, SharePlugin::class.java)
             plugin?.share(intent)
+            finish()
         }
-        finish()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -129,11 +129,11 @@ class ShareActivity : AppCompatActivity() {
         }
 
         if (deviceId != null) {
-            val plugin: SharePlugin? = deviceManager.getDevicePlugin(deviceId, SharePlugin::class.java)
             lifecycleScope.launch {
+                val plugin: SharePlugin? = deviceManager.getDevicePlugin(deviceId, SharePlugin::class.java)
                 plugin?.share(intent)
+                finish()
             }
-            finish()
         } else {
             Toast.makeText(this, R.string.could_not_find_device, Toast.LENGTH_LONG).show()
             BackgroundService.forceRefreshConnections(context = this) // force a network re-discover

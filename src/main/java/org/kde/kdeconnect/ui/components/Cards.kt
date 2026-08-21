@@ -30,6 +30,7 @@ import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +42,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.DeviceState
 import org.kde.kdeconnect.DeviceType
@@ -103,6 +105,7 @@ fun DeviceCard(
     onClick: (String) -> Unit
 ) {
     val activity = LocalActivity.current
+    val scope = rememberCoroutineScope()
     val font = remember { googleSans(weight = 600f) }
 
     @Composable
@@ -175,7 +178,7 @@ fun DeviceCard(
                 )
                 CategoryTitleTextSmall(stringResource(R.string.shortcuts))
                 Spacer(Modifier.height(8.dp))
-                PluginButtonsGrid(shortcuts, fullName = true) { button -> activity?.let { button.onClick(it, navigator) } }
+                PluginButtonsGrid(shortcuts, fullName = true) { button -> activity?.let { scope.launch { button.onClick(it, navigator) } } }
             }
         }
     }

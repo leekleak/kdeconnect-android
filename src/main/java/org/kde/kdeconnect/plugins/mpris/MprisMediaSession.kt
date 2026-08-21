@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
 import org.kde.kdeconnect.helpers.LoggerTagged
@@ -58,7 +59,7 @@ class MprisMediaSession(
         val serviceIntent = Intent(context, MprisMediaSessionService::class.java)
         context.startService(serviceIntent)
 
-        val player = MprisPlayer(context.mainLooper, null) { device.getPlugin(MprisPlugin::class.java) }
+        val player = MprisPlayer(context.mainLooper, null) { runBlocking { device.getPlugin(MprisPluginInfo.pluginKey) as? MprisPlugin }  }
         mprisPlayer = player
 
         val intent = Intent(context, MainActivity::class.java).apply {

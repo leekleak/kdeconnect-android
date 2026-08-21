@@ -15,7 +15,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.NetworkPacket
@@ -31,8 +35,13 @@ class MousePadViewModel(
     @InjectedParam val deviceId: String
 ) : ViewModel(), SensorEventListener {
 
-    val plugin: MousePadPlugin? = deviceManager.getDevicePlugin(deviceId, MousePadPlugin::class.java)
+    private val pluginFlow: StateFlow<MousePadPlugin?> = deviceManager.getDevicePluginFlow(deviceId, MousePadPlugin::class.java)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
     private val sensorManager = application.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
+
+    val isKeyboardEnabled: StateFlow<Boolean> = pluginFlow.map {
+        it?.isKeyboardEnabled ?: false
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     var doubleTapDragEnabled by mutableStateOf(true)
     var isGyroListenerActive by mutableStateOf(false)
@@ -144,7 +153,7 @@ class MousePadViewModel(
         dx = if (dx in -0.25f..0.25f) 0f else dx * sens
         dy = if (dy in -0.25f..0.25f) 0f else dy * sens
 
-        viewModelScope.launch { plugin?.sendMouseDelta(dx, dy) }
+        viewModelScope.launch { pluginFlow.value?.sendMouseDelta(dx, dy) }
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -161,6 +170,7 @@ class MousePadViewModel(
 
     fun sendLeftClick() {
         viewModelScope.launch {
+            val plugin = pluginFlow.value
             if (isDragging) {
                 plugin?.sendSingleRelease()
                 isDragging = false
@@ -171,30 +181,30 @@ class MousePadViewModel(
     }
 
     fun sendMiddleClick() {
-        viewModelScope.launch { plugin?.sendMiddleClick() }
+        viewModelScope.launch { pluginFlow.value?.sendMiddleClick() }
     }
 
     fun sendRightClick() {
-        viewModelScope.launch { plugin?.sendRightClick() }
+        viewModelScope.launch { pluginFlow.value?.sendRightClick() }
     }
 
     fun sendScroll(y: Double) {
-        viewModelScope.launch { plugin?.sendScroll(0.0, y) }
+        viewModelScope.launch { pluginFlow.value?.sendScroll(0.0, y) }
     }
 
     fun sendMouseDelta(dx: Float, dy: Float) {
-        viewModelScope.launch { plugin?.sendMouseDelta(dx, dy) }
+        viewModelScope.launch { pluginFlow.value?.sendMouseDelta(dx, dy) }
     }
 
     fun sendSingleHold() {
         viewModelScope.launch {
-            plugin?.sendSingleHold()
+            pluginFlow.value?.sendSingleHold()
             isDragging = true
         }
     }
 
     fun sendDoubleClick() {
-        viewModelScope.launch { plugin?.sendDoubleClick() }
+        viewModelScope.launch { pluginFlow.value?.sendDoubleClick() }
     }
 
     fun performClickAction(action: ClickType) {
@@ -207,11 +217,11 @@ class MousePadViewModel(
     }
 
     fun sendChars(chars: CharSequence) {
-        viewModelScope.launch { plugin?.sendText(chars.toString()) }
+        viewModelScope.launch { pluginFlow.value?.sendText(chars.toString()) }
     }
 
     fun sendComposed(text: String) {
-        viewModelScope.launch { plugin?.sendText(text) }
+        viewModelScope.launch { pluginFlow.value?.sendText(text) }
     }
 
     fun onKeyEvent(event: KeyEvent): Boolean {
@@ -266,7 +276,7 @@ class MousePadViewModel(
             np["key"] = event.unicodeChar.toChar().toString()
         }
         viewModelScope.launch {
-            plugin?.sendPacket(np)
+            pluginFlow.value?.sendPacket(np)
         }
         return true
     }

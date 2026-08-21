@@ -62,6 +62,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.ui.components.BackAction
@@ -85,6 +86,8 @@ fun MousePadScreen(
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
+
+    val isKeyboardEnabled by viewModel.isKeyboardEnabled.collectAsStateWithLifecycle()
 
     val focusRequester = remember { FocusRequester() }
     var focusCaptured by remember { mutableStateOf(false) }
@@ -150,7 +153,7 @@ fun MousePadScreen(
             FilledIconToggleButton(
                 modifier = Modifier.fillMaxHeight(),
                 checked = focusCaptured,
-                enabled = viewModel.plugin?.isKeyboardEnabled == true,
+                enabled = isKeyboardEnabled,
                 onCheckedChange = { isChecked ->
                     if (isChecked) {
                         focusRequester.requestFocus()

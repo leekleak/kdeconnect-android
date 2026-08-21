@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -18,6 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 import org.kde.kdeconnect.plugins.ButtonCategory
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.ui.components.BackAction
@@ -101,6 +103,7 @@ private fun PluginsScreenContent(
     navigator: Navigator,
 ) {
     val activity = LocalActivity.current
+    val scope = rememberCoroutineScope()
     val (sendButtons, controlButtons) = buttons.partition {
         it.category == ButtonCategory.SEND
     }
@@ -108,11 +111,11 @@ private fun PluginsScreenContent(
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (sendButtons.isNotEmpty()) {
             CategoryTitleTextSmall(text = stringResource(R.string.category_send))
-            PluginButtonsGrid(sendButtons) { button -> activity?.let { button.onClick(it, navigator) } }
+            PluginButtonsGrid(sendButtons) { button -> activity?.let { scope.launch { button.onClick(it, navigator) } } }
         }
         if (controlButtons.isNotEmpty()) {
             CategoryTitleTextSmall(text = stringResource(R.string.category_control))
-            PluginButtonsGrid(controlButtons) { button -> activity?.let { button.onClick(it, navigator) } }
+            PluginButtonsGrid(controlButtons) { button -> activity?.let { scope.launch { button.onClick(it, navigator) } } }
         }
     }
 }

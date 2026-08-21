@@ -26,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
@@ -34,6 +35,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.ui.PermissionExplanationActivity
@@ -55,6 +57,7 @@ fun BigscreenScreen(
     val viewModel: BigscreenViewModel = koinViewModel(parameters = { parametersOf(deviceId) })
     val deviceManager = koinInject<DeviceManager>()
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     val sttLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -82,24 +85,26 @@ fun BigscreenScreen(
         onHomeClick = viewModel::sendHome,
         onUpClick = viewModel::sendUp,
         onMicClick = {
-            val plugin = deviceManager.getDevicePlugin(deviceId, MousePadPlugin::class.java)
-            if (plugin != null) {
-                val missingPermissionRequests = arrayOf(Manifest.permission.RECORD_AUDIO).filter {
-                    ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
-                }.map { permission ->
-                    PermissionRequest(
-                        title = R.string.kde_connect,
-                        description = R.string.unreachable_description,
-                        intentAction = permission,
-                        positiveButton = R.string.grant
-                    )
-                }
-                if (missingPermissionRequests.isEmpty()) {
-                    launchStt(extraPrompt, sttLauncher, context)
-                } else {
-                    sttPermissionLauncher.launch(Intent(context, PermissionExplanationActivity::class.java).apply {
-                        putExtra("permissionRequests", Json.encodeToString(missingPermissionRequests.take(1)))
-                    })
+            scope.launch {
+                val plugin = deviceManager.getDevicePlugin(deviceId, MousePadPlugin::class.java)
+                if (plugin != null) {
+                    val missingPermissionRequests = arrayOf(Manifest.permission.RECORD_AUDIO).filter {
+                        ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
+                    }.map { permission ->
+                        PermissionRequest(
+                            title = R.string.kde_connect,
+                            description = R.string.unreachable_description,
+                            intentAction = permission,
+                            positiveButton = R.string.grant
+                        )
+                    }
+                    if (missingPermissionRequests.isEmpty()) {
+                        launchStt(extraPrompt, sttLauncher, context)
+                    } else {
+                        sttPermissionLauncher.launch(Intent(context, PermissionExplanationActivity::class.java).apply {
+                            putExtra("permissionRequests", Json.encodeToString(missingPermissionRequests.take(1)))
+                        })
+                    }
                 }
             }
         },

@@ -6,8 +6,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.backends.BaseLink
@@ -49,9 +51,16 @@ class DeviceManager(
         return devices.value[id]
     }
 
-    fun <T : Plugin> getDevicePlugin(deviceId: String?, pluginClass: Class<T>): T? {
+    suspend fun <T : Plugin> getDevicePlugin(deviceId: String?, pluginClass: Class<T>): T? {
         val device = getDevice(deviceId)
         return device?.getPlugin(pluginClass)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun <T : Plugin> getDevicePluginFlow(deviceId: String?, pluginClass: Class<T>): Flow<T?> {
+        return devices.map { it[deviceId] }.distinctUntilChanged().flatMapLatest { device ->
+            device?.pluginFlow(pluginClass) ?: flowOf(null)
+        }
     }
 
     private fun loadRememberedDevicesFromSettings() {

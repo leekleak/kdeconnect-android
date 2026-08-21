@@ -2,6 +2,9 @@ package org.kde.kdeconnect.plugins.digitizer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.DeviceManager
 import org.koin.core.annotation.InjectedParam
@@ -11,11 +14,12 @@ class DigitizerViewModel(
     @InjectedParam val deviceId: String
 ) : ViewModel() {
 
-    val plugin: DigitizerPlugin? = deviceManager.getDevicePlugin(deviceId, DigitizerPlugin::class.java)
+    private val pluginFlow: StateFlow<DigitizerPlugin?> = deviceManager.getDevicePluginFlow(deviceId, DigitizerPlugin::class.java)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun startSession(width: Int, height: Int, xdpi: Float, ydpi: Float) {
         viewModelScope.launch {
-            plugin?.startSession(
+            pluginFlow.value?.startSession(
                 width,
                 height,
                 (xdpi * INCHES_TO_MM).toInt(),
@@ -26,13 +30,13 @@ class DigitizerViewModel(
 
     fun endSession() {
         viewModelScope.launch {
-            plugin?.endSession()
+            pluginFlow.value?.endSession()
         }
     }
 
     fun reportEvent(event: ToolEvent) {
         viewModelScope.launch {
-            plugin?.reportEvent(event)
+            pluginFlow.value?.reportEvent(event)
         }
     }
 

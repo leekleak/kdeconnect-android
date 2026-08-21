@@ -11,12 +11,18 @@ import android.graphics.drawable.Drawable
 import androidx.annotation.WorkerThread
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -30,7 +36,6 @@ import org.kde.kdeconnect.PairingHandler.Companion.getVerificationKeyV7
 import org.kde.kdeconnect.PairingHandler.PairingCallback
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLink.PacketReceiver
-import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.security.SslHelper
@@ -61,8 +66,7 @@ class Device(
 
     private val jobScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    val loadedPlugins: StateFlow<Map<String, Plugin>>
-        field = MutableStateFlow<Map<String, Plugin>>(emptyMap())
+    private val loadedPlugins: MutableStateFlow<Map<String, Plugin>> = MutableStateFlow(emptyMap())
 
     val state: StateFlow<DeviceState>
         field = MutableStateFlow(
@@ -81,8 +85,6 @@ class Device(
             pluginInfo?.getUiButtons(this) ?: emptyList()
         }
     }
-
-    private val pluginReloadMutex = Mutex()
 
     private fun updateState(transform: (DeviceState) -> DeviceState) {
         state.update { oldState ->
@@ -140,10 +142,6 @@ class Device(
         }
         updateState { it.copy(pairState = pairState, verificationKey = key) }
     }
-
-    // Returns 0 if the version matches, < 0 if it is older or > 0 if it is newer
-    fun compareProtocolVersion(): Int =
-        deviceInfo.protocolVersion - DeviceHelper.PROTOCOL_VERSION
 
     val isPaired: Boolean get() = state.value.pairState == PairState.Paired
 
@@ -291,7 +289,6 @@ class Device(
             return
         }
         targetPlugins
-            .asSequence()
             .mapNotNull { getPlugin(it) } // This triggers lazy loading if needed
             .forEach { plugin ->
                 runCatching {
@@ -368,12 +365,13 @@ class Device(
     //
     // Plugin-related functions
     //
-    fun <T : Plugin> getPlugin(pluginClass: Class<T>): T? {
+    suspend fun <T : Plugin> getPlugin(pluginClass: Class<T>): T? {
         val plugin = getPlugin(getPluginKey(pluginClass))
         return plugin?.let(pluginClass::cast)
     }
 
-    fun getPlugin(pluginKey: String): Plugin? {
+    private val pluginReloadMutex = Mutex()
+    suspend fun getPlugin(pluginKey: String): Plugin? {
         loadedPlugins.value[pluginKey]?.let { return it }
 
         val pluginInfo = runCatching { PluginFactory.getPluginInfo(pluginKey) }.getOrNull() ?: return null
@@ -387,8 +385,7 @@ class Device(
             && (currentState.deviceInfo.settings[pluginKey] == true)
         if (!pluginEnabled) return null
 
-        return runBlocking {
-            pluginReloadMutex.withLock {
+        return pluginReloadMutex.withLock {
                 LoggerTagged.i { "lazy loading $pluginKey" }
                 loadedPlugins.value[pluginKey]?.let { return@withLock it }
 
@@ -402,7 +399,26 @@ class Device(
 
                 plugin
             }
-        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun <T : Plugin> pluginFlow(pluginClass: Class<T>): Flow<T?> {
+        val pluginKey = getPluginKey(pluginClass)
+        return state.map { s ->
+            s.pairState == PairState.Paired
+                    && s.isReachable
+                    && (s.deviceInfo.settings[pluginKey] == true)
+        }.distinctUntilChanged().flatMapLatest { enabled ->
+            if (enabled) {
+                loadedPlugins.map { it[pluginKey] }.onStart {
+                    if (loadedPlugins.value[pluginKey] == null) {
+                        getPlugin(pluginKey)
+                    }
+                }
+            } else {
+                flowOf(null)
+            }
+        }.map { it?.let(pluginClass::cast) }.distinctUntilChanged()
     }
 
     suspend fun setPluginEnabled(pluginKey: String, value: Boolean) = withContext(Dispatchers.IO) {

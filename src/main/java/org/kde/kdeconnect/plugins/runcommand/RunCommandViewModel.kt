@@ -8,11 +8,15 @@ import androidx.compose.ui.platform.toClipEntry
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
@@ -28,17 +32,26 @@ class RunCommandViewModel(
     private val _state: MutableStateFlow<RunCommandViewModeState> = MutableStateFlow(RunCommandViewModeState())
     val state: StateFlow<RunCommandViewModeState> = _state.asStateFlow()
 
-    val plugin: RunCommandPlugin = deviceManager.getDevicePlugin(deviceId, RunCommandPlugin::class.java)!!
+    private val pluginFlow: Flow<RunCommandPlugin?> = deviceManager.getDevicePluginFlow(deviceId, RunCommandPlugin::class.java)
+    val plugin: StateFlow<RunCommandPlugin?> = pluginFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = null
+    )
     val device: Device? = deviceManager.getDevice(deviceId)
 
-    val uiState: StateFlow<RunCommandViewModeState> = combine(
-        plugin.commandList,
-        plugin.canAddCommand
-    ) { commandList, canAdd ->
-        RunCommandViewModeState(
-            commandList = commandList,
-            canAddCommands = canAdd
-        )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val uiState: StateFlow<RunCommandViewModeState> = pluginFlow.flatMapLatest { plugin ->
+        if (plugin == null) flowOf(RunCommandViewModeState())
+        else combine(
+            plugin.commandList,
+            plugin.canAddCommand
+        ) { commandList, canAdd ->
+            RunCommandViewModeState(
+                commandList = commandList,
+                canAddCommands = canAdd
+            )
+        }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -64,9 +77,9 @@ class RunCommandViewModel(
         ).show()
     }
 
-    fun runCommand(cmdKey: String) = viewModelScope.launch { plugin.runCommand(cmdKey) }
-    fun sendStop() = viewModelScope.launch { plugin.sendStop() }
-    fun sendSetupPacket() = viewModelScope.launch { plugin.sendSetupPacket() }
+    fun runCommand(cmdKey: String) = viewModelScope.launch { plugin.value?.runCommand(cmdKey) }
+    fun sendStop() = viewModelScope.launch { plugin.value?.sendStop() }
+    fun sendSetupPacket() = viewModelScope.launch { plugin.value?.sendSetupPacket() }
 }
 
 data class RunCommandViewModeState(

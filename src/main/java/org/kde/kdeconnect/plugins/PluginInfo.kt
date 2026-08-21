@@ -25,7 +25,7 @@ data class PluginUiButton(
     @get:StringRes val nameFull: Int = name,
     @get:DrawableRes val iconRes: Int,
     val category: ButtonCategory,
-    val onClick: (parentActivity: Activity, navigator: Navigator) -> Unit,
+    val onClick: suspend (parentActivity: Activity, navigator: Navigator) -> Unit,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -22,7 +22,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,7 +56,7 @@ fun RunCommandScreen(
     viewModel: RunCommandViewModel = koinViewModel(key = "RunCommandViewModel_$deviceId") { parametersOf(deviceId) },
     navigator: Navigator,
 ) {
-    val plugin = viewModel.plugin
+    val plugin by viewModel.plugin.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -103,7 +102,9 @@ fun RunCommandScreen(
         }
 
         CategoryTitleTextSmall(stringResource(R.string.terminal))
-        OutputCard(plugin.output, plugin, onStopClick = { viewModel.sendStop() })
+        plugin?.let {
+            OutputCard(it.output, it, onStopClick = { viewModel.sendStop() })
+        }
 
         CategoryTitleTextSmall(stringResource(R.string.commands))
         if (!uiState.commandList.isEmpty()) {
@@ -125,7 +126,7 @@ fun RunCommandScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 var text = stringResource(R.string.addcommand_explanation)
-                if (!(plugin.canAddCommand())) {
+                if (plugin?.canAddCommand() == false) {
                     text += "\n" + stringResource(R.string.addcommand_explanation2)
                 }
                 Text(text)

@@ -77,17 +77,18 @@ class RunCommandWidgetProvider : AppWidgetProvider(), KoinComponent {
         if (intent.action == RUN_COMMAND_ACTION) {
             val targetCommand = intent.getStringExtra(TARGET_COMMAND)
             val targetDevice = intent.getStringExtra(TARGET_DEVICE)
-            val plugin = deviceManager.getDevicePlugin(targetDevice, RunCommandPlugin::class.java)
-            if (plugin != null && targetCommand != null) {
-                try {
-                    plugin.coroutineScope.launch {
+            
+            providerScope.launch {
+                val plugin = deviceManager.getDevicePlugin(targetDevice, RunCommandPlugin::class.java)
+                if (plugin != null && targetCommand != null) {
+                    try {
                         plugin.runCommand(targetCommand)
+                    } catch (ex: Exception) {
+                        LoggerTagged.e(ex) { "Error running command" }
                     }
-                } catch (ex: Exception) {
-                    LoggerTagged.e(ex) { "Error running command" }
+                } else {
+                    LoggerTagged.w { "Device not available or runcommand plugin disabled" }
                 }
-            } else {
-                LoggerTagged.w { "Device not available or runcommand plugin disabled" }
             }
         } else {
             super.onReceive(context, intent)

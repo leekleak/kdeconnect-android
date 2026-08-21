@@ -2,6 +2,9 @@ package org.kde.kdeconnect.plugins.mousepad
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.DeviceManager
 import org.koin.core.annotation.InjectedParam
@@ -11,14 +14,15 @@ class BigscreenViewModel(
     @InjectedParam val deviceId: String
 ) : ViewModel() {
 
-    val plugin: MousePadPlugin? = deviceManager.getDevicePlugin(deviceId, MousePadPlugin::class.java)
+    private val pluginFlow: StateFlow<MousePadPlugin?> = deviceManager.getDevicePluginFlow(deviceId, MousePadPlugin::class.java)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    fun sendUp() = viewModelScope.launch { plugin?.sendUp() }
-    fun sendDown() = viewModelScope.launch { plugin?.sendDown() }
-    fun sendLeft() = viewModelScope.launch { plugin?.sendLeft() }
-    fun sendRight() = viewModelScope.launch { plugin?.sendRight() }
-    fun sendSelect() = viewModelScope.launch { plugin?.sendSelect() }
-    fun sendHome() = viewModelScope.launch { plugin?.sendHome() }
-    fun sendBack() = viewModelScope.launch { plugin?.sendBack() }
-    fun sendText(text: String) = viewModelScope.launch { plugin?.sendText(text) }
+    fun sendUp() = viewModelScope.launch { pluginFlow.value?.sendUp() }
+    fun sendDown() = viewModelScope.launch { pluginFlow.value?.sendDown() }
+    fun sendLeft() = viewModelScope.launch { pluginFlow.value?.sendLeft() }
+    fun sendRight() = viewModelScope.launch { pluginFlow.value?.sendRight() }
+    fun sendSelect() = viewModelScope.launch { pluginFlow.value?.sendSelect() }
+    fun sendHome() = viewModelScope.launch { pluginFlow.value?.sendHome() }
+    fun sendBack() = viewModelScope.launch { pluginFlow.value?.sendBack() }
+    fun sendText(text: String) = viewModelScope.launch { pluginFlow.value?.sendText(text) }
 }

@@ -19,9 +19,10 @@ import androidx.core.net.toUri
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -101,6 +102,9 @@ class MprisPlugin(
     private var supportAlbumArtPayload = false
 
     private val pendingAlbumArtFetches = ConcurrentHashMap<String, CompletableDeferred<Payload>>()
+
+    private val mprisKeepWatchingEnabled = dataStore.mprisKeepWatchingEnabled
+        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override fun onCreate(): Boolean {
         mprisMediaSession.onCreate(context.applicationContext, this, device.deviceId)
@@ -262,7 +266,7 @@ class MprisPlugin(
                 return@launch
             }
             val httpUrl = playerStatus.getHttpUrl()
-            if (dataStore.mprisKeepWatchingEnabled.first() && httpUrl != null) {
+            if (mprisKeepWatchingEnabled.value && httpUrl != null) {
                 try {
                     val transformedUrl = httpUrl
                         .let { videoUrlsHelper.convertToAndFromYoutubeTvLinks(it) }

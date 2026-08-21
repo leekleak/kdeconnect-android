@@ -45,7 +45,7 @@ internal class RunCommandWidgetDataProvider(private val context: Context, val in
     override fun onDestroy() {}
 
     private fun getPlugin(): RunCommandPlugin? {
-        return deviceManager.getDevicePlugin(deviceId, RunCommandPlugin::class.java)
+        return runBlocking { deviceManager.getDevicePlugin(deviceId, RunCommandPlugin::class.java) }
     }
 
     override fun getCount(): Int {

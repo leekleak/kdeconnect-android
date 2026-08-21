@@ -20,7 +20,8 @@ class PresenterViewModel(
     @InjectedParam private val deviceId: String
 ) : ViewModel(), SensorEventListener {
 
-    val plugin: PresenterPlugin? = deviceManager.getDevicePlugin(deviceId, PresenterPlugin::class.java)
+    private val pluginFlow: StateFlow<PresenterPlugin?> = deviceManager.getDevicePluginFlow(deviceId, PresenterPlugin::class.java)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     val sensitivity: StateFlow<Float> = settingsDataStore.presenterSensitivity
         .map { (it + 10) * 0.0006f }
@@ -35,7 +36,7 @@ class PresenterViewModel(
             val yPos = -event.values[0] * sensitivity.value
 
             viewModelScope.launch {
-                plugin?.sendPointer(xPos, yPos)
+                pluginFlow.value?.sendPointer(xPos, yPos)
             }
         }
     }
@@ -44,9 +45,9 @@ class PresenterViewModel(
         //ignored
     }
     
-    fun stopPointer() = viewModelScope.launch { plugin?.stopPointer() }
-    fun sendNext() = viewModelScope.launch { plugin?.sendNext() }
-    fun sendPrevious() = viewModelScope.launch { plugin?.sendPrevious() }
-    fun sendFullscreen() = viewModelScope.launch { plugin?.sendFullscreen() }
-    fun sendEsc() = viewModelScope.launch { plugin?.sendEsc() }
+    fun stopPointer() = viewModelScope.launch { pluginFlow.value?.stopPointer() }
+    fun sendNext() = viewModelScope.launch { pluginFlow.value?.sendNext() }
+    fun sendPrevious() = viewModelScope.launch { pluginFlow.value?.sendPrevious() }
+    fun sendFullscreen() = viewModelScope.launch { pluginFlow.value?.sendFullscreen() }
+    fun sendEsc() = viewModelScope.launch { pluginFlow.value?.sendEsc() }
 }

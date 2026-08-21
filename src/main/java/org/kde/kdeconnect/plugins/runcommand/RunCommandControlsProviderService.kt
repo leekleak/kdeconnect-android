@@ -17,21 +17,25 @@ import android.service.controls.actions.CommandAction
 import android.service.controls.actions.ControlAction
 import android.service.controls.templates.StatelessTemplate
 import androidx.annotation.RequiresApi
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.jdk9.asPublisher
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
 import org.kde.kdeconnect.ui.MainActivity
-import org.koin.android.ext.android.inject
 import org.kde.kdeconnect_tp.R
+import org.koin.android.ext.android.inject
 import java.util.concurrent.Flow
 import java.util.function.Consumer
 
@@ -42,6 +46,7 @@ class RunCommandControlsProviderService : ControlsProviderService() {
     private val deviceManager: DeviceManager by inject()
     private val settingsDataStore: RunCommandSettingsDataStore by inject()
     private val updateFlow = MutableSharedFlow<Control>(replay = 10, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     override fun createPublisherForAllAvailable(): Flow.Publisher<Control> {
         return flow {
@@ -57,48 +62,55 @@ class RunCommandControlsProviderService : ControlsProviderService() {
     }
 
     override fun createPublisherFor(controlIds: MutableList<String>): Flow.Publisher<Control> {
-        for (controlId in controlIds) {
-            val commandEntry = runBlocking { getCommandByControlId(controlId) }
-            if (commandEntry != null && commandEntry.device.isReachable) {
-                updateFlow.tryEmit(createStatefulBuilder(commandEntry, controlId)
-                        .setStatus(Control.STATUS_OK)
-                        .setStatusText(getString(R.string.tap_to_execute))
-                        .build())
-            } else if (commandEntry != null && commandEntry.device.isPaired && !commandEntry.device.isReachable) {
-                updateFlow.tryEmit(createStatefulBuilder(commandEntry, controlId)
-                        .setStatus(Control.STATUS_DISABLED)
-                        .build())
-            } else {
-                updateFlow.tryEmit(Control.StatefulBuilder(controlId, getIntent(commandEntry?.device))
-                        .setStatus(Control.STATUS_NOT_FOUND)
-                        .build())
+        return flow {
+            for (controlId in controlIds) {
+                val commandEntry = getCommandByControlId(controlId)
+                val control = if (commandEntry != null && commandEntry.device.isReachable) {
+                    createStatefulBuilder(commandEntry, controlId)
+                            .setStatus(Control.STATUS_OK)
+                            .setStatusText(getString(R.string.tap_to_execute))
+                            .build()
+                } else if (commandEntry != null && commandEntry.device.isPaired && !commandEntry.device.isReachable) {
+                    createStatefulBuilder(commandEntry, controlId)
+                            .setStatus(Control.STATUS_DISABLED)
+                            .build()
+                } else {
+                    Control.StatefulBuilder(controlId, getIntent(commandEntry?.device))
+                            .setStatus(Control.STATUS_NOT_FOUND)
+                            .build()
+                }
+                emit(control)
             }
-        }
-
-        return updateFlow.asPublisher()
+            emitAll(updateFlow.filter { it.controlId in controlIds })
+        }.asPublisher()
     }
 
     override fun performControlAction(controlId: String, action: ControlAction, consumer: Consumer<Int>) {
         if (action is CommandAction) {
-            val commandEntry = runBlocking { getCommandByControlId(controlId) }
-            if (commandEntry != null) {
-                val deviceId = controlId.split(":")[0]
-                val plugin = deviceManager.getDevicePlugin(deviceId, RunCommandPlugin::class.java)
-                if (plugin != null) {
-                    plugin.coroutineScope.launch {
+            serviceScope.launch {
+                val commandEntry = getCommandByControlId(controlId)
+                if (commandEntry != null) {
+                    val deviceId = controlId.split(":")[0]
+                    val plugin = deviceManager.getDevicePlugin(deviceId, RunCommandPlugin::class.java)
+                    if (plugin != null) {
                         plugin.runCommand(commandEntry.command.key)
+                        consumer.accept(ControlAction.RESPONSE_OK)
+                    } else {
+                        consumer.accept(ControlAction.RESPONSE_FAIL)
                     }
-                    consumer.accept(ControlAction.RESPONSE_OK)
-                } else {
-                    consumer.accept(ControlAction.RESPONSE_FAIL)
-                }
 
-                updateFlow.tryEmit(createStatefulBuilder(commandEntry, controlId)
-                        .setStatus(Control.STATUS_OK)
-                        .setStatusText(getString(R.string.tap_to_execute))
-                        .build())
+                    updateFlow.tryEmit(createStatefulBuilder(commandEntry, controlId)
+                            .setStatus(Control.STATUS_OK)
+                            .setStatusText(getString(R.string.tap_to_execute))
+                            .build())
+                }
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        serviceScope.cancel()
     }
 
     private suspend fun getSavedCommandsList(device: Device): List<CommandEntryWithDevice> = withContext(Dispatchers.IO) {
