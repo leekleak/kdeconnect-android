@@ -1,5 +1,6 @@
 package org.kde.kdeconnect.plugins.share
 
+import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
@@ -22,9 +23,9 @@ import java.io.IOException
 * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 */
 
-internal class ReceiveNotification(private val device: Device, private val context: Context, private val jobId: Long) {
+internal class ReceiveNotification(private val device: Device, private val context: Context, private val jobId: Int) {
     private val notificationManager: NotificationManager? = ContextCompat.getSystemService(context, NotificationManager::class.java)
-    private val notificationId: Int = System.currentTimeMillis().toInt()
+    private val notificationId: Int = jobId
     private var builder: NotificationCompat.Builder
 
     init {
@@ -44,11 +45,19 @@ internal class ReceiveNotification(private val device: Device, private val conte
         notificationManager!!.cancel(notificationId)
     }
 
+    fun getNotification(): Notification {
+        return builder.build()
+    }
+
+    fun getNotificationId(): Int {
+        return notificationId
+    }
+
     fun addCancelAction() {
         val cancelIntent = Intent(context, ShareBroadcastReceiver::class.java)
         cancelIntent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
         cancelIntent.action = SharePlugin.ACTION_CANCEL_SHARE
-        cancelIntent.putExtra(SharePlugin.CANCEL_SHARE_BACKGROUND_JOB_ID_EXTRA, jobId)
+        cancelIntent.putExtra(SharePlugin.CANCEL_SHARE_DATA_TRANSFER_JOB_ID_EXTRA, jobId)
         cancelIntent.putExtra(SharePlugin.CANCEL_SHARE_DEVICE_ID_EXTRA, device.deviceId)
         val cancelPendingIntent = PendingIntent.getBroadcast(
             context,

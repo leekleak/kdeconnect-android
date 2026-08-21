@@ -5,6 +5,7 @@
  */
 package org.kde.kdeconnect.plugins.share
 
+import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
@@ -15,14 +16,14 @@ import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect_tp.R
 
-internal class UploadNotification(private val device: Device, private val context: Context, private val jobId: Long) {
+internal class UploadNotification(private val device: Device, private val context: Context, private val jobId: Int) {
     private val notificationManager: NotificationManager? = ContextCompat.getSystemService(context, NotificationManager::class.java)
     private var builder: NotificationCompat.Builder = NotificationCompat.Builder(context, NotificationHelper.Channels.FILETRANSFER_UPLOAD)
         .setSmallIcon(R.drawable.arrow_upward)
         .setAutoCancel(true)
         .setOngoing(true)
         .setProgress(100, 0, true)
-    private val notificationId: Int = System.currentTimeMillis().toInt()
+    private val notificationId: Int = jobId
 
     init {
         addCancelAction()
@@ -32,7 +33,7 @@ internal class UploadNotification(private val device: Device, private val contex
         val cancelIntent = Intent(context, ShareBroadcastReceiver::class.java)
         cancelIntent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
         cancelIntent.action = SharePlugin.ACTION_CANCEL_SHARE
-        cancelIntent.putExtra(SharePlugin.CANCEL_SHARE_BACKGROUND_JOB_ID_EXTRA, jobId)
+        cancelIntent.putExtra(SharePlugin.CANCEL_SHARE_DATA_TRANSFER_JOB_ID_EXTRA, jobId)
         cancelIntent.putExtra(SharePlugin.CANCEL_SHARE_DEVICE_ID_EXTRA, device.deviceId)
         val cancelPendingIntent = PendingIntent.getBroadcast(
             context,
@@ -79,6 +80,14 @@ internal class UploadNotification(private val device: Device, private val contex
 
     fun cancel() {
         notificationManager?.cancel(notificationId)
+    }
+
+    fun getNotification(): Notification {
+        return builder.build()
+    }
+
+    fun getNotificationId(): Int {
+        return notificationId
     }
 
     fun show() {

@@ -27,14 +27,14 @@ class ShareBroadcastReceiver : BroadcastReceiver(), KoinComponent {
     }
 
     private fun cancelShare(intent: Intent) {
-        if (!intent.hasExtra(SharePlugin.CANCEL_SHARE_BACKGROUND_JOB_ID_EXTRA) ||
+        if (!intent.hasExtra(SharePlugin.CANCEL_SHARE_DATA_TRANSFER_JOB_ID_EXTRA) ||
             !intent.hasExtra(SharePlugin.CANCEL_SHARE_DEVICE_ID_EXTRA)
         ) {
             LoggerTagged.e { "cancelShare() - not all expected extra's are present. Ignoring this cancel intent" }
             return
         }
 
-        val jobId = intent.getLongExtra(SharePlugin.CANCEL_SHARE_BACKGROUND_JOB_ID_EXTRA, -1)
+        val jobId = intent.getIntExtra(SharePlugin.CANCEL_SHARE_DATA_TRANSFER_JOB_ID_EXTRA, -1)
         val deviceId = intent.getStringExtra(SharePlugin.CANCEL_SHARE_DEVICE_ID_EXTRA)
 
         val pendingResult = goAsync()

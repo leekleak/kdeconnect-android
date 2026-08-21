@@ -73,6 +73,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
+    <uses-permission android:name="android.permission.RUN_USER_INITIATED_JOBS" />
 
     <application
         android:icon="@mipmap/ic_launcher"
@@ -314,7 +315,8 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
             </intent-filter>
         </service>
 
-        <service android:name="org.kde.kdeconnect.plugins.runcommand.RunCommandControlsProviderService"
+        <service
+            android:name="org.kde.kdeconnect.plugins.runcommand.RunCommandControlsProviderService"
             android:label="@string/kde_connect"
             android:exported="true"
             android:permission="android.permission.BIND_CONTROLS">
@@ -322,6 +324,12 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
                 <action android:name="android.service.controls.ControlsProviderService" />
             </intent-filter>
         </service>
+
+        <service
+            android:name="org.kde.kdeconnect.async.DataTransferJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false"
+            />
     </application>
 
 </manifest>

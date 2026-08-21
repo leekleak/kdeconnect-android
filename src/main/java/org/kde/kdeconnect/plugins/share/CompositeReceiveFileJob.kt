@@ -6,6 +6,7 @@
 package org.kde.kdeconnect.plugins.share
 
 import android.app.DownloadManager
+import android.app.Notification
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -21,7 +22,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
-import org.kde.kdeconnect.async.BackgroundJob
+import org.kde.kdeconnect.async.DataTransferJob
+import org.kde.kdeconnect.async.JobCallback
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.FilesHelper.findValidNonExistingFileName
 import org.kde.kdeconnect.helpers.FilesHelper.getMimeTypeFromFile
@@ -44,32 +46,24 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * A type of [BackgroundJob] that reads Files from another device.
- * 
- * 
- * 
+ * A type of [DataTransferJob] that reads Files from another device.
+ *
  * We receive the requests as [NetworkPacket]s.
- * 
- * 
- * 
+ *
  * Each packet should have a 'filename' property and a payload. If the payload is missing,
  * we'll just create an empty file. You can add new packets anytime via
  * [.addNetworkPacket].
- * 
- * 
- * 
+ *
  * The I/O-part of this file reading is handled by [.receiveFile].
- * 
- * 
- * @see CompositeUploadFileJob
  */
 @OptIn(ExperimentalAtomicApi::class)
 class CompositeReceiveFileJob(
+    override val id: Int,
     private val device: Device,
     private val context: Context,
     private val settingsDataStore: SettingsDataStore,
-    callBack: Callback<Void?>
-) : BackgroundJob<Device, Void?>(device, callBack) {
+    private val callback: JobCallback
+) : DataTransferJob {
     private val receiveNotification: ReceiveNotification = ReceiveNotification(device, context, id)
     private var currentNetworkPacket: NetworkPacket? = null
     private var currentFileName: String? = null
@@ -78,6 +72,9 @@ class CompositeReceiveFileJob(
     private var lastProgressTimeMillis: Long = 0
     private var prevProgressPercentage: Long = 0
 
+    @Volatile
+    var isCancelled: Boolean = false
+        private set
 
     private val networkPacketList: CopyOnWriteArrayList<NetworkPacket> = CopyOnWriteArrayList()
 
@@ -86,6 +83,17 @@ class CompositeReceiveFileJob(
     private val totalPayloadSize: AtomicLong = AtomicLong(0)
     val isRunning: AtomicBoolean = AtomicBoolean(false)
 
+    override fun getNotification(): Notification {
+        return receiveNotification.getNotification()
+    }
+
+    override fun getNotificationId(): Int {
+        return receiveNotification.getNotificationId()
+    }
+
+    override fun cancel() {
+        isCancelled = true
+    }
 
     fun updateTotals(numberOfFiles: Int, payloadSize: Long) {
         totalNumFiles.store(numberOfFiles)
@@ -108,7 +116,7 @@ class CompositeReceiveFileJob(
             totalNumFiles.store(networkPacket.getInt(SharePlugin.KEY_NUMBER_OF_FILES, 1))
             totalPayloadSize.store(networkPacket.getLong(SharePlugin.KEY_TOTAL_PAYLOAD_SIZE))
 
-                receiveNotification.setTitle(
+            receiveNotification.setTitle(
                 context.resources
                     .getQuantityString(
                         R.plurals.incoming_file_title,
@@ -237,7 +245,7 @@ class CompositeReceiveFileJob(
 
                 receiveNotification.show()
             }
-            reportResult(null)
+            reportResult()
         } catch (_: ActivityNotFoundException) {
             receiveNotification.setFinished(context.getString(R.string.no_app_for_opening))
             receiveNotification.show()
@@ -269,6 +277,14 @@ class CompositeReceiveFileJob(
                 }
             }
         }
+    }
+
+    private fun reportResult() {
+        callback.onResult(id)
+    }
+
+    private fun reportError(error: Throwable) {
+        callback.onError(id, error)
     }
 
     @Throws(RuntimeException::class)

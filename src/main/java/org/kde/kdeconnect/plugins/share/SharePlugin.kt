@@ -5,13 +5,18 @@
  */
 package org.kde.kdeconnect.plugins.share
 
+import android.app.job.JobInfo
+import android.app.job.JobScheduler
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.PersistableBundle
 import android.widget.Toast
 import androidx.annotation.WorkerThread
 import androidx.core.content.ContextCompat
@@ -22,11 +27,20 @@ import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import androidx.core.net.toUri
 import androidx.core.os.BundleCompat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
-import org.kde.kdeconnect.async.BackgroundJob
-import org.kde.kdeconnect.async.BackgroundJobHandler
-import org.kde.kdeconnect.async.BackgroundJobHandler.Companion.newFixedThreadPoolBackgroundJobHandler
+import org.kde.kdeconnect.async.DataTransferJob
+import org.kde.kdeconnect.async.DataTransferJobRegistry
+import org.kde.kdeconnect.async.DataTransferJobService
+import org.kde.kdeconnect.async.JobCallback
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.FilesHelper.uriToNetworkPacket
 import org.kde.kdeconnect.helpers.LoggerTagged
@@ -36,26 +50,24 @@ import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect_tp.R
 import java.net.MalformedURLException
 import java.net.URL
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * A Plugin for sharing and receiving files and uris.
- * 
- * 
- * All of the associated I/O work is scheduled on background
- * threads by [BackgroundJobHandler].
- * 
  */
 class SharePlugin(
     context: Context,
     device: Device,
     private val settingsDataStore: SettingsDataStore
 ) : Plugin(context, device) {
-    private val backgroundJobHandler: BackgroundJobHandler = newFixedThreadPoolBackgroundJobHandler(5)
     private val handler: Handler = Handler(Looper.getMainLooper())
+    private val pluginScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val concurrencyLimit = Semaphore(permits = 5)
+    private val activeJobs = ConcurrentHashMap<Int, Job>()
 
     private var receiveFileJob: CompositeReceiveFileJob? = null
     private var uploadFileJob: CompositeUploadFileJob? = null
-    private val receiveFileJobCallback: Callback = Callback()
+    private val jobCallback: JobCallback = Callback()
 
     override val pluginInfo: PluginInfo = SharePluginInfo
 
@@ -78,6 +90,7 @@ class SharePlugin(
                 )
             }
         }
+        pluginScope.cancel()
         super.onDestroy()
     }
 
@@ -189,7 +202,13 @@ class SharePlugin(
         val job = if (hasNumberOfFiles && !isOpen && receiveFileJob != null) {
             receiveFileJob!!
         } else {
-            CompositeReceiveFileJob(device, context, settingsDataStore, receiveFileJobCallback)
+            CompositeReceiveFileJob(
+                DataTransferJobRegistry.generateJobId(),
+                device,
+                context,
+                settingsDataStore,
+                jobCallback
+            )
         }
 
         if (!hasNumberOfFiles) {
@@ -203,12 +222,49 @@ class SharePlugin(
             if (hasNumberOfFiles && !isOpen) {
                 receiveFileJob = job
             }
-            backgroundJobHandler.runJob(job)
+            runBackgroundJob(job)
+        }
+    }
+
+    private fun runBackgroundJob(job: DataTransferJob) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            val jobScheduler = context.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
+            val componentName = ComponentName(context, DataTransferJobService::class.java)
+
+            DataTransferJobRegistry.register(job)
+
+            val jobInfo = JobInfo.Builder(job.id, componentName)
+                .setUserInitiated(true)
+                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                .setExtras(PersistableBundle().apply {
+                    putInt(DataTransferJobService.EXTRA_DATA_TRANSFER_JOB_ID, job.id)
+                })
+                .build()
+
+            jobScheduler.schedule(jobInfo)
+        } else {
+            val coroutineJob = pluginScope.launch {
+                concurrencyLimit.withPermit {
+                    try {
+                        job.run()
+                    } catch (e: Exception) {
+                        LoggerTagged.e(e) { "Failed to run background job" }
+                    } finally {
+                        activeJobs.remove(job.id)
+                    }
+                }
+            }
+            activeJobs[job.id] = coroutineJob
         }
     }
 
     fun sendUriList(uriList: List<Uri>) {
-        val job = uploadFileJob ?: CompositeUploadFileJob(device, context, receiveFileJobCallback)
+        val job = uploadFileJob ?: CompositeUploadFileJob(
+            DataTransferJobRegistry.generateJobId(),
+            device,
+            context,
+            jobCallback
+        )
 
         //Read all the data early, as we only have permissions to do it while the activity is alive
         for (uri in uriList) {
@@ -221,7 +277,7 @@ class SharePlugin(
 
         if (job !== uploadFileJob) {
             uploadFileJob = job
-            backgroundJobHandler.runJob(uploadFileJob!!)
+            runBackgroundJob(uploadFileJob!!)
         }
     }
 
@@ -281,42 +337,49 @@ class SharePlugin(
         return uriList
     }
 
-    private inner class Callback : BackgroundJob.Callback<Void?> {
-        override fun onResult(job: BackgroundJob<*, *>, result: Void?) {
-            if (job === receiveFileJob) {
+    private inner class Callback : JobCallback {
+        override fun onResult(jobId: Int) {
+            if (receiveFileJob?.id == jobId) {
                 receiveFileJob = null
-            } else if (job === uploadFileJob) {
+            } else if (uploadFileJob?.id == jobId) {
                 uploadFileJob = null
             }
+            DataTransferJobRegistry.unregister(jobId)
         }
 
-        override fun onError(job: BackgroundJob<*, *>, error: Throwable) {
-            if (job === receiveFileJob) {
+        override fun onError(jobId: Int, error: Throwable) {
+            if (receiveFileJob?.id == jobId) {
                 receiveFileJob = null
-            } else if (job === uploadFileJob) {
+            } else if (uploadFileJob?.id == jobId) {
                 uploadFileJob = null
             }
+            DataTransferJobRegistry.unregister(jobId)
         }
     }
 
-    fun cancelJob(jobId: Long) {
-        if (backgroundJobHandler.isRunning(jobId)) {
-            val job = backgroundJobHandler.getJob(jobId) ?: return
-
-            job.cancel()
-
-            if (job === receiveFileJob) {
-                receiveFileJob = null
-            } else if (job === uploadFileJob) {
-                uploadFileJob = null
-            }
+    fun cancelJob(jobId: Int) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            val jobScheduler = context.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
+            jobScheduler.cancel(jobId)
         }
+
+        DataTransferJobRegistry.get(jobId)?.cancel()
+        activeJobs[jobId]?.cancel()
+        activeJobs.remove(jobId)
+
+        if (receiveFileJob?.id == jobId) {
+            receiveFileJob = null
+        }
+        if (uploadFileJob?.id == jobId) {
+            uploadFileJob = null
+        }
+        DataTransferJobRegistry.unregister(jobId)
     }
 
     companion object {
         const val ACTION_CANCEL_SHARE: String = "org.kde.kdeconnect.plugins.share.CancelShare"
         const val CANCEL_SHARE_DEVICE_ID_EXTRA: String = "deviceId"
-        const val CANCEL_SHARE_BACKGROUND_JOB_ID_EXTRA: String = "backgroundJobId"
+        const val CANCEL_SHARE_DATA_TRANSFER_JOB_ID_EXTRA: String = "dataTransferJobId"
 
         private const val PACKET_TYPE_SHARE_REQUEST = "kdeconnect.share.request"
         const val PACKET_TYPE_SHARE_REQUEST_UPDATE: String = "kdeconnect.share.request.update"

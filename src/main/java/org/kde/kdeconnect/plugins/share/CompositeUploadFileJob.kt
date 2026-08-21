@@ -5,6 +5,7 @@
  */
 package org.kde.kdeconnect.plugins.share
 
+import android.app.Notification
 import android.content.Context
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -13,7 +14,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
-import org.kde.kdeconnect.async.BackgroundJob
+import org.kde.kdeconnect.async.DataTransferJob
+import org.kde.kdeconnect.async.JobCallback
 import org.kde.kdeconnect_tp.R
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.concurrent.atomics.AtomicBoolean
@@ -22,31 +24,26 @@ import kotlin.concurrent.atomics.AtomicLong
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 /**
- * A type of [BackgroundJob] that sends Files to another device.
- * 
- * 
- * 
+ * A type of [DataTransferJob] that sends Files to another device.
+ *
  * We represent the individual upload requests as [NetworkPacket]s.
- * 
- * 
- * 
+ *
  * Each packet should have a 'filename' property and a payload. If the payload is
  * missing, we'll just send an empty file. You can add new packets anytime via
  * [.addNetworkPacket].
- * 
- * 
- * 
+ *
  * The I/O-part of this file sending is handled by
  * [Device.sendPacket].
- * 
- * 
- * @see CompositeReceiveFileJob
- * 
+ *
  * @see SendPacketStatusCallback
  */
 @OptIn(ExperimentalAtomicApi::class)
-class CompositeUploadFileJob(private val device: Device, private val context: Context, callback: Callback<Void?>) :
-    BackgroundJob<Device, Void?>(device, callback) {
+class CompositeUploadFileJob(
+    override val id: Int,
+    private val device: Device,
+    private val context: Context,
+    private val callback: JobCallback
+) : DataTransferJob {
     private val isRunning: AtomicBoolean = AtomicBoolean(false)
     private var currentFileName: String? = ""
     private var currentFileNum = 0
@@ -63,6 +60,18 @@ class CompositeUploadFileJob(private val device: Device, private val context: Co
     private val totalPayloadSize: AtomicLong = AtomicLong(0)
 
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+
+    @Volatile
+    var isCancelled: Boolean = false
+        private set
+
+    override fun getNotification(): Notification {
+        return uploadNotification.getNotification()
+    }
+
+    override fun getNotificationId(): Int {
+        return uploadNotification.getNotificationId()
+    }
 
     override suspend fun run() {
         var done: Boolean
@@ -85,11 +94,7 @@ class CompositeUploadFileJob(private val device: Device, private val context: Co
 
                 // We set sendPayloadFromSameThread to true so this call blocks until the payload
                 // has been received by the other end, so payloads are sent one by one.
-                if (!device.sendPacket(
-                        packet,
-                        sendPacketStatusCallback,
-                    )
-                ) {
+                if (!device.sendPacket(packet, sendPacketStatusCallback)) {
                     throw RuntimeException("Sending packet failed")
                 }
 
@@ -106,7 +111,7 @@ class CompositeUploadFileJob(private val device: Device, private val context: Co
                 )
                 uploadNotification.show()
 
-                reportResult(null)
+                reportResult()
             }
         } catch (e: RuntimeException) {
             val failedFiles: Int = (totalNumFiles.load() - currentFileNum + 1)
@@ -130,6 +135,14 @@ class CompositeUploadFileJob(private val device: Device, private val context: Co
         }
     }
 
+    private fun reportResult() {
+        callback.onResult(id)
+    }
+
+    private fun reportError(error: Throwable) {
+        callback.onError(id, error)
+    }
+
     private fun addTotalsToNetworkPacket(networkPacket: NetworkPacket) {
         networkPacket[SharePlugin.KEY_NUMBER_OF_FILES] = totalNumFiles.load()
         networkPacket[SharePlugin.KEY_TOTAL_PAYLOAD_SIZE] = totalPayloadSize.load()
@@ -150,28 +163,28 @@ class CompositeUploadFileJob(private val device: Device, private val context: Co
     }
 
     fun addNetworkPacket(networkPacket: NetworkPacket) {
-            networkPacketList.add(networkPacket)
-            totalNumFiles.fetchAndAdd(1)
+        networkPacketList.add(networkPacket)
+        totalNumFiles.fetchAndAdd(1)
 
-            if (networkPacket.payloadSize >= 0) {
-                totalPayloadSize.fetchAndAdd(networkPacket.payloadSize)
-            }
+        if (networkPacket.payloadSize >= 0) {
+            totalPayloadSize.fetchAndAdd(networkPacket.payloadSize)
+        }
 
-            uploadNotification.setTitle(
-                context.resources
-                    .getQuantityString(
-                        R.plurals.outgoing_file_title,
-                        totalNumFiles.load(),
-                        totalNumFiles.load(),
-                        device.name
-                    )
-            )
+        uploadNotification.setTitle(
+            context.resources
+                .getQuantityString(
+                    R.plurals.outgoing_file_title,
+                    totalNumFiles.load(),
+                    totalNumFiles.load(),
+                    device.name
+                )
+        )
 
-            //Give SharePlugin some time to add more NetworkPackets
-            if (isRunning.load() && !updatePacketPending.load()) {
-                updatePacketPending.store(true)
-                coroutineScope.launch { sendUpdatePacket() }
-            }
+        //Give SharePlugin some time to add more NetworkPackets
+        if (isRunning.load() && !updatePacketPending.load()) {
+            updatePacketPending.store(true)
+            coroutineScope.launch { sendUpdatePacket() }
+        }
     }
 
     /**
@@ -188,7 +201,7 @@ class CompositeUploadFileJob(private val device: Device, private val context: Co
     }
 
     override fun cancel() {
-        super.cancel()
+        isCancelled = true
         coroutineScope.cancel()
 
         currentNetworkPacket?.cancel()
