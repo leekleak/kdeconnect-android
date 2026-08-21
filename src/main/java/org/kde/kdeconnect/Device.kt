@@ -28,6 +28,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.kde.kdeconnect.DeviceStats.countReceived
 import org.kde.kdeconnect.DeviceStats.countSent
 import org.kde.kdeconnect.PairingHandler.Companion.getVerificationKey
@@ -52,6 +53,7 @@ import org.koin.core.scope.Scope
 import java.io.IOException
 import java.security.cert.Certificate
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 class Device(
     private val context: Context,
@@ -297,12 +299,9 @@ class Device(
             // but other don't know like unpairing when wi-fi is off.
 
             unpair()
+        } else {
+            notifyPluginPacketReceived(np)
         }
-
-        // The following code when `isPaired == false` is NOT USED.
-        // It adds support for receiving packets from not trusted devices,
-        // but as of March 2023 no plugin implements "onUnpairedDevicePacketReceived".
-        notifyPluginPacketReceived(np)
     }
 
     private suspend fun notifyPluginPacketReceived(np: NetworkPacket) {
@@ -318,9 +317,7 @@ class Device(
             .mapNotNull { getPlugin(it) } // This triggers lazy loading if needed
             .forEach { plugin ->
                 runCatching {
-                    if (isPaired) {
-                        plugin.onPacketReceived(np)
-                    }
+                    plugin.onPacketReceived(np)
                 }.onFailure { e ->
                     LoggerTagged.e(e) { "Exception in ${plugin.pluginKey}'s onPacketReceived()" }
                 }
@@ -359,7 +356,14 @@ class Device(
         np: NetworkPacket,
         callback: SendPacketStatusCallback = defaultCallback,
     ): Boolean {
-        while (!isReachable) delay(200.milliseconds)
+        val reachable = withTimeoutOrNull(1.seconds) {
+            while (!isReachable) delay(200.milliseconds)
+        } != null
+
+        if (!reachable) {
+            return false
+        }
+
         if (!supportsPacketType(np.type)) {
             LoggerTagged.e { "Tried to send an unsupported packet type ${np.type} to: ${deviceInfo.name}" }
             return false

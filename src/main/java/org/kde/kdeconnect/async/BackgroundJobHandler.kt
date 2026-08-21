@@ -25,6 +25,7 @@ import java.util.concurrent.ThreadPoolExecutor
  *
  * Might be able to be replaced with coroutines later
  */
+@Deprecated("Replace with coroutines")
 class BackgroundJobHandler(numThreads: Int) {
     val jobScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     val concurrencyLimit: Semaphore = Semaphore(permits = numThreads)

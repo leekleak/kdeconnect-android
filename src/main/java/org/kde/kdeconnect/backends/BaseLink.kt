@@ -11,6 +11,7 @@ import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.NetworkPacket
 import java.io.IOException
+import java.util.concurrent.CopyOnWriteArrayList
 
 abstract class BaseLink protected constructor(
     protected val context: Context,
@@ -20,7 +21,7 @@ abstract class BaseLink protected constructor(
         suspend fun onPacketReceived(np: NetworkPacket)
     }
 
-    private val receivers = ArrayList<PacketReceiver>()
+    private val receivers = CopyOnWriteArrayList<PacketReceiver>()
 
     /* To be implemented by each link for pairing handlers */
     abstract val name: String

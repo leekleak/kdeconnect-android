@@ -7,6 +7,7 @@ package org.kde.kdeconnect.async
 
 import java.util.concurrent.atomic.AtomicLong
 
+@Deprecated("Replace with WorkManager")
 abstract class BackgroundJob<I, R> {
 
     abstract suspend fun run()
