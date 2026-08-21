@@ -28,9 +28,9 @@ class MprisViewModel(
 ) : ViewModel() {
 
     private val pluginFlow: StateFlow<MprisPlugin?> = deviceManager.getDevicePluginFlow(deviceId, MprisPlugin::class.java)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     private val systemVolumePluginFlow: StateFlow<SystemVolumePlugin?> = deviceManager.getDevicePluginFlow(deviceId, SystemVolumePlugin::class.java)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val playerList: StateFlow<List<String>> = pluginFlow.flatMapLatest { plugin ->
         plugin?.players?.map { it.keys.sorted() } ?: flowOf(emptyList())

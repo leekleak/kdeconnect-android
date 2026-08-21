@@ -36,7 +36,7 @@ class MousePadViewModel(
 ) : ViewModel(), SensorEventListener {
 
     private val pluginFlow: StateFlow<MousePadPlugin?> = deviceManager.getDevicePluginFlow(deviceId, MousePadPlugin::class.java)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     private val sensorManager = application.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
 
     val isKeyboardEnabled: StateFlow<Boolean> = pluginFlow.map {

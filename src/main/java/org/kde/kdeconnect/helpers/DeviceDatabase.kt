@@ -78,7 +78,7 @@ interface DeviceDao {
     suspend fun isTrusted(deviceId: String): Boolean?
 
     @Query("SELECT * FROM devices WHERE trusted = 1")
-    fun getAllTrusted(): Flow<List<DeviceInfo>>
+    suspend fun getAllTrusted(): List<DeviceInfo>
 
     @Upsert
     suspend fun upsert(device: DeviceInfo)
@@ -97,9 +97,6 @@ interface DeviceDao {
 
     @Query("SELECT * FROM devices WHERE deviceId = :deviceId")
     fun getDeviceFlow(deviceId: String): Flow<DeviceInfo?>
-
-    @Query("SELECT deviceId FROM devices WHERE trusted = 1")
-    suspend fun getAllTrustedIds(): List<String>
 }
 
 @Database(entities = [DeviceInfo::class], version = 1)
@@ -130,8 +127,8 @@ class DeviceSettings(
         deviceDao.remove(deviceId)
     }
 
-    suspend fun getAllTrustedDevices(): List<String> {
-        return deviceDao.getAllTrustedIds()
+    suspend fun getAllTrustedDeviceInfos(): List<DeviceInfo> {
+        return deviceDao.getAllTrusted()
     }
 
     suspend fun removeAllTrustedDevices() {

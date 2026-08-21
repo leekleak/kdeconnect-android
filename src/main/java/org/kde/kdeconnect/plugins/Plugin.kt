@@ -25,14 +25,6 @@ abstract class Plugin(
     val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO) // Todo: Make private
 
     /**
-     * To receive the network packet from the unpaired device, override
-     * listensToUnpairedDevices to return true and this method.
-     */
-    open fun onUnpairedDevicePacketReceived(np: NetworkPacket): Boolean {
-        return false
-    }
-
-    /**
      * Return the internal plugin name, that will be used as a
      * unique key to distinguish it.
      * Use the class name as `key`.

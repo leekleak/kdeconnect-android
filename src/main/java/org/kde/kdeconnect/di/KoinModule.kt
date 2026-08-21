@@ -230,8 +230,8 @@ val settingsModule = module {
     single<CustomDevicesHelper>()
     single<VideoUrlsHelper>()
     single<DeviceManager> {
-        DeviceManager(get()) { deviceId, link ->
-            get<Device> { parametersOf(deviceId, link) }
+        DeviceManager(get()) { deviceInfo ->
+            get<Device> { parametersOf(deviceInfo) }
         }
     }
     single<NotificationSettingsDataStore>()

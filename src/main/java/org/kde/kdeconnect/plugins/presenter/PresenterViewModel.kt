@@ -21,7 +21,7 @@ class PresenterViewModel(
 ) : ViewModel(), SensorEventListener {
 
     private val pluginFlow: StateFlow<PresenterPlugin?> = deviceManager.getDevicePluginFlow(deviceId, PresenterPlugin::class.java)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val sensitivity: StateFlow<Float> = settingsDataStore.presenterSensitivity
         .map { (it + 10) * 0.0006f }

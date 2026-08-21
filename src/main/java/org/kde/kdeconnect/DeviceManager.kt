@@ -23,7 +23,7 @@ import java.util.Date
 
 class DeviceManager(
     private val deviceSettings: DeviceSettings,
-    private val deviceFactory: (String, BaseLink?) -> Device
+    private val deviceFactory: (DeviceInfo) -> Device
 ) {
     private val _devices: MutableStateFlow<Map<String, Device>> = MutableStateFlow(emptyMap())
     val devices: StateFlow<Map<String, Device>> = _devices.asStateFlow()
@@ -64,11 +64,11 @@ class DeviceManager(
     }
 
     private fun loadRememberedDevicesFromSettings() {
-        runBlocking { deviceSettings.getAllTrustedDevices() }
+        runBlocking { deviceSettings.getAllTrustedDeviceInfos() }
             .onEach { LoggerTagged.d { "Loading device $it" } }
-            .forEach { trustedDevice ->
+            .forEach { deviceInfo ->
                 try {
-                    val device: Device = deviceFactory(trustedDevice, null)
+                    val device: Device = deviceFactory(deviceInfo)
                     val now = Date()
                     val x509Cert = device.certificate as X509Certificate
                     if (now < x509Cert.notBefore) {
@@ -76,12 +76,12 @@ class DeviceManager(
                     } else if (now > x509Cert.notAfter) {
                         throw CertificateException("Certificate already expired: " + x509Cert.notAfter)
                     }
-                    _devices.update { it + (trustedDevice to device) }
+                    _devices.update { it + (deviceInfo.id to device) }
                 } catch (e: CertificateException) {
                     LoggerTagged.w(e) {
                         "Couldn't load the certificate for a remembered device. Removing from trusted list."
                     }
-                    runBlocking { deviceSettings.removeTrustedDevice(trustedDevice) }
+                    runBlocking { deviceSettings.removeTrustedDevice(deviceInfo.id) }
                 }
             }
     }
@@ -92,7 +92,8 @@ class DeviceManager(
             if (device != null) {
                 device.addLink(link)
             } else {
-                device = deviceFactory(link.deviceId, link)
+                device = deviceFactory(link.deviceInfo)
+                device.addLink(link)
                 _devices.update { it + (link.deviceId to device) }
             }
         }

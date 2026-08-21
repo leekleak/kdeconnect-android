@@ -15,7 +15,7 @@ class BigscreenViewModel(
 ) : ViewModel() {
 
     private val pluginFlow: StateFlow<MousePadPlugin?> = deviceManager.getDevicePluginFlow(deviceId, MousePadPlugin::class.java)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun sendUp() = viewModelScope.launch { pluginFlow.value?.sendUp() }
     fun sendDown() = viewModelScope.launch { pluginFlow.value?.sendDown() }

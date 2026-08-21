@@ -15,7 +15,7 @@ class DigitizerViewModel(
 ) : ViewModel() {
 
     private val pluginFlow: StateFlow<DigitizerPlugin?> = deviceManager.getDevicePluginFlow(deviceId, DigitizerPlugin::class.java)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun startSession(width: Int, height: Int, xdpi: Float, ydpi: Float) {
         viewModelScope.launch {
