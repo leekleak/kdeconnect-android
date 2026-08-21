@@ -5,9 +5,6 @@
 */
 package org.kde.kdeconnect
 
-import android.content.Context
-import android.content.Intent
-import android.graphics.drawable.Drawable
 import androidx.annotation.WorkerThread
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,7 +30,6 @@ import org.kde.kdeconnect.DeviceStats.countReceived
 import org.kde.kdeconnect.DeviceStats.countSent
 import org.kde.kdeconnect.PairingHandler.Companion.getVerificationKey
 import org.kde.kdeconnect.PairingHandler.Companion.getVerificationKeyV7
-import org.kde.kdeconnect.PairingHandler.PairingCallback
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLink.PacketReceiver
 import org.kde.kdeconnect.helpers.DeviceSettings
@@ -44,8 +40,6 @@ import org.kde.kdeconnect.plugins.Plugin.Companion.getPluginKey
 import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.battery.DeviceBatteryInfo
-import org.kde.kdeconnect.ui.MainActivity
-import org.kde.kdeconnect.ui.PairingActivity
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.component.KoinScopeComponent
 import org.koin.core.component.createScope
@@ -56,15 +50,15 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class Device(
-    private val context: Context,
-    private val deviceSettings: DeviceSettings,
+    internal val deviceSettings: DeviceSettings,
     private val sslHelper: SslHelper,
+    pairingCallbackFactory: (Device) -> PairingHandler.PairingCallback,
     @InjectedParam deviceInfo: DeviceInfo,
 ) : PacketReceiver, KoinScopeComponent {
 
     override val scope: Scope by lazy { createScope(this) }
 
-    private val jobScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    internal val jobScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val pluginReloadMutex = Mutex()
 
@@ -97,7 +91,7 @@ class Device(
         return mapping
     }
 
-    private fun updateState(transform: (DeviceState) -> DeviceState) {
+    internal fun updateState(transform: (DeviceState) -> DeviceState) {
         state.update { oldState ->
             val newState = transform(oldState)
             val pluginsChanged = newState.supportedPlugins != oldState.supportedPlugins
@@ -126,13 +120,13 @@ class Device(
     val deviceInfo: DeviceInfo get() = state.value.deviceInfo
     val isReachable: Boolean get() = state.value.isReachable
     val name: String get() = deviceInfo.name
-    val icon: Drawable get() = deviceInfo.type.getIcon(context)
+    val iconRes: Int get() = deviceInfo.type.toDrawableRes()
     val deviceType: DeviceType get() = deviceInfo.type
     val protocolVersion: Int get() = deviceInfo.protocolVersion
 
     internal val pairingHandler: PairingHandler = PairingHandler(
         device = this,
-        callback = createDefaultPairingCallback(),
+        callback = pairingCallbackFactory(this),
     )
 
     private fun supportsPacketType(type: String): Boolean =
@@ -191,53 +185,6 @@ class Device(
     suspend fun cancelPairing() {
         LoggerTagged.i { "This side cancelled the pair request" }
         pairingHandler.cancelPairing()
-    }
-
-    private fun createDefaultPairingCallback(): PairingCallback {
-        return object : PairingCallback {
-            override fun incomingPairRequest() {
-                val intent = Intent(context, PairingActivity::class.java).apply {
-                    putExtra("deviceId", deviceId)
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                context.startActivity(intent)
-            }
-
-            override fun pairingSuccessful() {
-                LoggerTagged.i { "pairing successful, adding to trusted devices list" }
-
-                updateState {
-                    it.copy(
-                        deviceInfo = it.deviceInfo.copy(trusted = true),
-                        pairState = PairState.Paired,
-                    )
-                }
-                val intent = Intent(context, MainActivity::class.java).apply {
-                    putExtra(MainActivity.EXTRA_DEVICE_ID, deviceId)
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                context.startActivity(intent)
-            }
-
-            override fun pairingFailed(error: Int) {
-            }
-
-            override fun unpaired(device: Device) {
-                assert(device == this@Device)
-                LoggerTagged.i { "unpaired, removing from trusted devices list" }
-                updateState {
-                    it.copy(
-                        deviceInfo = it.deviceInfo.copy(trusted = false),
-                        pairState = PairState.NotPaired,
-                        batteryInfo = null,
-                        verificationKey = null,
-                    )
-                }
-                jobScope.launch {
-                    deviceSettings.removeTrustedDevice(deviceId)
-                }
-            }
-        }
     }
 
     fun addLink(link: BaseLink) {

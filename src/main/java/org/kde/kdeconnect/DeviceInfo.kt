@@ -6,9 +6,7 @@
 
 package org.kde.kdeconnect
 
-import android.content.Context
 import androidx.annotation.DrawableRes
-import androidx.core.content.ContextCompat
 import androidx.room3.ColumnInfo
 import androidx.room3.Entity
 import androidx.room3.PrimaryKey
@@ -135,11 +133,8 @@ enum class DeviceType {
             else -> "desktop"
         }
 
-    fun getIcon(context: Context) =
-        ContextCompat.getDrawable(context, toDrawableId())!!
-
     @DrawableRes
-    fun toDrawableId() =
+    fun toDrawableRes() =
         when (this) {
             PHONE -> R.drawable.mobile
             TABLET -> R.drawable.tablet

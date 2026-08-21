@@ -66,7 +66,7 @@ fun DeviceScreen(
             IconHero(
                 backgroundSize = 164.dp,
                 iconSize = 88.dp,
-                icon = uiState.deviceState.deviceInfo.type.toDrawableId()
+                icon = uiState.deviceState.deviceInfo.type.toDrawableRes()
             )
             Text(
                 text = uiState.deviceState.deviceInfo.name,

@@ -115,7 +115,7 @@ class DeviceTest {
                     single { sslHelper }
                     single { mockk<DeviceHelper>(relaxed = true) }
                     factory { (deviceInfo: DeviceInfo ) ->
-                        Device(context, get(), get(), deviceInfo)
+                        Device(get(), get(), { device -> DevicePairingCallback(device, context) }, deviceInfo)
                     }
                 }
             )
@@ -202,7 +202,7 @@ class DeviceTest {
     @Test
     fun testDevice() = runBlocking {
         val deviceInfo = deviceSettings.getDeviceInfo("testDevice")!!
-        val device = Device(context, deviceSettings, sslHelper, deviceInfo)
+        val device = Device(deviceSettings, sslHelper, { device -> DevicePairingCallback(device, context) }, deviceInfo)
 
         Assert.assertEquals(device.deviceId, "testDevice")
         Assert.assertEquals(device.deviceType, DeviceType.PHONE)
@@ -249,7 +249,7 @@ class DeviceTest {
         every { link.deviceId } returns deviceId
         every { link.deviceInfo } returns deviceInfo
         every { link.addPacketReceiver(any()) } returns Unit
-        val device = Device(context, deviceSettings, sslHelper, deviceInfo)
+        val device = Device(deviceSettings, sslHelper, { device -> DevicePairingCallback(device, context) }, deviceInfo)
         device.addLink(link)
 
         Assert.assertNotNull(device)
@@ -276,7 +276,7 @@ class DeviceTest {
     @Throws(CertificateException::class)
     fun testUnpair() = runBlocking {
         val deviceInfo = deviceSettings.getDeviceInfo("testDevice")!!
-        val device = Device(context, deviceSettings, sslHelper, deviceInfo)
+        val device = Device(deviceSettings, sslHelper, { device -> DevicePairingCallback(device, context) }, deviceInfo)
 
         device.unpair()
 

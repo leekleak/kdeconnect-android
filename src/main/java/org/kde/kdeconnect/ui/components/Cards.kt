@@ -147,7 +147,7 @@ fun DeviceCard(
             ) {
                 Icon(
                     modifier = Modifier.size(40.dp),
-                    painter = painterResource(device.deviceInfo.type.toDrawableId()),
+                    painter = painterResource(device.deviceInfo.type.toDrawableRes()),
                     contentDescription = null
                 )
                 Text(

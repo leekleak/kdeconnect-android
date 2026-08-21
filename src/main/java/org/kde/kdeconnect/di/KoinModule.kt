@@ -18,7 +18,9 @@ import coil3.memory.MemoryCache
 import coil3.request.crossfade
 import org.kde.kdeconnect.BackgroundServiceData
 import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.DevicePairingCallback
 import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.backends.bluetooth.BluetoothLinkProvider
 import org.kde.kdeconnect.backends.lan.LanLinkProvider
@@ -402,7 +404,9 @@ val appModule = module {
     }
     single<DeviceDao> { get<DevicesRoomDatabase>().deviceDao() }
 
-    factory<Device>()
+    factory<Device> { (deviceInfo: DeviceInfo) ->
+        Device(get(), get(), { device -> DevicePairingCallback(device, get()) }, deviceInfo)
+    }
 
     single<MprisMediaSession>()
     factory<BluetoothLinkProvider>()
