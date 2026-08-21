@@ -114,8 +114,8 @@ class DeviceTest {
                     single { deviceSettings }
                     single { sslHelper }
                     single { mockk<DeviceHelper>(relaxed = true) }
-                    factory { (deviceId: String, link: org.kde.kdeconnect.backends.BaseLink?) ->
-                        Device(context, get(), get(), deviceId, link)
+                    factory { (deviceInfo: DeviceInfo ) ->
+                        Device(context, get(), get(), deviceInfo)
                     }
                 }
             )
@@ -200,9 +200,9 @@ class DeviceTest {
 
     // Basic paired device testing
     @Test
-    @Throws(CertificateException::class)
-    fun testDevice() {
-        val device = Device(context, deviceSettings, sslHelper, "testDevice")
+    fun testDevice() = runBlocking {
+        val deviceInfo = deviceSettings.getDeviceInfo("testDevice")!!
+        val device = Device(context, deviceSettings, sslHelper, deviceInfo)
 
         Assert.assertEquals(device.deviceId, "testDevice")
         Assert.assertEquals(device.deviceType, DeviceType.PHONE)
@@ -249,7 +249,8 @@ class DeviceTest {
         every { link.deviceId } returns deviceId
         every { link.deviceInfo } returns deviceInfo
         every { link.addPacketReceiver(any()) } returns Unit
-        val device = Device(context, deviceSettings, sslHelper, deviceId, link)
+        val device = Device(context, deviceSettings, sslHelper, deviceInfo)
+        device.addLink(link)
 
         Assert.assertNotNull(device)
         Assert.assertEquals(device.deviceId, deviceId)
@@ -274,7 +275,8 @@ class DeviceTest {
     @Test
     @Throws(CertificateException::class)
     fun testUnpair() = runBlocking {
-        val device = Device(context, deviceSettings, sslHelper, "testDevice")
+        val deviceInfo = deviceSettings.getDeviceInfo("testDevice")!!
+        val device = Device(context, deviceSettings, sslHelper, deviceInfo)
 
         device.unpair()
 
