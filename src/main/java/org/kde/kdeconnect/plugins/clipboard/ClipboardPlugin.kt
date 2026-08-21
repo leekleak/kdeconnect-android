@@ -156,5 +156,6 @@ object ClipboardPluginInfo: PluginInfo(
     descriptionRes = R.string.pref_plugin_clipboard_desc,
     supportedPacketTypes = arrayOf(PACKET_TYPE_CLIPBOARD, PACKET_TYPE_CLIPBOARD_CONNECT),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_CLIPBOARD, PACKET_TYPE_CLIPBOARD_CONNECT),
-    instantiableClass = ClipboardPlugin::class.java
+    instantiableClass = ClipboardPlugin::class.java,
+    lazy = false
 )

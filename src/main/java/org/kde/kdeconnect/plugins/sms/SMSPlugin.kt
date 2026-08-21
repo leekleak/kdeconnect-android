@@ -236,10 +236,6 @@ class SMSPlugin(
         device.sendPacket(np)
     }
 
-    override fun onCreate(): Boolean {
-        return true
-    }
-
     private var initialized = false
 
     private fun initialize() {
@@ -553,6 +549,5 @@ object SMSPluginInfo : PluginInfo(
     ),
     supportedPacketTypes = arrayOf(PACKET_TYPE_SMS_REQUEST, PACKET_TYPE_SMS_REQUEST_CONVERSATIONS, PACKET_TYPE_SMS_REQUEST_CONVERSATION, PACKET_TYPE_SMS_REQUEST_ATTACHMENT),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_SMS_MESSAGE, PACKET_TYPE_SMS_ATTACHMENT_FILE),
-) {
-    //override val permissionExplanation: Int = R.string.telepathy_permission_explanation
-}
+    lazy = true
+)

@@ -11,9 +11,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
 import androidx.annotation.VisibleForTesting
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
@@ -130,5 +127,6 @@ object BatteryPluginInfo : PluginInfo(
     descriptionRes = R.string.pref_plugin_battery_desc,
     supportedPacketTypes = arrayOf(PACKET_TYPE_BATTERY),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_BATTERY),
-    instantiableClass = BatteryPlugin::class.java
+    instantiableClass = BatteryPlugin::class.java,
+    lazy = false
 )

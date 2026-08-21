@@ -9,5 +9,6 @@ object MprisReceiverPluginInfo : PluginInfo(
     displayNameRes = R.string.pref_plugin_mprisreceiver,
     descriptionRes = R.string.pref_plugin_mprisreceiver_desc,
     supportedPacketTypes = arrayOf("kdeconnect.mpris.request"),
-    outgoingPacketTypes = arrayOf("kdeconnect.mpris")
+    outgoingPacketTypes = arrayOf("kdeconnect.mpris"),
+    lazy = false,
 )

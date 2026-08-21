@@ -16,7 +16,6 @@ import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.mousereceiver.MouseReceiverPlugin
 import org.kde.kdeconnect_tp.R
-import kotlin.collections.set
 
 class InputDevicesReceiverPlugin(
     context: Context,
@@ -146,4 +145,5 @@ object InputDevicesReceiverPluginInfo : PluginInfo(
     descriptionRes = R.string.pref_plugin_inputdevicesreceiver_desc,
     supportedPacketTypes = arrayOf("kdeconnect.mousepad.request", "kdeconnect.shareinputdevices.request"),
     outgoingPacketTypes = arrayOf("kdeconnect.shareinputdevices"),
+    lazy = false
 )

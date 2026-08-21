@@ -83,5 +83,6 @@ object DigitizerPluginInfo: PluginInfo(
     displayNameRes = R.string.pref_plugin_digitizer,
     descriptionRes = R.string.pref_plugin_digitizer_desc,
     supportedPacketTypes = emptyArray(),
-    outgoingPacketTypes = arrayOf(PACKET_TYPE_DIGITIZER_SESSION, PACKET_TYPE_DIGITIZER)
+    outgoingPacketTypes = arrayOf(PACKET_TYPE_DIGITIZER_SESSION, PACKET_TYPE_DIGITIZER),
+    lazy = true
 )

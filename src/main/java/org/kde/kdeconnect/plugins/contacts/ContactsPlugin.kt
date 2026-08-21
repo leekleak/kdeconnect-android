@@ -177,5 +177,6 @@ object ContactsPluginInfo: PluginInfo(
     isEnabledByDefault = false,
     supportedPacketTypes = arrayOf(PACKET_TYPE_CONTACTS_REQUEST_ALL_UIDS_TIMESTAMPS, PACKET_TYPE_CONTACTS_REQUEST_VCARDS_BY_UIDS),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_CONTACTS_RESPONSE_UIDS_TIMESTAMPS, PACKET_TYPE_CONTACTS_RESPONSE_VCARDS),
-    requiredPermissions = arrayOf(Manifest.permission.READ_CONTACTS) // One day maybe we will also support WRITE_CONTACTS, but not yet
+    requiredPermissions = arrayOf(Manifest.permission.READ_CONTACTS),
+    lazy = true,
 )

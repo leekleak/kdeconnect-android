@@ -232,6 +232,7 @@ object SftpPluginInfo : PluginInfo(
     descriptionRes = R.string.pref_plugin_sftp_desc,
     supportedPacketTypes = arrayOf(PACKET_TYPE_SFTP_REQUEST),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_SFTP),
+    lazy = false
 ), KoinComponent {
     private val dataStore: SftpSettingsDataStore by inject()
 

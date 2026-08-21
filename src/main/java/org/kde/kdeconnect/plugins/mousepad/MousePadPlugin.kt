@@ -180,4 +180,5 @@ object MousePadPluginSettings: PluginInfo(
     descriptionRes = R.string.pref_plugin_mousepad_desc_nontv,
     supportedPacketTypes = arrayOf(PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_MOUSEPAD_REQUEST),
+    lazy = true
 )

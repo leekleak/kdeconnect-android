@@ -455,4 +455,5 @@ object MprisPluginInfo: PluginInfo(
     },
     supportedPacketTypes = arrayOf(MprisPlugin.PACKET_TYPE_MPRIS),
     outgoingPacketTypes = arrayOf(MprisPlugin.PACKET_TYPE_MPRIS_REQUEST),
+    lazy = false,
 )

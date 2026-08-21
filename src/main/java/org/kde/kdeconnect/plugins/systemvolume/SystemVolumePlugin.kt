@@ -27,6 +27,7 @@ object SystemVolumePluginInfo : PluginInfo(
     descriptionRes = R.string.pref_plugin_systemvolume_desc,
     supportedPacketTypes = arrayOf(PACKET_TYPE_SYSTEMVOLUME),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_SYSTEMVOLUME_REQUEST),
+    lazy = true
 )
 
 class SystemVolumePlugin(context: Context, device: Device) : Plugin(context, device) {
@@ -41,7 +42,7 @@ class SystemVolumePlugin(context: Context, device: Device) : Plugin(context, dev
             try {
                 val sinkArray = checkNotNull(np.getJSONArray("sinkList"))
                 val newList = mutableListOf<Sink>()
-                for (i in 0..< sinkArray.length()) {
+                for (i in 0..<sinkArray.length()) {
                     val sinkObj = sinkArray.getJSONObject(i)
                     newList.add(Sink(sinkObj))
                 }
@@ -64,11 +65,6 @@ class SystemVolumePlugin(context: Context, device: Device) : Plugin(context, dev
             }
         }
         return true
-    }
-
-    override fun onCreate(): Boolean {
-        LoggerTagged.e { "CREATED" }
-        return super.onCreate()
     }
 
     internal suspend fun sendVolume(name: String, volume: Int) {

@@ -12,10 +12,10 @@ import org.json.JSONException
 import org.json.JSONObject
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
-import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityListener.Companion.getInstance
-import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityListener.SubscriptionState
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
+import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityListener.Companion.getInstance
+import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityListener.SubscriptionState
 import org.kde.kdeconnect_tp.R
 
 class ConnectivityReportPlugin(context: Context, device: Device) : Plugin(context, device) {
@@ -94,5 +94,6 @@ object ConnectivityReportPluginInfo : PluginInfo(
     isEnabledByDefault = false,
     supportedPacketTypes = emptyArray(),
     outgoingPacketTypes = arrayOf("kdeconnect.connectivity_report"),
-    requiredPermissions = arrayOf(Manifest.permission.READ_PHONE_STATE)
+    requiredPermissions = arrayOf(Manifest.permission.READ_PHONE_STATE),
+    lazy = false
 )

@@ -19,6 +19,7 @@ open class PluginInfo(
     val requiredPermissions: Array<String> = emptyArray(),
     supportedPacketTypes: Array<String> = emptyArray(),
     outgoingPacketTypes: Array<String> = emptyArray(),
+    lazy: Boolean // If lazy, plugin should be instanced on use only.
 ) {
     open fun getDisplayName(context: Context): String = context.getString(displayNameRes)
     open fun getDescription(context: Context): String = context.getString(descriptionRes)

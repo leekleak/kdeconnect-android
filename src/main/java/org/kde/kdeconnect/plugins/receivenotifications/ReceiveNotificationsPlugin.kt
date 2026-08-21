@@ -112,4 +112,5 @@ object ReceiveNotificationsPluginInfo : PluginInfo(
     },
     supportedPacketTypes = arrayOf(PACKET_TYPE_NOTIFICATION),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_NOTIFICATION_REQUEST),
+    lazy = false
 )

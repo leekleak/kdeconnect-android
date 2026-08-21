@@ -28,6 +28,7 @@ object PresenterPluginInfo : PluginInfo(
     descriptionRes = R.string.pref_plugin_presenter_desc,
     supportedPacketTypes = emptyArray(),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_MOUSEPAD_REQUEST, PACKET_TYPE_PRESENTER),
+    lazy = true
 )
 
 class PresenterPlugin(context: Context, device: Device) : Plugin(context, device) {

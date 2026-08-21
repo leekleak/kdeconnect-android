@@ -11,4 +11,5 @@ object FindMyPhonePluginInfo : PluginInfo(
     requiredPermissions = emptyArray(),
     supportedPacketTypes = arrayOf(FindMyPhonePlugin.PACKET_TYPE_FINDMYPHONE_REQUEST),
     outgoingPacketTypes = emptyArray(),
+    lazy = false
 )

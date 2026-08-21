@@ -221,4 +221,5 @@ object TelephonyPluginInfo : PluginInfo(
     requiredPermissions = arrayOf(READ_PHONE_STATE, READ_CALL_LOG, READ_CONTACTS),
     supportedPacketTypes = arrayOf(PACKET_TYPE_TELEPHONY_REQUEST_MUTE),
     outgoingPacketTypes = arrayOf(PACKET_TYPE_TELEPHONY),
+    lazy = false
 )

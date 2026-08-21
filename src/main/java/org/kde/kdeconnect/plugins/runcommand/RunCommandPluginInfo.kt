@@ -12,5 +12,6 @@ object RunCommandPluginInfo : PluginInfo(
     displayNameRes = R.string.pref_plugin_runcommand,
     descriptionRes = R.string.pref_plugin_runcommand_desc,
     supportedPacketTypes = arrayOf(PACKET_TYPE_RUNCOMMAND, PACKET_TYPE_RUNCOMMAND_OUTPUT),
-    outgoingPacketTypes = arrayOf(PACKET_TYPE_RUNCOMMAND_REQUEST)
+    outgoingPacketTypes = arrayOf(PACKET_TYPE_RUNCOMMAND_REQUEST),
+    lazy = false
 )

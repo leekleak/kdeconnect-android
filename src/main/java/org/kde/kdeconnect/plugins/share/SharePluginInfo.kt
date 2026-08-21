@@ -18,5 +18,6 @@ object SharePluginInfo : PluginInfo(
         emptyArray()
     } else {
         arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-    }
+    },
+    lazy = false
 )

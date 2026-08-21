@@ -40,4 +40,5 @@ object FindRemoteDevicePluginInfo: PluginInfo(
     descriptionRes = R.string.pref_plugin_findremotedevice_desc,
     supportedPacketTypes = emptyArray(),
     outgoingPacketTypes = arrayOf(FindMyPhonePlugin.PACKET_TYPE_FINDMYPHONE_REQUEST),
+    lazy = true
 )
