@@ -85,9 +85,9 @@ fun PageTitle(
 val TOP_BAR_HEIGHT: Dp = 52.dp
 
 @Composable
-fun CategoryTitleTextSmall(text: String) {
+fun CategoryTitleTextSmall(text: String, modifier: Modifier = Modifier) {
     Text(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = modifier.padding(horizontal = 8.dp),
         text = text,
         style = MaterialTheme.typography.titleMedium,
         color = colorScheme.tertiary

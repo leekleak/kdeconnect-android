@@ -2,8 +2,10 @@ package org.kde.kdeconnect.ui.screen.device.settings
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -37,6 +39,8 @@ import sh.calvin.reorderable.rememberReorderableLazyGridState
 private const val KEY_HEADER_ENABLED = "text1"
 private const val KEY_DIVIDER = "divider"
 private const val KEY_HEADER_DISABLED = "text2"
+private const val KEY_PLACEHOLDER_ENABLED = "placeholder_enabled"
+private const val KEY_PLACEHOLDER_DISABLED = "placeholder_disabled"
 
 private sealed interface ShortcutListItem {
     val key: String
@@ -49,6 +53,7 @@ private data object SectionDivider : ShortcutListItem {
 private data class ButtonEntry(val button: PluginUiButton) : ShortcutListItem {
     override val key: String get() = button.name.toString()
 }
+private data class Placeholder(override val key: String) : ShortcutListItem
 
 @Composable
 fun DeviceShortcutSettingsScreen(
@@ -63,12 +68,15 @@ fun DeviceShortcutSettingsScreen(
     val disabledHeaderLabel = stringResource(R.string.available_shortcuts)
 
     LaunchedEffect(uiState) {
+        if (flatItems.size == uiState.enabled.size + uiState.disabled.size + 5) return@LaunchedEffect
         flatItems.clear()
         flatItems += SectionHeader(enabledHeaderLabel, KEY_HEADER_ENABLED)
         flatItems += uiState.enabled.map { ButtonEntry(it) }
+        flatItems += Placeholder(KEY_PLACEHOLDER_ENABLED)
         flatItems += SectionDivider
         flatItems += SectionHeader(disabledHeaderLabel, KEY_HEADER_DISABLED)
         flatItems += uiState.disabled.map { ButtonEntry(it) }
+        flatItems += Placeholder(KEY_PLACEHOLDER_DISABLED)
     }
 
     val lazyGridState = rememberLazyGridState()
@@ -76,8 +84,7 @@ fun DeviceShortcutSettingsScreen(
         val fromKey = from.key as? String ?: return@rememberReorderableLazyGridState
         val toKey = to.key as? String ?: return@rememberReorderableLazyGridState
         
-        if (fromKey == KEY_HEADER_ENABLED || fromKey == KEY_HEADER_DISABLED || fromKey == KEY_DIVIDER) return@rememberReorderableLazyGridState
-        if (toKey == KEY_HEADER_ENABLED || toKey == KEY_HEADER_DISABLED || toKey == KEY_DIVIDER) return@rememberReorderableLazyGridState
+        if (fromKey == KEY_HEADER_ENABLED || fromKey == KEY_HEADER_DISABLED || fromKey == KEY_DIVIDER || fromKey == KEY_PLACEHOLDER_ENABLED || fromKey == KEY_PLACEHOLDER_DISABLED) return@rememberReorderableLazyGridState
 
         val fromIndex = flatItems.indexOfFirst { it.key == fromKey }
         val toIndex = flatItems.indexOfFirst { it.key == toKey }
@@ -115,13 +122,22 @@ fun DeviceShortcutSettingsScreen(
                 span = { item ->
                     when (item) {
                         is SectionHeader, SectionDivider -> GridItemSpan(maxLineSpan)
-                        is ButtonEntry -> GridItemSpan(1)
+                        is ButtonEntry, is Placeholder -> GridItemSpan(1)
                     }
                 }
             ) { item ->
                 when (item) {
-                    is SectionHeader -> CategoryTitleTextSmall(item.label)
-                    SectionDivider -> HorizontalDivider(Modifier.padding(vertical = 4.dp))
+                    is SectionHeader -> CategoryTitleTextSmall(item.label, Modifier.animateItem())
+                    SectionDivider -> HorizontalDivider(Modifier.padding(vertical = 4.dp).animateItem())
+                    is Placeholder -> {
+                        ReorderableItem(reorderableLazyGridState, key = item.key) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(64.dp)
+                            )
+                        }
+                    }
                     is ButtonEntry -> {
                         ReorderableItem(reorderableLazyGridState, key = item.key, modifier = Modifier.fillMaxWidth()) { isDragging ->
                             val elevation by animateDpAsState(if (isDragging) 8.dp else 0.dp, label = "dragElevation")
