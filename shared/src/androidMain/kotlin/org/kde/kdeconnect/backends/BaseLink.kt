@@ -5,23 +5,22 @@
 */
 package org.kde.kdeconnect.backends
 
-import android.content.Context
-import androidx.annotation.WorkerThread
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.NetworkPacket
-import java.io.IOException
-import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.concurrent.atomics.AtomicReference
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.concurrent.atomics.update
 
+@OptIn(ExperimentalAtomicApi::class)
 abstract class BaseLink protected constructor(
-    protected val context: Context,
     open val linkProvider: BaseLinkProvider
 ) {
     interface PacketReceiver {
         suspend fun onPacketReceived(np: NetworkPacket)
     }
 
-    private val receivers = CopyOnWriteArrayList<PacketReceiver>()
+    private val receivers = AtomicReference<List<PacketReceiver>>(emptyList())
 
     /* To be implemented by each link for pairing handlers */
     abstract val name: String
@@ -32,16 +31,16 @@ abstract class BaseLink protected constructor(
         get() = this.deviceInfo.id
 
     fun addPacketReceiver(pr: PacketReceiver) {
-        receivers.add(pr)
+        receivers.update { it + pr }
     }
 
     fun removePacketReceiver(pr: PacketReceiver) {
-        receivers.remove(pr)
+        receivers.update { it - pr }
     }
 
     //Should be called from a background thread listening for packets
     suspend fun packetReceived(np: NetworkPacket) {
-        for (pr in receivers) {
+        for (pr in receivers.load()) {
             pr.onPacketReceived(np)
         }
     }
@@ -50,8 +49,6 @@ abstract class BaseLink protected constructor(
         linkProvider.onConnectionLost(this)
     }
 
-    @WorkerThread
-    @Throws(IOException::class)
     abstract suspend fun sendPacket(
         np: NetworkPacket,
         callback: Device.SendPacketStatusCallback,

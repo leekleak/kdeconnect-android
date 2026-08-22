@@ -9,8 +9,11 @@ import android.net.Network
 import androidx.annotation.WorkerThread
 import org.jetbrains.compose.resources.DrawableResource
 import org.kde.kdeconnect.DeviceInfo
-import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.concurrent.atomics.AtomicReference
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.concurrent.atomics.update
 
+@OptIn(ExperimentalAtomicApi::class)
 abstract class BaseLinkProvider {
     interface ConnectionReceiver {
         @WorkerThread
@@ -23,14 +26,14 @@ abstract class BaseLinkProvider {
         fun onConnectionLost(link: BaseLink)
     }
 
-    private val connectionReceivers = CopyOnWriteArrayList<ConnectionReceiver>()
+    private val connectionReceivers = AtomicReference<List<ConnectionReceiver>>(emptyList())
 
-    fun addConnectionReceiver(cr: ConnectionReceiver?) {
-        connectionReceivers.add(cr)
+    fun addConnectionReceiver(cr: ConnectionReceiver) {
+        connectionReceivers.update { it + cr }
     }
 
-    fun removeConnectionReceiver(cr: ConnectionReceiver?): Boolean {
-        return connectionReceivers.remove(cr)
+    fun removeConnectionReceiver(cr: ConnectionReceiver) {
+        connectionReceivers.update { it - cr }
     }
 
     /**
@@ -38,7 +41,7 @@ abstract class BaseLinkProvider {
      */
     @WorkerThread
     protected fun onConnectionReceived(link: BaseLink) {
-        for (cr in connectionReceivers) {
+        for (cr in connectionReceivers.load()) {
             cr.onConnectionReceived(link)
         }
     }
@@ -48,7 +51,7 @@ abstract class BaseLinkProvider {
      */
     @WorkerThread
     open fun onConnectionLost(link: BaseLink) {
-        for (cr in connectionReceivers) {
+        for (cr in connectionReceivers.load()) {
             cr.onConnectionLost(link)
         }
     }
@@ -58,7 +61,7 @@ abstract class BaseLinkProvider {
      */
     @WorkerThread
     protected fun onDeviceInfoUpdated(deviceInfo: DeviceInfo) {
-        for (cr in connectionReceivers) {
+        for (cr in connectionReceivers.load()) {
             cr.onDeviceInfoUpdated(deviceInfo)
         }
     }

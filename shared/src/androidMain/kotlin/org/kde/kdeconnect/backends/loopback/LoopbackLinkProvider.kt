@@ -5,16 +5,14 @@
 */
 package org.kde.kdeconnect.backends.loopback
 
-import android.content.Context
 import android.net.Network
 import org.jetbrains.compose.resources.DrawableResource
+import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.replay
-import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.helpers.DeviceHelper
 
 class LoopbackLinkProvider(
-    private val context: Context,
     private val deviceHelper: DeviceHelper
 ) : BaseLinkProvider() {
 
@@ -29,7 +27,7 @@ class LoopbackLinkProvider(
     override fun onStop() { }
 
     override suspend fun onNetworkChange(network: Network?) {
-        val link = LoopbackLink(context, this, deviceHelper)
+        val link = LoopbackLink(this, deviceHelper)
         onConnectionReceived(link)
     }
 }

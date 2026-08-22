@@ -14,18 +14,19 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.compose.resources.DrawableResource
 import org.json.JSONException
 import org.kde.kdeconnect.DeviceHost
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.NetworkPacket
-import org.kde.kdeconnect.fromIdentityPacketAndCert
-import org.kde.kdeconnect.isValidIdentityPacket
-import org.kde.kdeconnect.toIdentityPacket
 import org.kde.kdeconnect.NetworkPacket.Companion.unserialize
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.backends.lan.LanLink.ConnectionStarted
+import org.kde.kdeconnect.fromIdentityPacketAndCert
+import org.kde.kdeconnect.generated.resources.Res
+import org.kde.kdeconnect.generated.resources.wifi
 import org.kde.kdeconnect.helpers.CustomDevicesHelper
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.LoggerTagged
@@ -33,9 +34,8 @@ import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 import org.kde.kdeconnect.helpers.isPrivateAddress
 import org.kde.kdeconnect.helpers.readLineBounded
 import org.kde.kdeconnect.helpers.security.SslHelper
-import org.jetbrains.compose.resources.DrawableResource
-import org.kde.kdeconnect.generated.resources.Res
-import org.kde.kdeconnect.generated.resources.wifi
+import org.kde.kdeconnect.isValidIdentityPacket
+import org.kde.kdeconnect.toIdentityPacket
 import java.io.IOException
 import java.net.DatagramPacket
 import java.net.DatagramSocket
@@ -60,7 +60,7 @@ import kotlin.text.Charsets.UTF_8
  * @see .identityPacketReceived
  */
 class LanLinkProvider(
-    private val context: Context,
+    context: Context,
     private val deviceHelper: DeviceHelper,
     private val deviceManager: DeviceManager,
     private val trustedNetworkHelper: TrustedNetworkHelper,
@@ -435,7 +435,7 @@ class LanLinkProvider(
         } else {
             // Create a new link
             LoggerTagged.d { "Creating a new link for device " + deviceInfo.id }
-            link = LanLink(context, deviceInfo, this, socket, sslHelper)
+            link = LanLink(deviceInfo, this, socket, sslHelper)
             visibleDevices[deviceInfo.id] = link
             onConnectionReceived(link)
         }

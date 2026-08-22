@@ -223,7 +223,7 @@ class BluetoothLinkProvider(
                     val certificate = sslHelper.parseCertificate(pemEncodedCertificateBytes)
                     val deviceInfo = DeviceInfo.fromIdentityPacketAndCert(identityPacket, certificate)
                     LoggerTagged.i { "About to create link" }
-                    val link = BluetoothLink(context, connection,
+                    val link = BluetoothLink(connection,
                             inputStream, outputStream, socket.remoteDevice,
                             deviceInfo, this@BluetoothLinkProvider)
                     LoggerTagged.i { "About to addLink" }
@@ -407,7 +407,7 @@ class BluetoothLinkProvider(
                 val pemEncodedCertificateBytes = Base64.Mime.decode(base64CertificateString, 0)
                 val certificate = sslHelper.parseCertificate(pemEncodedCertificateBytes)
                 val deviceInfo = DeviceInfo.fromIdentityPacketAndCert(identityPacket, certificate)
-                val link = BluetoothLink(context, connection, inputStream, outputStream,
+                val link = BluetoothLink(connection, inputStream, outputStream,
                         socket.remoteDevice, deviceInfo, this@BluetoothLinkProvider)
 
                 val myDeviceInfo = deviceHelper.getDeviceInfo()
