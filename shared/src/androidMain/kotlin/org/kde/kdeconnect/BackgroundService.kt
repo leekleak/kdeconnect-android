@@ -159,15 +159,12 @@ class BackgroundService : Service() {
 
         val pi = PendingIntent.getActivity(this, 0, intent, UPDATE_IMMUTABLE_FLAGS)
         val notification = NotificationCompat.Builder(this, NotificationHelper.Channels.PERSISTENT).apply {
-            val iconId = resources.getIdentifier("ic_notification", "drawable", packageName)
-            if (iconId != 0) {
-                setSmallIcon(R.drawable.ic_notification)
-            }
+            setSmallIcon(R.drawable.ic_notification)
             setOngoing(true)
             setContentIntent(pi)
-            setPriority(NotificationCompat.PRIORITY_MIN) //MIN so it's not shown in the status bar before Oreo, on Oreo it will be bumped to LOW
+            priority = NotificationCompat.PRIORITY_MIN //MIN so it's not shown in the status bar before Oreo, on Oreo it will be bumped to LOW
             setShowWhen(false)
-            setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
+            foregroundServiceBehavior = NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE
             setAutoCancel(false)
             setGroup("BackgroundService")
         }

@@ -12,7 +12,6 @@ plugins {
 }
 
 compose.resources {
-    publicResClass = true
     packageOfResClass = "org.kde.kdeconnect.generated.resources"
 }
 
@@ -79,6 +78,11 @@ kotlin {
                 implementation(libs.apache.sshd.core)
                 implementation(libs.apache.sshd.sftp)
                 implementation(libs.apache.sshd.scp)
+                // The android-smsmms library is the only way I know to handle MMS in Android
+                // (Shouldn't a phone OS make phone things easy?)
+                // This library was originally authored as com.klinkerapps at https://github.com/klinker41/android-smsmms.
+                // However, that version is under-loved. I have therefore made "some fixes" and published it.
+                // Please see https://invent.kde.org/sredman/android-smsmms/-/tree/master
                 implementation(libs.android.smsmms)
                 implementation(libs.haze)
                 implementation(libs.haze.blur)
