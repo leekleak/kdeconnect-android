@@ -4,7 +4,6 @@ androidGradlePlugin = "9.3.1"
 androidSmsmms = "kdeconnect-1-21-0"
 appcompat = "1.8.0"
 bcpkixJdk18on = "1.85"
-classindexksp = "1.2"
 componentsResources = "1.12.0-rc01"
 datastore = "1.2.1"
 coreKtx = "1.19.0"
@@ -24,7 +23,6 @@ koinPlugin = "1.1.0"
 nav3Core = "1.1.6"
 lifecycleViewmodelNav3 = "2.11.0"
 lifecycleRuntimeKtx = "2.11.0"
-logger = "1.0.3"
 androidMaterial = "1.14.0"
 composeMaterial3 = "1.5.0-alpha26"
 media3 = "1.11.0"
@@ -35,12 +33,11 @@ slf4j-handroid = "2.0.13"
 sshdCore = "2.19.0"
 room3 = "3.0.1"
 uiToolingPreview = "1.12.0"
-haze = "2.0.0-alpha05"
+haze = "2.0.0-beta01"
 foundation = "1.12.0"
-aboutLibraries = "15.0.4"
+aboutLibraries = "15.1.1"
 reorderable = "3.1.0"
 kotlinStdlib = "2.4.10"
-kotlinTest = "2.4.10"
 runner = "1.7.0"
 core = "1.7.0"
 
@@ -52,7 +49,6 @@ androidx-compose-material3 = { module = "androidx.compose.material3:material3", 
 androidx-compose-ui = { module = "androidx.compose.ui:ui", version.ref = "foundation" }
 androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "uiToolingPreview" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
-androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "uiToolingPreview" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 androidx-documentfile = { module = "androidx.documentfile:documentfile", version.ref = "documentfile" }
 androidx-junit = { module = "androidx.test.ext:junit", version.ref = "junitExt" }
@@ -62,7 +58,6 @@ androidx-media3-session = { module = "androidx.media3:media3-session", version.r
 androidx-room3-runtime = { module = "androidx.room3:room3-runtime", version.ref = "room3" }
 androidx-room3-compiler = { module = "androidx.room3:room3-compiler", version.ref = "room3" }
 bcpkix-jdk18on = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bcpkixJdk18on" }
-classindexksp = { module = "com.github.albertvaka:classindexksp", version.ref = "classindexksp" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
 components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "componentsResources" }
 jsonassert = { module = "org.skyscreamer:jsonassert", version.ref = "jsonassert" }
@@ -70,7 +65,6 @@ junit = { module = "junit:junit", version.ref = "junit" }
 android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "androidGradlePlugin" }
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesCore" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
 kotlinx-coroutines-jdk9 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk9", version.ref = "kotlinxCoroutinesCore" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
@@ -100,7 +94,6 @@ aboutlibraries-core = { module = "com.mikepenz:aboutlibraries-core", version.ref
 aboutlibraries-compose = { module = "com.mikepenz:aboutlibraries-compose", version.ref = "aboutLibraries" }
 aboutlibraries-compose-core = { module = "com.mikepenz:aboutlibraries-compose-core", version.ref = "aboutLibraries" }
 kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlinStdlib" }
-kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlinTest" }
 androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
 androidx-core = { group = "androidx.test", name = "core", version.ref = "core" }
 
