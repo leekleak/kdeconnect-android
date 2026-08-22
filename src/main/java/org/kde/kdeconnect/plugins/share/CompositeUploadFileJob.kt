@@ -113,7 +113,7 @@ class CompositeUploadFileJob(
 
                 reportResult()
             }
-        } catch (e: RuntimeException) {
+        } catch (e: Exception) {
             val failedFiles: Int = (totalNumFiles.load() - currentFileNum + 1)
             uploadNotification.setFailed(
                 context.resources

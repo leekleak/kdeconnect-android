@@ -162,11 +162,7 @@ class LanLink @WorkerThread constructor(
 
             //Send payload
             if (server != null) {
-                try {
-                    sendPayload(np, callback, server)
-                } catch (e: IOException) {
-                    LoggerTagged.e(e) { "Async sendPayload failed for packet of type " + np.type + ". The Plugin was NOT notified." }
-                }
+                sendPayload(np, callback, server)
             }
 
             if (!np.isCanceled) {
