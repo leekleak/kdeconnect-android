@@ -143,7 +143,7 @@ class VideoUrlsHelperTest {
             "https://video.blender.org/w/mDyZP2TrdjjjNIMoVUgPM2?start=01m27s", // invalid character (I)
             "https://video.blender.org/w/evhMcVhvK6VeAlJwCSuHSe?start=01m27s", // invalid character (l)
             "https://video.blender.org/w/54tzKpEguEEu20Hi8Lcpna?start=01m27s", // invalid character (0)
-            "https://video.blender.org/w/o5VtGNQaNpFNHiJbLy4eM?start=01m27s", // invalid length (21)
+            "https://video.blender.org/w/o5VtGNQaNpFNHiJbLy4eM?start=01m27s", // invalid character (0)
             "https://video.blender.org/w/hb43bRmBzNpHd4sW74Y4cyAB?start=01m27s", // invalid length (23)
         )
         for (url in invalidUrls) {

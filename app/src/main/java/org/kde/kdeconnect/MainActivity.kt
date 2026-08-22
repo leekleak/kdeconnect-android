@@ -3,8 +3,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 */
-
-package org.kde.kdeconnect.ui
+package org.kde.kdeconnect
 
 import android.content.Intent
 import android.net.Uri
@@ -13,7 +12,7 @@ import android.os.Bundle
 import android.view.KeyEvent
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts.GetMultipleContents
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -39,14 +38,15 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.kde.kdeconnect.BackgroundService
-import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.mousepad.MousePadViewModel
 import org.kde.kdeconnect.plugins.mpris.MprisViewModel
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
+import org.kde.kdeconnect.ui.KdeTheme
+import org.kde.kdeconnect.ui.LocalHazeState
+import org.kde.kdeconnect.ui.ShareHandler
 import org.kde.kdeconnect.ui.navigation.DeviceKey
 import org.kde.kdeconnect.ui.navigation.DigitizerKey
 import org.kde.kdeconnect.ui.navigation.HomeKey
@@ -83,7 +83,11 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent, ShareHandler {
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val currentKey = mNavigator.backStack.lastOrNull()
         if (currentKey is MousePadKey) {
-            val viewModel: MousePadViewModel = scope.get(MousePadViewModel::class, null) { parametersOf(currentKey.deviceId) }
+            val viewModel: MousePadViewModel = scope.get(MousePadViewModel::class, null) {
+                parametersOf(
+                    currentKey.deviceId
+                )
+            }
             if (viewModel.onKeyEvent(event)) return true
         }
         if (currentKey is PresenterKey) {
@@ -91,7 +95,8 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent, ShareHandler {
             if (!offScreenControlsSupported) {
                 val keyCode = event.keyCode
                 val action = event.action
-                val volumeKeysEnabled = runBlocking { settingsDataStore.presenterVolumeKeysEnabled.first() }
+                val volumeKeysEnabled =
+                    runBlocking { settingsDataStore.presenterVolumeKeysEnabled.first() }
 
                 if (volumeKeysEnabled) {
                     if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN && action == KeyEvent.ACTION_UP) {
@@ -116,7 +121,11 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent, ShareHandler {
             val action = event.action
             if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
                 if (action == KeyEvent.ACTION_UP) {
-                    val viewModel: MprisViewModel = scope.get(MprisViewModel::class, null) { parametersOf(currentKey.deviceId) }
+                    val viewModel: MprisViewModel = scope.get(MprisViewModel::class, null) {
+                        parametersOf(
+                            currentKey.deviceId
+                        )
+                    }
                     if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
                         viewModel.onVolumeUp()
                     } else {
@@ -174,7 +183,9 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent, ShareHandler {
                 onBack = { navigator.goBack() },
                 sceneStrategies = listOf(DialogSceneStrategy()),
                 transitionSpec = {
-                    if (navigator.forceBasicTransition.load()) fadeIn(tween()) togetherWith fadeOut(tween())
+                    if (navigator.forceBasicTransition.load()) fadeIn(tween()) togetherWith fadeOut(
+                        tween()
+                    )
                     else {
                         slideInHorizontally { it } togetherWith
                                 slideOutHorizontally { -it / 2 } + scaleOut(targetScale = 0.7f) + fadeOut()
@@ -185,7 +196,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent, ShareHandler {
                             slideOutHorizontally { it }
                 },
                 predictivePopTransitionSpec = {
-                    slideInHorizontally { -it/2 } + scaleIn(initialScale = 0.7f) + fadeIn(tween()) togetherWith
+                    slideInHorizontally { -it / 2 } + scaleIn(initialScale = 0.7f) + fadeIn(tween()) togetherWith
                             slideOutHorizontally { it }
                 }
             )
@@ -210,7 +221,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent, ShareHandler {
     }
 
     override var shareGetResultCallback: ((List<Uri>) -> Unit)? = null
-    val shareGetResult = registerForActivityResult(GetMultipleContents()) { uris: List<Uri> ->
+    val shareGetResult = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri> ->
             if (uris.isEmpty()) {
                 LoggerTagged.w { "No files to send?" }
             } else {
@@ -221,6 +232,5 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent, ShareHandler {
 
     companion object {
         const val EXTRA_DEVICE_ID = KdeConnectKeyConstants.EXTRA_DEVICE_ID
-        const val FLAG_FORCE_OVERVIEW = "forceOverview"
     }
 }

@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.androidx.room3)
+    alias(libs.plugins.koin)
 }
 
 compose.resources {
@@ -88,6 +89,20 @@ kotlin {
                 implementation(libs.aboutlibraries.compose)
                 implementation(libs.aboutlibraries.compose.core)
                 implementation(libs.reorderable)
+            }
+        }
+
+        getByName("androidHostTest") {
+            dependencies {
+                implementation(libs.junit)
+                implementation(libs.mockk)
+                implementation(libs.jsonassert)
+                implementation(libs.robolectric)
+                implementation(libs.androidx.junit)
+                implementation(libs.androidx.runner)
+                implementation(libs.androidx.core)
+                implementation(libs.kermit)
+                implementation(libs.slf4j.simple)
             }
         }
     }

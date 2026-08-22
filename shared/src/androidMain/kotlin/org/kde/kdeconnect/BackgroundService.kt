@@ -161,7 +161,7 @@ class BackgroundService : Service() {
         val notification = NotificationCompat.Builder(this, NotificationHelper.Channels.PERSISTENT).apply {
             val iconId = resources.getIdentifier("ic_notification", "drawable", packageName)
             if (iconId != 0) {
-                setSmallIcon(iconId)
+                setSmallIcon(R.drawable.ic_notification)
             }
             setOngoing(true)
             setContentIntent(pi)

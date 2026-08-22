@@ -2,8 +2,6 @@
 
 package org.kde.kdeconnect.di
 
-import org.kde.kdeconnect.di.sharedModule
-
 import android.content.Context
 import android.content.Intent
 import androidx.activity.compose.LocalActivity
@@ -12,82 +10,38 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.scene.DialogSceneStrategy
-import androidx.room3.Room
 import coil3.ImageLoader
 import coil3.disk.DiskCache
 import coil3.disk.directory
 import coil3.memory.MemoryCache
 import coil3.request.crossfade
-import org.kde.kdeconnect.BackgroundServiceData
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.DevicePairingCallback
-import org.kde.kdeconnect.KdeConnect
-import org.kde.kdeconnect.backends.bluetooth.BluetoothLinkProvider
-import org.kde.kdeconnect.backends.lan.LanLinkProvider
-import org.kde.kdeconnect.backends.loopback.LoopbackLinkProvider
-import org.kde.kdeconnect.datastore.ConnectionsSettingsDataStore
-import org.kde.kdeconnect.datastore.MousePadSettingsDataStore
-import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
-import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
-import org.kde.kdeconnect.datastore.SettingsDataStore
-import org.kde.kdeconnect.datastore.SftpSettingsDataStore
-import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 import org.kde.kdeconnect.helpers.AppIconFetcher
-import org.kde.kdeconnect.helpers.CustomDevicesHelper
-import org.kde.kdeconnect.helpers.DeviceDao
-import org.kde.kdeconnect.helpers.DeviceHelper
-import org.kde.kdeconnect.helpers.DeviceSettings
-import org.kde.kdeconnect.helpers.DevicesRoomDatabase
 import org.kde.kdeconnect.helpers.PermissionHelper
-import org.kde.kdeconnect.helpers.PermissionRequestHelper
-import org.kde.kdeconnect.helpers.TrustedNetworkHelper
-import org.kde.kdeconnect.helpers.VideoUrlsHelper
-import org.kde.kdeconnect.helpers.security.SslHelper
-import org.kde.kdeconnect.plugins.battery.BatteryPlugin
-import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin
-import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityReportPlugin
-import org.kde.kdeconnect.plugins.contacts.ContactsPlugin
-import org.kde.kdeconnect.plugins.digitizer.DigitizerPlugin
 import org.kde.kdeconnect.plugins.digitizer.DigitizerScreen
 import org.kde.kdeconnect.plugins.digitizer.DigitizerViewModel
-import org.kde.kdeconnect.plugins.findmyphone.FindMyPhonePlugin
-import org.kde.kdeconnect.plugins.findremotedevice.FindRemoteDevicePlugin
-import org.kde.kdeconnect.plugins.inputdevicesreceiver.InputDevicesReceiverPlugin
 import org.kde.kdeconnect.plugins.mousepad.BigscreenScreen
 import org.kde.kdeconnect.plugins.mousepad.BigscreenViewModel
-import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin
 import org.kde.kdeconnect.plugins.mousepad.MousePadScreen
 import org.kde.kdeconnect.plugins.mousepad.MousePadSettingsScreen
 import org.kde.kdeconnect.plugins.mousepad.MousePadSettingsViewModel
 import org.kde.kdeconnect.plugins.mousepad.MousePadViewModel
-import org.kde.kdeconnect.plugins.mousereceiver.MouseReceiverPlugin
 import org.kde.kdeconnect.plugins.mpris.MprisAlbumArtFetcher
 import org.kde.kdeconnect.plugins.mpris.MprisMediaSession
-import org.kde.kdeconnect.plugins.mpris.MprisPlugin
 import org.kde.kdeconnect.plugins.mpris.MprisScreen
 import org.kde.kdeconnect.plugins.mpris.MprisViewModel
 import org.kde.kdeconnect.plugins.mpris.SinkSelector
 import org.kde.kdeconnect.plugins.mpris.SourceSelector
-import org.kde.kdeconnect.plugins.mprisreceiver.MprisReceiverPlugin
 import org.kde.kdeconnect.plugins.notifications.AppDatabase
-import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin
-import org.kde.kdeconnect.plugins.presenter.PresenterPlugin
 import org.kde.kdeconnect.plugins.presenter.PresenterScreen
 import org.kde.kdeconnect.plugins.presenter.PresenterSettingsScreen
 import org.kde.kdeconnect.plugins.presenter.PresenterSettingsViewModel
 import org.kde.kdeconnect.plugins.presenter.PresenterViewModel
-import org.kde.kdeconnect.plugins.receivenotifications.ReceiveNotificationsPlugin
-import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPlugin
-import org.kde.kdeconnect.plugins.runcommand.RunCommandPlugin
 import org.kde.kdeconnect.plugins.runcommand.RunCommandScreen
 import org.kde.kdeconnect.plugins.runcommand.RunCommandViewModel
-import org.kde.kdeconnect.plugins.sftp.SftpPlugin
-import org.kde.kdeconnect.plugins.share.SharePlugin
-import org.kde.kdeconnect.plugins.sms.SMSPlugin
-import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin
-import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin
 import org.kde.kdeconnect.ui.ThemeUtil
 import org.kde.kdeconnect.ui.about.AboutData
 import org.kde.kdeconnect.ui.navigation.AboutKey
@@ -140,14 +94,11 @@ import org.kde.kdeconnect.ui.screen.settings.advanced.notifications.Notification
 import org.kde.kdeconnect.ui.screen.settings.advanced.notifications.NotificationSettingsViewModel
 import org.kde.kdeconnect.ui.screen.settings.advanced.paired.SavedDevices
 import org.kde.kdeconnect.ui.screen.settings.advanced.paired.SavedDevicesViewModel
-import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import org.koin.core.annotation.KoinExperimentalAPI
-import org.koin.core.parameter.parametersOf
 import org.koin.dsl.module
 import org.koin.dsl.navigation3.navigation
-import org.koin.plugin.module.dsl.factory
 import org.koin.plugin.module.dsl.single
 import org.koin.plugin.module.dsl.viewModel
 
@@ -361,7 +312,6 @@ fun buildImageLoader(context: Context, deviceManager: DeviceManager): ImageLoade
         .build()
 
 val appModule = module {
-    single<KdeConnect> { get<Context>() as KdeConnect }
     includes(homeModule, deviceModule, pluginSettingsModule, presenterModule, mprisModule,
         mousePadModule, runCommandModule, digitizerModule, settingsModule, aboutModule, sharedModule)
 
