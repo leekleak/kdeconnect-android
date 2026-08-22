@@ -2,6 +2,8 @@
 
 package org.kde.kdeconnect.di
 
+import org.kde.kdeconnect.di.sharedModule
+
 import android.content.Context
 import android.content.Intent
 import androidx.activity.compose.LocalActivity
@@ -221,24 +223,7 @@ val aboutModule = module {
 }
 
 val settingsModule = module {
-    single<TelephonySettingsDataStore>()
-    single<SettingsDataStore>()
-    single<RunCommandSettingsDataStore>()
-    single<MousePadSettingsDataStore>()
-    single<DeviceSettings>()
-    single<DeviceHelper>()
     single<ThemeUtil>()
-    single<SslHelper>()
-    single<CustomDevicesHelper>()
-    single<VideoUrlsHelper>()
-    single<DeviceManager> {
-        DeviceManager(get()) { deviceInfo ->
-            get<Device> { parametersOf(deviceInfo) }
-        }
-    }
-    single<NotificationSettingsDataStore>()
-    single<SftpSettingsDataStore>()
-    single<ConnectionsSettingsDataStore>()
     viewModel<SettingsViewModel>()
     viewModel<ConnectionsSettingsViewModel>()
     navigation<SettingsKey> {
@@ -377,9 +362,8 @@ fun buildImageLoader(context: Context, deviceManager: DeviceManager): ImageLoade
 
 val appModule = module {
     single<KdeConnect> { get<Context>() as KdeConnect }
-    single<BackgroundServiceData>()
     includes(homeModule, deviceModule, pluginSettingsModule, presenterModule, mprisModule,
-        mousePadModule, runCommandModule, digitizerModule, settingsModule, aboutModule)
+        mousePadModule, runCommandModule, digitizerModule, settingsModule, aboutModule, sharedModule)
 
     single {
         val startDestination = if (PermissionHelper.hasRequiredPermissions(get())) {
@@ -391,50 +375,11 @@ val appModule = module {
     }
     single<ImageLoader> { buildImageLoader(get(), get()) }
 
-    single<TrustedNetworkHelper>()
-    single<PermissionRequestHelper>()
     single<AppDatabase>()
-
-    single<DevicesRoomDatabase> {
-        Room.databaseBuilder(
-            androidContext(),
-            DevicesRoomDatabase::class.java,
-            "Devices"
-        ).build()
-    }
-    single<DeviceDao> { get<DevicesRoomDatabase>().deviceDao() }
 
     factory<Device> { (deviceInfo: DeviceInfo) ->
         Device(get(), get(), { device -> DevicePairingCallback(device, get()) }, deviceInfo)
     }
 
     single<MprisMediaSession>()
-    factory<BluetoothLinkProvider>()
-    factory<LanLinkProvider>()
-    factory<LoopbackLinkProvider>()
-
-    scope<Device> {
-        scoped { SftpPlugin(get(), get(), get(), get()) }
-        scoped { BatteryPlugin(get(), get()) }
-        scoped { ClipboardPlugin(get(), get()) }
-        scoped { ConnectivityReportPlugin(get(), get()) }
-        scoped { ContactsPlugin(get(), get()) }
-        scoped { FindMyPhonePlugin(get(), get(), get(), get()) }
-        scoped { FindRemoteDevicePlugin(get(), get()) }
-        scoped { InputDevicesReceiverPlugin(get(), get(), get()) }
-        scoped { MousePadPlugin(get(), get()) }
-        scoped { MouseReceiverPlugin(get(), get(), get()) }
-        scoped { MprisPlugin(get(), get(), get(), get(), get()) }
-        scoped { MprisReceiverPlugin(get(), get()) }
-        scoped { NotificationsPlugin(get(), get(), get(), get()) }
-        scoped { PresenterPlugin(get(), get()) }
-        scoped { ReceiveNotificationsPlugin(get(), get()) }
-        scoped { RemoteKeyboardPlugin(get(), get(), get()) }
-        scoped { RunCommandPlugin(get(), get(), get()) }
-        scoped { SharePlugin(get(), get(), get()) }
-        scoped { SMSPlugin(get(), get(), get(), get()) }
-        scoped { SystemVolumePlugin(get(), get()) }
-        scoped { TelephonyPlugin(get(), get(), get()) }
-        scoped { DigitizerPlugin(get(), get()) }
-    }
 }

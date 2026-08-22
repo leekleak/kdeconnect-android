@@ -31,3 +31,4 @@ buildscript {
 
 rootProject.name = "kdeconnect-android"
 include(":app")
+include(":shared")

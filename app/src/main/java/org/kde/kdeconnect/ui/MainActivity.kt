@@ -66,7 +66,7 @@ import org.koin.core.parameter.parametersOf
 import org.koin.core.scope.Scope
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
-class MainActivity : AppCompatActivity(), AndroidScopeComponent {
+class MainActivity : AppCompatActivity(), AndroidScopeComponent, ShareHandler {
     override val scope: Scope by activityRetainedScope()
     private val settingsDataStore: SettingsDataStore by inject()
     private val deviceHelper: DeviceHelper by inject()
@@ -75,6 +75,10 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
     private val mNavigator: Navigator by inject()
 
     val lastIntent = MutableStateFlow(intent)
+
+    override fun launchSharePicker(mimeType: String) {
+        shareGetResult.launch(mimeType)
+    }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val currentKey = mNavigator.backStack.lastOrNull()
@@ -205,7 +209,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
         super.onNewIntent(intent)
     }
 
-    var shareGetResultCallback: ((List<Uri>) -> Unit)? = null
+    override var shareGetResultCallback: ((List<Uri>) -> Unit)? = null
     val shareGetResult = registerForActivityResult(GetMultipleContents()) { uris: List<Uri> ->
             if (uris.isEmpty()) {
                 LoggerTagged.w { "No files to send?" }

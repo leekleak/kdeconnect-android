@@ -25,9 +25,10 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.kde.kdeconnect.DeviceInfo.Companion.fromIdentityPacketAndCert
 import org.kde.kdeconnect.DeviceInfo.Companion.isValidDeviceId
-import org.kde.kdeconnect.DeviceInfo.Companion.isValidIdentityPacket
+import org.kde.kdeconnect.fromIdentityPacketAndCert
+import org.kde.kdeconnect.isValidIdentityPacket
+import org.kde.kdeconnect.toIdentityPacket
 import org.kde.kdeconnect.DeviceType.Companion.fromString
 import org.kde.kdeconnect.backends.lan.LanLink
 import org.kde.kdeconnect.backends.lan.LanLinkProvider
@@ -170,22 +171,22 @@ class DeviceTest {
     @Test
     fun testIsValidIdentityPacket() {
         val np = NetworkPacket(NetworkPacket.PACKET_TYPE_IDENTITY)
-        Assert.assertFalse(isValidIdentityPacket(np))
+        Assert.assertFalse(DeviceInfo.isValidIdentityPacket(np))
 
         val validName = "MyDevice"
         val validId = "27456e3c_fe5c_4208_96a7_c0caeec5e5a0"
         np["deviceName"] = validName
         np["deviceId"] = validId
-        Assert.assertTrue(isValidIdentityPacket(np))
+        Assert.assertTrue(DeviceInfo.isValidIdentityPacket(np))
 
         np["deviceName"] = "    "
-        Assert.assertFalse(isValidIdentityPacket(np))
+        Assert.assertFalse(DeviceInfo.isValidIdentityPacket(np))
         np["deviceName"] = "<><><><><><><><><>" // Only invalid characters
-        Assert.assertFalse(isValidIdentityPacket(np))
+        Assert.assertFalse(DeviceInfo.isValidIdentityPacket(np))
 
         np["deviceName"] = validName
         np["deviceId"] = "    "
-        Assert.assertFalse(isValidIdentityPacket(np))
+        Assert.assertFalse(DeviceInfo.isValidIdentityPacket(np))
     }
 
     @Test
@@ -240,7 +241,7 @@ class DeviceTest {
             """.trimIndent()
         val certificateBytes = Base64.Mime.decode(certificateString)
         val certificate = SslHelper.parseCertificate(certificateBytes)
-        val deviceInfo = fromIdentityPacketAndCert(fakeNetworkPacket, certificate)
+        val deviceInfo = DeviceInfo.fromIdentityPacketAndCert(fakeNetworkPacket, certificate)
 
         val linkProvider = mockk<LanLinkProvider>()
         every { linkProvider.name } returns "LanLinkProvider"
