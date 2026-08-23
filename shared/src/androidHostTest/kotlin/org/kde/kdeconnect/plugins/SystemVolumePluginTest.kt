@@ -8,8 +8,9 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import org.json.JSONArray
-import org.json.JSONObject
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -64,7 +65,7 @@ class SystemVolumePluginTest {
         val sentPacket = checkNotNull(packet)
 
         assertEquals("kdeconnect.systemvolume.request", sentPacket.type)
-        assertTrue(sentPacket.getBoolean("muted"))
+        assertTrue(sentPacket.getBoolean("muted") == true)
         assertEquals("Sink 1", sentPacket.getString("name"))
     }
 
@@ -83,16 +84,16 @@ class SystemVolumePluginTest {
     @Test
     fun testReceiveSinkList() = runBlocking {
         // Simulate receiving a packet with sink list
-        val sinkPacket = NetworkPacket("kdeconnect.systemvolume").apply {
-            set("sinkList", JSONArray().apply {
-                put(JSONObject().apply {
+        val sinkPacket = NetworkPacket("kdeconnect.systemvolume").update {
+            put("sinkList", buildJsonArray {
+                add( buildJsonObject {
                     put("name", "Sink 1")
                     put("volume", 50)
                     put("muted", false)
                     put("description", "")
                     put("maxVolume", 100)
                 })
-                put(JSONObject().apply {
+                add( buildJsonObject {
                     put("name", "Sink 2")
                     put("volume", 70)
                     put("muted", true)
@@ -119,9 +120,9 @@ class SystemVolumePluginTest {
     @Test
     fun testReceiveSinkUpdate() = runBlocking {
         // First, add a sink to ensure proper updates
-        val sinkPacket = NetworkPacket("kdeconnect.systemvolume").apply {
-            set("sinkList", JSONArray().apply {
-                put(JSONObject().apply {
+        val sinkPacket = NetworkPacket("kdeconnect.systemvolume").update {
+            put("sinkList", buildJsonArray {
+                add(buildJsonObject {
                     put("name", "Sink 1")
                     put("volume", 30)
                     put("muted", false)
@@ -134,10 +135,10 @@ class SystemVolumePluginTest {
         systemVolumePlugin.onPacketReceived(sinkPacket)
 
         // Update the sink's volume and mute status
-        val updatePacket = NetworkPacket("kdeconnect.systemvolume").apply {
-            set("name", "Sink 1")
-            set("volume", 40)
-            set("muted", true)
+        val updatePacket = NetworkPacket("kdeconnect.systemvolume").update {
+            put("name", "Sink 1")
+            put("volume", 40)
+            put("muted", true)
         }
 
         assertTrue(systemVolumePlugin.onPacketReceived(updatePacket))

@@ -7,8 +7,14 @@
 package org.kde.kdeconnect.plugins.digitizer
 
 import android.content.Context
+import kotlinx.serialization.json.put
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.generated.resources.Res
+import org.kde.kdeconnect.generated.resources.pref_plugin_digitizer
+import org.kde.kdeconnect.generated.resources.pref_plugin_digitizer_desc
+import org.kde.kdeconnect.generated.resources.stylus_note
+import org.kde.kdeconnect.generated.resources.use_digitizer
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.ButtonCategory
 import org.kde.kdeconnect.plugins.Plugin
@@ -17,7 +23,6 @@ import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.digitizer.DigitizerPlugin.Companion.PACKET_TYPE_DIGITIZER
 import org.kde.kdeconnect.plugins.digitizer.DigitizerPlugin.Companion.PACKET_TYPE_DIGITIZER_SESSION
 import org.kde.kdeconnect.ui.navigation.DigitizerKey
-import org.kde.kdeconnect.generated.resources.*
 
 class DigitizerPlugin(context: Context, device: Device) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = DigitizerPluginInfo
@@ -28,19 +33,19 @@ class DigitizerPlugin(context: Context, device: Device) : Plugin(context, device
     }
 
     suspend fun startSession(width: Int, height: Int, resolutionX: Int, resolutionY: Int) {
-        val np = NetworkPacket(PACKET_TYPE_DIGITIZER_SESSION).apply {
-            set("action", "start")
-            set("width", width)
-            set("height", height)
-            set("resolutionX", resolutionX)
-            set("resolutionY", resolutionY)
+        val np = NetworkPacket(PACKET_TYPE_DIGITIZER_SESSION).update {
+            put("action", "start")
+            put("width", width)
+            put("height", height)
+            put("resolutionX", resolutionX)
+            put("resolutionY", resolutionY)
         }
         device.sendPacket(np)
     }
 
     suspend fun endSession() {
-        val np = NetworkPacket(PACKET_TYPE_DIGITIZER_SESSION).apply {
-            set("action", "end")
+        val np = NetworkPacket(PACKET_TYPE_DIGITIZER_SESSION).update {
+            put("action", "end")
         }
         device.sendPacket(np)
     }
@@ -48,13 +53,13 @@ class DigitizerPlugin(context: Context, device: Device) : Plugin(context, device
     suspend fun reportEvent(event: ToolEvent) {
         LoggerTagged.d { "reportEvent: $event" }
 
-        val np = NetworkPacket(PACKET_TYPE_DIGITIZER).also { packet ->
-            event.active?.let { packet["active"] = it }
-            event.touching?.let { packet["touching"] = it }
-            event.tool?.let { packet["tool"] = it.name }
-            event.x?.let { packet["x"] = it }
-            event.y?.let { packet["y"] = it }
-            event.pressure?.let { packet["pressure"] = it }
+        val np = NetworkPacket(PACKET_TYPE_DIGITIZER).update {
+            event.active?.let { put("active", it) }
+            event.touching?.let { put("touching", it) }
+            event.tool?.let { put("tool", it.name) }
+            event.x?.let { put("x", it) }
+            event.y?.let { put("y", it) }
+            event.pressure?.let { put("pressure", it) }
         }
         device.sendPacket(np)
     }

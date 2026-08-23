@@ -34,8 +34,8 @@ data class DeviceBatteryInfo(
                 "Packet type must be PACKET_TYPE_BATTERY"
             }
             return DeviceBatteryInfo(
-                np.getInt("currentCharge"),
-                np.getBoolean("isCharging"),
+                np.getInt("currentCharge", 100),
+                np.getBoolean("isCharging", false),
                 np.getInt("thresholdEvent", 0)
             )
         }

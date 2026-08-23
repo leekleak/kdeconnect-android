@@ -35,11 +35,21 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.json.JSONArray
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import org.jetbrains.compose.resources.getString
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
+import org.kde.kdeconnect.generated.resources.Res
+import org.kde.kdeconnect.generated.resources.no_permissions
+import org.kde.kdeconnect.generated.resources.open_settings
+import org.kde.kdeconnect.generated.resources.pref_plugin_notifications
+import org.kde.kdeconnect.generated.resources.pref_plugin_notifications_desc
+import org.kde.kdeconnect.generated.resources.unknown_sender
 import org.kde.kdeconnect.helpers.AppsHelper.appNameLookup
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.Plugin
@@ -49,7 +59,6 @@ import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin.Companion.PA
 import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION_REPLY
 import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION_REQUEST
 import org.kde.kdeconnect.ui.PermissionRequest
-import org.kde.kdeconnect.generated.resources.*
 import java.io.ByteArrayOutputStream
 import java.security.MessageDigest
 import java.util.Locale
@@ -155,9 +164,11 @@ class NotificationsPlugin(
                 return@launch
             }
 
-            val np = NetworkPacket(PACKET_TYPE_NOTIFICATION)
-            np["id"] = id
-            np["isCancel"] = true
+            val np = NetworkPacket(PACKET_TYPE_NOTIFICATION).update {
+                put("id", id)
+                put("isCancel", true)
+            }
+
             device.sendPacket(np)
             currentNotifications.remove(id)
             notificationsIcons.remove(id)
@@ -234,11 +245,73 @@ class NotificationsPlugin(
             currentNotifications.add(key)
         }
 
-        val np = NetworkPacket(PACKET_TYPE_NOTIFICATION)
+
+        val messagingStyle = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(notification)
+
+        val isConversation = messagingStyle != null
+        val isGroupConversation = isConversation && messagingStyle.isGroupConversation() && messagingStyle.conversationTitle != null
+
+        val appName = appNameLookup(context, packageName)
+        val blockContents = appDatabase.getPrivacy(packageName, AppDatabase.PrivacyOptions.BLOCK_CONTENTS)
+        val blockImages = appDatabase.getPrivacy(packageName, AppDatabase.PrivacyOptions.BLOCK_IMAGES)
+        val unknownSender = getString(Res.string.unknown_sender)
+
+        var np = NetworkPacket(PACKET_TYPE_NOTIFICATION).update { // Todo: Make val
+            put("actions", extractActions(notification, key))
+
+            put("id", key)
+            put("isClearable", statusBarNotification.isClearable)
+
+            put("appName", appName)
+            put("time", statusBarNotification.postTime.toString())
+            put("silent", isPreexisting)
+
+
+            if (!blockContents) {
+                val rn = extractRepliableNotification(statusBarNotification)
+                if (rn != null) {
+                    put("requestReplyId", rn.id)
+                    pendingIntents[rn.id] = rn
+                }
+
+                put("ticker", getTickerText(notification))
+
+                var conversationLength = 0
+                if (isConversation) {
+                    val conversation = extractConversation(messagingStyle, unknownSender)
+                    conversationLength = conversation.size
+                    if (conversationLength != 0) {
+                        put("conversation", conversation)
+                    }
+                }
+
+                // even if it's a conversation, we set `title` and `text` for compatibility.
+                if (isGroupConversation) {
+                    val groupName = messagingStyle.conversationTitle.toString()
+                    // FIXME: When there're more than one message in group conversation and the user didn't reply, the number of messages appears between "()" next to the name of the group
+                    // We don't want to show them because Android doesn't show them.
+                    put("groupName", groupName)
+                    // HACK: To differentiate between groups messages and DMs, we set `title` to be the group name and `text` to be `<sender>: <message>`.
+                    put("title", groupName)
+                    val (sender, content) = getMessageAt(messagingStyle, conversationLength - 1, unknownSender)
+                    put("text", "$sender: $content")
+                } else {
+                    val title =
+                        extractStringFromExtra(notification.extras, NotificationCompat.EXTRA_TITLE)
+                    if (title != null) {
+                        put("title", title)
+                    }
+                    val text = extractText(notification)
+                    if (text != null) {
+                        put("text", text)
+                    }
+                }
+            }
+        }
 
         val appIcon = extractIcon(statusBarNotification, notification)
 
-        if (appIcon != null && !appDatabase.getPrivacy(packageName, AppDatabase.PrivacyOptions.BLOCK_IMAGES)) {
+        if (appIcon != null && !blockImages) {
             val iconBytes = getIconBytes(appIcon)
             val iconHash = getIconHash(iconBytes)
 
@@ -248,60 +321,8 @@ class NotificationsPlugin(
                 notificationsIcons[key] = iconHash
             }
             // We should always send the icon's hash so the other end can know which icon to use.
-            np["payloadHash"] = iconHash
-        }
-
-        val messagingStyle = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(notification)
-
-        val isConversation = messagingStyle != null
-        val isGroupConversation = isConversation && messagingStyle.isGroupConversation() && messagingStyle.conversationTitle != null
-
-        np["actions"] = extractActions(notification, key)
-
-        np["id"] = key
-        np["isClearable"] = statusBarNotification.isClearable
-        val appName = appNameLookup(context, packageName)
-        np["appName"] = appName
-        np["time"] = statusBarNotification.postTime.toString()
-        np["silent"] = isPreexisting
-
-        if (!appDatabase.getPrivacy(packageName, AppDatabase.PrivacyOptions.BLOCK_CONTENTS)) {
-            val rn = extractRepliableNotification(statusBarNotification)
-            if (rn != null) {
-                np["requestReplyId"] = rn.id
-                pendingIntents[rn.id] = rn
-            }
-
-            np["ticker"] = getTickerText(notification)
-
-            var conversationLength = 0
-            if (isConversation) {
-                val conversation = extractConversation(messagingStyle)
-                conversationLength = conversation.length()
-                if (conversationLength != 0) {
-                    np["conversation"] = conversation
-                }
-            }
-
-            // even if it's a conversation, we set `title` and `text` for compatibility.
-            if (isGroupConversation) {
-                val groupName = messagingStyle.conversationTitle.toString()
-                // FIXME: When there're more than one message in group conversation and the user didn't reply, the number of messages appears between "()" next to the name of the group
-                // We don't want to show them because Android doesn't show them.
-                np["groupName"] = groupName
-                // HACK: To differentiate between groups messages and DMs, we set `title` to be the group name and `text` to be `<sender>: <message>`.
-                np["title"] = groupName
-                val (sender, content) = getMessageAt(messagingStyle, conversationLength - 1)
-                np["text"] = "$sender: $content"
-            } else {
-                val title = extractStringFromExtra(notification.extras, NotificationCompat.EXTRA_TITLE)
-                if (title != null) {
-                    np["title"] = title
-                }
-                val text = extractText(notification)
-                if (text != null) {
-                    np["text"] = text
-                }
+            np = np.update {
+                put("payloadHash", iconHash)
             }
         }
         device.sendPacket(np)
@@ -327,10 +348,11 @@ class NotificationsPlugin(
 
     private fun getMessageAt(
         messagingStyle: NotificationCompat.MessagingStyle,
-        index: Int
+        index: Int,
+        unknownSender: String
     ): Pair<String, String> {
         val message = messagingStyle.messages.getOrNull(index)
-        val sender = message?.person?.name?.toString() ?: runBlocking { org.jetbrains.compose.resources.getString(Res.string.unknown_sender) }
+        val sender = message?.person?.name?.toString() ?: unknownSender
         val content = message?.text?.toString() ?: ""
         return Pair(sender, content)
     }
@@ -358,44 +380,42 @@ class NotificationsPlugin(
         return null
     }
 
-    private fun extractActions(notification: Notification, key: String): JSONArray? {
+    private fun extractActions(notification: Notification, key: String): JsonArray {
         val notiActions = notification.actions
-        if (notiActions.isNullOrEmpty()) {
-            return null
-        }
 
-        val jsonArray = JSONArray()
-        for (action in notiActions) {
-            val title = action.title
-                ?: continue
+        val jsonArray = buildJsonArray {
+            for (action in notiActions) {
+                val title = action.title
+                    ?: continue
 
-            // Check whether it is a reply action. We have special treatment for them
-            if (action.remoteInputs?.isNotEmpty() == true) {
-                continue
+                // Check whether it is a reply action. We have special treatment for them
+                if (action.remoteInputs?.isNotEmpty() == true) {
+                    continue
+                }
+
+                add(title.toString())
+
+                // A list is automatically created if it doesn't already exist.
+                pendingActions.getOrPut(key) { mutableListOf() }.add(action)
             }
-
-            jsonArray.put(title.toString())
-
-            // A list is automatically created if it doesn't already exist.
-            pendingActions.getOrPut(key) {mutableListOf()}.add(action)
         }
 
         return jsonArray
     }
 
-    private fun extractConversation(messagingStyle: NotificationCompat.MessagingStyle?): JSONArray {
-        if (messagingStyle == null) {
-            return JSONArray()
-        }
+    private fun extractConversation(messagingStyle: NotificationCompat.MessagingStyle, unknownSender: String): JsonArray {
         val messages = messagingStyle.messages
-        val conversation = JSONArray()
-        for (message in messages) {
-            val sender = message?.person?.name?.toString() ?: runBlocking { org.jetbrains.compose.resources.getString(Res.string.unknown_sender) }
-            val content = message.text?.toString() ?: ""
-            conversation.put(JSONObject().apply {
-                put("sender", sender)
-                put("content", content)
-            })
+        val conversation = buildJsonArray {
+            for (message in messages) {
+                val sender = message?.person?.name?.toString() ?: unknownSender
+                val content = message.text?.toString() ?: ""
+                add(
+                    buildJsonObject {
+                        put("sender", sender)
+                        put("content", content)
+                    }
+                )
+            }
         }
         return conversation
     }
@@ -512,6 +532,9 @@ class NotificationsPlugin(
     }
 
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
+        val dismissedId = np.getString("cancel")
+        val requestReplyId = np.getString("requestReplyId")
+        val message = np.getString("message")
         if (np.type == PACKET_TYPE_NOTIFICATION_ACTION) {
             val key = np.getString("key")
             val title = np.getString("action")
@@ -531,20 +554,19 @@ class NotificationsPlugin(
                     LoggerTagged.e(e) { "Triggering action failed" }
                 }
             }
-        } else if (np.getBoolean("request")) {
+        } else if (np.getBoolean("request") == true) {
             if (serviceReady) {
                 NotificationReceiver.runCommand(context) { service ->
                     this.sendCurrentNotifications(service)
                 }
             }
-        } else if (np.has("cancel")) {
-            val dismissedId = np.getString("cancel")
+        } else if (dismissedId != null) {
             currentNotifications.remove(dismissedId)
             NotificationReceiver.runCommand(context) { service ->
                 service.cancelNotification(dismissedId)
             }
-        } else if (np.has("requestReplyId") && np.has("message")) {
-            replyToNotification(np.getString("requestReplyId"), np.getString("message"))
+        } else if (requestReplyId != null && message != null) {
+            replyToNotification(requestReplyId, message)
         }
 
         return true

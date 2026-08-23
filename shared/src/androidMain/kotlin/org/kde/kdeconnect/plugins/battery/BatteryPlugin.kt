@@ -12,17 +12,22 @@ import android.content.IntentFilter
 import android.os.BatteryManager
 import androidx.annotation.VisibleForTesting
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.put
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.generated.resources.Res
+import org.kde.kdeconnect.generated.resources.pref_plugin_battery
+import org.kde.kdeconnect.generated.resources.pref_plugin_battery_desc
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.battery.BatteryPlugin.Companion.PACKET_TYPE_BATTERY
-import org.kde.kdeconnect.generated.resources.*
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
+@OptIn(ExperimentalAtomicApi::class)
 class BatteryPlugin(context: Context, device: Device) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = BatteryPluginInfo
-
-    private val batteryInfo = NetworkPacket(PACKET_TYPE_BATTERY)
 
     /**
      * The latest battery information about the linked device. Will be null if the linked device
@@ -35,6 +40,9 @@ class BatteryPlugin(context: Context, device: Device) : Plugin(context, device) 
      * @return the most recent packet received from the remote device. May be null
      */
 
+    val lastCharging = AtomicBoolean(false)
+    val lastCharge = AtomicInt(-1)
+    val lastThresholdEvent = AtomicInt(-1)
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     internal val receiver: BroadcastReceiver = object : BroadcastReceiver() {
         var isLowBattery = false
@@ -65,16 +73,19 @@ class BatteryPlugin(context: Context, device: Device) : Plugin(context, device) 
             val currentCharge = level * 100 / scale
             val isCharging = 0 != plugged
 
-            if (isCharging != batteryInfo.getBoolean("isCharging") || currentCharge != batteryInfo.getInt("currentCharge") || thresholdEvent != batteryInfo.getInt(
-                    "thresholdEvent"
-                )
-            ) {
-                batteryInfo["currentCharge"] = currentCharge
-                batteryInfo["isCharging"] = isCharging
-                batteryInfo["thresholdEvent"] = thresholdEvent
+            val changedCharging = lastCharging.exchange(isCharging) != isCharging
+            val changedCharge = lastCharge.exchange(currentCharge) != currentCharge
+            val changedThresholdEvent = lastThresholdEvent.exchange(thresholdEvent) != thresholdEvent
+
+            if (changedCharging || changedCharge || changedThresholdEvent) {
+                val np = NetworkPacket(PACKET_TYPE_BATTERY).update {
+                    put("currentCharge", currentCharge)
+                    put("isCharging", isCharging)
+                    put("thresholdEvent", thresholdEvent)
+                }
 
                 coroutineScope.launch {
-                    device.sendPacket(batteryInfo)
+                    device.sendPacket(np)
                 }
 
                 // We just send a possible threshold event so reset it so we not create notifications on each change

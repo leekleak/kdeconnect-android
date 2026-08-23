@@ -23,12 +23,17 @@ import androidx.annotation.WorkerThread
 import androidx.core.content.ContextCompat
 import com.klinker.android.send_message.Transaction
 import kotlinx.coroutines.launch
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.put
+import org.kde.kdeconnect.BuildConfig
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
+import org.kde.kdeconnect.generated.resources.Res
+import org.kde.kdeconnect.generated.resources.pref_plugin_telepathy
+import org.kde.kdeconnect.generated.resources.pref_plugin_telepathy_desc
 import org.kde.kdeconnect.helpers.ContactsHelper
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.PermissionRequestHelper
@@ -52,8 +57,6 @@ import org.kde.kdeconnect.plugins.sms.SMSPlugin.Companion.PACKET_TYPE_SMS_REQUES
 import org.kde.kdeconnect.plugins.sms.SmsMmsUtils.partIdToMessageAttachmentPacket
 import org.kde.kdeconnect.plugins.sms.SmsMmsUtils.sendMessage
 import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin
-import org.kde.kdeconnect.BuildConfig
-import org.kde.kdeconnect.generated.resources.*
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
@@ -199,38 +202,37 @@ class SMSPlugin(
                 throw AssertionError("This method requires at least one message")
             }
         }
-
-        val np = NetworkPacket(TelephonyPlugin.PACKET_TYPE_TELEPHONY)
-
-        np["event"] = "sms"
-
-        np["messageBody"] = buildString {
-            for (message in messages) {
-                append(message.messageBody)
-            }
-        }
-
         val phoneNumber: String = messages[0].originatingAddress ?: return
 
         if (isNumberBlocked(phoneNumber)) return
 
-        val permissionCheck: Int = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CONTACTS)
+        val np = NetworkPacket(TelephonyPlugin.PACKET_TYPE_TELEPHONY).update {
+            put("event", "sms")
 
-        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
-            val contactInfo: Map<String, String> = ContactsHelper.phoneNumberLookup(context, phoneNumber)
+            put("messageBody", buildString {
+                for (message in messages) {
+                    append(message.messageBody)
+                }
+            })
 
-            val name = contactInfo["name"]
-            if (name != null) {
-                np["contactName"] = name
+            val permissionCheck: Int =
+                ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CONTACTS)
+
+            if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+                val contactInfo: Map<String, String> =
+                    ContactsHelper.phoneNumberLookup(context, phoneNumber)
+
+                val name = contactInfo["name"]
+                if (name != null) {
+                    put("contactName", name)
+                }
+
+                val photoID = contactInfo["photoID"]
+                if (photoID != null) {
+                    put("phoneThumbnail", ContactsHelper.photoId64Encoded(context, photoID))
+                }
             }
-
-            val photoID = contactInfo["photoID"]
-            if (photoID != null) {
-                np["phoneThumbnail"] = ContactsHelper.photoId64Encoded(context, photoID)
-            }
-        }
-        if (phoneNumber != null) {
-            np["phoneNumber"] = phoneNumber
+            put("phoneNumber", phoneNumber)
         }
 
         device.sendPacket(np)
@@ -302,30 +304,31 @@ class SMSPlugin(
                 true
             }
             PACKET_TYPE_SMS_REQUEST -> {
-                val textMessage: String = np.getString("messageBody")
+                val textMessage: String = np.getString("messageBody", "")
                 val subID = np.getLong("subID", -1)
 
-                val jsonAddressList = np.getJSONArray("addresses")
+                val jsonAddressList = np.getJsonArray("addresses")
                 val addressList = if (jsonAddressList == null) {
                     // If jsonAddressList is null, then the SMS_REQUEST packet is most probably from the older version of the desktop app.
-                    listOf(SMSHelper.Address(context, np.getString("phoneNumber")))
+                    listOf(SMSHelper.Address(context, np.getString("phoneNumber", "")))
                 } else {
                     jsonArrayToAddressList(context, jsonAddressList)
                 }
-                val attachedFiles: List<SMSHelper.Attachment> = jsonArrayToAttachmentsList(np.getJSONArray("attachments"))
+                val attachedFiles: List<SMSHelper.Attachment> = jsonArrayToAttachmentsList(np.getJsonArray("attachments"))
 
                 sendMessage(context, textMessage, attachedFiles, addressList.toMutableList(), subID.toInt(), telephonySettings)
 
                 true
             }
             PACKET_TYPE_SMS_REQUEST_ATTACHMENT -> {
-                val partID: Long = np.getLong("part_id")
-                val uniqueIdentifier: String = np.getString("unique_identifier")
+                val partID = np.getLong("part_id")
+                val uniqueIdentifier = np.getString("unique_identifier")
 
-                val networkPacket: NetworkPacket? = partIdToMessageAttachmentPacket(context, partID, uniqueIdentifier, PACKET_TYPE_SMS_ATTACHMENT_FILE)
-
-                if (networkPacket != null) {
-                    device.sendPacket(networkPacket)
+                if (partID != null && uniqueIdentifier != null) {
+                    val networkPacket: NetworkPacket?= partIdToMessageAttachmentPacket(context, partID, uniqueIdentifier, PACKET_TYPE_SMS_ATTACHMENT_FILE)
+                    if (networkPacket != null) {
+                        device.sendPacket(networkPacket)
+                    }
                 }
 
                 true
@@ -356,7 +359,7 @@ class SMSPlugin(
     @WorkerThread
     private suspend fun handleRequestSingleConversation(packet: NetworkPacket): Boolean {
         haveMessagesBeenRequested = true
-        val threadID = ThreadID(packet.getLong("threadID"))
+        val threadID = ThreadID(packet.getLong("threadID", -1))
 
         val rangeStartTimestamp: Long = packet.getLong("rangeStartTimestamp", -1)
         var numberToGet: Long? = packet.getLong("numberToRequest", -1)
@@ -513,22 +516,22 @@ class SMSPlugin(
          * @return NetworkPacket of type [PACKET_TYPE_SMS_MESSAGE]
          */
         private fun constructBulkMessagePacket(messages: Iterable<SMSHelper.Message>): NetworkPacket {
-            val reply = NetworkPacket(PACKET_TYPE_SMS_MESSAGE)
+            val body = buildJsonArray {
+                for (message: SMSHelper.Message in messages) {
+                    try {
+                        val json: JsonObject = message.toJSONObject()
 
-            val body = JSONArray()
-
-            for (message: SMSHelper.Message in messages) {
-                try {
-                    val json: JSONObject = message.toJSONObject()
-
-                    body.put(json)
-                } catch (e: JSONException) {
-                    LoggerTagged.e(e) { "Error serializing message" }
+                        add(json)
+                    } catch (e: SerializationException) {
+                        LoggerTagged.e(e) { "Error serializing message" }
+                    }
                 }
             }
 
-            reply["messages"] = body
-            reply["version"] = SMS_MESSAGE_PACKET_VERSION
+            val reply = NetworkPacket(PACKET_TYPE_SMS_MESSAGE).update {
+                put("messages", body)
+                put("version", SMS_MESSAGE_PACKET_VERSION)
+            }
 
             return reply
         }

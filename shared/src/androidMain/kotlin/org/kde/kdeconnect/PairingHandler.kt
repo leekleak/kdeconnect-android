@@ -13,6 +13,7 @@ import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.put
 import org.bouncycastle.util.Arrays
 import org.jetbrains.compose.resources.StringResource
 import org.kde.kdeconnect.generated.resources.Res
@@ -63,7 +64,7 @@ class PairingHandler(
     fun packetReceived(np: NetworkPacket) {
         cancelTimer()
         val wantsPair = np.getBoolean("pair")
-        if (wantsPair) {
+        if (wantsPair == true) {
             when (state) {
                 PairState.Requested -> pairingDone()
                 PairState.RequestedByPeer -> {
@@ -167,9 +168,10 @@ class PairingHandler(
                 callback.pairingFailed(Res.string.runcommand_notreachable)
             }
         }
-        val np = NetworkPacket(NetworkPacket.PACKET_TYPE_PAIR)
-        np["pair"] = true
-        np["timestamp"] = pairingTimestamp.value
+        val np = NetworkPacket(NetworkPacket.PACKET_TYPE_PAIR).update {
+            put("pair", true)
+            put("timestamp", pairingTimestamp.value)
+        }
         device.sendPacket(np, statusCallback)
     }
 
@@ -186,16 +188,19 @@ class PairingHandler(
                 callback.pairingFailed(Res.string.error_not_reachable)
             }
         }
-        val np = NetworkPacket(NetworkPacket.PACKET_TYPE_PAIR)
-        np["pair"] = true
+        val np = NetworkPacket(NetworkPacket.PACKET_TYPE_PAIR).update {
+            put("pair", true)
+        }
+
         device.sendPacket(np, stateCallback)
     }
 
     suspend fun cancelPairing() {
         cancelTimer()
         updateState(PairState.NotPaired)
-        val np = NetworkPacket(NetworkPacket.PACKET_TYPE_PAIR)
-        np["pair"] = false
+        val np = NetworkPacket(NetworkPacket.PACKET_TYPE_PAIR).update {
+            put("pair", false)
+        }
         device.sendPacket(np)
         callback.pairingFailed(Res.string.error_canceled_by_user)
     }
@@ -215,8 +220,9 @@ class PairingHandler(
     suspend fun unpair() {
         updateState(PairState.NotPaired)
         if (device.isReachable) {
-            val np = NetworkPacket(NetworkPacket.PACKET_TYPE_PAIR)
-            np["pair"] = false
+            val np = NetworkPacket(NetworkPacket.PACKET_TYPE_PAIR).update {
+                put("pair", false)
+            }
             device.sendPacket(np)
         }
         callback.unpaired(device)

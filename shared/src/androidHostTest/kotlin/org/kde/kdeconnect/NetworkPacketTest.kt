@@ -7,42 +7,53 @@ package org.kde.kdeconnect
 
 import io.mockk.every
 import io.mockk.mockk
-import org.json.JSONException
+import kotlinx.serialization.json.put
 import org.junit.Assert
 import org.junit.Test
-import org.kde.kdeconnect.fromIdentityPacketAndCert
-import org.kde.kdeconnect.toIdentityPacket
 import org.kde.kdeconnect.NetworkPacket.Companion.unserialize
 import java.security.cert.Certificate
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 class NetworkPacketTest {
 
     @Test
-    @Throws(JSONException::class)
     fun testNetworkPacket() {
-        val np = NetworkPacket("com.test")
+        var np = NetworkPacket("com.test").update {
+            put("hello", "hola")
+        }
 
-        np["hello"] = "hola"
         Assert.assertEquals(np.getString("hello", "bye"), "hola")
 
-        np["hello"] = ""
+        np = NetworkPacket("com.test").update {
+            put("hello", "")
+        }
         Assert.assertEquals(np.getString("hello", "bye"), "")
 
         Assert.assertEquals(np.getString("hi", "bye"), "bye")
 
-        np["foo"] = "bar"
+        np = NetworkPacket("com.test").update {
+            put("foo", "bar")
+        }
         val serialized = np.serialize()
         var np2 = unserialize(serialized)
 
         Assert.assertEquals(np.getLong("id"), np2.getLong("id"))
         Assert.assertEquals(np.getString("type"), np2.getString("type"))
-        Assert.assertEquals(np.getJSONArray("body"), np2.getJSONArray("body"))
+        Assert.assertEquals(np.getJsonArray("body"), np2.getJsonArray("body"))
 
         val json = "{\"type\":\"test\",\"body\":{\"testing\":true}}"
         np2 = unserialize(json)
-        Assert.assertTrue(np2.getBoolean("testing"))
-        Assert.assertFalse(np2.getBoolean("not_testing"))
-        Assert.assertTrue(np2.getBoolean("not_testing", true))
+        Assert.assertTrue(np2.getBoolean("testing") == true)
+        Assert.assertNull(np2.getBoolean("not_testing"))
+    }
+
+    @Test
+    @OptIn(ExperimentalAtomicApi::class)
+    fun testCancellation() {
+        val np = NetworkPacket("com.test")
+        Assert.assertFalse(np.isCanceled.load())
+        np.cancel()
+        Assert.assertTrue(np.isCanceled.load())
     }
 
     @Test
@@ -53,7 +64,7 @@ class NetworkPacketTest {
 
         val np = deviceInfo.toIdentityPacket()
 
-        Assert.assertEquals(np.getInt("protocolVersion").toLong(), 12)
+        Assert.assertEquals(np.getInt("protocolVersion"), 12)
 
         val parsed = DeviceInfo.fromIdentityPacketAndCert(np, cert)
 

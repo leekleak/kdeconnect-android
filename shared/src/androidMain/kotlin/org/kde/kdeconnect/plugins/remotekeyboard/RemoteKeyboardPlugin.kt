@@ -13,6 +13,7 @@ import android.view.inputmethod.ExtractedText
 import android.view.inputmethod.ExtractedTextRequest
 import androidx.core.util.Pair
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.put
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.helpers.LoggerTagged
@@ -249,15 +250,16 @@ class RemoteKeyboardPlugin(
     }
 
     private fun handleEvent(np: NetworkPacket): Boolean {
-        if (np.has("specialKey") && isValidSpecialKey(np.getInt("specialKey"))) return handleSpecialKey(
-            np.getInt("specialKey"), np.getBoolean("shift"),
-            np.getBoolean("ctrl")
+        val specialKey = np.getInt("specialKey")
+        if (specialKey != null && isValidSpecialKey(specialKey)) return handleSpecialKey(
+            specialKey, np.getBoolean("shift", false),
+            np.getBoolean("ctrl", false)
         )
 
         // try visible key
         return handleVisibleKey(
-            np.getString("key"),
-            np.getBoolean("ctrl")
+            np.getString("key", ""),
+            np.getBoolean("ctrl", false)
         )
     }
 
@@ -297,14 +299,15 @@ class RemoteKeyboardPlugin(
             return false
         }
 
-        if (np.getBoolean("sendAck")) {
-            val reply = NetworkPacket(PACKET_TYPE_MOUSEPAD_ECHO)
-            reply["key"] = np.getString("key")
-            if (np.has("specialKey")) reply["specialKey"] = np.getInt("specialKey")
-            if (np.has("shift")) reply["shift"] = np.getBoolean("shift")
-            if (np.has("ctrl")) reply["ctrl"] = np.getBoolean("ctrl")
-            if (np.has("alt")) reply["alt"] = np.getBoolean("alt")
-            reply["isAck"] = true
+        if (np.getBoolean("sendAck") == true) {
+            val reply = NetworkPacket(PACKET_TYPE_MOUSEPAD_ECHO).update {
+                put("key", np.getString("key"))
+                if (np.has("specialKey")) put("specialKey", np.getInt("specialKey"))
+                if (np.has("shift")) put("shift", np.getBoolean("shift"))
+                if (np.has("ctrl")) put("ctrl", np.getBoolean("ctrl"))
+                if (np.has("alt")) put("alt", np.getBoolean("alt"))
+                put("isAck", true)
+            }
             device.sendPacket(reply)
         }
 
@@ -313,8 +316,9 @@ class RemoteKeyboardPlugin(
 
     suspend fun notifyKeyboardState(state: Boolean) {
         LoggerTagged.d { "Keyboardstate changed to $state" }
-        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE)
-        np["state"] = state
+        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE).update {
+            put("state", state)
+        }
         device.sendPacket(np)
     }
 

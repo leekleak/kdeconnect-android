@@ -10,15 +10,19 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import org.json.JSONException
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.put
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.generated.resources.Res
+import org.kde.kdeconnect.generated.resources.pref_plugin_systemvolume
+import org.kde.kdeconnect.generated.resources.pref_plugin_systemvolume_desc
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin.Companion.PACKET_TYPE_SYSTEMVOLUME
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin.Companion.PACKET_TYPE_SYSTEMVOLUME_REQUEST
-import org.kde.kdeconnect.generated.resources.*
 
 object SystemVolumePluginInfo : PluginInfo(
     pluginKey = "SystemVolumePlugin",
@@ -40,14 +44,14 @@ class SystemVolumePlugin(context: Context, device: Device) : Plugin(context, dev
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         if ("sinkList" in np) {
             try {
-                val sinkArray = checkNotNull(np.getJSONArray("sinkList"))
+                val sinkArray = checkNotNull(np.getJsonArray("sinkList"))
                 val newList = mutableListOf<Sink>()
-                for (i in 0..<sinkArray.length()) {
-                    val sinkObj = sinkArray.getJSONObject(i)
+                for (i in sinkArray.indices) {
+                    val sinkObj = sinkArray[i].jsonObject
                     newList.add(Sink(sinkObj))
                 }
                 _sinks.value = newList
-            } catch (e: JSONException) {
+            } catch (e: SerializationException) {
                 LoggerTagged.e(e) { "Exception" }
             }
         } else {
@@ -68,23 +72,26 @@ class SystemVolumePlugin(context: Context, device: Device) : Plugin(context, dev
     }
 
     internal suspend fun sendVolume(name: String, volume: Int) {
-        val np = NetworkPacket(PACKET_TYPE_SYSTEMVOLUME_REQUEST)
-        np["volume"] = volume
-        np["name"] = name
+        val np = NetworkPacket(PACKET_TYPE_SYSTEMVOLUME_REQUEST).update {
+            put("volume", volume)
+            put("name", name)
+        }
         device.sendPacket(np)
     }
 
     internal suspend fun sendMute(name: String, mute: Boolean) {
-        val np = NetworkPacket(PACKET_TYPE_SYSTEMVOLUME_REQUEST)
-        np["muted"] = mute
-        np["name"] = name
+        val np = NetworkPacket(PACKET_TYPE_SYSTEMVOLUME_REQUEST).update {
+            put("muted", mute)
+            put("name", name)
+        }
         device.sendPacket(np)
     }
 
     internal suspend fun sendEnable(name: String) {
-        val np = NetworkPacket(PACKET_TYPE_SYSTEMVOLUME_REQUEST)
-        np["enabled"] = true
-        np["name"] = name
+        val np = NetworkPacket(PACKET_TYPE_SYSTEMVOLUME_REQUEST).update {
+            put("enabled", true)
+            put("name", name)
+        }
         device.sendPacket(np)
     }
 

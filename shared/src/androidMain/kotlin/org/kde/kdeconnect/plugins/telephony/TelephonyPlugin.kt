@@ -18,16 +18,19 @@ import android.telephony.PhoneNumberUtils
 import android.telephony.TelephonyManager
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.put
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
+import org.kde.kdeconnect.generated.resources.Res
+import org.kde.kdeconnect.generated.resources.pref_plugin_telephony
+import org.kde.kdeconnect.generated.resources.pref_plugin_telephony_desc
 import org.kde.kdeconnect.helpers.ContactsHelper
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin.Companion.PACKET_TYPE_TELEPHONY
 import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin.Companion.PACKET_TYPE_TELEPHONY_REQUEST_MUTE
-import org.kde.kdeconnect.generated.resources.*
 import java.util.Timer
 import java.util.TimerTask
 
@@ -71,54 +74,55 @@ class TelephonyPlugin(
     private suspend fun callBroadcastReceived(state: Int, phoneNumber: String) {
         if (isNumberBlocked(phoneNumber)) return
 
-        val np = NetworkPacket(PACKET_TYPE_TELEPHONY)
+        var np = NetworkPacket(PACKET_TYPE_TELEPHONY).update { // Todo: Make val
+            val permissionCheck = ContextCompat.checkSelfPermission(context, READ_CONTACTS)
 
-        val permissionCheck = ContextCompat.checkSelfPermission(context, READ_CONTACTS)
+            if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+                val contactInfo = ContactsHelper.phoneNumberLookup(context, phoneNumber)
 
-        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
-            val contactInfo = ContactsHelper.phoneNumberLookup(context, phoneNumber)
+                contactInfo["name"]?.let { name -> put("contactName", name) }
 
-            val name = contactInfo["name"]
-            if (name != null) {
-                np["contactName"] = name
-            }
-
-            if (contactInfo.containsKey("photoID")) {
-                val photoUri = contactInfo["photoID"]
-                if (photoUri != null) {
-                    try {
-                        val base64photo = ContactsHelper.photoId64Encoded(context, photoUri)
-                        if (!base64photo.isNullOrEmpty()) {
-                            np["phoneThumbnail"] = base64photo
+                if (contactInfo.containsKey("photoID")) {
+                    val photoUri = contactInfo["photoID"]
+                    if (photoUri != null) {
+                        try {
+                            val base64photo = ContactsHelper.photoId64Encoded(context, photoUri)
+                            if (base64photo.isNotEmpty()) {
+                                put("phoneThumbnail", base64photo)
+                            }
+                        } catch (e: Exception) {
+                            LoggerTagged.e(e) { "Failed to get contact photo" }
                         }
-                    } catch (e: Exception) {
-                        LoggerTagged.e(e) { "Failed to get contact photo" }
                     }
                 }
+            } else {
+                put("contactName", phoneNumber)
             }
-        } else if (phoneNumber != null) {
-            np["contactName"] = phoneNumber
-        }
 
-        if (phoneNumber != null) {
-            np["phoneNumber"] = phoneNumber
+            put("phoneNumber", phoneNumber)
         }
-
         when (state) {
             TelephonyManager.CALL_STATE_RINGING -> {
                 unmuteRinger()
-                np["event"] = "ringing"
+                np = np.update {
+                    put("event", "ringing")
+                }
                 device.sendPacket(np)
             }
+
             TelephonyManager.CALL_STATE_OFFHOOK -> {
-                np["event"] = "talking"
+                np = np.update {
+                    put("event", "talking")
+                }
                 device.sendPacket(np)
             }
+
             TelephonyManager.CALL_STATE_IDLE -> {
                 val lastPacket = lastPacket ?: return
                 // Resend a cancel of the last event (can either be "ringing" or "talking")
-                lastPacket["isCancel"] = "true"
-                device.sendPacket(lastPacket)
+                device.sendPacket(lastPacket.update {
+                    put("isCancel", "true")
+                })
 
                 if (isMuted) {
                     val timer = Timer()
@@ -131,14 +135,16 @@ class TelephonyPlugin(
 
                 // Emit a missed call notification if needed
                 if ("ringing" == lastPacket.getString("event")) {
-                    np["event"] = "missedCall"
-                    val phoneNumber = lastPacket.getStringOrNull("phoneNumber")
-                    if (phoneNumber != null) {
-                        np["phoneNumber"] = phoneNumber
-                    }
-                    val contactName = lastPacket.getStringOrNull("contactName")
-                    if (contactName != null) {
-                        np["contactName"] = contactName
+                    np = np.update {
+                        put("event", "missedCall")
+                        val phoneNumber = lastPacket.getString("phoneNumber")
+                        if (phoneNumber != null) {
+                            put("phoneNumber", phoneNumber)
+                        }
+                        val contactName = lastPacket.getString("contactName")
+                        if (contactName != null) {
+                            put("contactName", contactName)
+                        }
                     }
                     device.sendPacket(np)
                 }

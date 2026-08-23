@@ -10,6 +10,11 @@ import android.os.Build
 import android.provider.Settings
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.generated.resources.Res
+import org.kde.kdeconnect.generated.resources.mouse_receiver_no_permissions
+import org.kde.kdeconnect.generated.resources.mouse_receiver_plugin_description
+import org.kde.kdeconnect.generated.resources.mouse_receiver_plugin_name
+import org.kde.kdeconnect.generated.resources.open_settings
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.plugins.Plugin
@@ -17,7 +22,6 @@ import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_REQUEST
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPlugin
 import org.kde.kdeconnect.ui.PermissionRequest
-import org.kde.kdeconnect.generated.resources.*
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -43,8 +47,8 @@ class MouseReceiverPlugin(
             return true
         }
 
-        val dx = np.getDouble("dx", 0.toDouble()).let { if (it < 0) floor(it) else ceil(it) }.toInt()
-        val dy = np.getDouble("dy", 0.toDouble()).let { if (it < 0) floor(it) else ceil(it) }.toInt()
+        val dx = np.getDouble("dx", 0.0).let { if (it < 0) floor(it) else ceil(it) }.toInt()
+        val dy = np.getDouble("dy", 0.0).let { if (it < 0) floor(it) else ceil(it) }.toInt()
         val x = np.getInt("x", 0)
         val y = np.getInt("y", 0)
 

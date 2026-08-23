@@ -19,16 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath("org.ow2.asm:asm-util:9.6")
-    }
-}
-
 rootProject.name = "kdeconnect-android"
 include(":app")
 include(":shared")

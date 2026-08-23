@@ -18,6 +18,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.scale
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.put
 import org.kde.kdeconnect.BuildConfig
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
@@ -36,8 +37,9 @@ class ReceiveNotificationsPlugin(context: Context, device: Device) : Plugin(cont
     override fun onCreate(): Boolean {
         // request all existing notifications
         coroutineScope.launch {
-            val np = NetworkPacket(PACKET_TYPE_NOTIFICATION_REQUEST)
-            np["request"] = true
+            val np = NetworkPacket(PACKET_TYPE_NOTIFICATION_REQUEST).update {
+                put("request", true)
+            }
             device.sendPacket(np)
         }
         return true
@@ -91,8 +93,8 @@ class ReceiveNotificationsPlugin(context: Context, device: Device) : Plugin(cont
                 .build()
 
         val id = np.getString("id")
-        val intId = try { id.toInt() } catch (e: NumberFormatException) { 0 }
-        notificationManager.notify("kdeconnectId:${id}", intId, noti)
+        val intId = id?.toInt()
+        intId?.let { notificationManager.notify("kdeconnectId:${id}", it, noti) }
 
         return true
     }

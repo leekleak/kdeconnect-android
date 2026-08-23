@@ -16,8 +16,16 @@ import androidx.core.content.ContextCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.put
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.generated.resources.Res
+import org.kde.kdeconnect.generated.resources.assignment
+import org.kde.kdeconnect.generated.resources.clipboard
+import org.kde.kdeconnect.generated.resources.pref_plugin_clipboard
+import org.kde.kdeconnect.generated.resources.pref_plugin_clipboard_desc
+import org.kde.kdeconnect.generated.resources.pref_plugin_clipboard_sent
+import org.kde.kdeconnect.generated.resources.send_clipboard
 import org.kde.kdeconnect.plugins.ButtonCategory
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
@@ -25,7 +33,6 @@ import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.clipboard.ClipboardListener.ClipboardObserver
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin.Companion.PACKET_TYPE_CLIPBOARD
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin.Companion.PACKET_TYPE_CLIPBOARD_CONNECT
-import org.kde.kdeconnect.generated.resources.*
 
 class ClipboardPlugin(context: Context, device: Device) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = ClipboardPluginInfo
@@ -38,7 +45,7 @@ class ClipboardPlugin(context: Context, device: Device) : Plugin(context, device
                 return true
             }
             (PACKET_TYPE_CLIPBOARD_CONNECT) -> {
-                val packetTime = np.getLong("timestamp")
+                val packetTime = np.getLong("timestamp", 0)
                 // If the packetTime is 0, it means the timestamp is unknown (so do nothing).
                 if (packetTime == 0L || packetTime < ClipboardListener.instance(context).updateTimestamp) {
                     return false
@@ -62,17 +69,21 @@ class ClipboardPlugin(context: Context, device: Device) : Plugin(context, device
 
     @VisibleForTesting
     suspend fun propagateClipboard(content: String) {
-        val np = NetworkPacket(PACKET_TYPE_CLIPBOARD)
-        np["content"] = content
+        val np = NetworkPacket(PACKET_TYPE_CLIPBOARD).update {
+            put("content", content)
+        }
+
         device.sendPacket(np)
     }
 
     private suspend fun sendConnectPacket() {
         val content = ClipboardListener.instance(context).currentContent ?: return // Send clipboard only if it had been initialized
-        val np = NetworkPacket(PACKET_TYPE_CLIPBOARD_CONNECT)
         val timestamp = ClipboardListener.instance(context).updateTimestamp
-        np["timestamp"] = timestamp
-        np["content"] = content
+        val np = NetworkPacket(PACKET_TYPE_CLIPBOARD_CONNECT).update {
+            put("timestamp", timestamp)
+            put("content", content)
+        }
+
         device.sendPacket(np)
     }
 

@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.put
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.MousePadSettingsDataStore
@@ -240,40 +241,40 @@ class MousePadViewModel(
             return false
         }
 
-        val np = NetworkPacket(MousePadPlugin.PACKET_TYPE_MOUSEPAD_REQUEST)
+        val np = NetworkPacket(MousePadPlugin.PACKET_TYPE_MOUSEPAD_REQUEST).update {
+            var modifier = false
+            if (event.isAltPressed) {
+                put("alt", true)
+                modifier = true
+            }
 
-        var modifier = false
-        if (event.isAltPressed) {
-            np["alt"] = true
-            modifier = true
-        }
+            if (event.isCtrlPressed) {
+                put("ctrl", true)
+                modifier = true
+            }
 
-        if (event.isCtrlPressed) {
-            np["ctrl"] = true
-            modifier = true
-        }
+            if (event.isShiftPressed) {
+                put("shift", true)
+            }
 
-        if (event.isShiftPressed) {
-            np["shift"] = true
-        }
+            if (event.isMetaPressed) {
+                put("super", true)
+                modifier = true
+            }
 
-        if (event.isMetaPressed) {
-            np["super"] = true
-            modifier = true
-        }
+            val specialKey = SPECIAL_KEY_ENCODING_MAP[event.keyCode] ?: -1
 
-        val specialKey = SPECIAL_KEY_ENCODING_MAP[event.keyCode] ?: -1
-
-        if (specialKey != -1) {
-            np["specialKey"] = specialKey
-        } else if (event.displayLabel.code != 0 && modifier) {
-            //Alt will change the utf symbol to non-ascii characters, we want the plain original letter
-            //Since getDisplayLabel will always have a value, we have to check for special keys before
-            val keyCharacter = event.displayLabel
-            np["key"] = keyCharacter.toString().lowercase()
-        } else {
-            //A normal key, but still not handled by the KeyInputConnection (happens with numbers)
-            np["key"] = event.unicodeChar.toChar().toString()
+            if (specialKey != -1) {
+                put("specialKey", specialKey)
+            } else if (event.displayLabel.code != 0 && modifier) {
+                //Alt will change the utf symbol to non-ascii characters, we want the plain original letter
+                //Since getDisplayLabel will always have a value, we have to check for special keys before
+                val keyCharacter = event.displayLabel
+                put("key", keyCharacter.toString().lowercase())
+            } else {
+                //A normal key, but still not handled by the KeyInputConnection (happens with numbers)
+                put("key", event.unicodeChar.toChar().toString())
+            }
         }
         viewModelScope.launch {
             pluginFlow.value?.sendPacket(np)

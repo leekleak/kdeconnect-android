@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.put
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
@@ -39,10 +40,6 @@ class RunCommandPlugin(
 
     override val pluginInfo: RunCommandPluginInfo = RunCommandPluginInfo
 
-    fun interface CommandsChangedCallback {
-        fun update()
-    }
-
     var commandRunning: MutableState<Boolean> = mutableStateOf(false)
 
     override fun onCreate(): Boolean {
@@ -54,7 +51,7 @@ class RunCommandPlugin(
         if (np.has("commandList")) {
             _commandList.value = ArrayList()
             try {
-                val parsedCommands = RunCommand.fromPacket(np.getString("commandList"))
+                val parsedCommands = RunCommand.fromPacket(np.getRawString("commandList"))
                 _commandList.value = parsedCommands.sortedBy { it.name }
 
                 // Used only by RunCommandControlsProviderService to display controls correctly even when device is not available
@@ -109,15 +106,17 @@ class RunCommandPlugin(
 
     suspend fun runCommand(cmdKey: String) {
         LoggerTagged.d { "Sending $cmdKey" }
-        val np = NetworkPacket(PACKET_TYPE_RUNCOMMAND_REQUEST)
-        np["key"] = cmdKey
+        val np = NetworkPacket(PACKET_TYPE_RUNCOMMAND_REQUEST).update {
+            put("key", cmdKey)
+        }
         device.sendPacket(np)
         commandRunning.value = true
     }
 
     private suspend fun requestCommandList() {
-        val np = NetworkPacket(PACKET_TYPE_RUNCOMMAND_REQUEST)
-        np["requestCommandList"] = true
+        val np = NetworkPacket(PACKET_TYPE_RUNCOMMAND_REQUEST).update {
+            put("requestCommandList", true)
+        }
         device.sendPacket(np)
     }
 
@@ -126,14 +125,16 @@ class RunCommandPlugin(
     }
 
     suspend fun sendSetupPacket() {
-        val np = NetworkPacket(PACKET_TYPE_RUNCOMMAND_REQUEST)
-        np["setup"] = true
+        val np = NetworkPacket(PACKET_TYPE_RUNCOMMAND_REQUEST).update {
+            put("setup", true)
+        }
         device.sendPacket(np)
     }
 
     suspend fun sendStop() {
-        val np = NetworkPacket(PACKET_TYPE_RUNCOMMAND_REQUEST)
-        np["stop"] = true
+        val np = NetworkPacket(PACKET_TYPE_RUNCOMMAND_REQUEST).update {
+            put("stop", true)
+        }
         device.sendPacket(np)
     }
 

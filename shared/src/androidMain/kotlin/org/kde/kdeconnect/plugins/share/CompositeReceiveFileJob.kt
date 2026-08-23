@@ -124,7 +124,7 @@ class CompositeReceiveFileJob(
             networkPacketList.add(networkPacket)
 
             totalNumFiles.store(networkPacket.getInt(SharePlugin.KEY_NUMBER_OF_FILES, 1))
-            totalPayloadSize.store(networkPacket.getLong(SharePlugin.KEY_TOTAL_PAYLOAD_SIZE))
+            totalPayloadSize.store(networkPacket.getLong(SharePlugin.KEY_TOTAL_PAYLOAD_SIZE, -1))
 
             receiveNotification.setTitle(
                 runBlocking {
@@ -193,9 +193,9 @@ class CompositeReceiveFileJob(
                     publishFile(fileDocument, 0)
                 }
 
-                if (networkPacket.has("lastModified")) {
+                val lastModified = networkPacket.getLong("lastModified")
+                if (lastModified != null) {
                     try {
-                        val lastModified = networkPacket.getLong("lastModified")
                         withContext(Dispatchers.IO) {
                             Files.setLastModifiedTime(
                                 Paths.get(fileDocument.uri.path),

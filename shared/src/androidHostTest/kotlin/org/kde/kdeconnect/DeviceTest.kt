@@ -20,15 +20,13 @@ import io.mockk.unmockkObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.put
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.kde.kdeconnect.DeviceInfo.Companion.isValidDeviceId
-import org.kde.kdeconnect.fromIdentityPacketAndCert
-import org.kde.kdeconnect.isValidIdentityPacket
-import org.kde.kdeconnect.toIdentityPacket
 import org.kde.kdeconnect.DeviceType.Companion.fromString
 import org.kde.kdeconnect.backends.lan.LanLink
 import org.kde.kdeconnect.backends.lan.LanLinkProvider
@@ -147,7 +145,7 @@ class DeviceTest {
         val networkPacket = deviceInfo.toIdentityPacket()
         Assert.assertEquals(deviceInfo.id, networkPacket.getString("deviceId"))
         Assert.assertEquals(deviceInfo.name, networkPacket.getString("deviceName"))
-        Assert.assertEquals(deviceInfo.protocolVersion.toLong(), networkPacket.getInt("protocolVersion").toLong())
+        Assert.assertEquals(deviceInfo.protocolVersion.toLong(), networkPacket.getInt("protocolVersion")?.toLong())
         Assert.assertEquals(deviceInfo.type.toString(), networkPacket.getString("deviceType"))
         Assert.assertEquals(deviceInfo.incomingCapabilities, networkPacket.getStringSet("incomingCapabilities"))
         Assert.assertEquals(deviceInfo.outgoingCapabilities, networkPacket.getStringSet("outgoingCapabilities"))
@@ -170,22 +168,31 @@ class DeviceTest {
 
     @Test
     fun testIsValidIdentityPacket() {
-        val np = NetworkPacket(NetworkPacket.PACKET_TYPE_IDENTITY)
+        var np = NetworkPacket(NetworkPacket.PACKET_TYPE_IDENTITY)
         Assert.assertFalse(DeviceInfo.isValidIdentityPacket(np))
 
         val validName = "MyDevice"
         val validId = "27456e3c_fe5c_4208_96a7_c0caeec5e5a0"
-        np["deviceName"] = validName
-        np["deviceId"] = validId
+        np = np.update {
+            put("deviceName", validName)
+            put("deviceId", validId)
+        }
+
         Assert.assertTrue(DeviceInfo.isValidIdentityPacket(np))
 
-        np["deviceName"] = "    "
+        np = np.update {
+            put("deviceName", "    ")
+        }
         Assert.assertFalse(DeviceInfo.isValidIdentityPacket(np))
-        np["deviceName"] = "<><><><><><><><><>" // Only invalid characters
+        np = np.update {
+            put("deviceName", "<><><><><><><><><>") // Only invalid characters
+        }
         Assert.assertFalse(DeviceInfo.isValidIdentityPacket(np))
 
-        np["deviceName"] = validName
-        np["deviceId"] = "    "
+        np = np.update {
+            put("deviceName", validName)
+            put("deviceId", "    ")
+        }
         Assert.assertFalse(DeviceInfo.isValidIdentityPacket(np))
     }
 
@@ -215,12 +222,14 @@ class DeviceTest {
     @Test
     @Throws(CertificateException::class)
     fun testPairingDone() {
-        val fakeNetworkPacket = NetworkPacket(NetworkPacket.PACKET_TYPE_IDENTITY)
         val deviceId = "unpairedTestDevice"
-        fakeNetworkPacket["deviceId"] = deviceId
-        fakeNetworkPacket["deviceName"] = "Unpaired Test Device"
-        fakeNetworkPacket["protocolVersion"] = DeviceHelper.PROTOCOL_VERSION
-        fakeNetworkPacket["deviceType"] = DeviceType.PHONE.toString()
+        val fakeNetworkPacket = NetworkPacket(NetworkPacket.PACKET_TYPE_IDENTITY).update {
+            put("deviceId", deviceId)
+            put("deviceName", "Unpaired Test Device")
+            put("protocolVersion", DeviceHelper.PROTOCOL_VERSION)
+            put("deviceType", DeviceType.PHONE.toString())
+        }
+
         val certificateString = """
             MIIDVzCCAj+gAwIBAgIBCjANBgkqhkiG9w0BAQUFADBVMS8wLQYDVQQDDCZfZGExNzlhOTFfZjA2
             NF80NzhlX2JlOGNfMTkzNWQ3NTQ0ZDU0XzEMMAoGA1UECgwDS0RFMRQwEgYDVQQLDAtLZGUgY29u

@@ -12,6 +12,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.put
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
@@ -245,10 +246,11 @@ class BatteryPluginTest {
 
     @Test
     fun processIncomingBatteryInfoPacket() {
-        val packet = NetworkPacket("kdeconnect.battery")
-        packet["currentCharge"] = 75
-        packet["isCharging"] = true
-        packet["thresholdEvent"] = 0
+        val packet = NetworkPacket("kdeconnect.battery").update {
+            put("currentCharge", 75)
+            put("isCharging", true)
+            put("thresholdEvent", 0)
+        }
 
         val batteryInfoSlot = slot<DeviceBatteryInfo>()
         every { device.updateBatteryInfo(capture(batteryInfoSlot)) } returns Unit

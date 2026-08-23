@@ -11,6 +11,7 @@ import io.mockk.mockkObject
 import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.put
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
@@ -60,8 +61,8 @@ class ClipboardPluginTest {
     @Test
     fun testReceiveAndApplyClipboardUpdate() = runBlocking {
         val content = "Gr5hDjL68YQKfH6pez7n59Dm6"
-        val packet = NetworkPacket("kdeconnect.clipboard").apply {
-            set("content", content)
+        val packet = NetworkPacket("kdeconnect.clipboard").update {
+            put("content", content)
         }
 
         Assert.assertTrue(clipboardPlugin.onPacketReceived(packet))
@@ -74,9 +75,9 @@ class ClipboardPluginTest {
     fun testReceiveAndDiscardClipboardUpdateTimestampZero() = runBlocking {
         val content = "DLWq7RvblSa6zFPrwLjs9JAdA"
         val timestamp = System.currentTimeMillis()
-        val packet = NetworkPacket("kdeconnect.clipboard.connect").apply {
-            set("content", content)
-            set("timestamp", timestamp)
+        val packet = NetworkPacket("kdeconnect.clipboard.connect").update {
+            put("content", content)
+            put("timestamp", timestamp)
         }
 
         every { clipboardListener.updateTimestamp } returns 0L // Existing timestamp is invalid
@@ -91,9 +92,9 @@ class ClipboardPluginTest {
     fun testReceiveAndDiscardClipboardUpdateTimestampOld() = runBlocking {
         val content = "2aZB2x22brdYSubSPPDr864LW"
         val timestamp = System.currentTimeMillis() - 1000 // Simulating an older timestamp
-        val packet = NetworkPacket("kdeconnect.clipboard.connect").apply {
-            set("content", content)
-            set("timestamp", timestamp)
+        val packet = NetworkPacket("kdeconnect.clipboard.connect").update {
+            put("content", content)
+            put("timestamp", timestamp)
         }
 
         every { clipboardListener.updateTimestamp } returns timestamp + 1000
@@ -124,7 +125,7 @@ class ClipboardPluginTest {
         coVerify(timeout = 1000) { device.sendPacket(any()) }
         val sentPacket = checkNotNull(packet)
         Assert.assertEquals("kdeconnect.clipboard.connect", sentPacket.type)
-        Assert.assertEquals(0, sentPacket.getLong("timestamp"))
+        Assert.assertEquals(0L, sentPacket.getLong("timestamp"))
         Assert.assertEquals(content, sentPacket.getString("content"))
     }
 

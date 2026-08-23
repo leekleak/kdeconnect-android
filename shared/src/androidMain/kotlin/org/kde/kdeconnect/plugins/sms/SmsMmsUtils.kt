@@ -36,6 +36,7 @@ import com.klinker.android.send_message.Message
 import com.klinker.android.send_message.Settings
 import com.klinker.android.send_message.Transaction
 import com.klinker.android.send_message.Utils
+import kotlinx.serialization.json.put
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 import org.kde.kdeconnect.helpers.LoggerTagged
@@ -449,8 +450,9 @@ object SmsMmsUtils {
         try {
             val inputStream: InputStream = ByteArrayInputStream(attachment)
 
-            val np = NetworkPacket(type)
-            np["filename"] = filename
+            val np = NetworkPacket(type).update {
+                put("filename", filename)
+            }
             np.payload = NetworkPacket.Payload(inputStream, size)
             return np
         } catch (e: Exception) {

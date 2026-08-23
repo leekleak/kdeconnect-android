@@ -18,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.put
 import org.jetbrains.compose.resources.getString
 import org.json.JSONArray
 import org.json.JSONException
@@ -40,6 +41,7 @@ import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.sftp.SftpPlugin.Companion.PACKET_TYPE_SFTP
 import org.kde.kdeconnect.plugins.sftp.SftpPlugin.Companion.PACKET_TYPE_SFTP_REQUEST
 import org.kde.kdeconnect.plugins.sftp.SftpPlugin.StorageInfo
+import org.kde.kdeconnect.toJsonArray
 import org.kde.kdeconnect.ui.PermissionRequest
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -61,8 +63,8 @@ class SftpPlugin(
 
                 server.stop()
 
-                val np = NetworkPacket(PACKET_TYPE_SFTP_REQUEST).apply {
-                    this["startBrowsing"] = true
+                val np = NetworkPacket(PACKET_TYPE_SFTP_REQUEST).update {
+                    put("startBrowsing", true)
                 }
                 onPacketReceived(np)
             }
@@ -78,12 +80,13 @@ class SftpPlugin(
     }
 
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
-        if (!np.getBoolean("startBrowsing")) return false
+        if (np.getBoolean("startBrowsing") != true) return false
 
         if (!pluginInfo.checkRequiredPermissions(context)) {
             pluginInfo.showPermissionExplanation(context, permissionRequestHelper)
-            val noPermissionsPacket = NetworkPacket(PACKET_TYPE_SFTP).apply {
-                this["errorMessage"] = getString(Res.string.sftp_missing_permission_error)
+            val errorMessage = getString(Res.string.sftp_missing_permission_error)
+            val noPermissionsPacket = NetworkPacket(PACKET_TYPE_SFTP).update {
+                put("errorMessage", errorMessage)
             }
             device.sendPacket(noPermissionsPacket)
             return true
@@ -108,8 +111,9 @@ class SftpPlugin(
             val storageInfoList = pluginInfo.getStorageInfoList()
             storageInfoList.sortBy { it.uri }
             if (storageInfoList.isEmpty()) {
-                device.sendPacket(NetworkPacket(PACKET_TYPE_SFTP).apply {
-                    this["errorMessage"] = getString(Res.string.sftp_no_storage_locations_configured)
+                val errorMessage = getString(Res.string.sftp_no_storage_locations_configured)
+                device.sendPacket(NetworkPacket(PACKET_TYPE_SFTP).update {
+                    put("errorMessage", errorMessage)
                 })
                 return true
             }
@@ -122,16 +126,16 @@ class SftpPlugin(
             return false
         }
 
-        device.sendPacket(NetworkPacket(PACKET_TYPE_SFTP).apply {
-            this["ip"] = getLocalIpAddress()!!.hostAddress
-            this["port"] = server.port
-            this["user"] = SimpleSftpServer.USER
-            this["password"] = server.regeneratePassword()
+        device.sendPacket(NetworkPacket(PACKET_TYPE_SFTP).update {
+            put("ip", getLocalIpAddress()!!.hostAddress)
+            put("port", server.port)
+            put("user", SimpleSftpServer.USER)
+            put("password", server.regeneratePassword())
             // Kept for compatibility, in case "multiPaths" is not possible or the other end does not support it
-            this["path"] = if (paths.size == 1) paths[0] else "/"
+            put("path", if (paths.size == 1) paths[0] else "/")
             if (paths.isNotEmpty()) {
-                this["multiPaths"] = paths
-                this["pathNames"] = pathNames
+                put("multiPaths", paths.toJsonArray())
+                put("pathNames", pathNames.toJsonArray())
             }
         })
 

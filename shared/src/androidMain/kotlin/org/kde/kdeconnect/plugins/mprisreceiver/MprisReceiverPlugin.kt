@@ -14,12 +14,14 @@ import android.os.Handler
 import android.os.Looper
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.put
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.helpers.AppsHelper.appNameLookup
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.notifications.NotificationReceiver
+import org.kde.kdeconnect.toJsonArray
 import java.util.concurrent.ConcurrentHashMap
 
 class MprisReceiverPlugin(context: Context, device: Device) : Plugin(context, device) {
@@ -78,7 +80,7 @@ class MprisReceiverPlugin(context: Context, device: Device) : Plugin(context, de
     }
 
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
-        if (np.getBoolean("requestPlayerList")) {
+        if (np.getBoolean("requestPlayerList") == true) {
             sendPlayerList()
             return true
         }
@@ -159,9 +161,10 @@ class MprisReceiverPlugin(context: Context, device: Device) : Plugin(context, de
     }
 
     private suspend fun sendPlayerList() {
-        val np = NetworkPacket(PACKET_TYPE_MPRIS)
-        np["playerList"] = players.keys
-        np["supportAlbumArtPayload"] = true
+        val np = NetworkPacket(PACKET_TYPE_MPRIS).update {
+            put("playerList", players.keys.toJsonArray())
+            put("supportAlbumArtPayload", true)
+        }
         device.sendPacket(np)
     }
 
@@ -186,31 +189,34 @@ class MprisReceiverPlugin(context: Context, device: Device) : Plugin(context, de
             LoggerTagged.w { "sendAlbumArt: Failed to get art stream" }
             return
         }
-        val np = NetworkPacket(PACKET_TYPE_MPRIS)
+        val np = NetworkPacket(PACKET_TYPE_MPRIS).update {
+            put("player", playerName)
+            put("transferringAlbumArt", true)
+            put("albumArtUrl", artUrl)
+        }
         np.payload = NetworkPacket.Payload(p)
-        np["player"] = playerName
-        np["transferringAlbumArt"] = true
-        np["albumArtUrl"] = artUrl
+
         device.sendPacket(np)
     }
 
     suspend fun sendMetadata(player: MprisReceiverPlayer) {
-        val np = NetworkPacket(PACKET_TYPE_MPRIS)
-        np["player"] = player.name
-        np["title"] = player.title
-        np["artist"] = player.artist
-        np["nowPlaying"] = "${player.artist} - ${player.title}" // GSConnect 50 (so, Ubuntu 22.04) needs this
-        np["album"] = player.album
-        np["isPlaying"] = player.isPlaying()
-        np["pos"] = player.position
-        np["length"] = player.length
-        np["canPlay"] = player.canPlay()
-        np["canPause"] = player.canPause()
-        np["canGoPrevious"] = player.canGoPrevious()
-        np["canGoNext"] = player.canGoNext()
-        np["canSeek"] = player.canSeek()
-        np["volume"] = player.volume
-        playerCbs[player.name]?.artUrl?.let { np["albumArtUrl"] = it } ?: run { np["albumArtUrl"] = "" }
+        val np = NetworkPacket(PACKET_TYPE_MPRIS).update {
+            put("player", player.name)
+            put("title", player.title)
+            put("artist", player.artist)
+            put("nowPlaying", "${player.artist} - ${player.title}") // GSConnect 50 (so, Ubuntu 22.04) needs this
+            put("album", player.album)
+            put("isPlaying", player.isPlaying())
+            put("pos", player.position)
+            put("length", player.length)
+            put("canPlay", player.canPlay())
+            put("canPause", player.canPause())
+            put("canGoPrevious", player.canGoPrevious())
+            put("canGoNext", player.canGoNext())
+            put("canSeek", player.canSeek())
+            put("volume", player.volume)
+            put("albumArtUrl", playerCbs[player.name]?.artUrl ?: "")
+        }
         device.sendPacket(np)
     }
 

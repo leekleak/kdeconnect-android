@@ -9,13 +9,16 @@ import android.content.Context
 import android.hardware.display.DisplayManager
 import android.util.DisplayMetrics
 import android.view.Display
+import kotlinx.serialization.json.put
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.generated.resources.Res
+import org.kde.kdeconnect.generated.resources.pref_plugin_inputdevicesreceiver
+import org.kde.kdeconnect.generated.resources.pref_plugin_inputdevicesreceiver_desc
 import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.mousereceiver.MouseReceiverPlugin
-import org.kde.kdeconnect.generated.resources.*
 
 class InputDevicesReceiverPlugin(
     context: Context,
@@ -62,10 +65,12 @@ class InputDevicesReceiverPlugin(
     }
 
     private suspend fun release(dx: Int, dy: Int) {
-        val np = NetworkPacket(PACKET_TYPE_SHAREINPUTDEVICES)
+        val np = NetworkPacket(PACKET_TYPE_SHAREINPUTDEVICES).update {
+            put("releaseDeltax", dx)
+            put("releaseDeltay", dy)
+        }
 
-        np["releaseDeltax"] = dx
-        np["releaseDeltay"] = dy
+
 
         device.sendPacket(np)
         Cursor.enterEdge = NONE_EDGE
@@ -88,30 +93,31 @@ class InputDevicesReceiverPlugin(
         }
 
         if (np.type == PACKET_TYPE_SHAREINPUTDEVICES_REQUEST) {
-            Cursor.enterEdge = np.getInt("exitEdge")
+            Cursor.enterEdge = np.getInt("exitEdge", -1)
             val dx = np.getInt("deltax")
             val dy = np.getInt("deltay")
 
-            val packet = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-
-            when (Cursor.enterEdge) {
-                TOP_EDGE -> {
-                    packet["x"] = dx
-                    packet["y"] = 1
-                }
-                LEFT_EDGE -> {
-                    packet["x"] = 1
-                    packet["y"] = dy
-                }
-                RIGHT_EDGE -> {
-                    packet["x"] = metrics.widthPixels - 1
-                    packet["y"] = dy
-                }
-                BOTTOM_EDGE -> {
-                    packet["x"] = dx
-                    packet["y"] = metrics.heightPixels - 1
+            val packet = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST).update {
+                when (Cursor.enterEdge) {
+                    TOP_EDGE -> {
+                        put("x", dx)
+                        put("y", 1)
+                    }
+                    LEFT_EDGE -> {
+                        put("x", 1)
+                        put("y", dy)
+                    }
+                    RIGHT_EDGE -> {
+                        put("x", metrics.widthPixels - 1)
+                        put("y", dy)
+                    }
+                    BOTTOM_EDGE -> {
+                        put("x", dx)
+                        put("y", metrics.heightPixels - 1)
+                    }
                 }
             }
+
             mouseReceiverPlugin.onPacketReceived(packet)
         } else if (np.type == PACKET_TYPE_MOUSEPAD_REQUEST && np.has("dx") && Cursor.enterEdge != NONE_EDGE) {
             when (Cursor.enterEdge) {

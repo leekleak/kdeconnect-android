@@ -7,9 +7,17 @@ package org.kde.kdeconnect.plugins.mousepad
 
 import android.content.Context
 import android.view.KeyEvent
+import kotlinx.serialization.json.put
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.generated.resources.Res
+import org.kde.kdeconnect.generated.resources.open_mousepad
+import org.kde.kdeconnect.generated.resources.open_mousepad_tv
+import org.kde.kdeconnect.generated.resources.pref_plugin_mousepad
+import org.kde.kdeconnect.generated.resources.pref_plugin_mousepad_desc_nontv
+import org.kde.kdeconnect.generated.resources.trackpad_input_2
+import org.kde.kdeconnect.generated.resources.tv_remote
 import org.kde.kdeconnect.helpers.SPECIAL_KEY_ENCODING_MAP
 import org.kde.kdeconnect.plugins.ButtonCategory
 import org.kde.kdeconnect.plugins.Plugin
@@ -19,7 +27,6 @@ import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_
 import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_REQUEST
 import org.kde.kdeconnect.ui.navigation.BigscreenKey
 import org.kde.kdeconnect.ui.navigation.MousePadKey
-import org.kde.kdeconnect.generated.resources.*
 
 class MousePadPlugin(
     context: Context,
@@ -36,102 +43,118 @@ class MousePadPlugin(
     }
 
     suspend fun sendMouseDelta(dx: Float, dy: Float) {
-        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["dx"] = dx.toDouble()
-        np["dy"] = dy.toDouble()
+        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST).update {
+            put("dx", dx.toDouble())
+            put("dy", dy.toDouble())
+        }
         sendPacket(np)
     }
 
     suspend fun sendLeftClick() {
-        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["singleclick"] = true
+        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST).update {
+            put("singleclick", true)
+        }
         sendPacket(np)
     }
 
     suspend fun sendDoubleClick() {
-        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["doubleclick"] = true
+        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST).update {
+            put("doubleclick", true)
+        }
         sendPacket(np)
     }
 
     suspend fun sendMiddleClick() {
-        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["middleclick"] = true
+        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST).update {
+            put("middleclick", true)
+        }
         sendPacket(np)
     }
 
     suspend fun sendRightClick() {
-        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["rightclick"] = true
+        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST).update {
+            put("rightclick", true)
+        }
         sendPacket(np)
     }
 
     suspend fun sendSingleHold() {
-        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["singlehold"] = true
+        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST).update {
+            put("singlehold", true)
+        }
         sendPacket(np)
     }
 
     suspend fun sendSingleRelease() {
-        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["singlerelease"] = true
+        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST).update {
+            put("singlerelease", true)
+        }
         sendPacket(np)
     }
 
     suspend fun sendScroll(dx: Double, dy: Double) {
-        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["scroll"] = true
-        np["dx"] = dx
-        np["dy"] = dy
+        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST).update {
+            put("scroll", true)
+            put("dx", dx)
+            put("dy", dy)
+        }
         sendPacket(np)
     }
 
     suspend fun sendLeft() {
-        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_DPAD_LEFT]!!
+        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST).update {
+            put("specialKey", SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_DPAD_LEFT])
+        }
         sendPacket(np)
     }
 
     suspend fun sendRight() {
-        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_DPAD_RIGHT]!!
+        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST).update {
+            put("specialKey", SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_DPAD_RIGHT])
+        }
         sendPacket(np)
     }
 
     suspend fun sendUp() {
-        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_DPAD_UP]!!
+        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST).update {
+            put("specialKey", SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_DPAD_UP])
+        }
         sendPacket(np)
     }
 
     suspend fun sendDown() {
-        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_DPAD_DOWN]!!
+        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST).update {
+            put("specialKey", SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_DPAD_DOWN])
+        }
         sendPacket(np)
     }
 
     suspend fun sendSelect() {
-        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_ENTER]!!
+        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST).update {
+            put("specialKey", SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_ENTER])
+        }
         sendPacket(np)
     }
 
     suspend fun sendHome() {
-        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["alt"] = true
-        np["specialKey"] = SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_F4]!!
+        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST).update {
+            put("alt", true)
+            put("specialKey", SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_F4])
+        }
         device.sendPacket(np)
     }
 
     suspend fun sendBack() {
-        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_ESCAPE]!!
+        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST).update {
+            put("specialKey", SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_ESCAPE])
+        }
         device.sendPacket(np)
     }
 
     suspend fun sendText(content: String) {
-        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["key"] = content
+        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST).update {
+            put("key", content)
+        }
         sendPacket(np)
     }
 

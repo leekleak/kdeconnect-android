@@ -18,6 +18,7 @@ import android.net.Network
 import android.os.Parcelable
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.put
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.NetworkPacket
@@ -58,7 +59,7 @@ class BluetoothLinkProvider(
 
     @Throws(CertificateException::class)
     private suspend fun addLink(identityPacket: NetworkPacket, link: BluetoothLink) {
-        val deviceId = identityPacket.getString("deviceId")
+        val deviceId = identityPacket.getString("deviceId") ?: return
         LoggerTagged.i { "addLink to $deviceId" }
         val oldLink = visibleDevices[deviceId]
         if (oldLink == link) {
@@ -189,11 +190,13 @@ class BluetoothLinkProvider(
                     val inputStream = connection.defaultInputStream
 
                     val myDeviceInfo = deviceHelper.getDeviceInfo()
-                    val np = myDeviceInfo.toIdentityPacket()
+
                     val myCertificate = Base64.Mime.encode(sslHelper.certificate.encoded, 0)
                     val pemEncodedCertificate = "-----BEGIN CERTIFICATE-----\n$myCertificate\n-----END CERTIFICATE-----\n"
 
-                    np["certificate"] = pemEncodedCertificate
+                    val np = myDeviceInfo.toIdentityPacket().update {
+                        put("certificate", pemEncodedCertificate)
+                    }
 
                     val message = np.serialize().toByteArray(UTF_8)
                     outputStream.write(message)
@@ -215,7 +218,7 @@ class BluetoothLinkProvider(
                         return
                     }
                     LoggerTagged.i { "Received identity packet" }
-                    val pemEncodedCertificateString = identityPacket.getString("certificate")
+                    val pemEncodedCertificateString = identityPacket.getString("certificate", "")
                     val base64CertificateString = pemEncodedCertificateString
                             .replace("-----BEGIN CERTIFICATE-----\n", "")
                             .replace("-----END CERTIFICATE-----\n", "")
@@ -399,7 +402,7 @@ class BluetoothLinkProvider(
                     return
                 }
                 LoggerTagged.i { "identity packet received, creating link" }
-                val pemEncodedCertificateString = identityPacket.getString("certificate")
+                val pemEncodedCertificateString = identityPacket.getString("certificate", "")
                 val base64CertificateString = pemEncodedCertificateString
                         .replace("-----BEGIN CERTIFICATE-----\n", "")
                         .replace("-----END CERTIFICATE-----\n", "")
@@ -411,11 +414,13 @@ class BluetoothLinkProvider(
                         socket.remoteDevice, deviceInfo, this@BluetoothLinkProvider)
 
                 val myDeviceInfo = deviceHelper.getDeviceInfo()
-                val np2 = myDeviceInfo.toIdentityPacket()
                 val myCertificate = Base64.Mime.encode(sslHelper.certificate.encoded, 0)
                 val pemEncodedCertificate = "-----BEGIN CERTIFICATE-----\n$myCertificate\n-----END CERTIFICATE-----\n"
 
-                np2["certificate"] = pemEncodedCertificate
+                val np2 = myDeviceInfo.toIdentityPacket().update {
+                    put("certificate", pemEncodedCertificate)
+                }
+
                 LoggerTagged.i { "about to send packet np2" }
                 link.sendPacket(np2, object : Device.SendPacketStatusCallback() {
                     override fun onSuccess() {

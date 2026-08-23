@@ -8,15 +8,17 @@ package org.kde.kdeconnect.plugins.connectivityreport
 import android.Manifest
 import android.content.Context
 import kotlinx.coroutines.launch
-import org.json.JSONException
-import org.json.JSONObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.generated.resources.Res
+import org.kde.kdeconnect.generated.resources.pref_plugin_connectivity_report
+import org.kde.kdeconnect.generated.resources.pref_plugin_connectivity_report_desc
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityListener.Companion.getInstance
 import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityListener.SubscriptionState
-import org.kde.kdeconnect.generated.resources.*
 
 class ConnectivityReportPlugin(context: Context, device: Device) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = ConnectivityReportPluginInfo
@@ -42,27 +44,27 @@ class ConnectivityReportPlugin(context: Context, device: Device) : Plugin(contex
      *     }
      * }
      */
-    private val connectivityInfo = NetworkPacket(PACKET_TYPE_CONNECTIVITY_REPORT)
 
     var listener = object : ConnectivityListener.StateCallback {
         override fun statesChanged(states : Map<Int, SubscriptionState>) {
             if (states.isEmpty()) {
                 return
             }
-            val signalStrengths = JSONObject()
-            states.forEach { (subID: Int, subscriptionState: SubscriptionState) ->
-                try {
-                    val subInfo = JSONObject()
-                    subInfo.put("networkType", subscriptionState.networkType)
-                    subInfo.put("signalStrength", subscriptionState.signalStrength)
-                    signalStrengths.put(subID.toString(), subInfo)
-                } catch (e: JSONException) {
-                    e.printStackTrace()
+            val signalStrengths = buildJsonObject {
+                states.forEach { (subID: Int, subscriptionState: SubscriptionState) ->
+                    val subInfo = buildJsonObject {
+                        put("networkType", subscriptionState.networkType)
+                        put("signalStrength", subscriptionState.signalStrength)
+                    }
+                    put(subID.toString(), subInfo)
                 }
             }
-            connectivityInfo["signalStrengths"] = signalStrengths
+            val packet = NetworkPacket(PACKET_TYPE_CONNECTIVITY_REPORT).update {
+                put("signalStrengths", signalStrengths)
+            }
+
             coroutineScope.launch {
-                device.sendPacket(connectivityInfo)
+                device.sendPacket(packet)
             }
         }
     }

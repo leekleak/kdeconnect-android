@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.put
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.R
@@ -82,15 +83,16 @@ class CompositeUploadFileJob(
 
         try {
             while (!done && !isCancelled) {
-                currentNetworkPacket = networkPacketList.removeAt(0)
+                currentNetworkPacket = networkPacketList.removeAt(0).update {
+                    put(SharePlugin.KEY_NUMBER_OF_FILES, totalNumFiles.load())
+                    put(SharePlugin.KEY_TOTAL_PAYLOAD_SIZE, totalPayloadSize.load())
+                }
                 val packet = currentNetworkPacket ?: continue
 
                 currentFileName = packet.getString("filename")
                 currentFileNum++
 
                 setProgress(prevProgressPercentage)
-
-                addTotalsToNetworkPacket(packet)
 
                 // We set sendPayloadFromSameThread to true so this call blocks until the payload
                 // has been received by the other end, so payloads are sent one by one.
@@ -143,11 +145,6 @@ class CompositeUploadFileJob(
         callback.onError(id, error)
     }
 
-    private fun addTotalsToNetworkPacket(networkPacket: NetworkPacket) {
-        networkPacket[SharePlugin.KEY_NUMBER_OF_FILES] = totalNumFiles.load()
-        networkPacket[SharePlugin.KEY_TOTAL_PAYLOAD_SIZE] = totalPayloadSize.load()
-    }
-
     private fun setProgress(progress: Int) {
         uploadNotification.setProgress(
             progress, context.resources
@@ -191,10 +188,10 @@ class CompositeUploadFileJob(
      * Use this to send metadata ahead of all the other [packets][.networkPacketList].
      */
     private suspend fun sendUpdatePacket() {
-        val np = NetworkPacket(SharePlugin.PACKET_TYPE_SHARE_REQUEST_UPDATE)
-
-        np["numberOfFiles"] = totalNumFiles.load()
-        np["totalPayloadSize"] = totalPayloadSize.load()
+        val np = NetworkPacket(SharePlugin.PACKET_TYPE_SHARE_REQUEST_UPDATE).update {
+            put("numberOfFiles", totalNumFiles.load())
+            put("totalPayloadSize", totalPayloadSize.load())
+        }
         updatePacketPending.store(false)
 
         device.sendPacket(np)

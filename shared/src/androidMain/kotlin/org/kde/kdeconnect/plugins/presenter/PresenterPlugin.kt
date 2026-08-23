@@ -7,6 +7,7 @@ package org.kde.kdeconnect.plugins.presenter
 
 import android.content.Context
 import android.view.KeyEvent
+import kotlinx.serialization.json.put
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.NetworkPacket
@@ -50,39 +51,46 @@ class PresenterPlugin(context: Context, device: Device) : Plugin(context, device
         get() = device.deviceType != DeviceType.PHONE && super.isCompatible
 
     suspend fun sendNext() {
-        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_PAGE_DOWN]!!
+        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST).update {
+            put("specialKey", SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_PAGE_DOWN])
+        }
+
         device.sendPacket(np)
     }
 
     suspend fun sendPrevious() {
-        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_PAGE_UP]!!
+        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST).update {
+            put("specialKey", SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_PAGE_UP])
+        }
         device.sendPacket(np)
     }
 
     suspend fun sendFullscreen() {
-        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_F5]!!
+        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST).update {
+            put("specialKey", SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_F5])
+        }
         device.sendPacket(np)
     }
 
     suspend fun sendEsc() {
-        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
-        np["specialKey"] = SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_ESCAPE]!!
+        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST).update {
+            put("specialKey", SPECIAL_KEY_ENCODING_MAP[KeyEvent.KEYCODE_ESCAPE])
+        }
         device.sendPacket(np)
     }
 
     suspend fun sendPointer(xDelta: Float, yDelta: Float) {
-        val np = NetworkPacket(PACKET_TYPE_PRESENTER)
-        np["dx"] = xDelta.toDouble()
-        np["dy"] = yDelta.toDouble()
+        val np = NetworkPacket(PACKET_TYPE_PRESENTER).update {
+            put("dx", xDelta.toDouble())
+            put("dy", yDelta.toDouble())
+        }
         device.sendPacket(np)
     }
 
     suspend fun stopPointer() {
-        val np = NetworkPacket(PACKET_TYPE_PRESENTER)
-        np["stop"] = true
+        val np = NetworkPacket(PACKET_TYPE_PRESENTER).update {
+            put("stop", true)
+        }
         device.sendPacket(np)
     }
 

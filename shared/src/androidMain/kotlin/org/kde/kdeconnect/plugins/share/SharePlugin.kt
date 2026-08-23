@@ -36,6 +36,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import kotlinx.serialization.json.put
 import org.jetbrains.compose.resources.getString
 import org.kde.kdeconnect.BuildConfig
 import org.kde.kdeconnect.Device
@@ -150,9 +151,7 @@ class SharePlugin(
                 receiveFileJob?.let {
                     if (it.isRunning.get()) {
                         it.updateTotals(
-                            np.getInt(KEY_NUMBER_OF_FILES), np.getLong(
-                                KEY_TOTAL_PAYLOAD_SIZE
-                            )
+                            np.getInt(KEY_NUMBER_OF_FILES, -1), np.getLong(KEY_TOTAL_PAYLOAD_SIZE, -1)
                         )
                     } else {
                         LoggerTagged.d { "Received update packet but CompositeUploadJob is not running" }
@@ -180,7 +179,7 @@ class SharePlugin(
     }
 
     private fun receiveUrl(np: NetworkPacket) {
-        val url = np.getString("url")
+        val url = np.getString("url") ?: return
 
         LoggerTagged.i { "hasUrl: $url" }
 
@@ -217,12 +216,12 @@ class SharePlugin(
             )
         }
 
-        if (!hasNumberOfFiles) {
-            np[KEY_NUMBER_OF_FILES] = 1
-            np[KEY_TOTAL_PAYLOAD_SIZE] = np.payloadSize
-        }
-
-        job.addNetworkPacket(np)
+        job.addNetworkPacket(np.update {
+            if (!hasNumberOfFiles) {
+                put(KEY_NUMBER_OF_FILES, 1)
+                put(KEY_TOTAL_PAYLOAD_SIZE, np.payloadSize)
+            }
+        })
 
         if (job !== receiveFileJob) {
             if (hasNumberOfFiles && !isOpen) {
@@ -313,8 +312,9 @@ class SharePlugin(
             } catch (_: MalformedURLException) {
                 isUrl = false
             }
-            val np = NetworkPacket(PACKET_TYPE_SHARE_REQUEST)
-            np[if (isUrl) "url" else "text"] = text
+            val np = NetworkPacket(PACKET_TYPE_SHARE_REQUEST).update {
+                put(if (isUrl) "url" else "text", text)
+            }
             device.sendPacket(np)
         } else {
             LoggerTagged.e { "There's nothing we know how to share" }

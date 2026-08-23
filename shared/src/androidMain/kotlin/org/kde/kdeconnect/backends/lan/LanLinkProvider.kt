@@ -14,8 +14,9 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.put
 import org.jetbrains.compose.resources.DrawableResource
-import org.json.JSONException
 import org.kde.kdeconnect.DeviceHost
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.DeviceManager
@@ -95,7 +96,7 @@ class LanLinkProvider(
         val identityPacket: NetworkPacket?
         try {
             identityPacket = unserialize(message)
-        } catch (e: JSONException) {
+        } catch (e: SerializationException) {
             LoggerTagged.w(e) { "Invalid identity packet received " }
             return@withContext null
         }
@@ -105,7 +106,7 @@ class LanLinkProvider(
             return@withContext null
         }
 
-        val deviceId = identityPacket.getString("deviceId")
+        val deviceId = identityPacket.getString("deviceId") ?: return@withContext null
         val myId = deviceHelper.getDeviceId()
         if (deviceId == myId) {
             //Ignore my own broadcast
@@ -166,8 +167,8 @@ class LanLinkProvider(
             "identity packet received from a TCP connection from " + identityPacket.getString("deviceName")
         }
 
-        val targetDeviceId = identityPacket.getStringOrNull("targetDeviceId")
-        val targetProtocolVersion = identityPacket.getIntOrNull("targetProtocolVersion")
+        val targetDeviceId = identityPacket.getString("targetDeviceId")
+        val targetProtocolVersion = identityPacket.getInt("targetProtocolVersion")
         if (targetDeviceId != null && targetDeviceId != deviceHelper.getDeviceId()) {
             LoggerTagged.e {
                 "Received a connection request for a device that isn't me: $targetDeviceId"
@@ -225,7 +226,7 @@ class LanLinkProvider(
             return@withContext
         }
 
-        val message = String(packet.data, UTF_8)
+        val message = String(packet.data, packet.offset, packet.length, UTF_8)
 
         val pair = unserializeReceivedIdentityPacket(message) ?: return@withContext
         val identityPacket = pair.first
@@ -245,9 +246,10 @@ class LanLinkProvider(
             configureSocket(socket)
 
             val myDeviceInfo = deviceHelper.getDeviceInfo()
-            val myIdentity = myDeviceInfo.toIdentityPacket()
-            myIdentity["targetDeviceId"] = identityPacket.getString("deviceId")
-            myIdentity["targetProtocolVersion"] = identityPacket.getString("protocolVersion")
+            val myIdentity = myDeviceInfo.toIdentityPacket().update {
+                put("targetDeviceId", identityPacket.getString("deviceId"))
+                put("targetProtocolVersion", identityPacket.getString("protocolVersion"))
+            }
 
             val out = socket.getOutputStream()
             out.write(myIdentity.serialize().toByteArray())
@@ -259,29 +261,11 @@ class LanLinkProvider(
                 ConnectionStarted.Remotely,
                 deviceTrusted
             )
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             LoggerTagged.e(e) { "Exception receiving incoming UDP connection" }
-            if (socket != null) {
-                try {
-                    socket.close()
-                } catch (_: IOException) {
-                }
-            }
-        } catch (e: CertificateException) {
-            LoggerTagged.e(e) { "Exception receiving incoming UDP connection" }
-            if (socket != null) {
-                try {
-                    socket.close()
-                } catch (_: IOException) {
-                }
-            }
-        } catch (e: JSONException) {
-            LoggerTagged.e(e) { "Exception receiving incoming UDP connection" }
-            if (socket != null) {
-                try {
-                    socket.close()
-                } catch (_: IOException) {
-                }
+            try {
+                socket?.close()
+            } catch (_: IOException) {
             }
         }
     }
@@ -312,9 +296,9 @@ class LanLinkProvider(
         connectionStarted: ConnectionStarted?,
         deviceTrusted: Boolean
     ) {
-        val deviceId = identityPacket.getString("deviceId")
+        val deviceId = identityPacket.getString("deviceId") ?: return
         val device = deviceManager.getDevice(deviceId)
-        val protocolVersion = identityPacket.getInt("protocolVersion")
+        val protocolVersion = identityPacket.getInt("protocolVersion", 0)
 
         if (deviceTrusted && isProtocolDowngrade(deviceId, protocolVersion)) {
             LoggerTagged.w {
@@ -382,7 +366,7 @@ class LanLinkProvider(
                     "Handshake as " + mode + " successful with " + deviceInfo.name + " secured with " + event.cipherSuite
                 }
                 addOrUpdateLink(sslSocket, deviceInfo)
-            } catch (e: JSONException) {
+            } catch (e: SerializationException) {
                 LoggerTagged.e(e) {
                     "Remote device doesn't correctly implement protocol version 8"
                 }
@@ -553,13 +537,15 @@ class LanLinkProvider(
         // TODO: In protocol version 8 this packet doesn't need to contain identity info
         //       since it will be exchanged after the socket is encrypted.
         val myDeviceInfo = deviceHelper.getDeviceInfo()
-        val identity = myDeviceInfo.toIdentityPacket()
-        identity["tcpPort"] = tcpServer!!.localPort
+        val identity = myDeviceInfo.toIdentityPacket().update {
+            put("tcpPort", tcpServer!!.localPort)
+        }
+
 
         val bytes: ByteArray
         try {
             bytes = identity.serialize().toByteArray(UTF_8)
-        } catch (e: JSONException) {
+        } catch (e: SerializationException) {
             LoggerTagged.e(e) { "Failed to serialize identity packet" }
             return@withContext
         }

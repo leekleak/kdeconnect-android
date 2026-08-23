@@ -10,8 +10,12 @@ package org.kde.kdeconnect.plugins.contacts
 
 import android.Manifest
 import android.content.Context
+import kotlinx.serialization.json.put
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.generated.resources.Res
+import org.kde.kdeconnect.generated.resources.pref_plugin_contacts
+import org.kde.kdeconnect.generated.resources.pref_plugin_contacts_desc
 import org.kde.kdeconnect.helpers.ContactsHelper
 import org.kde.kdeconnect.helpers.ContactsHelper.ContactNotFoundException
 import org.kde.kdeconnect.helpers.ContactsHelper.UID
@@ -23,7 +27,7 @@ import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_
 import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_REQUEST_VCARDS_BY_UIDS
 import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_RESPONSE_UIDS_TIMESTAMPS
 import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_RESPONSE_VCARDS
-import org.kde.kdeconnect.generated.resources.*
+import org.kde.kdeconnect.toJsonArray
 
 class ContactsPlugin(context: Context, device: Device) : Plugin(context, device) {
     override val pluginInfo = ContactsPluginInfo
@@ -66,13 +70,13 @@ class ContactsPlugin(context: Context, device: Device) : Plugin(context, device)
      */
     private suspend fun handleRequestAllUIDsTimestamps(np: NetworkPacket): Boolean {
         val uIDsToTimestamps: Map<UID, Long?> = ContactsHelper.getAllContactTimestamps(context)
-        val reply = NetworkPacket(PACKET_TYPE_CONTACTS_RESPONSE_UIDS_TIMESTAMPS).apply {
+        val reply = NetworkPacket(PACKET_TYPE_CONTACTS_RESPONSE_UIDS_TIMESTAMPS).update {
             val uIDsAsString = mutableListOf<String>()
             for ((contactID: UID, timestamp: Long?) in uIDsToTimestamps) {
-                if (timestamp != null) set(contactID.toString(), timestamp.toString())
+                if (timestamp != null) put(contactID.toString(), timestamp.toString())
                 uIDsAsString.add(contactID.toString())
             }
-            set(PACKET_UIDS_KEY, uIDsAsString)
+            put(PACKET_UIDS_KEY, uIDsAsString.toJsonArray())
         }
 
         device.sendPacket(reply)
@@ -94,7 +98,7 @@ class ContactsPlugin(context: Context, device: Device) : Plugin(context, device)
 
         val uIDsToVCards: Map<UID, VCardBuilder> = ContactsHelper.getVCardsForContactIDs(context, storedUIDs)
 
-        val reply = NetworkPacket(PACKET_TYPE_CONTACTS_RESPONSE_VCARDS).apply {
+        val reply = NetworkPacket(PACKET_TYPE_CONTACTS_RESPONSE_VCARDS).update {
             // ContactsHelper.getVCardsForContactIDs(..) is allowed to reply without some of the requested uIDs if they were not in the database, so update our list
             val uIDsAsStrings = mutableListOf<String>()
             for ((uID: UID, vcard: VCardBuilder) in uIDsToVCards) {
@@ -103,12 +107,12 @@ class ContactsPlugin(context: Context, device: Device) : Plugin(context, device)
                     // Store this as a valid uID
                     uIDsAsStrings.add(uID.toString())
                     // Add the uid -> vcard pairing to the packet
-                    set(uID.toString(), vcardWithMetadata.toString())
+                    put(uID.toString(), vcardWithMetadata.toString())
                 } catch (e: ContactNotFoundException) {
                     LoggerTagged.e { "handleRequestVCardsByUIDs failed to find contact with uID $uID" }
                 }
             }
-            set(PACKET_UIDS_KEY, uIDsAsStrings)
+            put(PACKET_UIDS_KEY, uIDsAsStrings.toJsonArray())
         }
 
         device.sendPacket(reply)

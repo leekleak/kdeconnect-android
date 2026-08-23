@@ -5,7 +5,10 @@
 */
 package org.kde.kdeconnect.plugins.systemvolume
 
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonPrimitive
 
 data class Sink(
     val name: String,
@@ -15,12 +18,12 @@ data class Sink(
     val isMuted: Boolean,
     val isDefault: Boolean
 ) {
-    constructor(obj: JSONObject) : this(
-        name = obj.getString("name"),
-        description = obj.getString("description"),
-        volume = obj.getInt("volume"),
-        maxVolume = obj.getInt("maxVolume"),
-        isMuted = obj.getBoolean("muted"),
-        isDefault = obj.optBoolean("enabled", false)
+    constructor(obj: JsonObject) : this(
+        name = obj["name"]?.jsonPrimitive?.content ?: "",
+        description = obj["description"]?.jsonPrimitive?.content ?: "",
+        volume = obj["volume"]?.jsonPrimitive?.int ?: 0,
+        maxVolume = obj["maxVolume"]?.jsonPrimitive?.int ?: 100,
+        isMuted = obj["muted"]?.jsonPrimitive?.boolean ?: false,
+        isDefault = obj["enabled"]?.jsonPrimitive?.boolean ?: false,
     )
 }

@@ -1,5 +1,6 @@
 package org.kde.kdeconnect
 
+import kotlinx.serialization.json.put
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPluginInfo
@@ -14,14 +15,16 @@ val DEFAULT_SHORTCUTS = listOf(ClipboardPluginInfo.pluginKey, SharePluginInfo.pl
  * Can be deserialized using fromIdentityPacketAndCert(), given a certificate.
  */
 fun DeviceInfo.toIdentityPacket(): NetworkPacket =
-    NetworkPacket(NetworkPacket.PACKET_TYPE_IDENTITY).also { np ->
-        np["deviceId"] = id
-        np["deviceName"] = name
-        np["protocolVersion"] = protocolVersion
-        np["deviceType"] = type.toString()
-        np["incomingCapabilities"] = incomingCapabilities
-        np["outgoingCapabilities"] = outgoingCapabilities
+    NetworkPacket(NetworkPacket.PACKET_TYPE_IDENTITY).update {
+        put("deviceId", id)
+        put("deviceName", name)
+        put("protocolVersion", protocolVersion)
+        put("deviceType", type.toString())
+        put("incomingCapabilities", incomingCapabilities.toJsonArray())
+        put("outgoingCapabilities", outgoingCapabilities.toJsonArray())
     }
+
+
 
 fun DeviceInfo.withPopulatedSettings(): DeviceInfo {
     val missingSettings = PluginFactory.availablePlugins.toSet().minus(settings.keys)
@@ -38,11 +41,11 @@ fun DeviceInfo.withPopulatedSettings(): DeviceInfo {
 fun DeviceInfo.Companion.fromIdentityPacketAndCert(identityPacket: NetworkPacket, certificate: Certificate) =
     with(identityPacket) {
         DeviceInfo(
-            id = getString("deviceId"), // Redundant: We could read this from the certificate instead
+            id = getString("deviceId", ""), // Redundant: We could read this from the certificate instead
             name = DeviceHelper.filterInvalidCharactersFromDeviceNameAndLimitLength(getString("deviceName", "unknown")),
             type = DeviceType.fromString(getString("deviceType", "desktop")),
             certificate = certificate.encoded,
-            protocolVersion = getInt("protocolVersion"),
+            protocolVersion = getInt("protocolVersion", 0),
             incomingCapabilities = getStringSet("incomingCapabilities") ?: emptySet(),
             outgoingCapabilities = getStringSet("outgoingCapabilities") ?: emptySet(),
             shortcuts = DEFAULT_SHORTCUTS

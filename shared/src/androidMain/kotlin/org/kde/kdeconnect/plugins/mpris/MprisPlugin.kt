@@ -27,10 +27,18 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.serialization.json.put
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.NetworkPacket.Payload
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
+import org.kde.kdeconnect.generated.resources.Res
+import org.kde.kdeconnect.generated.resources.kde_connect
+import org.kde.kdeconnect.generated.resources.mpris_keepwatching
+import org.kde.kdeconnect.generated.resources.music_cast
+import org.kde.kdeconnect.generated.resources.open_mpris_controls
+import org.kde.kdeconnect.generated.resources.pref_plugin_mpris
+import org.kde.kdeconnect.generated.resources.pref_plugin_mpris_desc
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.helpers.VideoUrlsHelper
@@ -39,7 +47,6 @@ import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.ui.navigation.MprisKey
-import org.kde.kdeconnect.generated.resources.*
 import java.net.MalformedURLException
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration.Companion.milliseconds
@@ -123,25 +130,25 @@ class MprisPlugin(
     }
 
     private suspend fun sendCommand(player: String, method: String, value: String) {
-        val np = NetworkPacket(PACKET_TYPE_MPRIS_REQUEST).apply {
-            this["player"] = player
-            this[method] = value
+        val np = NetworkPacket(PACKET_TYPE_MPRIS_REQUEST).update {
+            put("player", player)
+            put(method, value)
         }
         device.sendPacket(np)
     }
 
     private suspend fun sendCommand(player: String, method: String, value: Boolean) {
-        val np = NetworkPacket(PACKET_TYPE_MPRIS_REQUEST).apply {
-            this["player"] = player
-            this[method] = value
+        val np = NetworkPacket(PACKET_TYPE_MPRIS_REQUEST).update {
+            put("player", player)
+            put(method, value)
         }
         device.sendPacket(np)
     }
 
     private suspend fun sendCommand(player: String, method: String, value: Int) {
-        val np = NetworkPacket(PACKET_TYPE_MPRIS_REQUEST).apply {
-            this["player"] = player
-            this[method] = value
+        val np = NetworkPacket(PACKET_TYPE_MPRIS_REQUEST).update {
+            put("player", player)
+            put(method, value)
         }
         device.sendPacket(np)
     }
@@ -155,8 +162,8 @@ class MprisPlugin(
             return true
         }
 
-        if (np.has("player")) {
-            val playerName = np.getString("player")
+        val playerName = np.getString("player")
+        if (playerName != null) {
             _players.update { current ->
                 val oldState = current[playerName] ?: MprisPlayerState(playerName = playerName)
                 val wasPlaying = oldState.isPlaying
@@ -376,17 +383,17 @@ class MprisPlugin(
         get() = _players.value.values.firstOrNull { it.isPlaying }
 
     suspend fun requestPlayerList() {
-        val np = NetworkPacket(PACKET_TYPE_MPRIS_REQUEST).apply {
-            this["requestPlayerList"] = true
+        val np = NetworkPacket(PACKET_TYPE_MPRIS_REQUEST).update {
+            put("requestPlayerList", true)
         }
         device.sendPacket(np)
     }
 
     private suspend fun requestPlayerStatus(player: String) {
-        val np = NetworkPacket(PACKET_TYPE_MPRIS_REQUEST).apply {
-            this["player"] = player
-            this["requestNowPlaying"] = true
-            this["requestVolume"] = true
+        val np = NetworkPacket(PACKET_TYPE_MPRIS_REQUEST).update {
+            put("player", player)
+            put("requestNowPlaying", true)
+            put("requestVolume", true)
         }
         device.sendPacket(np)
     }
@@ -416,9 +423,11 @@ class MprisPlugin(
         val player = getPlayerStatus(playerName) ?: return false
 
         if (player.albumArtUrl == url) {
-            val np = NetworkPacket(PACKET_TYPE_MPRIS_REQUEST)
-            np["player"] = player.playerName
-            np["albumArtUrl"] = url
+            val np = NetworkPacket(PACKET_TYPE_MPRIS_REQUEST).update {
+                put("player", player.playerName)
+                put("albumArtUrl", url)
+            }
+
             device.sendPacket(np)
             return true
         }

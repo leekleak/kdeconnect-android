@@ -9,8 +9,9 @@ package org.kde.kdeconnect.backends.bluetooth
 import android.bluetooth.BluetoothDevice
 import androidx.annotation.WorkerThread
 import kotlinx.coroutines.runBlocking
-import org.json.JSONException
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonPrimitive
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.NetworkPacket
@@ -22,6 +23,7 @@ import java.io.InputStreamReader
 import java.io.OutputStream
 import java.io.Reader
 import java.util.UUID
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.text.Charsets.UTF_8
 
 class BluetoothLink(
@@ -69,15 +71,18 @@ class BluetoothLink(
         private suspend fun processMessage(message: String) {
             val np = try {
                 NetworkPacket.unserialize(message)
-            } catch (e: JSONException) {
+            } catch (e: Exception) {
                 LoggerTagged.e(e) { "Unable to parse message." }
                 return
             }
-            if (np.hasPayloadTransferInfo()) {
+            np.payloadTransferInfo?.let { transferInfo ->
                 try {
-                    val transferUuid = UUID.fromString(np.payloadTransferInfo.getString("uuid"))
-                    val payloadInputStream = connection.getChannelInputStream(transferUuid)
-                    np.payload = NetworkPacket.Payload(payloadInputStream, np.payloadSize)
+                    val uuidString = transferInfo["uuid"]?.jsonPrimitive?.content
+                    if (uuidString != null) {
+                        val transferUuid = UUID.fromString(uuidString)
+                        val payloadInputStream = connection.getChannelInputStream(transferUuid)
+                        np.payload = NetworkPacket.Payload(payloadInputStream, np.payloadSize)
+                    }
                 } catch (e: Exception) {
                     LoggerTagged.e(e) { "Unable to get payload" }
                 }
@@ -101,7 +106,7 @@ class BluetoothLink(
         linkProvider.disconnectedLink(this, remoteAddress)
     }
 
-    @Throws(JSONException::class, IOException::class)
+    @Throws(IOException::class)
     private fun sendMessage(np: NetworkPacket) {
         val message = np.serialize().toByteArray(UTF_8)
         output.write(message)
@@ -116,8 +121,7 @@ class BluetoothLink(
             var transferUuid: UUID? = null
             if (np.hasPayload()) {
                 transferUuid = connection.newChannel()
-                val payloadTransferInfo = JSONObject()
-                payloadTransferInfo.put("uuid", transferUuid.toString())
+                val payloadTransferInfo = JsonObject(mapOf("uuid" to JsonPrimitive(transferUuid.toString())))
                 np.payloadTransferInfo = payloadTransferInfo
             }
             sendMessage(np)
@@ -126,10 +130,11 @@ class BluetoothLink(
                     connection.getChannelOutputStream(transferUuid).use { payloadStream ->
                         val bufferLength = 1024
                         val buffer = ByteArray(bufferLength)
-                        var bytesRead: Int
+                        var bytesRead: Int = -1
                         var progress: Long = 0
                         val stream = np.payload!!.inputStream!!
-                        while (stream.read(buffer).also { bytesRead = it } != -1) {
+                        @OptIn(ExperimentalAtomicApi::class)
+                        while (!np.isCanceled.load() && stream.read(buffer).also { bytesRead = it } != -1) {
                             progress += bytesRead.toLong()
                             payloadStream.write(buffer, 0, bytesRead)
                             if (np.payloadSize > 0) {
@@ -143,7 +148,10 @@ class BluetoothLink(
                     return false
                 }
             }
-            callback.onSuccess()
+            @OptIn(ExperimentalAtomicApi::class)
+            if (!np.isCanceled.load()) {
+                callback.onSuccess()
+            }
             true
         } catch (e: Exception) {
             callback.onFailure(e)

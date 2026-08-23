@@ -1,230 +1,119 @@
-/*
- * SPDX-FileCopyrightText: 2014 Albert Vaca Cintora <albertvaka@gmail.com>
- *
- * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
-*/
 package org.kde.kdeconnect
 
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonObjectBuilder
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.longOrNull
+import kotlinx.serialization.json.put
 import java.io.ByteArrayInputStream
-import java.io.IOException
 import java.io.InputStream
-import java.net.Socket
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
-class NetworkPacket private constructor(
+@OptIn(ExperimentalAtomicApi::class)
+data class NetworkPacket(
     val type: String,
-    private val mBody: JSONObject,
+    private val mBody: JsonObject,
     var payload: Payload?,
-    var payloadTransferInfo: JSONObject,
+    var payloadTransferInfo: JsonObject?,
+    val isCanceled: AtomicBoolean = AtomicBoolean(false)
 ) {
     constructor(type: String) : this(
         type = type,
-        mBody = JSONObject(),
+        mBody = JsonObject(emptyMap()),
         payload = null,
-        payloadTransferInfo = JSONObject()
+        payloadTransferInfo = JsonObject(emptyMap())
     )
 
-    @Volatile
-    var isCanceled: Boolean = false
-        private set
-
     fun cancel() {
-        isCanceled = true
+        isCanceled.store(true)
     }
 
-    // Most commons getters and setters defined for convenience
-    fun getString(key: String): String {
-        return mBody.optString(key, "")
-    }
+    fun getString(key: String, defaultValue: String): String = getString(key) ?: defaultValue
 
-    fun getStringOrNull(key: String): String? {
-        return if (mBody.has(key)) mBody.getString(key)
-        else null
-    }
+    fun getString(key: String): String? = mBody[key]?.jsonPrimitive?.contentOrNull
 
-    fun getString(key: String, defaultValue: String): String {
-        return mBody.optString(key, defaultValue)
-    }
+    fun getRawString(key: String): String = mBody[key]?.toString() ?: ""
 
-    operator fun set(key: String, value: String) {
-        try {
-            mBody.put(key, value)
-        } catch (ignored: Exception) {
-        }
-    }
+    fun getInt(key: String, defaultValue: Int): Int = getInt(key) ?: defaultValue
 
-    fun getInt(key: String): Int {
-        return mBody.optInt(key, -1)
-    }
+    fun getInt(key: String): Int? = mBody[key]?.jsonPrimitive?.intOrNull
 
-    fun getIntOrNull(key: String): Int? {
-        return if (mBody.has(key)) mBody.getInt(key)
-        else null
-    }
 
-    fun getInt(key: String, defaultValue: Int): Int {
-        return mBody.optInt(key, defaultValue)
-    }
+    fun getLong(key: String, defaultValue: Long): Long = getLong(key) ?: defaultValue
 
-    operator fun set(key: String, value: Int) {
-        try {
-            mBody.put(key, value)
-        } catch (ignored: Exception) {
-        }
-    }
+    fun getLong(key: String): Long? = mBody[key]?.jsonPrimitive?.longOrNull
 
-    fun getLong(key: String): Long {
-        return mBody.optLong(key, -1)
-    }
 
-    fun getLong(key: String, defaultValue: Long): Long {
-        return mBody.optLong(key, defaultValue)
-    }
+    fun getBoolean(key: String, defaultValue: Boolean): Boolean = getBoolean(key) ?: defaultValue
 
-    operator fun set(key: String, value: Long) {
-        try {
-            mBody.put(key, value)
-        } catch (ignored: Exception) {
-        }
-    }
+    fun getBoolean(key: String): Boolean? = mBody[key]?.jsonPrimitive?.booleanOrNull
 
-    fun getBoolean(key: String): Boolean {
-        return mBody.optBoolean(key, false)
-    }
+    fun getDouble(key: String, defaultValue: Double): Double = getDouble(key) ?: defaultValue
 
-    fun getBoolean(key: String, defaultValue: Boolean): Boolean {
-        return mBody.optBoolean(key, defaultValue)
-    }
+    fun getDouble(key: String): Double? = mBody[key]?.jsonPrimitive?.doubleOrNull
 
-    operator fun set(key: String, value: Boolean) {
-        try {
-            mBody.put(key, value)
-        } catch (ignored: Exception) {
-        }
-    }
+    fun getJsonArray(key: String): JsonArray? = mBody[key] as? JsonArray
 
-    fun getDouble(key: String): Double {
-        return mBody.optDouble(key, Double.NaN)
-    }
-
-    fun getDouble(key: String, defaultValue: Double): Double {
-        return mBody.optDouble(key, defaultValue)
-    }
-
-    operator fun set(key: String, value: Double) {
-        try {
-            mBody.put(key, value)
-        } catch (ignored: Exception) {
-        }
-    }
-
-    fun getJSONArray(key: String): JSONArray? {
-        return mBody.optJSONArray(key)
-    }
-
-    operator fun set(key: String, value: JSONArray?) {
-        try {
-            mBody.put(key, value)
-        } catch (ignored: Exception) {
-        }
-    }
-
-    fun getJSONObject(key: String): JSONObject? {
-        return mBody.optJSONObject(key)
-    }
-
-    operator fun set(key: String, value: JSONObject?) {
-        try {
-            mBody.put(key, value)
-        } catch (ignored: JSONException) {
-        }
-    }
+    fun getJsonObject(key: String): JsonObject? = mBody[key] as? JsonObject
 
     fun getStringSet(key: String): Set<String>? {
-        val jsonArray = mBody.optJSONArray(key) ?: return null
+        val jsonArray = getJsonArray(key) ?: return null
         val list: MutableSet<String> = HashSet()
-        val length = jsonArray.length()
-        for (i in 0 until length) {
-            try {
-                val str = jsonArray.getString(i)
-                list.add(str)
-            } catch (ignored: Exception) {
-            }
-        }
+        jsonArray.forEach { list.add(it.jsonPrimitive.content) }
         return list
-    }
-
-    fun getStringSet(key: String, defaultValue: Set<String>?): Set<String>? {
-        return if (mBody.has(key)) getStringSet(key)
-        else defaultValue
-    }
-
-    operator fun set(key: String, value: Set<String>) {
-        try {
-            val jsonArray = JSONArray()
-            for (str in value) {
-                jsonArray.put(str)
-            }
-            mBody.put(key, jsonArray)
-        } catch (ignored: Exception) {
-        }
     }
 
     fun getStringList(key: String): List<String>? {
-        val jsonArray = mBody.optJSONArray(key) ?: return null
+        val jsonArray = getJsonArray(key) ?: return null
         val list: MutableList<String> = ArrayList()
-        val length = jsonArray.length()
-        for (i in 0 until length) {
-            try {
-                val str = jsonArray.getString(i)
-                list.add(str)
-            } catch (ignored: Exception) {
-            }
-        }
+        jsonArray.forEach { list.add(it.jsonPrimitive.content) }
         return list
     }
 
-    fun getStringList(key: String, defaultValue: List<String>?): List<String>? {
-        return if (mBody.has(key)) getStringList(key)
-        else defaultValue
-    }
-
-    operator fun set(key: String, value: List<String>) {
-        try {
-            val jsonArray = JSONArray()
-            for (str in value) {
-                jsonArray.put(str)
+    fun update(action: JsonObjectBuilder.() -> Unit): NetworkPacket =
+        copy(
+            mBody = buildJsonObject {
+                for ((k, v) in mBody) put(k, v)
+                action()
             }
-            mBody.put(key, jsonArray)
-        } catch (ignored: Exception) {
-        }
-    }
+        )
 
     fun has(key: String): Boolean {
-        return mBody.has(key)
+        return mBody.containsKey(key)
     }
 
     operator fun contains(key: String): Boolean {
         return has(key)
     }
 
-    @Throws(JSONException::class)
     fun serialize(): String {
-        val jo = JSONObject()
-        jo.put("id", System.currentTimeMillis())
-        jo.put("type", type)
-        jo.put("body", mBody)
-        if (hasPayload()) {
-            jo.put("payloadSize", payload!!.payloadSize)
-            jo.put("payloadTransferInfo", payloadTransferInfo)
+        val jo = buildJsonObject {
+            put("id", System.currentTimeMillis())
+            put("type", type)
+            put("body", mBody)
+            if (hasPayload()) {
+                put("payloadSize", payload!!.payloadSize)
+                if (hasPayloadTransferInfo()) {
+                    put("payloadTransferInfo", payloadTransferInfo!!)
+                }
+            }
         }
-        // QJSon does not escape slashes, but Java JSONObject does. Converting to QJson format.
+
         try {
-            return jo.toString().replace("\\/", "/") + "\n"
-        } catch (e : OutOfMemoryError) {
-            throw RuntimeException("OOM serializing packet of type $type", e)
+            return jo.toString() + "\n"
+        } catch (e: Exception) {
+            throw RuntimeException("Error serializing packet of type $type", e)
         }
     }
 
@@ -237,47 +126,20 @@ class NetworkPacket private constructor(
     }
 
     fun hasPayloadTransferInfo(): Boolean {
-        return payloadTransferInfo.length() > 0
+        return payloadTransferInfo != null && payloadTransferInfo?.isEmpty() == false
     }
 
-    class Payload {
-        /**
-         * **NOTE: Do not close the InputStream directly call Payload.close() instead, this is because of this [bug](https://issuetracker.google.com/issues/37018094)**
-         */
-        val inputStream: InputStream?
-        private val inputSocket: Socket?
-        val payloadSize: Long
-
+    class Payload(
+        val inputStream: InputStream?,
+        val payloadSize: Long,
+        val onCloseCallback: () -> Unit = {}
+    ) {
         constructor(payloadSize: Long) : this(null, payloadSize)
-
         constructor(data: ByteArray) : this(ByteArrayInputStream(data), data.size.toLong())
 
-        /**
-         * **NOTE: Do not use this to set an SSLSockets InputStream as the payload, use Payload(Socket, long) instead because of this [bug](https://issuetracker.google.com/issues/37018094)**
-         */
-        constructor(inputStream: InputStream?, payloadSize: Long) {
-            this.inputSocket = null
-            this.inputStream = inputStream
-            this.payloadSize = payloadSize
-        }
-
-        constructor(inputSocket: Socket, payloadSize: Long) {
-            this.inputSocket = inputSocket
-            this.inputStream = inputSocket.getInputStream()
-            this.payloadSize = payloadSize
-        }
-
         fun close() {
-            // TODO: If socket only close socket if that also closes the streams that is
-            try {
-                inputStream?.close()
-            } catch (ignored: IOException) {
-            }
-
-            try {
-                inputSocket?.close()
-            } catch (ignored: IOException) {
-            }
+            inputStream?.close()
+            onCloseCallback()
         }
     }
 
@@ -290,17 +152,18 @@ class NetworkPacket private constructor(
             PACKET_TYPE_PAIR
         )
 
-        @JvmStatic
-        @Throws(JSONException::class)
         fun unserialize(s: String): NetworkPacket {
-            val jo = JSONObject(s)
-            val type = jo.getString("type")
-            val mBody = jo.getJSONObject("body")
+            val jsonObject = Json.parseToJsonElement(s.trim { it <= ' ' }).jsonObject
+            val type = jsonObject["type"]?.jsonPrimitive?.content!!
+            val body = jsonObject["body"]?.jsonObject!!
+            val payloadTransferInfo = jsonObject["payloadTransferInfo"]?.jsonObject
+            val payloadSize = jsonObject["payloadSize"]?.jsonPrimitive?.longOrNull
+            val payload = payloadSize?.let { Payload(it) }
 
-            val hasPayload = jo.has("payloadSize")
-            val payloadTransferInfo = if (hasPayload) jo.getJSONObject("payloadTransferInfo") else JSONObject()
-            val payload = if (hasPayload) Payload(jo.getLong("payloadSize")) else null
-            return NetworkPacket(type, mBody, payload, payloadTransferInfo)
+            return NetworkPacket(type, body, payload, payloadTransferInfo)
         }
     }
 }
+
+fun Set<String>.toJsonArray(): JsonArray = buildJsonArray { forEach { add(it) } }
+fun List<String>.toJsonArray(): JsonArray = buildJsonArray { forEach { add(it) } }

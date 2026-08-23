@@ -14,7 +14,7 @@ import android.provider.OpenableColumns
 import android.webkit.MimeTypeMap
 import androidx.annotation.WorkerThread
 import androidx.documentfile.provider.DocumentFile
-import co.touchlab.kermit.Logger
+import kotlinx.serialization.json.put
 import org.kde.kdeconnect.NetworkPacket
 import java.io.File
 import java.nio.charset.StandardCharsets
@@ -108,8 +108,6 @@ object FilesHelper {
             val contentResolver = context.contentResolver
             val inputStream = contentResolver.openInputStream(uri)
 
-            val packet = NetworkPacket(type!!)
-
             val sizeDefault = -1L
 
             // file:// is a non media uri, so we cannot query the ContentProvider
@@ -157,20 +155,22 @@ object FilesHelper {
                 else -> contentResolverExtract()
             }
 
-            if (filename != null) {
-                packet["filename"] = filename
-            }
-            else {
-                // It would be very surprising if this happens
-                LoggerTagged.e { "Unable to read filename" }
-            }
+            val packet = NetworkPacket(type!!).update {
+                if (filename != null) {
+                    put("filename", filename)
+                }
+                else {
+                    // It would be very surprising if this happens
+                    LoggerTagged.e { "Unable to read filename" }
+                }
 
-            if (lastModified != null) {
-                packet["lastModified"] = lastModified
-            }
-            else {
-                // This would not be too surprising, and probably means we need to improve FilesHelper.getLastModifiedTime
-                LoggerTagged.w { "Unable to read file last modified time" }
+                if (lastModified != null) {
+                    put("lastModified", lastModified)
+                }
+                else {
+                    // This would not be too surprising, and probably means we need to improve FilesHelper.getLastModifiedTime
+                    LoggerTagged.w { "Unable to read file last modified time" }
+                }
             }
 
             packet.payload = NetworkPacket.Payload(inputStream, size)

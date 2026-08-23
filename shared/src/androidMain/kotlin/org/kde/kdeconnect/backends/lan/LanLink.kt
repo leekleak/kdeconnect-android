@@ -12,7 +12,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonPrimitive
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.NetworkPacket
@@ -35,6 +38,7 @@ import java.security.cert.CertificateException
 import javax.net.ssl.SSLHandshakeException
 import javax.net.ssl.SSLSocket
 import kotlin.concurrent.Volatile
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.text.Charsets.UTF_8
 
 class LanLink @WorkerThread constructor(
@@ -132,8 +136,7 @@ class LanLink @WorkerThread constructor(
 
             val server: ServerSocket? = if (np.hasPayload()) {
                 val newServer = LanLinkProvider.openServerSocketOnFreePort(LanLinkProvider.PAYLOAD_TRANSFER_MIN_PORT)
-                val payloadTransferInfo = JSONObject()
-                payloadTransferInfo.put("port", newServer.localPort)
+                val payloadTransferInfo = JsonObject(mapOf("port" to JsonPrimitive(newServer.localPort)))
                 np.payloadTransferInfo = payloadTransferInfo
                 newServer
             } else {
@@ -159,11 +162,15 @@ class LanLink @WorkerThread constructor(
             }
 
             //Send payload
-            if (server != null) {
-                sendPayload(np, callback, server)
+            @OptIn(ExperimentalAtomicApi::class)
+            if (server != null && !np.isCanceled.load()) {
+                withContext(Dispatchers.IO) {
+                    sendPayload(np, callback, server)
+                }
             }
 
-            if (!np.isCanceled) {
+            @OptIn(ExperimentalAtomicApi::class)
+            if (!np.isCanceled.load()) {
                 callback.onSuccess()
             }
             return true
@@ -179,51 +186,51 @@ class LanLink @WorkerThread constructor(
     }
 
     @Throws(IOException::class)
-    private fun sendPayload(
+    private suspend fun sendPayload(
         np: NetworkPacket,
         callback: Device.SendPacketStatusCallback,
         server: ServerSocket
-    ) {
+    ) = withContext(Dispatchers.IO) {
         var payloadSocket: Socket? = null
         var outputStream: OutputStream? = null
         val inputStream: InputStream?
         try {
-            if (!np.isCanceled) {
-                //Wait a maximum of 10 seconds for the other end to establish a connection with our socket, close it afterwards
-                server.soTimeout = 10 * 1000
+            //Wait a maximum of 10 seconds for the other end to establish a connection with our socket, close it afterwards
+            server.soTimeout = 10 * 1000
 
-                payloadSocket = server.accept()
 
-                //Convert to SSL if needed
-                payloadSocket =
-                    sslHelper.convertToSslSocket(payloadSocket!!, deviceInfo,
-                        isDeviceTrusted = true,
-                        clientMode = false,
-                    )
+            payloadSocket = server.accept()
 
-                outputStream = payloadSocket.getOutputStream()
-                inputStream = np.payload!!.inputStream
+            //Convert to SSL if needed
+            payloadSocket =
+                sslHelper.convertToSslSocket(payloadSocket!!, deviceInfo,
+                    isDeviceTrusted = true,
+                    clientMode = false,
+                )
 
-                LoggerTagged.i { "Beginning to send payload for " + np.type }
-                val buffer = ByteArray(4096)
-                var bytesRead: Int = -1
-                val size = np.payloadSize
-                var progress: Long = 0
-                var timeSinceLastUpdate: Long = -1
-                while (!np.isCanceled && (inputStream!!.read(buffer).also { bytesRead = it }) != -1) {
-                    progress += bytesRead.toLong()
-                    outputStream.write(buffer, 0, bytesRead)
-                    if (size > 0) {
-                        if (timeSinceLastUpdate + 500 < System.currentTimeMillis()) { //Report progress every half a second
-                            val percent = ((100 * progress) / size)
-                            callback.onPayloadProgressChanged(percent.toInt())
-                            timeSinceLastUpdate = System.currentTimeMillis()
-                        }
+            outputStream = payloadSocket.getOutputStream()
+            inputStream = np.payload!!.inputStream
+
+            LoggerTagged.i { "Beginning to send payload for " + np.type }
+            val buffer = ByteArray(4096)
+            var bytesRead: Int = -1
+            val size = np.payloadSize
+            var progress: Long = 0
+            var timeSinceLastUpdate: Long = -1
+            @OptIn(ExperimentalAtomicApi::class)
+            while (!np.isCanceled.load() && (inputStream!!.read(buffer).also { bytesRead = it }) != -1) {
+                progress += bytesRead.toLong()
+                outputStream.write(buffer, 0, bytesRead)
+                if (size > 0) {
+                    if (timeSinceLastUpdate + 500 < System.currentTimeMillis()) { //Report progress every half a second
+                        val percent = ((100 * progress) / size)
+                        callback.onPayloadProgressChanged(percent.toInt())
+                        timeSinceLastUpdate = System.currentTimeMillis()
                     }
                 }
-                outputStream.flush()
-                LoggerTagged.i { "Finished sending payload ($progress bytes written)" }
             }
+            outputStream.flush()
+            LoggerTagged.i { "Finished sending payload ($progress bytes written)" }
         } catch (e: SocketTimeoutException) {
             LoggerTagged.e(e) {
                 "Socket for payload in packet " + np.type + " timed out. The other end didn't fetch the payload."
@@ -255,7 +262,7 @@ class LanLink @WorkerThread constructor(
         if (np.hasPayloadTransferInfo()) {
             var payloadSocket = Socket()
             try {
-                val tcpPort = np.payloadTransferInfo.getInt("port")
+                val tcpPort = np.payloadTransferInfo?.get("port")?.jsonPrimitive?.int ?: return
                 val deviceAddress = socket?.remoteSocketAddress as InetSocketAddress
                 withContext(Dispatchers.IO) {
                     payloadSocket.connect(InetSocketAddress(deviceAddress.address, tcpPort))
@@ -265,7 +272,11 @@ class LanLink @WorkerThread constructor(
                         isDeviceTrusted = true,
                         clientMode = true,
                     )
-                np.payload = NetworkPacket.Payload(payloadSocket, np.payloadSize)
+                withContext(Dispatchers.IO) {
+                    np.payload = NetworkPacket.Payload(payloadSocket.getInputStream(), np.payloadSize) {
+                        payloadSocket.close()
+                    }
+                }
             } catch (e: Exception) {
                 try {
                     withContext(Dispatchers.IO) {
@@ -277,7 +288,6 @@ class LanLink @WorkerThread constructor(
             }
         }
 
-        LoggerTagged.e { np.serialize() }
         packetReceived(np)
     }
 
