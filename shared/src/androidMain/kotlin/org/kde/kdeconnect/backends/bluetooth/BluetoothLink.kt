@@ -13,24 +13,22 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 import okio.Buffer
+import okio.BufferedSink
+import okio.BufferedSource
+import okio.buffer
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.helpers.LoggerTagged
 import java.io.IOException
-import java.io.InputStream
-import java.io.InputStreamReader
-import java.io.OutputStream
-import java.io.Reader
 import java.util.UUID
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
-import kotlin.text.Charsets.UTF_8
 
 class BluetoothLink(
     private val connection: ConnectionMultiplexer,
-    val input: InputStream,
-    val output: OutputStream,
+    val input: BufferedSource,
+    val output: BufferedSink,
     val remoteAddress: BluetoothDevice,
     override val deviceInfo: DeviceInfo,
     override val linkProvider: BluetoothLinkProvider
@@ -38,29 +36,16 @@ class BluetoothLink(
     private var continueAccepting = true
     private val receivingThread = Thread(object : Runnable {
         override fun run() {
-            val sb = StringBuilder()
             try {
-                val reader: Reader = InputStreamReader(input, UTF_8)
-                val buf = CharArray(512)
                 while (continueAccepting) {
-                    while (sb.indexOf("\n") == -1 && continueAccepting) {
-                        var charsRead: Int
-                        if (reader.read(buf).also { charsRead = it } > 0) {
-                            sb.appendRange(buf, 0, charsRead)
-                        }
-                        if (charsRead < 0) {
-                            runBlocking { disconnect() }
-                            return
-                        }
+                    val message = input.readUtf8Line()
+                    if (message == null) {
+                        runBlocking { disconnect() }
+                        return
                     }
                     if (!continueAccepting) break
-                    val endIndex = sb.indexOf("\n")
-                    if (endIndex != -1) {
-                        val message = sb.substring(0, endIndex + 1)
-                        sb.delete(0, endIndex + 1)
-                        runBlocking {
-                            processMessage(message)
-                        }
+                    runBlocking {
+                        processMessage(message)
                     }
                 }
             } catch (e: IOException) {
@@ -109,8 +94,8 @@ class BluetoothLink(
 
     @Throws(IOException::class)
     private fun sendMessage(np: NetworkPacket) {
-        val message = np.serialize().toByteArray(UTF_8)
-        output.write(message)
+        output.writeUtf8(np.serialize() + "\n")
+        output.flush()
     }
 
     @WorkerThread
@@ -128,21 +113,23 @@ class BluetoothLink(
             sendMessage(np)
             if (transferUuid != null) {
                 try {
-                    connection.getChannelSink(transferUuid).use { payloadStream ->
+                    connection.getChannelSink(transferUuid).buffer().use { payloadSink ->
                         val bufferLength = 1024L
-                        val buffer = Buffer()
-                        var bytesRead = -1L
                         var progress: Long = 0
-                        val stream = np.payload!!.source!!
+                        val source = np.payload!!.source!!
+                        val buffer = Buffer()
                         @OptIn(ExperimentalAtomicApi::class)
-                        while (!np.isCanceled.load() && stream.read(buffer, bufferLength).also { bytesRead = it } != (-1L)) {
+                        while (!np.isCanceled.load()) {
+                            val bytesRead = source.read(buffer, bufferLength)
+                            if (bytesRead == -1L) break
+                            payloadSink.write(buffer, bytesRead)
+                            payloadSink.emitCompleteSegments()
                             progress += bytesRead
-                            payloadStream.write(buffer, bytesRead)
                             if (np.payloadSize > 0) {
                                 callback.onPayloadProgressChanged((100 * progress / np.payloadSize).toInt())
                             }
                         }
-                        payloadStream.flush()
+                        payloadSink.flush()
                     }
                 } catch (e: Exception) {
                     callback.onFailure(e)

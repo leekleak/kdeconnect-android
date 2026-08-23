@@ -3,6 +3,7 @@ package org.kde.kdeconnect.plugins.remotekeyboard
 import android.content.Context
 import android.provider.Settings
 import android.view.inputmethod.InputMethodManager
+import org.jetbrains.compose.resources.getString
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.no_permissions_remotekeyboard
 import org.kde.kdeconnect.generated.resources.open_settings
@@ -30,13 +31,13 @@ object RemoteKeyboardPluginInfo : PluginInfo(
         return inputMethodList.stream().anyMatch { info -> context.packageName.equals(info.packageName) }
     }
 
-    override fun getPermissionRequests(): List<PermissionRequest> {
+    override suspend fun getPermissionRequests(): List<PermissionRequest> {
         return listOf(
             PermissionRequest(
-                title = Res.string.pref_plugin_remotekeyboard,
-                description = Res.string.no_permissions_remotekeyboard,
+                title = getString(Res.string.pref_plugin_remotekeyboard),
+                description = getString(Res.string.no_permissions_remotekeyboard),
                 intentAction = Settings.ACTION_INPUT_METHOD_SETTINGS,
-                positiveButton = Res.string.open_settings
+                positiveButton = getString(Res.string.open_settings)
             )
         )
     }

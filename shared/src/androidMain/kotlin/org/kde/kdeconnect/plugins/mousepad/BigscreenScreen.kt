@@ -42,7 +42,29 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.kde.kdeconnect.DeviceManager
-import org.kde.kdeconnect.generated.resources.*
+import org.kde.kdeconnect.generated.resources.Res
+import org.kde.kdeconnect.generated.resources.arrow_back_ios_new
+import org.kde.kdeconnect.generated.resources.bigscreen_back
+import org.kde.kdeconnect.generated.resources.bigscreen_down
+import org.kde.kdeconnect.generated.resources.bigscreen_home
+import org.kde.kdeconnect.generated.resources.bigscreen_left
+import org.kde.kdeconnect.generated.resources.bigscreen_mic
+import org.kde.kdeconnect.generated.resources.bigscreen_right
+import org.kde.kdeconnect.generated.resources.bigscreen_select
+import org.kde.kdeconnect.generated.resources.bigscreen_speech_extra_prompt
+import org.kde.kdeconnect.generated.resources.bigscreen_up
+import org.kde.kdeconnect.generated.resources.circle
+import org.kde.kdeconnect.generated.resources.grant
+import org.kde.kdeconnect.generated.resources.home
+import org.kde.kdeconnect.generated.resources.kde_connect
+import org.kde.kdeconnect.generated.resources.keyboard_arrow_down
+import org.kde.kdeconnect.generated.resources.keyboard_arrow_left
+import org.kde.kdeconnect.generated.resources.keyboard_arrow_right
+import org.kde.kdeconnect.generated.resources.keyboard_arrow_up
+import org.kde.kdeconnect.generated.resources.mic
+import org.kde.kdeconnect.generated.resources.pref_plugin_bigscreen
+import org.kde.kdeconnect.generated.resources.speech_to_text_provider_not_found
+import org.kde.kdeconnect.generated.resources.unreachable_description
 import org.kde.kdeconnect.ui.PermissionExplanationActivity
 import org.kde.kdeconnect.ui.PermissionRequest
 import org.kde.kdeconnect.ui.components.BackAction
@@ -96,10 +118,10 @@ fun BigscreenScreen(
                         ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
                     }.map { permission ->
                         PermissionRequest(
-                            title = Res.string.kde_connect,
-                            description = Res.string.unreachable_description,
+                            title = getString(Res.string.kde_connect),
+                            description = getString(Res.string.unreachable_description),
                             intentAction = permission,
-                            positiveButton = Res.string.grant
+                            positiveButton = getString(Res.string.grant)
                         )
                     }
                     if (missingPermissionRequests.isEmpty()) {

@@ -15,11 +15,14 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
@@ -93,6 +96,7 @@ fun SettingsScreen(
     navigator: Navigator
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     val exportLogsLauncher = rememberLauncherForActivityResult(
         contract = CreateFileResultContract()
@@ -170,38 +174,40 @@ fun SettingsScreen(
             icon = painterResource(Res.drawable.bluetooth),
             value = uiState.bluetoothEnabled,
             onValueChanged = { newValue ->
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && newValue) {
-                    val missingPermissionRequests =
-                        arrayOf(BLUETOOTH_CONNECT, BLUETOOTH_SCAN).filter {
-                            ContextCompat.checkSelfPermission(
-                                context,
-                                it
-                            ) != PackageManager.PERMISSION_GRANTED
-                        }.map { permission ->
-                            PermissionRequest(
-                                title = Res.string.enable_bluetooth,
-                                description = Res.string.bluetooth_permission_request,
-                                intentAction = permission,
-                                positiveButton = Res.string.grant
-                            )
-                        }
-
-                    if (missingPermissionRequests.isNotEmpty()) {
-                        bluetoothPermissionLauncher.launch(
-                            Intent(
-                                context,
-                                PermissionExplanationActivity::class.java
-                            ).apply {
-                                // Take 1 because I think you only need to ask for one of them and you get all? Todo: Test that
-                                putExtra(
-                                    "permissionRequests",
-                                    Json.encodeToString(missingPermissionRequests.take(1))
+                scope.launch {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && newValue) {
+                        val missingPermissionRequests =
+                            arrayOf(BLUETOOTH_CONNECT, BLUETOOTH_SCAN).filter {
+                                ContextCompat.checkSelfPermission(
+                                    context,
+                                    it
+                                ) != PackageManager.PERMISSION_GRANTED
+                            }.map { permission ->
+                                PermissionRequest(
+                                    title = getString(Res.string.enable_bluetooth),
+                                    description = getString(Res.string.bluetooth_permission_request),
+                                    intentAction = permission,
+                                    positiveButton = getString(Res.string.grant)
                                 )
-                            })
-                        return@SwitchPreference
+                            }
+
+                        if (missingPermissionRequests.isNotEmpty()) {
+                            bluetoothPermissionLauncher.launch(
+                                Intent(
+                                    context,
+                                    PermissionExplanationActivity::class.java
+                                ).apply {
+                                    // Take 1 because I think you only need to ask for one of them and you get all? Todo: Test that
+                                    putExtra(
+                                        "permissionRequests",
+                                        Json.encodeToString(missingPermissionRequests.take(1))
+                                    )
+                                })
+                            return@launch
+                        }
                     }
+                    setBluetoothEnabled(newValue)
                 }
-                setBluetoothEnabled(newValue)
             }
         )
 

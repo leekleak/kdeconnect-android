@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -70,26 +71,38 @@ class PermissionExplanationActivity : AppCompatActivity() {
             return
         }
 
-        val requests = if (pluginKey != null) {
-            permissionRequestHelper.markExplanationShown(pluginKey)
-            val pluginInfo = PluginFactory.getPluginInfo(pluginKey)
-            pluginInfo.getPermissionRequests()
-        } else {
-            requestsDeserialized!!
-        }
-
         setResult(RESULT_CANCELED)
 
         setContent {
             KdeTheme {
+                var requests by remember { mutableStateOf<List<PermissionRequest>?>(null) }
+
+                LaunchedEffect(pluginKey, requestsDeserialized) {
+                    requests = if (pluginKey != null) {
+                        permissionRequestHelper.markExplanationShown(pluginKey)
+                        val pluginInfo = PluginFactory.getPluginInfo(pluginKey)
+                        pluginInfo.getPermissionRequests()
+                    } else {
+                        requestsDeserialized
+                    }
+                }
+
+                val currentRequests = requests ?: return@KdeTheme
+
+                if (currentRequests.isEmpty()) {
+                    setResult(RESULT_OK)
+                    finish()
+                    return@KdeTheme
+                }
+
                 var currentVisible by remember { mutableIntStateOf(0) }
                 LaunchedEffect(currentVisible) {
-                    if (currentVisible >= requests.size) {
+                    if (currentVisible >= currentRequests.size) {
                         setResult(RESULT_OK)
                         finish()
                     }
                 }
-                requests.forEachIndexed { index, request ->
+                currentRequests.forEachIndexed { index, request ->
                     PairingSheet(index == currentVisible, request) { granted ->
                         if (!granted) finish()
                         currentVisible += 1
@@ -186,10 +199,10 @@ private fun BottomSheetContent(
         Text(
             fontFamily = font,
             fontSize = 18.sp,
-            text = stringResource(request.title)
+            text = request.title
         )
         Text(
-            text = stringResource(request.description)
+            text = request.description
         )
     }
     Spacer(Modifier.height(8.dp))
@@ -234,7 +247,7 @@ private fun BottomSheetContent(
             Text(
                 modifier = Modifier.padding(8.dp),
                 fontSize = 18.sp,
-                text = stringResource(request.positiveButton)
+                text = request.positiveButton
             )
         }
     }

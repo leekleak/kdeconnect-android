@@ -8,6 +8,7 @@ package org.kde.kdeconnect.plugins.mousereceiver
 import android.content.Context
 import android.os.Build
 import android.provider.Settings
+import org.jetbrains.compose.resources.getString
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.generated.resources.Res
@@ -138,13 +139,13 @@ object MouseReceiverPluginInfo : PluginInfo(
         return MouseReceiverService.instance != null
     }
 
-    override fun getPermissionRequests(): List<PermissionRequest> {
+    override suspend fun getPermissionRequests(): List<PermissionRequest> {
         return listOf(
             PermissionRequest(
-                title = Res.string.mouse_receiver_plugin_description,
-                description = Res.string.mouse_receiver_no_permissions,
+                title = getString(Res.string.mouse_receiver_plugin_description),
+                description = getString(Res.string.mouse_receiver_no_permissions),
                 intentAction = Settings.ACTION_ACCESSIBILITY_SETTINGS,
-                positiveButton = Res.string.open_settings
+                positiveButton = getString(Res.string.open_settings)
             )
         )
     }

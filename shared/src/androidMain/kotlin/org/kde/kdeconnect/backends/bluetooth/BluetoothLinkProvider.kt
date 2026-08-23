@@ -36,14 +36,12 @@ import org.kde.kdeconnect.helpers.security.SslHelper
 import org.jetbrains.compose.resources.DrawableResource
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.bluetooth
+import okio.buffer
 import java.io.IOException
-import java.io.InputStreamReader
-import java.io.Reader
 import java.security.cert.CertificateException
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.encoding.Base64
-import kotlin.text.Charsets.UTF_8
 
 class BluetoothLinkProvider(
     private val context: Context,
@@ -186,8 +184,8 @@ class BluetoothLinkProvider(
             }
             try {
                 ConnectionMultiplexer(socket).use { connection ->
-                    val outputStream = connection.defaultOutputStream
-                    val inputStream = connection.defaultInputStream
+                    val sink = connection.defaultSink.buffer()
+                    val source = connection.defaultSource.buffer()
 
                     val myDeviceInfo = deviceHelper.getDeviceInfo()
 
@@ -198,20 +196,16 @@ class BluetoothLinkProvider(
                         put("certificate", pemEncodedCertificate)
                     }
 
-                    val message = np.serialize().toByteArray(UTF_8)
-                    outputStream.write(message)
-                    outputStream.flush()
+                    sink.writeUtf8(np.serialize() + "\n")
+                    sink.flush()
                     LoggerTagged.i { "Sent identity packet" }
 
                     // Listen for the response
-                    val sb = StringBuilder()
-                    val reader: Reader = InputStreamReader(inputStream, UTF_8)
-                    var charsRead = 0
-                    val buf = CharArray(512)
-                    while (sb.lastIndexOf("\n") == -1 && reader.read(buf).also { charsRead = it } != -1) {
-                        sb.appendRange(buf, 0, charsRead)
+                    val response = source.readUtf8Line()
+                    if (response == null) {
+                        LoggerTagged.w { "No identity packet received." }
+                        return
                     }
-                    val response = sb.toString()
                     val identityPacket = NetworkPacket.unserialize(response)
                     if (!DeviceInfo.isValidIdentityPacket(identityPacket)) {
                         LoggerTagged.w { "Invalid identity packet received." }
@@ -227,7 +221,7 @@ class BluetoothLinkProvider(
                     val deviceInfo = DeviceInfo.fromIdentityPacketAndCert(identityPacket, certificate)
                     LoggerTagged.i { "About to create link" }
                     val link = BluetoothLink(connection,
-                            inputStream, outputStream, socket.remoteDevice,
+                            source, sink, socket.remoteDevice,
                             deviceInfo, this@BluetoothLinkProvider)
                     LoggerTagged.i { "About to addLink" }
                     addLink(identityPacket, link)
@@ -371,16 +365,15 @@ class BluetoothLinkProvider(
                 //Delay to let bluetooth initialize stuff correctly
                 Thread.sleep(500)
                 val connection = ConnectionMultiplexer(socket)
-                val outputStream = connection.defaultOutputStream
-                val inputStream = connection.defaultInputStream
-                LoggerTagged.i { "Device: " + device.address + " Before inputStream.read()" }
-                var character = 0
-                val sb = StringBuilder()
-                while (sb.lastIndexOf("\n") == -1 && inputStream.read().also { character = it } != -1) {
-                    sb.append(character.toChar())
+                val outputStream = connection.defaultSink.buffer()
+                val inputStream = connection.defaultSource.buffer()
+                LoggerTagged.i { "Device: " + device.address + " Before inputStream.readUtf8Line()" }
+                val message = inputStream.readUtf8Line()
+                if (message == null) {
+                    LoggerTagged.w { "Device: " + device.address + " No identity packet received." }
+                    connection.close()
+                    return
                 }
-                LoggerTagged.i { "Device: " + device.address + " Before sb.toString()" }
-                val message = sb.toString()
                 LoggerTagged.i { "Device: " + device.address + " Before unserialize (message: '" + message + "')" }
                 val identityPacket = NetworkPacket.unserialize(message)
                 LoggerTagged.i { "Device: " + device.address + " After unserialize" }

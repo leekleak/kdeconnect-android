@@ -8,15 +8,18 @@ package org.kde.kdeconnect.backends.bluetooth
 
 import android.bluetooth.BluetoothSocket
 import okio.Buffer
+import okio.BufferedSink
+import okio.BufferedSource
 import okio.Sink
 import okio.Source
 import okio.Timeout
+import okio.buffer
+import okio.sink
+import okio.source
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.ThreadHelper.execute
 import java.io.Closeable
 import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.UUID
@@ -25,34 +28,6 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 class ConnectionMultiplexer(private val socket: BluetoothSocket) : Closeable {
-    private class ChannelInputStream(val channel: Channel) : InputStream(), Closeable {
-        override fun available(): Int {
-            return channel.available()
-        }
-
-        @Throws(IOException::class)
-        override fun close() {
-            channel.close()
-        }
-
-        override fun read(): Int {
-            val b = ByteArray(1)
-            return if (read(b, 0, 1) == -1) {
-                -1
-            } else {
-                b[0].toInt()
-            }
-        }
-
-        override fun read(b: ByteArray, off: Int, len: Int): Int {
-            return channel.read(b, off, len)
-        }
-
-        override fun read(b: ByteArray): Int {
-            return read(b, 0, b.size)
-        }
-    }
-
     private class ChannelSource(val channel: Channel) : Source, Closeable {
         override fun read(sink: Buffer, byteCount: Long): Long {
             val b = ByteArray(byteCount.toInt())
@@ -68,35 +43,6 @@ class ConnectionMultiplexer(private val socket: BluetoothSocket) : Closeable {
         @Throws(IOException::class)
         override fun close() {
             channel.close()
-        }
-    }
-
-    private class ChannelOutputStream(val channel: Channel) : OutputStream(), Closeable {
-        @Throws(IOException::class)
-        override fun close() {
-            channel.close()
-        }
-
-        @Throws(IOException::class)
-        override fun flush() {
-            channel.flush()
-        }
-
-        @Throws(IOException::class)
-        override fun write(b: ByteArray, off: Int, len: Int) {
-            channel.write(b, off, len)
-        }
-
-        @Throws(IOException::class)
-        override fun write(b: Int) {
-            val data = ByteArray(1)
-            data[0] = b.toByte()
-            write(data, 0, 1)
-        }
-
-        @Throws(IOException::class)
-        override fun write(b: ByteArray) {
-            write(b, 0, b.size)
         }
     }
 
@@ -126,9 +72,6 @@ class ConnectionMultiplexer(private val socket: BluetoothSocket) : Closeable {
         var open = true
         var requestedReadAmount = 0 //Number of times we requested some bytes from the channel
         var freeWriteAmount = 0 //Number of times we can safely send bytes over the channel
-        fun available(): Int {
-            lock.withLock { return readBuffer.position() }
-        }
 
         fun read(b: ByteArray, off: Int, len: Int): Int {
             if (len == 0) return 0
@@ -223,10 +166,13 @@ class ConnectionMultiplexer(private val socket: BluetoothSocket) : Closeable {
     private var open = true
     private var receivedProtocolVersion = false
 
+    private val underlyingSource: BufferedSource = socket.inputStream.source().buffer()
+    private val underlyingSink: BufferedSink = socket.outputStream.sink().buffer()
+
     init {
         channels[DEFAULT_CHANNEL] = Channel(this, DEFAULT_CHANNEL)
         sendProtocolVersion()
-        execute(ListenRunnable(socket))
+        execute(ListenRunnable())
     }
 
     @Throws(IOException::class)
@@ -238,7 +184,8 @@ class ConnectionMultiplexer(private val socket: BluetoothSocket) : Closeable {
         message.position(19)
         message.putShort(1.toShort())
         message.putShort(1.toShort())
-        socket.outputStream.write(data)
+        underlyingSink.write(data)
+        underlyingSink.flush()
     }
 
     private fun handleException(e: Exception) {
@@ -270,7 +217,8 @@ class ConnectionMultiplexer(private val socket: BluetoothSocket) : Closeable {
                 message.putLong(id.mostSignificantBits)
                 message.putLong(id.leastSignificantBits)
                 try {
-                    socket.outputStream.write(data)
+                    underlyingSink.write(data)
+                    underlyingSink.flush()
                 } catch (e: IOException) {
                     handleException(e)
                 }
@@ -294,7 +242,8 @@ class ConnectionMultiplexer(private val socket: BluetoothSocket) : Closeable {
                 message.putShort(amount.toShort())
                 channel.requestedReadAmount += amount
                 try {
-                    socket.outputStream.write(data)
+                    underlyingSink.write(data)
+                    underlyingSink.flush()
                 } catch (e: IOException) {
                     handleException(e)
                 } catch (e: NullPointerException) {
@@ -336,7 +285,8 @@ class ConnectionMultiplexer(private val socket: BluetoothSocket) : Closeable {
                 channel.lockCondition.signalAll()
             }
             try {
-                socket.outputStream.write(data, 0, 19 + length)
+                underlyingSink.write(data, 0, 19 + length)
+                underlyingSink.flush()
             } catch (e: IOException) {
                 handleException(e)
             }
@@ -348,7 +298,7 @@ class ConnectionMultiplexer(private val socket: BluetoothSocket) : Closeable {
     private fun flush() {
         channelsLock.withLock {
             if (!open) return
-            socket.outputStream.flush()
+            underlyingSink.flush()
         }
     }
 
@@ -375,7 +325,8 @@ class ConnectionMultiplexer(private val socket: BluetoothSocket) : Closeable {
             message.putLong(id.mostSignificantBits)
             message.putLong(id.leastSignificantBits)
             try {
-                socket.outputStream.write(data)
+                underlyingSink.write(data)
+                underlyingSink.flush()
             } catch (e: IOException) {
                 handleException(e)
                 throw e
@@ -386,34 +337,18 @@ class ConnectionMultiplexer(private val socket: BluetoothSocket) : Closeable {
     }
 
     @get:Throws(IOException::class)
-    val defaultInputStream: InputStream
-        get() = getChannelInputStream(DEFAULT_CHANNEL)
+    val defaultSource: Source
+        get() = getChannelSource(DEFAULT_CHANNEL)
 
     @get:Throws(IOException::class)
-    val defaultOutputStream: OutputStream
-        get() = getChannelOutputStream(DEFAULT_CHANNEL)
-
-    @Throws(IOException::class)
-    fun getChannelInputStream(id: UUID): InputStream {
-        channelsLock.withLock {
-            val channel = channels[id] ?: throw IOException("Invalid channel!")
-            return ChannelInputStream(channel)
-        }
-    }
+    val defaultSink: Sink
+        get() = getChannelSink(DEFAULT_CHANNEL)
 
     @Throws(IOException::class)
     fun getChannelSource(id: UUID): Source {
         channelsLock.withLock {
             val channel = channels[id] ?: throw IOException("Invalid channel!")
             return ChannelSource(channel)
-        }
-    }
-
-    @Throws(IOException::class)
-    fun getChannelOutputStream(id: UUID): OutputStream {
-        channelsLock.withLock {
-            val channel = channels[id] ?: throw IOException("Invalid channel!")
-            return ChannelOutputStream(channel)
         }
     }
 
@@ -425,35 +360,12 @@ class ConnectionMultiplexer(private val socket: BluetoothSocket) : Closeable {
         }
     }
 
-    private inner class ListenRunnable(socket: BluetoothSocket) : Runnable {
-        var input: InputStream = socket.inputStream
-        var output: OutputStream = socket.outputStream
-
-        @Throws(IOException::class)
-        private fun readBuffer(buffer: ByteArray, len: Int) {
-            var numRead = 0
-            while (numRead < len) {
-                val count = input.read(buffer, numRead, len - numRead)
-                if (count == -1) {
-                    throw IOException("Couldn't read enough bytes!")
-                }
-                numRead += count
-            }
-        }
-
-        fun byteArrayToHexString(bytes: ByteArray): String {
-            val sb = StringBuilder()
-            for (b in bytes) {
-                sb.append(String.format("0x%02x ", b.toInt() and 0xff))
-            }
-            return sb.toString()
-        }
+    private inner class ListenRunnable : Runnable {
 
         @Throws(IOException::class)
         private fun readMessage() {
-            var data = ByteArray(BUFFER_SIZE)
-            readBuffer(data, 19)
-            val message = ByteBuffer.wrap(data, 0, 19).order(ByteOrder.BIG_ENDIAN)
+            val headerData = underlyingSource.readByteArray(19)
+            val message = ByteBuffer.wrap(headerData).order(ByteOrder.BIG_ENDIAN)
             val type = message.get()
             var length = message.short.toInt()
             //signed short -> unsigned short (as int) conversion
@@ -462,9 +374,7 @@ class ConnectionMultiplexer(private val socket: BluetoothSocket) : Closeable {
             val channelIdLeastSigBits = message.long
             val channelId = UUID(channelIdMostSigBits, channelIdLeastSigBits)
             if (!receivedProtocolVersion && type != MESSAGE_PROTOCOL_VERSION) {
-                LoggerTagged.w { "Received invalid message '$message'" }
-                LoggerTagged.w { "'data_buffer:(" + byteArrayToHexString(data) + ") " }
-                LoggerTagged.w { "as string: '${data.contentToString()}' " }
+                LoggerTagged.w { "Received invalid message type $type" }
 
                 throw IOException("Did not receive protocol version message!")
             }
@@ -485,8 +395,8 @@ class ConnectionMultiplexer(private val socket: BluetoothSocket) : Closeable {
                     if (length != 2) {
                         throw IOException("Message length is invalid for 'MESSAGE_READ'!")
                     }
-                    readBuffer(data, 2)
-                    var amount = ByteBuffer.wrap(data, 0, 2).order(ByteOrder.BIG_ENDIAN).short.toInt()
+                    val amountData = underlyingSource.readByteArray(2)
+                    var amount = ByteBuffer.wrap(amountData).order(ByteOrder.BIG_ENDIAN).short.toInt()
                     //signed short -> unsigned short (as int) conversion
                     if (amount < 0) amount += 0x10000
                     channelsLock.withLock {
@@ -501,7 +411,7 @@ class ConnectionMultiplexer(private val socket: BluetoothSocket) : Closeable {
                     if (length > BUFFER_SIZE) {
                         throw IOException("Message length is bigger than read size!")
                     }
-                    readBuffer(data, length)
+                    val writeData = underlyingSource.readByteArray(length.toLong())
                     channelsLock.withLock {
                         val channel = channels[channelId] ?: return
                         channel.lock.withLock {
@@ -512,7 +422,7 @@ class ConnectionMultiplexer(private val socket: BluetoothSocket) : Closeable {
                             if (channel.readBuffer.position() + length > BUFFER_SIZE) {
                                 throw IOException("Shouldn't be getting more data when the buffer is too full!")
                             }
-                            channel.readBuffer.put(data, 0, length)
+                            channel.readBuffer.put(writeData, 0, length)
                             channel.lockCondition.signalAll()
                         }
                     }
@@ -522,17 +432,13 @@ class ConnectionMultiplexer(private val socket: BluetoothSocket) : Closeable {
                     if (length < 4) {
                         throw IOException("Message length is invalid for 'MESSAGE_PROTOCOL_VERSION'!")
                     }
-                    //We might need a larger buffer to read this
-                    if (length > data.size) {
-                        data = ByteArray(1 shl 16)
-                    }
-                    readBuffer(data, length)
+                    val versionData = underlyingSource.readByteArray(length.toLong())
 
                     //Check remote endpoint protocol version
-                    var minimumVersion = ByteBuffer.wrap(data, 0, 2).order(ByteOrder.BIG_ENDIAN).short.toInt()
+                    var minimumVersion = ByteBuffer.wrap(versionData, 0, 2).order(ByteOrder.BIG_ENDIAN).short.toInt()
                     //signed short -> unsigned short (as int) conversion
                     if (minimumVersion < 0) minimumVersion += 0x10000
-                    var maximumVersion = ByteBuffer.wrap(data, 2, 2).order(ByteOrder.BIG_ENDIAN).short.toInt()
+                    var maximumVersion = ByteBuffer.wrap(versionData, 2, 2).order(ByteOrder.BIG_ENDIAN).short.toInt()
                     //signed short -> unsigned short (as int) conversion
                     if (maximumVersion < 0) maximumVersion += 0x10000
                     if (minimumVersion > 1 || maximumVersion < 1) {

@@ -256,15 +256,15 @@ object SftpPluginInfo : PluginInfo(
         }
     }
 
-    override fun getPermissionRequests(): List<PermissionRequest> {
+    override suspend fun getPermissionRequests(): List<PermissionRequest> {
         return buildList {
             if (SimpleSftpServer.SUPPORTS_NATIVEFS) {
                 add(
                     PermissionRequest(
-                        title = displayNameRes,
-                        description = Res.string.sftp_manage_storage_permission_explanation,
+                        title = getString(displayNameRes),
+                        description = getString(Res.string.sftp_manage_storage_permission_explanation),
                         intentAction = Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
-                        positiveButton = Res.string.open_settings
+                        positiveButton = getString(Res.string.open_settings)
                     )
                 )
             }

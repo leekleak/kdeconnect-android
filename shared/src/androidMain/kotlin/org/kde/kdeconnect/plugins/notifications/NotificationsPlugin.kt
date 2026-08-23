@@ -82,13 +82,13 @@ object NotificationsPluginInfo: PluginInfo(
         return NotificationReceiver.hasReadNotificationsPermission(context)
     }
 
-    override fun getPermissionRequests(): List<PermissionRequest> {
+    override suspend fun getPermissionRequests(): List<PermissionRequest> {
         return listOf(
             PermissionRequest(
-                title = Res.string.pref_plugin_notifications,
-                description = Res.string.no_permissions,
+                title = getString(Res.string.pref_plugin_notifications),
+                description = getString(Res.string.no_permissions),
                 intentAction = ACTION_NOTIFICATION_LISTENER_SETTINGS,
-                positiveButton = Res.string.open_settings
+                positiveButton = getString(Res.string.open_settings)
             )
         )
     }
