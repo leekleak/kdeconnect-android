@@ -18,11 +18,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import org.jetbrains.compose.resources.getString
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.SftpSettingsDataStore
@@ -206,9 +210,8 @@ class SftpPlugin(
         val isFileUri: Boolean = uri.scheme == ContentResolver.SCHEME_FILE
         val isContentUri: Boolean = uri.scheme == ContentResolver.SCHEME_CONTENT
 
-        @Throws(JSONException::class)
-        fun toJSON(): JSONObject {
-            return JSONObject().apply {
+        fun toJson(): JsonObject {
+            return buildJsonObject {
                 put(KEY_DISPLAY_NAME, displayName)
                 put(KEY_URI, uri.toString())
             }
@@ -218,11 +221,9 @@ class SftpPlugin(
             private const val KEY_DISPLAY_NAME = "DisplayName"
             private const val KEY_URI = "Uri"
 
-            @JvmStatic
-            @Throws(JSONException::class)
-            fun fromJSON(jsonObject: JSONObject): StorageInfo { // TODO: Use Result after migrate callee to Kotlin
-                val displayName = jsonObject.getString(KEY_DISPLAY_NAME)
-                val uri = jsonObject.getString(KEY_URI).toUri()
+            fun fromJson(jsonObject: JsonObject): StorageInfo {
+                val displayName = jsonObject[KEY_DISPLAY_NAME]?.jsonPrimitive?.content ?: ""
+                val uri = jsonObject[KEY_URI]?.jsonPrimitive?.content?.toUri()!!
 
                 return StorageInfo(displayName, uri)
             }
@@ -276,12 +277,12 @@ object SftpPluginInfo : PluginInfo(
         val jsonString = dataStore.storageInfoListJson.first()
 
         try {
-            val jsonArray = JSONArray(jsonString)
+            val jsonArray = Json.parseToJsonElement(jsonString) as JsonArray
 
-            for (i in 0 until jsonArray.length()) {
-                storageInfoList.add(StorageInfo.fromJSON(jsonArray.getJSONObject(i)))
+            for (i in jsonArray.indices) {
+                storageInfoList.add(StorageInfo.fromJson(jsonArray[i].jsonObject))
             }
-        } catch (e: JSONException) {
+        } catch (e: SerializationException) {
             LoggerTagged.e(e) { "Couldn't load storage info" }
         }
 

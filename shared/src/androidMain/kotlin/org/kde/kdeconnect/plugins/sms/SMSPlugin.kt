@@ -519,7 +519,7 @@ class SMSPlugin(
             val body = buildJsonArray {
                 for (message: SMSHelper.Message in messages) {
                     try {
-                        val json: JsonObject = message.toJSONObject()
+                        val json: JsonObject = message.toJsonObject()
 
                         add(json)
                     } catch (e: SerializationException) {

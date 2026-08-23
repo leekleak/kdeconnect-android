@@ -731,7 +731,7 @@ object SMSHelper {
     }
 
     /**
-     * Converts a given JSONArray of attachments into List<Attachment>
+     * Converts a given JsonArray of attachments into List<Attachment>
      *
      * The structure of the input is expected to be as follows:
      * [
@@ -763,7 +763,7 @@ object SMSHelper {
     }
 
     /**
-     * converts a given JSONArray into List<Address>
+     * converts a given JsonArray into List<Address>
     </Address> */
     fun jsonArrayToAddressList(context: Context, jsonArray: JsonArray): List<Address> {
         val addresses: MutableList<Address> = ArrayList()
@@ -899,7 +899,7 @@ object SMSHelper {
         private val subscriptionID: Int,
         private val attachments: List<Attachment>?
     ) {
-        fun toJSONObject(): JsonObject {
+        fun toJsonObject(): JsonObject {
             val json = buildJsonObject {
                 val jsonAddresses = buildJsonArray {
                     for (address in addresses) {

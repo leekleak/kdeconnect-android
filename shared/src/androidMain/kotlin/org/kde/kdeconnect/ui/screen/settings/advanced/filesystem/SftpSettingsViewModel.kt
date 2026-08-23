@@ -11,9 +11,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.jsonObject
 import org.jetbrains.compose.resources.getString
-import org.json.JSONArray
-import org.json.JSONException
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.SftpSettingsDataStore
 import org.kde.kdeconnect.generated.resources.Res
@@ -36,11 +39,11 @@ class SftpSettingsViewModel(
         .map { jsonString ->
             val storageInfoList = mutableListOf<SftpPlugin.StorageInfo>()
             try {
-                val jsonArray = JSONArray(jsonString)
-                for (i in 0 until jsonArray.length()) {
-                    storageInfoList.add(SftpPlugin.StorageInfo.fromJSON(jsonArray.getJSONObject(i)))
+                val jsonArray = Json.parseToJsonElement(jsonString) as JsonArray
+                for (i in jsonArray.indices) {
+                    storageInfoList.add(SftpPlugin.StorageInfo.fromJson(jsonArray[i].jsonObject))
                 }
-            } catch (e: JSONException) {
+            } catch (e: SerializationException) {
                 LoggerTagged.e(e) { "Couldn't load storage info" }
             }
             storageInfoList.sortBy { it.displayName.lowercase() }
@@ -52,12 +55,10 @@ class SftpSettingsViewModel(
         )
 
     private fun saveSettings(storageInfoList: List<SftpPlugin.StorageInfo>) {
-        val jsonArray = JSONArray()
-        try {
+        val jsonArray = buildJsonArray {
             for (storageInfo in storageInfoList) {
-                jsonArray.put(storageInfo.toJSON())
+                add(storageInfo.toJson())
             }
-        } catch (_: JSONException) {
         }
 
         viewModelScope.launch {
