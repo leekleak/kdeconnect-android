@@ -19,6 +19,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.scale
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.put
+import okio.buffer
 import org.kde.kdeconnect.BuildConfig
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
@@ -63,8 +64,8 @@ class ReceiveNotificationsPlugin(context: Context, device: Device) : Plugin(cont
         if (payload != null && payload.payloadSize != 0L) {
             val width = context.resources.getDimensionPixelSize(android.R.dimen.notification_large_icon_width)
             val height = context.resources.getDimensionPixelSize(android.R.dimen.notification_large_icon_height)
-            val input = payload.inputStream
-            largeIcon = BitmapFactory.decodeStream(input)
+            val input = payload.source
+            largeIcon = BitmapFactory.decodeStream(input!!.buffer().inputStream())
             payload.close()
 
             if (largeIcon != null) {

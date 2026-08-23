@@ -12,6 +12,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
+import okio.Buffer
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.NetworkPacket
@@ -80,7 +81,7 @@ class BluetoothLink(
                     val uuidString = transferInfo["uuid"]?.jsonPrimitive?.content
                     if (uuidString != null) {
                         val transferUuid = UUID.fromString(uuidString)
-                        val payloadInputStream = connection.getChannelInputStream(transferUuid)
+                        val payloadInputStream = connection.getChannelSource(transferUuid)
                         np.payload = NetworkPacket.Payload(payloadInputStream, np.payloadSize)
                     }
                 } catch (e: Exception) {
@@ -127,16 +128,16 @@ class BluetoothLink(
             sendMessage(np)
             if (transferUuid != null) {
                 try {
-                    connection.getChannelOutputStream(transferUuid).use { payloadStream ->
-                        val bufferLength = 1024
-                        val buffer = ByteArray(bufferLength)
-                        var bytesRead: Int = -1
+                    connection.getChannelSink(transferUuid).use { payloadStream ->
+                        val bufferLength = 1024L
+                        val buffer = Buffer()
+                        var bytesRead = -1L
                         var progress: Long = 0
-                        val stream = np.payload!!.inputStream!!
+                        val stream = np.payload!!.source!!
                         @OptIn(ExperimentalAtomicApi::class)
-                        while (!np.isCanceled.load() && stream.read(buffer).also { bytesRead = it } != -1) {
-                            progress += bytesRead.toLong()
-                            payloadStream.write(buffer, 0, bytesRead)
+                        while (!np.isCanceled.load() && stream.read(buffer, bufferLength).also { bytesRead = it } != (-1L)) {
+                            progress += bytesRead
+                            payloadStream.write(buffer, bytesRead)
                             if (np.payloadSize > 0) {
                                 callback.onPayloadProgressChanged((100 * progress / np.payloadSize).toInt())
                             }

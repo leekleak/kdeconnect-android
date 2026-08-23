@@ -11,10 +11,10 @@ import coil3.fetch.FetchResult
 import coil3.fetch.Fetcher
 import coil3.fetch.SourceFetchResult
 import coil3.request.Options
+import okio.Source
 import okio.buffer
 import okio.source
 import org.kde.kdeconnect.DeviceManager
-import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLDecoder
@@ -30,9 +30,9 @@ class MprisAlbumArtFetcher(
 
         val url = data.url.toUri()
 
-        val inputStream = when (url.scheme) {
+        val source = when (url.scheme) {
             in listOf("kdeconnect", "file") -> {
-                plugin.fetchAlbumArt(data.url, data.playerName)?.inputStream
+                plugin.fetchAlbumArt(data.url, data.playerName)?.source
             }
             in listOf("http", "https") -> {
                 if (isMetered(options.context)) return null
@@ -43,16 +43,16 @@ class MprisAlbumArtFetcher(
             }
         }
 
-        return inputStream?.let {
+        return source?.let {
             SourceFetchResult(
-                source = ImageSource(it.source().buffer(), options.fileSystem),
+                source = ImageSource(it.buffer(), options.fileSystem),
                 mimeType = null,
                 dataSource = DataSource.NETWORK
             )
         }
     }
 
-    private fun openHttp(url: String): InputStream? {
+    private fun openHttp(url: String): Source? {
         var currentUrl = URL(url)
         var connection: HttpURLConnection
         loop@ for (i in 0..4) {
@@ -72,7 +72,7 @@ class MprisAlbumArtFetcher(
                     continue@loop
                 }
             }
-            return connection.inputStream
+            return connection.inputStream.source()
         }
         return null
     }

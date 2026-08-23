@@ -21,6 +21,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import okio.Sink
+import okio.Source
+import okio.buffer
+import okio.sink
 import org.jetbrains.compose.resources.getPluralString
 import org.jetbrains.compose.resources.getString
 import org.kde.kdeconnect.Device
@@ -39,11 +43,9 @@ import org.kde.kdeconnect.helpers.FilesHelper.findValidNonExistingFileName
 import org.kde.kdeconnect.helpers.FilesHelper.getMimeTypeFromFile
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.MediaStoreHelper.indexFile
-import java.io.BufferedOutputStream
+import org.kde.kdeconnect.helpers.ProgressSource
 import java.io.File
 import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.attribute.FileTime
@@ -77,8 +79,6 @@ class CompositeReceiveFileJob(
     private var currentNetworkPacket: NetworkPacket? = null
     private var currentFileName: String? = null
     private var currentFileNum: Int = 0
-    private var totalReceived: Long = 0
-    private var lastProgressTimeMillis: Long = 0
     private var prevProgressPercentage: Long = 0
 
     @Volatile
@@ -141,7 +141,7 @@ class CompositeReceiveFileJob(
 
     override suspend fun run() {
         var done: Boolean = networkPacketList.isEmpty()
-        var outputStream: OutputStream? = null
+        var outputStream: Sink? = null
 
         try {
             var fileDocument: DocumentFile? = null
@@ -165,12 +165,10 @@ class CompositeReceiveFileJob(
                 )
 
                 if (networkPacket.hasPayload()) {
-                    outputStream = BufferedOutputStream(
-                        context.contentResolver.openOutputStream(fileDocument.uri)
-                    )
-                    val inputStream = networkPacket.payload?.inputStream ?: break
+                    outputStream = context.contentResolver.openOutputStream(fileDocument.uri)!!.sink()
+                    val source = networkPacket.payload?.source ?: break
 
-                    val received = receiveFile(inputStream, outputStream)
+                    val received = receiveFile(source, outputStream)
 
                     networkPacket.payload?.close()
 
@@ -337,32 +335,22 @@ class CompositeReceiveFileJob(
     }
 
     @Throws(IOException::class)
-    private fun receiveFile(input: InputStream, output: OutputStream): Long {
-        val data = ByteArray(4096)
-        var count: Int
-        var received: Long = 0
+    private fun receiveFile(input: Source, output: Sink): Long {
 
-        while ((input.read(data).also { count = it }) >= 0 && !isCancelled) {
-            received += count.toLong()
-            totalReceived += count.toLong()
+        val progressSource = ProgressSource(
+            delegate = input,
+            totalPayloadSize = totalPayloadSize,
+            isCancelled = { isCancelled },
+            setProgress = { setProgress(it) }
+        )
 
-            output.write(data, 0, count)
-
-            val progressPercentage: Long = (totalReceived * 100 / totalPayloadSize.load())
-            val curTimeMillis = System.currentTimeMillis()
-
-            if (progressPercentage != prevProgressPercentage &&
-                (progressPercentage == 100L || curTimeMillis - lastProgressTimeMillis >= 500)
-            ) {
-                prevProgressPercentage = progressPercentage
-                lastProgressTimeMillis = curTimeMillis
-                setProgress(progressPercentage.toInt())
-            }
+        output.buffer().use { bufferedSink ->
+            bufferedSink.writeAll(progressSource)
         }
 
         output.flush()
 
-        return received
+        return progressSource.getReceived()
     }
 
     private fun closeAllInputStreams() {

@@ -16,6 +16,11 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
+import okio.Buffer
+import okio.Sink
+import okio.Source
+import okio.sink
+import okio.source
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.NetworkPacket
@@ -24,11 +29,10 @@ import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.helpers.LineTooLongException
 import org.kde.kdeconnect.helpers.LoggerTagged
+import org.kde.kdeconnect.helpers.ProgressSink
 import org.kde.kdeconnect.helpers.readLineBounded
 import org.kde.kdeconnect.helpers.security.SslHelper
 import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
@@ -185,6 +189,7 @@ class LanLink @WorkerThread constructor(
         }
     }
 
+    @OptIn(ExperimentalAtomicApi::class)
     @Throws(IOException::class)
     private suspend fun sendPayload(
         np: NetworkPacket,
@@ -192,8 +197,8 @@ class LanLink @WorkerThread constructor(
         server: ServerSocket
     ) = withContext(Dispatchers.IO) {
         var payloadSocket: Socket? = null
-        var outputStream: OutputStream? = null
-        val inputStream: InputStream?
+        var outputStream: Sink? = null
+        val inputStream: Source?
         try {
             //Wait a maximum of 10 seconds for the other end to establish a connection with our socket, close it afterwards
             server.soTimeout = 10 * 1000
@@ -208,29 +213,24 @@ class LanLink @WorkerThread constructor(
                     clientMode = false,
                 )
 
-            outputStream = payloadSocket.getOutputStream()
-            inputStream = np.payload!!.inputStream
+            val rawOutputStream = payloadSocket.getOutputStream().sink()
+            val progressSink = ProgressSink(
+                delegate = rawOutputStream,
+                totalPayloadSize = np.payloadSize,
+                isCancelled = { np.isCanceled.load() },
+                setProgress = { callback.onPayloadProgressChanged(it) }
+            )
+            outputStream = progressSink
+            inputStream = np.payload!!.source
 
             LoggerTagged.i { "Beginning to send payload for " + np.type }
-            val buffer = ByteArray(4096)
-            var bytesRead: Int = -1
-            val size = np.payloadSize
-            var progress: Long = 0
-            var timeSinceLastUpdate: Long = -1
-            @OptIn(ExperimentalAtomicApi::class)
-            while (!np.isCanceled.load() && (inputStream!!.read(buffer).also { bytesRead = it }) != -1) {
-                progress += bytesRead.toLong()
-                outputStream.write(buffer, 0, bytesRead)
-                if (size > 0) {
-                    if (timeSinceLastUpdate + 500 < System.currentTimeMillis()) { //Report progress every half a second
-                        val percent = ((100 * progress) / size)
-                        callback.onPayloadProgressChanged(percent.toInt())
-                        timeSinceLastUpdate = System.currentTimeMillis()
-                    }
-                }
+            val buffer = Buffer()
+            var bytesRead = -1L
+            while ((inputStream!!.read(buffer, 4096).also { bytesRead = it }) != -1L) {
+                outputStream.write(buffer, bytesRead)
             }
             outputStream.flush()
-            LoggerTagged.i { "Finished sending payload ($progress bytes written)" }
+            LoggerTagged.i { "Finished sending payload (${progressSink.getWritten()} bytes written)" }
         } catch (e: SocketTimeoutException) {
             LoggerTagged.e(e) {
                 "Socket for payload in packet " + np.type + " timed out. The other end didn't fetch the payload."
@@ -241,6 +241,12 @@ class LanLink @WorkerThread constructor(
             LoggerTagged.e(e) { "Payload SSLSocket failed" }
         } catch (e: SSLHandshakeException) {
             LoggerTagged.e(e) { "Payload SSLSocket failed" }
+        } catch (e: Exception) {
+            if (e.message == "Cancelled") {
+                LoggerTagged.i { "Payload sending for ${np.type} was cancelled" }
+            } else {
+                throw e
+            }
         } finally {
             try {
                 server.close()
@@ -273,7 +279,7 @@ class LanLink @WorkerThread constructor(
                         clientMode = true,
                     )
                 withContext(Dispatchers.IO) {
-                    np.payload = NetworkPacket.Payload(payloadSocket.getInputStream(), np.payloadSize) {
+                    np.payload = NetworkPacket.Payload(payloadSocket.getInputStream().source(), np.payloadSize) {
                         payloadSocket.close()
                     }
                 }

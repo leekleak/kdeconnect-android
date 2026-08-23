@@ -7,6 +7,10 @@
 package org.kde.kdeconnect.backends.bluetooth
 
 import android.bluetooth.BluetoothSocket
+import okio.Buffer
+import okio.Sink
+import okio.Source
+import okio.Timeout
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.ThreadHelper.execute
 import java.io.Closeable
@@ -49,6 +53,24 @@ class ConnectionMultiplexer(private val socket: BluetoothSocket) : Closeable {
         }
     }
 
+    private class ChannelSource(val channel: Channel) : Source, Closeable {
+        override fun read(sink: Buffer, byteCount: Long): Long {
+            val b = ByteArray(byteCount.toInt())
+            val remaining = channel.read(b, 0, byteCount.toInt())
+            sink.write(b)
+            return remaining.toLong()
+        }
+
+        override fun timeout(): Timeout {
+            return Timeout.NONE
+        }
+
+        @Throws(IOException::class)
+        override fun close() {
+            channel.close()
+        }
+    }
+
     private class ChannelOutputStream(val channel: Channel) : OutputStream(), Closeable {
         @Throws(IOException::class)
         override fun close() {
@@ -76,6 +98,24 @@ class ConnectionMultiplexer(private val socket: BluetoothSocket) : Closeable {
         override fun write(b: ByteArray) {
             write(b, 0, b.size)
         }
+    }
+
+    private class ChannelSink(val channel: Channel) : Sink, Closeable {
+        @Throws(IOException::class)
+        override fun close() {
+            channel.close()
+        }
+
+        override fun write(source: Buffer, byteCount: Long) {
+            channel.write(source.readByteArray(), 0, byteCount.toInt())
+        }
+
+        @Throws(IOException::class)
+        override fun flush() {
+            channel.flush()
+        }
+
+        override fun timeout(): Timeout = Timeout.NONE
     }
 
     private class Channel(val multiplexer: ConnectionMultiplexer, val id: UUID) : Closeable {
@@ -362,10 +402,26 @@ class ConnectionMultiplexer(private val socket: BluetoothSocket) : Closeable {
     }
 
     @Throws(IOException::class)
+    fun getChannelSource(id: UUID): Source {
+        channelsLock.withLock {
+            val channel = channels[id] ?: throw IOException("Invalid channel!")
+            return ChannelSource(channel)
+        }
+    }
+
+    @Throws(IOException::class)
     fun getChannelOutputStream(id: UUID): OutputStream {
         channelsLock.withLock {
             val channel = channels[id] ?: throw IOException("Invalid channel!")
             return ChannelOutputStream(channel)
+        }
+    }
+
+    @Throws(IOException::class)
+    fun getChannelSink(id: UUID): Sink {
+        channelsLock.withLock {
+            val channel = channels[id] ?: throw IOException("Invalid channel!")
+            return ChannelSink(channel)
         }
     }
 

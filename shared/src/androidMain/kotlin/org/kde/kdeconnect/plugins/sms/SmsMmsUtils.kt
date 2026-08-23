@@ -37,18 +37,17 @@ import com.klinker.android.send_message.Settings
 import com.klinker.android.send_message.Transaction
 import com.klinker.android.send_message.Utils
 import kotlinx.serialization.json.put
+import okio.Buffer
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.SMSHelper
 import org.kde.kdeconnect.helpers.TelephonyHelper
 import org.kde.kdeconnect.helpers.TelephonyHelper.LocalPhoneNumber
-import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.io.InputStream
 import java.util.Random
 import kotlin.concurrent.thread
 import kotlin.math.abs
@@ -448,12 +447,12 @@ object SmsMmsUtils {
         }
 
         try {
-            val inputStream: InputStream = ByteArrayInputStream(attachment)
+            val buffer = Buffer().write(attachment)
 
             val np = NetworkPacket(type).update {
                 put("filename", filename)
             }
-            np.payload = NetworkPacket.Payload(inputStream, size)
+            np.payload = NetworkPacket.Payload(buffer, size)
             return np
         } catch (e: Exception) {
             return null

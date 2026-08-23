@@ -46,6 +46,7 @@ kotlin {
                 implementation(libs.androidx.room3.runtime)
                 implementation(libs.kermit)
                 implementation(libs.components.resources)
+                implementation(libs.okio)
             }
         }
 

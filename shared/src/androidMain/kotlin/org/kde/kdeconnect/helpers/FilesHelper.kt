@@ -15,6 +15,7 @@ import android.webkit.MimeTypeMap
 import androidx.annotation.WorkerThread
 import androidx.documentfile.provider.DocumentFile
 import kotlinx.serialization.json.put
+import okio.source
 import org.kde.kdeconnect.NetworkPacket
 import java.io.File
 import java.nio.charset.StandardCharsets
@@ -173,7 +174,7 @@ object FilesHelper {
                 }
             }
 
-            packet.payload = NetworkPacket.Payload(inputStream, size)
+            packet.payload = NetworkPacket.Payload(inputStream!!.source(), size)
 
             return packet
         }

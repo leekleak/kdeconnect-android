@@ -15,8 +15,8 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
-import java.io.ByteArrayInputStream
-import java.io.InputStream
+import okio.Buffer
+import okio.Source
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
@@ -130,15 +130,15 @@ data class NetworkPacket(
     }
 
     class Payload(
-        val inputStream: InputStream?,
+        val source: Source?,
         val payloadSize: Long,
         val onCloseCallback: () -> Unit = {}
     ) {
         constructor(payloadSize: Long) : this(null, payloadSize)
-        constructor(data: ByteArray) : this(ByteArrayInputStream(data), data.size.toLong())
+        constructor(data: ByteArray) : this(Buffer().write(data), data.size.toLong())
 
         fun close() {
-            inputStream?.close()
+            source?.close()
             onCloseCallback()
         }
     }
