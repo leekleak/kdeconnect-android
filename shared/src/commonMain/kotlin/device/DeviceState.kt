@@ -1,13 +1,29 @@
-/*
- * SPDX-FileCopyrightText: 2021 Philip Cohn-Cort <cliabhach@gmail.com>
- *
- * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
-*/
-
-package org.kde.kdeconnect.plugins.battery
+package org.kde.kdeconnect.device
 
 import org.kde.kdeconnect.NetworkPacket
-import org.kde.kdeconnect.plugins.battery.DeviceBatteryInfo.Companion.PACKET_TYPE_BATTERY
+import org.kde.kdeconnect.backends.BaseLink
+import org.kde.kdeconnect.device.DeviceBatteryInfo.Companion.PACKET_TYPE_BATTERY
+import org.kde.kdeconnect.plugins.PluginUiButton
+
+data class DeviceState(
+    val deviceInfo: DeviceInfo,
+    val pairState: PairState,
+    val batteryInfo: DeviceBatteryInfo? = null,
+    val verificationKey: String? = null,
+    val supportedPlugins: List<String> = emptyList(),
+    val pluginsByIncomingInterface: Map<String, List<String>> = emptyMap(),
+    val links: List<BaseLink> = emptyList(),
+    val uiButtons: List<PluginUiButton> = emptyList(),
+) {
+    val isReachable: Boolean get() = links.isNotEmpty()
+}
+
+enum class PairState {
+    NotPaired,
+    Requested,
+    RequestedByPeer,
+    Paired
+}
 
 /**
  * Specialised data representation of the packets received by [BatteryPlugin].

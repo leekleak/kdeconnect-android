@@ -1,6 +1,5 @@
 package org.kde.kdeconnect.plugins
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -15,42 +14,6 @@ import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.ui.PermissionExplanationActivity
 import org.kde.kdeconnect.ui.PermissionRequest
 import org.kde.kdeconnect.ui.navigation.Navigator
-
-enum class ButtonCategory {
-    SEND,
-    CONTROL
-}
-
-data class PluginUiButton(
-    val pluginKey: String,
-    val name: StringResource,
-    val nameFull: StringResource = name,
-    val iconRes: DrawableResource,
-    val category: ButtonCategory,
-    val onClick: suspend (parentActivity: Activity, navigator: Navigator) -> Unit,
-) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is PluginUiButton) return false
-
-        if (pluginKey != other.pluginKey) return false
-        if (name != other.name) return false
-        if (nameFull != other.nameFull) return false
-        if (iconRes != other.iconRes) return false
-        if (category != other.category) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = pluginKey.hashCode()
-        result = 31 * result + name.hashCode()
-        result = 31 * result + nameFull.hashCode()
-        result = 31 * result + iconRes.hashCode()
-        result = 31 * result + category.hashCode()
-        return result
-    }
-}
 
 open class PermissionPluginInfo(
     override val pluginKey: String,

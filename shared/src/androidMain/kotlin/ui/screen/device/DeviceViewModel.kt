@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
-import org.kde.kdeconnect.DeviceState
+import org.kde.kdeconnect.device.DeviceState
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.koin.core.annotation.InjectedParam
 

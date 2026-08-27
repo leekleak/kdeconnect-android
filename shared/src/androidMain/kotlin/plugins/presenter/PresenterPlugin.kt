@@ -38,8 +38,8 @@ object PresenterPluginInfo : PermissionPluginInfo(
             name = Res.string.pref_plugin_presenter,
             iconRes = Res.drawable.missing_controller,
             category = ButtonCategory.CONTROL
-        ) { _, navigator ->
-            navigator?.goTo(PresenterKey(device.deviceId))
+        ) { navigator ->
+            navigator.goTo(PresenterKey(device.deviceId))
         })
 }
 

@@ -32,8 +32,11 @@ import org.kde.kdeconnect.PairingHandler.Companion.getVerificationKey
 import org.kde.kdeconnect.PairingHandler.Companion.getVerificationKeyV7
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLink.PacketReceiver
+import org.kde.kdeconnect.device.DeviceBatteryInfo
 import org.kde.kdeconnect.device.DeviceInfo
+import org.kde.kdeconnect.device.DeviceState
 import org.kde.kdeconnect.device.DeviceType
+import org.kde.kdeconnect.device.PairState
 import org.kde.kdeconnect.device.SendPacketStatusCallback
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.LoggerTagged
@@ -42,7 +45,6 @@ import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.Plugin.Companion.getPluginKey
 import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect.plugins.PluginUiButton
-import org.kde.kdeconnect.plugins.battery.DeviceBatteryInfo
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.component.KoinScopeComponent
 import org.koin.core.component.createScope
@@ -483,17 +485,4 @@ class Device(
     override fun hashCode(): Int {
         return deviceId.hashCode()
     }
-}
-
-data class DeviceState(
-    val deviceInfo: DeviceInfo,
-    val pairState: PairState,
-    val batteryInfo: DeviceBatteryInfo? = null,
-    val verificationKey: String? = null,
-    val supportedPlugins: List<String> = emptyList(),
-    val pluginsByIncomingInterface: Map<String, List<String>> = emptyMap(),
-    val links: List<BaseLink> = emptyList(),
-    val uiButtons: List<PluginUiButton> = emptyList(),
-) {
-    val isReachable: Boolean get() = links.isNotEmpty()
 }

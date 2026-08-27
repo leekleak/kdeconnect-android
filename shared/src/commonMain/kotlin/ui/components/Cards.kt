@@ -6,7 +6,6 @@
 
 package org.kde.kdeconnect.ui.components
 
-import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -42,10 +41,11 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.kde.kdeconnect.device.DeviceBatteryInfo
 import org.kde.kdeconnect.device.DeviceInfo
-import org.kde.kdeconnect.DeviceState
+import org.kde.kdeconnect.device.DeviceState
 import org.kde.kdeconnect.device.DeviceType
-import org.kde.kdeconnect.PairState
+import org.kde.kdeconnect.device.PairState
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.arrow_forward_ios
 import org.kde.kdeconnect.generated.resources.assignment
@@ -72,7 +72,6 @@ import org.kde.kdeconnect.generated.resources.send_clipboard
 import org.kde.kdeconnect.generated.resources.shortcuts
 import org.kde.kdeconnect.plugins.ButtonCategory
 import org.kde.kdeconnect.plugins.PluginUiButton
-import org.kde.kdeconnect.plugins.battery.DeviceBatteryInfo
 import org.kde.kdeconnect.ui.navigation.Navigator
 
 @Composable
@@ -126,7 +125,6 @@ fun DeviceCard(
     actionDescriptionVisible: Boolean = false,
     onClick: (String) -> Unit
 ) {
-    val activity = LocalActivity.current
     val scope = rememberCoroutineScope()
     val font = googleSans(weight = 600f)
 
@@ -200,7 +198,7 @@ fun DeviceCard(
                 )
                 CategoryTitleTextSmall(stringResource(Res.string.shortcuts))
                 Spacer(Modifier.height(8.dp))
-                PluginButtonsGrid(shortcuts, fullName = true) { button -> activity?.let { scope.launch { button.onClick(it, navigator) } } }
+                PluginButtonsGrid(shortcuts, fullName = true) { button -> scope.launch { button.onClick(navigator) } }
             }
         }
     }
@@ -263,8 +261,8 @@ fun DeviceCardPreview() {
         ),
         navigator = Navigator(),
         shortcuts = listOf(
-            PluginUiButton("", Res.string.clipboard, Res.string.send_clipboard, Res.drawable.assignment, ButtonCategory.SEND) { _, _ -> },
-            PluginUiButton("", Res.string.open_mpris_controls, Res.string.open_mpris_controls, Res.drawable.music_cast, ButtonCategory.CONTROL) { _, _ -> }
+            PluginUiButton("", Res.string.clipboard, Res.string.send_clipboard, Res.drawable.assignment, ButtonCategory.SEND) {},
+            PluginUiButton("", Res.string.open_mpris_controls, Res.string.open_mpris_controls, Res.drawable.music_cast, ButtonCategory.CONTROL) {}
         ),
         onClick = { }
     )

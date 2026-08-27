@@ -29,7 +29,7 @@ object RunCommandPluginInfo : PermissionPluginInfo(
                 name = Res.string.pref_plugin_runcommand,
                 iconRes = Res.drawable.code,
                 category = ButtonCategory.CONTROL
-            ) { _, navigator ->
+            ) { navigator ->
                 navigator.goTo(RunCommandKey(device.deviceId))
             })
     }

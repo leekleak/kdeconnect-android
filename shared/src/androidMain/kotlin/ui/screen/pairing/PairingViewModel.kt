@@ -14,8 +14,8 @@ import kotlinx.coroutines.launch
 import org.kde.kdeconnect.BackgroundService.Companion.forceRefreshConnections
 import org.kde.kdeconnect.BackgroundServiceData
 import org.kde.kdeconnect.DeviceManager
-import org.kde.kdeconnect.DeviceState
-import org.kde.kdeconnect.PairState
+import org.kde.kdeconnect.device.DeviceState
+import org.kde.kdeconnect.device.PairState
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 
 class PairingViewModel(

@@ -5,6 +5,7 @@ package org.kde.kdeconnect.di
 import android.content.Context
 import android.content.Intent
 import androidx.activity.compose.LocalActivity
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
@@ -16,9 +17,9 @@ import coil3.disk.directory
 import coil3.memory.MemoryCache
 import coil3.request.crossfade
 import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.device.DeviceInfo
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.DevicePairingCallback
+import org.kde.kdeconnect.device.DeviceInfo
 import org.kde.kdeconnect.helpers.AppIconFetcher
 import org.kde.kdeconnect.helpers.PermissionHelper
 import org.kde.kdeconnect.plugins.digitizer.DigitizerScreen
@@ -42,6 +43,8 @@ import org.kde.kdeconnect.plugins.presenter.PresenterSettingsViewModel
 import org.kde.kdeconnect.plugins.presenter.PresenterViewModel
 import org.kde.kdeconnect.plugins.runcommand.RunCommandScreen
 import org.kde.kdeconnect.plugins.runcommand.RunCommandViewModel
+import org.kde.kdeconnect.plugins.share.SharePlugin
+import org.kde.kdeconnect.ui.ShareHandler
 import org.kde.kdeconnect.ui.ThemeUtil
 import org.kde.kdeconnect.ui.about.AboutData
 import org.kde.kdeconnect.ui.navigation.AboutKey
@@ -68,6 +71,7 @@ import org.kde.kdeconnect.ui.navigation.RunCommandKey
 import org.kde.kdeconnect.ui.navigation.SavedDevicesKey
 import org.kde.kdeconnect.ui.navigation.SettingsKey
 import org.kde.kdeconnect.ui.navigation.SftpPluginSettingsKey
+import org.kde.kdeconnect.ui.navigation.ShareFilesKey
 import org.kde.kdeconnect.ui.navigation.TelephonyPluginSettingsKey
 import org.kde.kdeconnect.ui.screen.about.AboutScreen
 import org.kde.kdeconnect.ui.screen.device.DeviceScreen
@@ -219,6 +223,23 @@ val deviceModule = module {
             deviceId = key.deviceId,
             navigator = get()
         )
+    }
+    navigation<ShareFilesKey> { key ->
+        val activity = LocalActivity.current as? ShareHandler
+        val deviceManager: DeviceManager = get()
+        val navigator: Navigator = get()
+
+        LaunchedEffect(key.deviceId) {
+            val device = deviceManager.getDevice(key.deviceId)
+            val plugin = device?.getPlugin(SharePlugin::class.java)
+            if (activity != null && plugin != null) {
+                activity.shareGetResultCallback = { uris ->
+                    plugin.sendUriList(uris)
+                }
+                activity.launchSharePicker("*/*")
+            }
+            navigator.goBack()
+        }
     }
 }
 

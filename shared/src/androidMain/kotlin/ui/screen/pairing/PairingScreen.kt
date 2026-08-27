@@ -15,8 +15,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import org.kde.kdeconnect.PairState
-import org.kde.kdeconnect.generated.resources.*
+import org.kde.kdeconnect.device.PairState
+import org.kde.kdeconnect.generated.resources.Res
+import org.kde.kdeconnect.generated.resources.key
+import org.kde.kdeconnect.generated.resources.link
+import org.kde.kdeconnect.generated.resources.pair
+import org.kde.kdeconnect.generated.resources.pair_devices
 import org.kde.kdeconnect.ui.components.BackAction
 import org.kde.kdeconnect.ui.components.DeviceCard
 import org.kde.kdeconnect.ui.components.HazeScaffold

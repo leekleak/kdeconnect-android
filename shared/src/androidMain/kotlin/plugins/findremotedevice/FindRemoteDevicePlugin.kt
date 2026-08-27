@@ -39,7 +39,7 @@ object FindRemoteDevicePluginInfo: PermissionPluginInfo(
             name = Res.string.find_device,
             iconRes = Res.drawable.e911_emergency,
             category = ButtonCategory.CONTROL
-        ) { _, _ ->
+        ) { _ ->
             device.getPlugin(FindRemoteDevicePlugin::class.java)?.let {
                 it.coroutineScope.launch {
                     device.sendPacket(NetworkPacket(FindMyPhonePlugin.PACKET_TYPE_FINDMYPHONE_REQUEST))

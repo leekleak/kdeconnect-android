@@ -72,6 +72,7 @@ import org.kde.kdeconnect.ui.components.DialogItemSelectPreference
 import org.kde.kdeconnect.ui.components.DialogTextPreference
 import org.kde.kdeconnect.ui.components.HazeScaffold
 import org.kde.kdeconnect.ui.components.IconPreference
+import org.kde.kdeconnect.ui.components.KdeThemePreviews
 import org.kde.kdeconnect.ui.components.NavigatePreference
 import org.kde.kdeconnect.ui.components.Preference
 import org.kde.kdeconnect.ui.components.SwitchPreference
@@ -258,7 +259,7 @@ fun SettingsScreen(
     }
 }
 
-@org.kde.kdeconnect.ui.components.KdeThemePreviews
+@KdeThemePreviews
 @Composable
 fun SettingsPreview() {
     SettingsScreen(

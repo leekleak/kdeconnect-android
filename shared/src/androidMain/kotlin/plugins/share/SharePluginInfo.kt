@@ -1,7 +1,6 @@
 package org.kde.kdeconnect.plugins.share
 
 import android.Manifest
-import android.app.Activity
 import android.os.Build
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.generated.resources.Res
@@ -13,7 +12,8 @@ import org.kde.kdeconnect.generated.resources.send_files
 import org.kde.kdeconnect.plugins.ButtonCategory
 import org.kde.kdeconnect.plugins.PermissionPluginInfo
 import org.kde.kdeconnect.plugins.PluginUiButton
-import org.kde.kdeconnect.ui.ShareHandler
+import org.kde.kdeconnect.ui.navigation.ShareFilesKey
+import org.koin.core.component.KoinComponent
 
 object SharePluginInfo : PermissionPluginInfo(
     pluginKey = "SharePlugin",
@@ -30,7 +30,7 @@ object SharePluginInfo : PermissionPluginInfo(
         setOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
     },
     lazy = false
-) {
+), KoinComponent {
     override fun getUiButtons(device: Device): List<PluginUiButton> {
         return listOf(
             PluginUiButton(
@@ -39,13 +39,8 @@ object SharePluginInfo : PermissionPluginInfo(
                 nameFull = Res.string.send_files,
                 iconRes = Res.drawable.description,
                 category = ButtonCategory.SEND
-            ) { parentActivity: Activity, _ ->
-                if (parentActivity is ShareHandler && parentActivity.shareGetResultCallback == null) {
-                    device.getPlugin(SharePlugin::class.java)?.let {
-                        parentActivity.shareGetResultCallback = { uris -> it.sendUriList(uris) }
-                        parentActivity.launchSharePicker("*/*")
-                    }
-                }
+            ) { navigator ->
+                navigator.goTo(ShareFilesKey(device.deviceId))
             })
     }
 }

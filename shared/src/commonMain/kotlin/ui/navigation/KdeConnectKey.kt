@@ -60,6 +60,9 @@ data class MousePadKey(val deviceId: String) : KdeConnectKey
 @Serializable
 data class BigscreenKey(val deviceId: String) : KdeConnectKey
 
+@Serializable
+data class ShareFilesKey(val deviceId: String) : KdeConnectKey
+
 
 /**
  * Plugin setting keys

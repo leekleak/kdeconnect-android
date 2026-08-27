@@ -182,7 +182,7 @@ object MousePadPluginSettings: PermissionPluginInfo(
             name = Res.string.open_mousepad,
             iconRes = Res.drawable.trackpad_input_2,
             category = ButtonCategory.CONTROL
-        ) { _, navigator ->
+        ) { navigator ->
             navigator.goTo(MousePadKey(device.deviceId))
         }
         return if (device.deviceType == DeviceType.TV) {
@@ -191,7 +191,7 @@ object MousePadPluginSettings: PermissionPluginInfo(
                 name = Res.string.open_mousepad_tv,
                 iconRes = Res.drawable.tv_remote,
                 category = ButtonCategory.CONTROL
-            ) { _, navigator ->
+            ) { navigator ->
                 navigator.goTo(BigscreenKey(device.deviceId))
             }
             listOf(mouseAndKeyboardInput, tvInput)

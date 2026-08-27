@@ -1,9 +1,3 @@
-/*
- * SPDX-FileCopyrightText: 2026 Saul Cintero Chocarro <scintero@gmail.com>
- *
- * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
- */
-
 package org.kde.kdeconnect.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
@@ -24,9 +18,9 @@ import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.kde.kdeconnect.device.DeviceInfo
-import org.kde.kdeconnect.DeviceState
+import org.kde.kdeconnect.device.DeviceState
 import org.kde.kdeconnect.device.DeviceType
-import org.kde.kdeconnect.PairState
+import org.kde.kdeconnect.device.PairState
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.share
 

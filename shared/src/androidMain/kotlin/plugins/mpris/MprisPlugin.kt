@@ -463,7 +463,7 @@ object MprisPluginInfo: PermissionPluginInfo(
             name = Res.string.open_mpris_controls,
             iconRes = Res.drawable.music_cast,
             category = ButtonCategory.CONTROL
-        ) { _, navigator ->
+        ) { navigator ->
             navigator.goTo(MprisKey(device.deviceId))
         }
     )

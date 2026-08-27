@@ -15,6 +15,7 @@ import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLinkProvider.ConnectionReceiver
 import org.kde.kdeconnect.device.DeviceInfo
+import org.kde.kdeconnect.device.DeviceState
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.Plugin

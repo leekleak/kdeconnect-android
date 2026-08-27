@@ -116,11 +116,11 @@ private fun PluginsScreenContent(
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (sendButtons.isNotEmpty()) {
             CategoryTitleTextSmall(text = stringResource(Res.string.category_send))
-            PluginButtonsGrid(sendButtons) { button -> activity?.let { scope.launch { button.onClick(it, navigator) } } }
+            PluginButtonsGrid(sendButtons) { button -> activity?.let { scope.launch { button.onClick(navigator) } } }
         }
         if (controlButtons.isNotEmpty()) {
             CategoryTitleTextSmall(text = stringResource(Res.string.category_control))
-            PluginButtonsGrid(controlButtons) { button -> activity?.let { scope.launch { button.onClick(it, navigator) } } }
+            PluginButtonsGrid(controlButtons) { button -> activity?.let { scope.launch { button.onClick(navigator) } } }
         }
     }
 }
@@ -137,7 +137,7 @@ private fun PluginsScreenPreview() {
                         name = Res.string.send_clipboard,
                         iconRes = Res.drawable.music_cast,
                         category = ButtonCategory.SEND,
-                        onClick = { _, _ -> }
+                        onClick = { }
                     )
                 )
             }
@@ -148,7 +148,7 @@ private fun PluginsScreenPreview() {
                         name = Res.string.send_clipboard,
                         iconRes = Res.drawable.play_arrow,
                         category = ButtonCategory.CONTROL,
-                        onClick = { _, _ -> }
+                        onClick = { }
                     )
                 )
             }

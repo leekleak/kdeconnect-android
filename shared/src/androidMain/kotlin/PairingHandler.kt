@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.put
 import org.bouncycastle.util.Arrays
 import org.jetbrains.compose.resources.StringResource
+import org.kde.kdeconnect.device.PairState
 import org.kde.kdeconnect.device.SendPacketStatusCallback
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.error_already_paired
@@ -31,13 +32,6 @@ import java.security.cert.Certificate
 import java.util.Formatter
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.seconds
-
-enum class PairState {
-    NotPaired,
-    Requested,
-    RequestedByPeer,
-    Paired
-}
 
 class PairingHandler(
     private val device: Device,

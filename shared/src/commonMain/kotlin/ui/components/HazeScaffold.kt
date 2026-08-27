@@ -1,6 +1,5 @@
 package org.kde.kdeconnect.ui.components
 
-import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
@@ -54,7 +53,7 @@ import org.kde.kdeconnect.ui.navigation.Navigator
  */
 
 @Composable
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@Suppress("UnusedMaterial3ScaffoldPaddingParameter")
 fun HazeScaffold(
     modifier: Modifier = Modifier,
     title: String? = null,

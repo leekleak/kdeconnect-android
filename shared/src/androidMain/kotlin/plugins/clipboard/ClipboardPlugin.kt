@@ -168,7 +168,7 @@ object ClipboardPluginInfo: PermissionPluginInfo(
             nameFull = Res.string.send_clipboard,
             iconRes = Res.drawable.assignment,
             category = ButtonCategory.SEND,
-        ){ _, _ ->
+        ){ _ ->
             device.getPlugin(ClipboardPlugin::class.java)?.let {
                 it.coroutineScope.launch { it.userInitiatedSendClipboard() }
             }

@@ -10,9 +10,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.DeviceManager
-import org.kde.kdeconnect.DeviceState
-import org.kde.kdeconnect.PairState
-import org.kde.kdeconnect.PairingHandler
+import org.kde.kdeconnect.device.DeviceState
+import org.kde.kdeconnect.device.PairState
 
 class SavedDevicesViewModel(
     private val deviceManager: DeviceManager,

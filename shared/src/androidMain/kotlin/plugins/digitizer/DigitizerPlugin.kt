@@ -83,7 +83,7 @@ object DigitizerPluginInfo: PermissionPluginInfo(
             name = Res.string.use_digitizer,
             iconRes = Res.drawable.stylus_note,
             category = ButtonCategory.CONTROL
-        ) { _, navigator ->
+        ) { navigator ->
             navigator.goTo(DigitizerKey(device.deviceId))
         })
 }

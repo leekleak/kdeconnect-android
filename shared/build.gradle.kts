@@ -50,11 +50,19 @@ kotlin {
                 implementation(libs.kermit)
                 implementation(libs.components.resources)
                 implementation(libs.okio)
-                implementation(compose.runtime)
+                implementation(libs.runtime)
+                implementation(libs.ui)
+                implementation(libs.foundation)
+                implementation(libs.androidx.compose.material3)
+                implementation(libs.ui.tooling)
+                implementation(libs.ui.tooling.preview)
                 implementation(libs.androidx.navigation3.runtime)
                 implementation(libs.androidx.navigation3.ui)
                 implementation(libs.androidx.lifecycle.viewmodel.navigation3)
                 implementation(libs.koin.compose.navigation3)
+                implementation(libs.haze)
+                implementation(libs.haze.blur)
+                implementation(libs.haze.blur.materials)
             }
         }
 
@@ -72,10 +80,8 @@ kotlin {
                 implementation(libs.slf4j.api)
                 implementation(libs.slf4j.handroid)
                 implementation(libs.koin.android)
-                
-                implementation(libs.androidx.compose.ui)
-                implementation(libs.androidx.compose.foundation)
-                implementation(libs.androidx.compose.material3)
+
+                implementation(libs.androidx.compose.ui.tooling)
                 implementation(libs.androidx.compose.ui.tooling.preview)
                 implementation(libs.androidx.activity.compose)
                 implementation(libs.androidx.palette)
@@ -95,9 +101,6 @@ kotlin {
                 // However, that version is under-loved. I have therefore made "some fixes" and published it.
                 // Please see https://invent.kde.org/sredman/android-smsmms/-/tree/master
                 implementation(libs.android.smsmms)
-                implementation(libs.haze)
-                implementation(libs.haze.blur)
-                implementation(libs.haze.blur.materials)
                 implementation(libs.coil.compose)
                 implementation(libs.kotlinx.coroutines.jdk9)
                 implementation(libs.aboutlibraries.core)

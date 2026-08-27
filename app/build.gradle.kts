@@ -9,6 +9,7 @@ buildscript {
 
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.jetbrains.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlinx.serialization)
@@ -39,7 +40,6 @@ android {
     }
     buildFeatures {
         viewBinding = true
-        compose = true
         buildConfig = true
     }
 
@@ -89,7 +89,8 @@ android {
 
 dependencies {
     implementation(project(":shared"))
-    implementation(libs.androidx.compose.foundation)
+    implementation(libs.foundation)
+    implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)

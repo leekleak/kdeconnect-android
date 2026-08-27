@@ -33,7 +33,7 @@ import org.kde.kdeconnect.BackgroundService
 import org.kde.kdeconnect.BackgroundServiceData
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
-import org.kde.kdeconnect.DeviceState
+import org.kde.kdeconnect.device.DeviceState
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.could_not_find_device
 import org.kde.kdeconnect.generated.resources.share

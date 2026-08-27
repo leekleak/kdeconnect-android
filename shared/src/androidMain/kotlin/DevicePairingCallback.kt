@@ -3,11 +3,11 @@ package org.kde.kdeconnect
 import android.content.Context
 import android.content.Intent
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.StringResource
 import org.kde.kdeconnect.PairingHandler.PairingCallback
+import org.kde.kdeconnect.device.PairState
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.ui.PairingActivity
-
-import org.jetbrains.compose.resources.StringResource
 
 class DevicePairingCallback(private val device: Device, private val context: Context) : PairingCallback {
     override fun incomingPairRequest() {
