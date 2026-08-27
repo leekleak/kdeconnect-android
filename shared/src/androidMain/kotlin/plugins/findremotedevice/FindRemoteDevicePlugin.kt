@@ -5,7 +5,6 @@
  */
 package org.kde.kdeconnect.plugins.findremotedevice
 
-import android.content.Context
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
@@ -20,7 +19,7 @@ import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.findmyphone.FindMyPhonePlugin
 
-class FindRemoteDevicePlugin(context: Context, device: Device) : Plugin(context, device) {
+class FindRemoteDevicePlugin(device: Device) : Plugin(device) {
     override val pluginInfo: PluginInfo = FindRemoteDevicePluginInfo
 
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean = true

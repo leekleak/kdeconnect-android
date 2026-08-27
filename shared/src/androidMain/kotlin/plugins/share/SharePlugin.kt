@@ -64,10 +64,10 @@ import java.util.concurrent.ConcurrentHashMap
  * A Plugin for sharing and receiving files and uris.
  */
 class SharePlugin(
-    context: Context,
+    private val context: Context,
     device: Device,
     private val settingsDataStore: SettingsDataStore
-) : Plugin(context, device) {
+) : Plugin(device) {
     private val handler: Handler = Handler(Looper.getMainLooper())
     private val pluginScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val concurrencyLimit = Semaphore(permits = 5)

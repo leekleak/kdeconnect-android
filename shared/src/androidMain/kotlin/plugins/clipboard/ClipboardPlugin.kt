@@ -34,7 +34,7 @@ import org.kde.kdeconnect.plugins.clipboard.ClipboardListener.ClipboardObserver
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin.Companion.PACKET_TYPE_CLIPBOARD
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin.Companion.PACKET_TYPE_CLIPBOARD_CONNECT
 
-class ClipboardPlugin(context: Context, device: Device) : Plugin(context, device) {
+class ClipboardPlugin(private val context: Context, device: Device) : Plugin(device) {
     override val pluginInfo: PluginInfo = ClipboardPluginInfo
 
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean {

@@ -33,7 +33,7 @@ import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.receivenotifications.ReceiveNotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION
 import org.kde.kdeconnect.plugins.receivenotifications.ReceiveNotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION_REQUEST
 
-class ReceiveNotificationsPlugin(context: Context, device: Device) : Plugin(context, device) {
+class ReceiveNotificationsPlugin(private val context: Context, device: Device) : Plugin(device) {
     override val pluginInfo: PluginInfo = ReceiveNotificationsPluginInfo
     override fun onCreate(): Boolean {
         // request all existing notifications

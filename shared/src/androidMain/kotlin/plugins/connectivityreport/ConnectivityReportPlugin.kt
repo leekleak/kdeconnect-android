@@ -20,7 +20,7 @@ import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityListener.Companion.getInstance
 import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityListener.SubscriptionState
 
-class ConnectivityReportPlugin(context: Context, device: Device) : Plugin(context, device) {
+class ConnectivityReportPlugin(private val context: Context, device: Device) : Plugin(device) {
     override val pluginInfo: PluginInfo = ConnectivityReportPluginInfo
 
     /**

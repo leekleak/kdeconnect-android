@@ -29,7 +29,7 @@ import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_
 import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_RESPONSE_VCARDS
 import org.kde.kdeconnect.toJsonArray
 
-class ContactsPlugin(context: Context, device: Device) : Plugin(context, device) {
+class ContactsPlugin(private val context: Context, device: Device) : Plugin(device) {
     override val pluginInfo = ContactsPluginInfo
 
     /**

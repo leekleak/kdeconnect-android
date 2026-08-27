@@ -61,11 +61,11 @@ import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
 class SMSPlugin(
-    context: Context,
+    private val context: Context,
     device: Device,
     private val telephonySettings: TelephonySettingsDataStore,
     private val permissionRequestHelper: PermissionRequestHelper
-) : Plugin(context, device) {
+) : Plugin(device) {
     override val pluginInfo: SMSPluginInfo = SMSPluginInfo
 
     private val receiver: BroadcastReceiver = object : BroadcastReceiver() {

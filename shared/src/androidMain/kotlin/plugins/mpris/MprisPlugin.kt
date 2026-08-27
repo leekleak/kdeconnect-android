@@ -94,12 +94,12 @@ data class MprisPlayerState(
 }
 
 class MprisPlugin(
-    context: Context,
+    private val context: Context,
     device: Device,
-    private val dataStore: NotificationSettingsDataStore,
+    dataStore: NotificationSettingsDataStore,
     private val mprisMediaSession: MprisMediaSession,
     private val videoUrlsHelper: VideoUrlsHelper
-) : Plugin(context, device) {
+) : Plugin(device) {
     override val pluginInfo: PluginInfo = MprisPluginInfo
 
     private val _players = MutableStateFlow<Map<String, MprisPlayerState>>(emptyMap())

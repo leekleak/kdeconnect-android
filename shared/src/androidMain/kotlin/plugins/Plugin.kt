@@ -5,8 +5,6 @@
 */
 package org.kde.kdeconnect.plugins
 
-import android.content.Context
-import android.os.Build
 import androidx.annotation.CallSuper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,8 +14,7 @@ import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 
 abstract class Plugin(
-    @JvmField protected val context: Context,
-    @JvmField protected val device: Device
+    protected val device: Device
 ) {
 
     abstract val pluginInfo: PluginInfo
@@ -42,7 +39,7 @@ abstract class Plugin(
          *
          * @return true if it's safe to call [onCreate]
          */
-        get() = Build.VERSION.SDK_INT >= minSdk
+        get() = true
 
     /**
      * Initialize the listeners and structures in your plugin.
@@ -75,8 +72,6 @@ abstract class Plugin(
     open suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         return false
     }
-
-    open val minSdk: Int = Build.VERSION_CODES.BASE
 
     companion object {
         @JvmStatic

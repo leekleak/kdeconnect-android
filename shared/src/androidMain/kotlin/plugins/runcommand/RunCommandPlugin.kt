@@ -26,10 +26,10 @@ import org.kde.kdeconnect.plugins.Plugin
 import java.util.stream.Collectors
 
 class RunCommandPlugin(
-    context: Context,
+    private val context: Context,
     device: Device,
     private val settingsDataStore: RunCommandSettingsDataStore
-) : Plugin(context, device) {
+) : Plugin(device) {
     val output: SnapshotStateList<RunCommandOutput> = SnapshotStateList()
 
     private val _commandList: MutableStateFlow<List<RunCommand>> = MutableStateFlow(emptyList())

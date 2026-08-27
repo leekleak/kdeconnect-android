@@ -26,7 +26,7 @@ import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 @OptIn(ExperimentalAtomicApi::class)
-class BatteryPlugin(context: Context, device: Device) : Plugin(context, device) {
+class BatteryPlugin(private val context: Context, device: Device) : Plugin(device) {
     override val pluginInfo: PluginInfo = BatteryPluginInfo
 
     /**

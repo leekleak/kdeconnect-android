@@ -5,12 +5,11 @@
  */
 package org.kde.kdeconnect.plugins.mousepad
 
-import android.content.Context
 import android.view.KeyEvent
 import kotlinx.serialization.json.put
 import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.device.DeviceType
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.device.DeviceType
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.open_mousepad
 import org.kde.kdeconnect.generated.resources.open_mousepad_tv
@@ -29,9 +28,8 @@ import org.kde.kdeconnect.ui.navigation.BigscreenKey
 import org.kde.kdeconnect.ui.navigation.MousePadKey
 
 class MousePadPlugin(
-    context: Context,
     device: Device,
-) : Plugin(context, device) {
+) : Plugin(device) {
     override val pluginInfo: PluginInfo = MousePadPluginSettings
 
     var isKeyboardEnabled: Boolean = true

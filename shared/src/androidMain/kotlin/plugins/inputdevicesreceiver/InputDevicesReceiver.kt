@@ -21,10 +21,10 @@ import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.mousereceiver.MouseReceiverPlugin
 
 class InputDevicesReceiverPlugin(
-    context: Context,
+    private val context: Context,
     device: Device,
     private val permissionRequestHelper: PermissionRequestHelper
-) : Plugin(context, device) {
+) : Plugin(device) {
     override val pluginInfo: PluginInfo = InputDevicesReceiverPluginInfo
 
     object Cursor {

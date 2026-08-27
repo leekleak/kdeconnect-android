@@ -24,11 +24,11 @@ import org.kde.kdeconnect.plugins.PluginInfo.Companion.isPermissionGranted
 import java.io.IOException
 
 class FindMyPhonePlugin(
-    context: Context,
+    private val context: Context,
     device: Device,
     private val telephonySettingsDataStore: TelephonySettingsDataStore,
     private val permissionRequestHelper: PermissionRequestHelper
-) : Plugin(context, device) {
+) : Plugin(device) {
     private val notificationManager: NotificationManager = context.getSystemService(NotificationManager::class.java)
     private val notificationId = System.currentTimeMillis().toInt()
     private val audioManager: AudioManager = context.getSystemService(AudioManager::class.java)

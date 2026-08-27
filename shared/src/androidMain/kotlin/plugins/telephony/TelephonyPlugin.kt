@@ -35,10 +35,10 @@ import java.util.Timer
 import java.util.TimerTask
 
 class TelephonyPlugin(
-    context: Context,
+    private val context: Context,
     device: Device,
     val telephonySettings: TelephonySettingsDataStore
-) : Plugin(context, device) {
+) : Plugin(device) {
     override val pluginInfo: PluginInfo = TelephonyPluginInfo
     private var lastState = TelephonyManager.CALL_STATE_IDLE
     private var lastPacket: NetworkPacket? = null

@@ -5,7 +5,6 @@
 */
 package org.kde.kdeconnect.plugins.systemvolume
 
-import android.content.Context
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,7 +33,7 @@ object SystemVolumePluginInfo : PluginInfo(
     lazy = true
 )
 
-class SystemVolumePlugin(context: Context, device: Device) : Plugin(context, device) {
+class SystemVolumePlugin(device: Device) : Plugin(device) {
 
     override val pluginInfo: PluginInfo = SystemVolumePluginInfo
 

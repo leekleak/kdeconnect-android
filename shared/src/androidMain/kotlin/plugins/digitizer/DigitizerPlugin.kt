@@ -6,7 +6,6 @@
 
 package org.kde.kdeconnect.plugins.digitizer
 
-import android.content.Context
 import kotlinx.serialization.json.put
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
@@ -24,7 +23,7 @@ import org.kde.kdeconnect.plugins.digitizer.DigitizerPlugin.Companion.PACKET_TYP
 import org.kde.kdeconnect.plugins.digitizer.DigitizerPlugin.Companion.PACKET_TYPE_DIGITIZER_SESSION
 import org.kde.kdeconnect.ui.navigation.DigitizerKey
 
-class DigitizerPlugin(context: Context, device: Device) : Plugin(context, device) {
+class DigitizerPlugin(device: Device) : Plugin(device) {
     override val pluginInfo: PluginInfo = DigitizerPluginInfo
 
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean {

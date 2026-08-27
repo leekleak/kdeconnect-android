@@ -9,8 +9,8 @@ import android.content.Context
 import android.view.KeyEvent
 import kotlinx.serialization.json.put
 import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.device.DeviceType
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.device.DeviceType
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.missing_controller
 import org.kde.kdeconnect.generated.resources.pref_plugin_presenter
@@ -44,7 +44,7 @@ object PresenterPluginInfo : PluginInfo(
         })
 }
 
-class PresenterPlugin(context: Context, device: Device) : Plugin(context, device) {
+class PresenterPlugin(private val context: Context, device: Device) : Plugin(device) {
 
     override val pluginInfo: PluginInfo = PresenterPluginInfo
     override val isCompatible: Boolean

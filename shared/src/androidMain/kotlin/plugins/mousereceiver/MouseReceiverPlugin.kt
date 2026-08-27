@@ -6,7 +6,6 @@
 package org.kde.kdeconnect.plugins.mousereceiver
 
 import android.content.Context
-import android.os.Build
 import android.provider.Settings
 import org.jetbrains.compose.resources.getString
 import org.kde.kdeconnect.Device
@@ -27,10 +26,10 @@ import kotlin.math.ceil
 import kotlin.math.floor
 
 class MouseReceiverPlugin(
-    context: Context,
+    private val context: Context,
     device: Device,
     private val permissionRequestHelper: PermissionRequestHelper
-) : Plugin(context, device) {
+) : Plugin(device) {
     override val pluginInfo: PluginInfo = MouseReceiverPluginInfo
 
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
@@ -117,9 +116,6 @@ class MouseReceiverPlugin(
         }
         return true
     }
-
-    override val minSdk: Int
-        get() = Build.VERSION_CODES.N
 
     companion object {
         private const val PACKET_TYPE_MOUSEPAD_REQUEST = "kdeconnect.mousepad.request"

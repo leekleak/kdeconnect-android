@@ -51,11 +51,11 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 class SftpPlugin(
-    context: Context,
+    private val context: Context,
     device: Device,
     private val dataStore: SftpSettingsDataStore,
     private val permissionRequestHelper: PermissionRequestHelper
-) : Plugin(context, device) {
+) : Plugin(device) {
     override val pluginInfo: SftpPluginInfo = SftpPluginInfo
 
     private var job: Job? = null

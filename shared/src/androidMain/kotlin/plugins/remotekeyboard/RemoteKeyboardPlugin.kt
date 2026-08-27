@@ -23,10 +23,10 @@ import org.kde.kdeconnect.plugins.Plugin
 import java.util.concurrent.locks.ReentrantLock
 
 class RemoteKeyboardPlugin(
-    context: Context,
+    private val context: Context,
     device: Device,
     private val permissionRequestHelper: PermissionRequestHelper
-) : Plugin(context, device) {
+) : Plugin(device) {
     override val pluginInfo: RemoteKeyboardPluginInfo = RemoteKeyboardPluginInfo
 
     override fun onCreate(): Boolean {

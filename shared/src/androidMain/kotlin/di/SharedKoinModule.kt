@@ -55,6 +55,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import org.koin.plugin.module.dsl.factory
+import org.koin.plugin.module.dsl.scoped
 import org.koin.plugin.module.dsl.single
 
 val sharedModule = module {
@@ -126,27 +127,27 @@ val sharedModule = module {
     factory<LoopbackLinkProvider>()
 
     scope<Device> {
-        scoped { SftpPlugin(get(), get(), get(), get()) }
-        scoped { BatteryPlugin(get(), get()) }
-        scoped { ClipboardPlugin(get(), get()) }
-        scoped { ConnectivityReportPlugin(get(), get()) }
-        scoped { ContactsPlugin(get(), get()) }
-        scoped { FindMyPhonePlugin(get(), get(), get(), get()) }
-        scoped { FindRemoteDevicePlugin(get(), get()) }
-        scoped { InputDevicesReceiverPlugin(get(), get(), get()) }
-        scoped { MousePadPlugin(get(), get()) }
-        scoped { MouseReceiverPlugin(get(), get(), get()) }
-        scoped { MprisPlugin(get(), get(), get(), get(), get()) }
-        scoped { MprisReceiverPlugin(get(), get()) }
-        scoped { NotificationsPlugin(get(), get(), get(), get()) }
-        scoped { PresenterPlugin(get(), get()) }
-        scoped { ReceiveNotificationsPlugin(get(), get()) }
-        scoped { RemoteKeyboardPlugin(get(), get(), get()) }
-        scoped { RunCommandPlugin(get(), get(), get()) }
-        scoped { SharePlugin(get(), get(), get()) }
-        scoped { SMSPlugin(get(), get(), get(), get()) }
-        scoped { SystemVolumePlugin(get(), get()) }
-        scoped { TelephonyPlugin(get(), get(), get()) }
-        scoped { DigitizerPlugin(get(), get()) }
+        scoped<SftpPlugin>()
+        scoped<BatteryPlugin>()
+        scoped<ClipboardPlugin>()
+        scoped<ConnectivityReportPlugin>()
+        scoped<ContactsPlugin>()
+        scoped<FindMyPhonePlugin>()
+        scoped<FindRemoteDevicePlugin>()
+        scoped<InputDevicesReceiverPlugin>()
+        scoped<MousePadPlugin>()
+        scoped<MouseReceiverPlugin>()
+        scoped<MprisPlugin>()
+        scoped<MprisReceiverPlugin>()
+        scoped<NotificationsPlugin>()
+        scoped<PresenterPlugin>()
+        scoped<ReceiveNotificationsPlugin>()
+        scoped<RemoteKeyboardPlugin>()
+        scoped<RunCommandPlugin>()
+        scoped<SharePlugin>()
+        scoped<SMSPlugin>()
+        scoped<SystemVolumePlugin>()
+        scoped<TelephonyPlugin>()
+        scoped<DigitizerPlugin>()
     }
 }

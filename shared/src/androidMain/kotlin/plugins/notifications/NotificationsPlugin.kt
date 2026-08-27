@@ -95,11 +95,11 @@ object NotificationsPluginInfo: PluginInfo(
 }
 
 class NotificationsPlugin(
-    context: Context,
+    private val context: Context,
     device: Device,
     private val dataStore: NotificationSettingsDataStore,
     private val appDatabase: AppDatabase,
-) : Plugin(context, device), NotificationReceiver.NotificationListener {
+) : Plugin(device), NotificationReceiver.NotificationListener {
     override val pluginInfo: PluginInfo = NotificationsPluginInfo
     private val currentNotifications = mutableSetOf<String>()
     // Here we will map every notification to it's icon(hash)
