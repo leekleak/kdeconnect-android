@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 rootProject.name = "kdeconnect-android"
 include(":app")
 include(":shared")
+include(":desktop")

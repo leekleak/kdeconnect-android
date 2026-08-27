@@ -36,6 +36,8 @@ kotlin {
         }
     }
 
+    jvm()
+
     sourceSets {
         commonMain {
             dependencies {
@@ -94,6 +96,12 @@ kotlin {
                 implementation(libs.aboutlibraries.compose)
                 implementation(libs.aboutlibraries.compose.core)
                 implementation(libs.reorderable)
+            }
+        }
+
+        jvmMain {
+            dependencies {
+                implementation(libs.kotlin.stdlib)
             }
         }
 
