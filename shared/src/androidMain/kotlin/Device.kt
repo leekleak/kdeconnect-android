@@ -5,7 +5,6 @@
 */
 package org.kde.kdeconnect
 
-import androidx.annotation.WorkerThread
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -202,7 +201,6 @@ class Device(
         link.addPacketReceiver(this)
     }
 
-    @WorkerThread
     fun removeLink(link: BaseLink) {
         link.removePacketReceiver(this)
         updateState { state ->
@@ -296,7 +294,6 @@ class Device(
      * @return true if the packet was sent ok, false otherwise
      * @see BaseLink.sendPacket
      */
-    @WorkerThread
     suspend fun sendPacket(
         np: NetworkPacket,
         callback: SendPacketStatusCallback = defaultCallback,

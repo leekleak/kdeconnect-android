@@ -49,10 +49,16 @@ kotlin {
                 implementation(libs.kermit)
                 implementation(libs.components.resources)
                 implementation(libs.okio)
+                implementation(compose.runtime)
             }
         }
 
+        val jvmCommon = create("jvmCommon") {
+            dependsOn(commonMain.get())
+        }
+
         androidMain {
+            dependsOn(jvmCommon)
             dependencies {
                 implementation(libs.androidx.core.ktx)
                 implementation(libs.androidx.datastore.preferences)
@@ -100,9 +106,7 @@ kotlin {
         }
 
         jvmMain {
-            dependencies {
-                implementation(libs.kotlin.stdlib)
-            }
+            dependsOn(jvmCommon)
         }
 
         getByName("androidHostTest") {

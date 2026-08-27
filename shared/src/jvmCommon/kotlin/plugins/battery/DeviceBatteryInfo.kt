@@ -7,6 +7,7 @@
 package org.kde.kdeconnect.plugins.battery
 
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.plugins.battery.DeviceBatteryInfo.Companion.PACKET_TYPE_BATTERY
 
 /**
  * Specialised data representation of the packets received by [BatteryPlugin].
@@ -24,14 +25,16 @@ data class DeviceBatteryInfo(
     val thresholdEvent: Int,
 ) {
     companion object {
+        private const val PACKET_TYPE_BATTERY = "kdeconnect.battery"
+
         /**
-         * For use with packets of type [BatteryPlugin.PACKET_TYPE_BATTERY].
+         * For use with packets of type [PACKET_TYPE_BATTERY].
          *
-         * @throws IllegalArgumentException if the packet type is not [BatteryPlugin.PACKET_TYPE_BATTERY].
+         * @throws IllegalArgumentException if the packet type is not [PACKET_TYPE_BATTERY].
          */
         fun fromPacket(np: NetworkPacket): DeviceBatteryInfo {
-            require(np.type == BatteryPlugin.PACKET_TYPE_BATTERY) {
-                "Packet type must be PACKET_TYPE_BATTERY"
+            require(np.type == PACKET_TYPE_BATTERY) {
+                "Packet type must be $PACKET_TYPE_BATTERY"
             }
             return DeviceBatteryInfo(
                 np.getInt("currentCharge", 100),
