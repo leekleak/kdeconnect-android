@@ -19,7 +19,6 @@ import android.os.Parcelable
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.put
-import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.device.DeviceInfo
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.fromIdentityPacketAndCert

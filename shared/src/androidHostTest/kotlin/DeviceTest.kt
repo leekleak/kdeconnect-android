@@ -5,6 +5,7 @@
 */
 package org.kde.kdeconnect
 
+import org.kde.kdeconnect.Device
 import android.app.NotificationManager
 import android.content.Context
 import androidx.core.content.ContextCompat
@@ -38,7 +39,7 @@ import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.DevicesRoomDatabase
 import org.kde.kdeconnect.helpers.security.EcHelper
 import org.kde.kdeconnect.helpers.security.SslHelper
-import org.kde.kdeconnect.plugins.PluginFactory
+import plugins.PluginFactory
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module

@@ -30,7 +30,9 @@ import org.kde.kdeconnect.plugins.sms.SMSPluginInfo
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePluginInfo
 import org.kde.kdeconnect.plugins.telephony.TelephonyPluginInfo
 
-object PluginFactory {
+actual typealias PluginFactoryInfo = PermissionPluginInfo
+
+actual object PluginFactory {
     private val pluginInfo: Map<String, PermissionPluginInfo> = mapOf(
         TelephonyPluginInfo.pluginKey to TelephonyPluginInfo,
         BatteryPluginInfo.pluginKey to BatteryPluginInfo,
@@ -56,21 +58,21 @@ object PluginFactory {
         SharePluginInfo.pluginKey to SharePluginInfo,
     )
 
-    val availablePlugins: Set<String>
+    actual val availablePlugins: Set<String>
         get() = pluginInfo.keys
-    val incomingCapabilities: Set<String>
+    actual val incomingCapabilities: Set<String>
         get() = pluginInfo.values.flatMap { plugin -> plugin.supportedPacketTypes }.toSet()
-    val outgoingCapabilities: Set<String>
+    actual val outgoingCapabilities: Set<String>
         get() = pluginInfo.values.flatMap { plugin -> plugin.outgoingPacketTypes }.toSet()
 
-    fun getPluginInfo(pluginKey: String): PermissionPluginInfo = pluginInfo[pluginKey]!!
+    actual fun getPluginInfo(pluginKey: String): PermissionPluginInfo = pluginInfo[pluginKey]!!
 
-    fun instantiatePluginForDevice(pluginKey: String, device: Device): Plugin? {
+    actual fun instantiatePluginForDevice(pluginKey: String, device: Device): Plugin? {
         val clazz = pluginInfo[pluginKey]?.instantiableClass ?: return null
         return device.scope.get(clazz.kotlin)
     }
 
-    fun pluginsForCapabilities(incoming: Set<String>, outgoing: Set<String>): Set<String> {
+    actual fun pluginsForCapabilities(incoming: Set<String>, outgoing: Set<String>): Set<String> {
         fun hasCommonCapabilities(info: PermissionPluginInfo): Boolean =
             outgoing.any { it in info.supportedPacketTypes } ||
             incoming.any { it in info.outgoingPacketTypes }
@@ -83,4 +85,8 @@ object PluginFactory {
 
         return used.map { it.key }.toSet()
     }
+}
+
+actual fun PluginInfo.getUiButtons(device: Device): List<PluginUiButton> {
+    return (this as? PermissionPluginInfo)?.getUiButtons(device) ?: emptyList()
 }

@@ -26,12 +26,10 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.compose.resources.DrawableResource
-import org.kde.kdeconnect.DeviceStats.countReceived
 import org.kde.kdeconnect.DeviceStats.countSent
 import org.kde.kdeconnect.PairingHandler.Companion.getVerificationKey
 import org.kde.kdeconnect.PairingHandler.Companion.getVerificationKeyV7
 import org.kde.kdeconnect.backends.BaseLink
-import org.kde.kdeconnect.backends.BaseLink.PacketReceiver
 import org.kde.kdeconnect.device.DeviceBatteryInfo
 import org.kde.kdeconnect.device.DeviceInfo
 import org.kde.kdeconnect.device.DeviceState
@@ -42,15 +40,14 @@ import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.Plugin.Companion.getPluginKey
 import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect.plugins.PluginUiButton
+import org.kde.kdeconnect.plugins.getUiButtons
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.component.KoinScopeComponent
 import org.koin.core.component.createScope
 import org.koin.core.scope.Scope
 import java.io.IOException
-import java.security.cert.Certificate
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -59,7 +56,7 @@ class Device(
     private val sslHelper: SslHelper,
     pairingCallbackFactory: (Device) -> PairingHandler.PairingCallback,
     @InjectedParam deviceInfo: DeviceInfo,
-) : PacketReceiver, KoinScopeComponent {
+) : BaseLink.PacketReceiver, KoinScopeComponent {
 
     override val scope: Scope by lazy { createScope(this) }
 
@@ -121,7 +118,7 @@ class Device(
     }
 
     val deviceId: String get() = state.value.deviceInfo.id
-    val certificate: Certificate get() = sslHelper.parseCertificate(state.value.deviceInfo.certificate)
+    val certificate: java.security.cert.Certificate get() = sslHelper.parseCertificate(state.value.deviceInfo.certificate)
     val deviceInfo: DeviceInfo get() = state.value.deviceInfo
     val isReachable: Boolean get() = state.value.isReachable
     val name: String get() = deviceInfo.name
@@ -134,8 +131,7 @@ class Device(
         callback = pairingCallbackFactory(this),
     )
 
-    private fun supportsPacketType(type: String): Boolean =
-        NetworkPacket.PROTOCOL_PACKET_TYPES.contains(type) || deviceInfo.incomingCapabilities.contains(type)
+    private fun supportsPacketType(type: String): Boolean = NetworkPacket.PROTOCOL_PACKET_TYPES.contains(type) || deviceInfo.incomingCapabilities.contains(type)
 
     init {
         jobScope.launch {
@@ -235,7 +231,7 @@ class Device(
     }
 
     override suspend fun onPacketReceived(np: NetworkPacket) {
-        countReceived(deviceId, np.type)
+        DeviceStats.countReceived(deviceId, np.type)
 
         if (NetworkPacket.PACKET_TYPE_PAIR == np.type) {
             LoggerTagged.i { "Pair packet" }
@@ -275,7 +271,8 @@ class Device(
             }
     }
 
-    private val defaultCallback: SendPacketStatusCallback = object : SendPacketStatusCallback {
+    private val defaultCallback: SendPacketStatusCallback = object :
+        SendPacketStatusCallback {
         override fun onSuccess() {
         }
 
@@ -294,7 +291,7 @@ class Device(
      * won't return until the Payload has been received by the
      * other end, or times out after 10 seconds
      * @return true if the packet was sent ok, false otherwise
-     * @see BaseLink.sendPacket
+     * @see org.kde.kdeconnect.backends.BaseLink.sendPacket
      */
     suspend fun sendPacket(
         np: NetworkPacket,
@@ -338,7 +335,7 @@ class Device(
     // Plugin-related functions
     //
     suspend fun <T : Plugin> getPlugin(pluginClass: Class<T>): T? {
-        val plugin = getPlugin(getPluginKey(pluginClass))
+        val plugin = getPlugin(Plugin.getPluginKey(pluginClass))
         return plugin?.let(pluginClass::cast)
     }
 
@@ -374,7 +371,7 @@ class Device(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     fun <T : Plugin> pluginFlow(pluginClass: Class<T>): Flow<T?> {
-        val pluginKey = getPluginKey(pluginClass)
+        val pluginKey = Plugin.getPluginKey(pluginClass)
         return state.map { s ->
             s.pairState == PairState.Paired
                     && s.isReachable

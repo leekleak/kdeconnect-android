@@ -9,7 +9,6 @@ package org.kde.kdeconnect.plugins.sftp
 import android.content.Context
 import android.os.Build
 import androidx.core.net.toUri
-import co.touchlab.kermit.Logger
 import org.apache.sshd.common.file.nativefs.NativeFileSystemFactory
 import org.apache.sshd.common.keyprovider.AbstractKeyPairProvider
 import org.apache.sshd.common.session.SessionContext

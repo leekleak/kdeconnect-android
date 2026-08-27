@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
-import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import org.kde.kdeconnect.Device
@@ -13,7 +12,6 @@ import org.kde.kdeconnect.generated.resources.grant
 import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.ui.PermissionExplanationActivity
 import org.kde.kdeconnect.ui.PermissionRequest
-import org.kde.kdeconnect.ui.navigation.Navigator
 
 open class PermissionPluginInfo(
     override val pluginKey: String,

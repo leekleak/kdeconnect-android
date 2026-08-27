@@ -4,12 +4,11 @@ import android.content.Context
 import android.content.Intent
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
-import org.kde.kdeconnect.PairingHandler.PairingCallback
 import org.kde.kdeconnect.device.PairState
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.ui.PairingActivity
 
-class DevicePairingCallback(private val device: Device, private val context: Context) : PairingCallback {
+class DevicePairingCallback(private val device: Device, private val context: Context) : PairingHandler.PairingCallback {
     override fun incomingPairRequest() {
         val intent = Intent(context, PairingActivity::class.java).apply {
             putExtra("deviceId", device.deviceId)

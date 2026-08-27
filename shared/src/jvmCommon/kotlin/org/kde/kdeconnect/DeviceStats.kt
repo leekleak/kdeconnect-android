@@ -1,11 +1,6 @@
-/*
- * SPDX-FileCopyrightText: 2023 Albert Vaca Cintora <albertvaka@gmail.com>
- *
- * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
-*/
 package org.kde.kdeconnect
 
-import androidx.annotation.VisibleForTesting
+import org.jetbrains.annotations.VisibleForTesting
 import org.kde.kdeconnect.helpers.LoggerTagged
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.atomics.AtomicLong

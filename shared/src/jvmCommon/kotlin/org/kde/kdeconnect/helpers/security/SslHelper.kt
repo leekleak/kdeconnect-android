@@ -28,6 +28,7 @@ import java.security.MessageDigest
 import java.security.PrivateKey
 import java.security.PublicKey
 import java.security.cert.Certificate
+import java.security.cert.CertificateException
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.time.LocalDate
@@ -171,7 +172,7 @@ class SslHelper(
         }
     }
 
-    @Throws(java.security.cert.CertificateException::class)
+    @Throws(CertificateException::class)
     fun convertToSslSocket(socket: Socket, deviceInfo: DeviceInfo?, isDeviceTrusted: Boolean, clientMode: Boolean): SSLSocket {
         val sslSocketFactory = getSslContextForDevice(deviceInfo, isDeviceTrusted).socketFactory
         val sslSocket = sslSocketFactory.createSocket(socket, socket.inetAddress.hostAddress, socket.port, true) as SSLSocket

@@ -3,9 +3,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
  */
-package org.kde.kdeconnect
 
-import androidx.annotation.VisibleForTesting
+package org.kde.kdeconnect
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -15,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.put
 import org.bouncycastle.util.Arrays
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.compose.resources.StringResource
 import org.kde.kdeconnect.device.PairState
 import org.kde.kdeconnect.device.SendPacketStatusCallback
