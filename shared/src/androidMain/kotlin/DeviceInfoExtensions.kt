@@ -28,7 +28,7 @@ fun DeviceInfo.toIdentityPacket(): NetworkPacket =
 
 
 
-fun DeviceInfo.withPopulatedSettings(): DeviceInfo {
+actual fun DeviceInfo.withPopulatedSettings(): DeviceInfo {
     val missingSettings = PluginFactory.availablePlugins.toSet().minus(settings.keys)
     val newInfo = this.copy(
         settings = settings.plus(missingSettings.map { it to PluginFactory.getPluginInfo(it).isEnabledByDefault }),
