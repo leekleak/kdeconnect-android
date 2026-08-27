@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.put
 import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.DeviceInfo
+import org.kde.kdeconnect.device.DeviceInfo
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.fromIdentityPacketAndCert
 import org.kde.kdeconnect.isValidIdentityPacket
@@ -37,6 +37,8 @@ import org.jetbrains.compose.resources.DrawableResource
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.bluetooth
 import okio.buffer
+import org.kde.kdeconnect.backends.AndroidLinkProvider
+import org.kde.kdeconnect.device.SendPacketStatusCallback
 import java.io.IOException
 import java.security.cert.CertificateException
 import java.util.UUID
@@ -48,7 +50,7 @@ class BluetoothLinkProvider(
     val dataStore: SettingsDataStore,
     private val deviceHelper: DeviceHelper,
     private val sslHelper: SslHelper
-) : BaseLinkProvider() {
+) : BaseLinkProvider(), AndroidLinkProvider {
     private val visibleDevices: ConcurrentHashMap<String, BluetoothLink> = ConcurrentHashMap()
     private val sockets: ConcurrentHashMap<BluetoothDevice, BluetoothSocket> = ConcurrentHashMap()
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
@@ -415,7 +417,7 @@ class BluetoothLinkProvider(
                 }
 
                 LoggerTagged.i { "about to send packet np2" }
-                link.sendPacket(np2, object : Device.SendPacketStatusCallback() {
+                link.sendPacket(np2, object : SendPacketStatusCallback {
                     override fun onSuccess() {
                         try {
                             runBlocking {
@@ -427,6 +429,7 @@ class BluetoothLinkProvider(
                     }
 
                     override fun onFailure(e: Throwable) {}
+                    override fun onPayloadProgressChanged(percent: Int) {}
                 })
             } catch (e: Exception) {
                 LoggerTagged.e(e) { "Connection lost/disconnected on " + device.address }

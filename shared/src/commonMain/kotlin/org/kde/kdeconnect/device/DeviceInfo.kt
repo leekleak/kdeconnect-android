@@ -1,4 +1,4 @@
-package org.kde.kdeconnect
+package org.kde.kdeconnect.device
 
 import androidx.room3.ColumnInfo
 import androidx.room3.Entity

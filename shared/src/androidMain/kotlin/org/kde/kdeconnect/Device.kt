@@ -33,6 +33,9 @@ import org.kde.kdeconnect.PairingHandler.Companion.getVerificationKey
 import org.kde.kdeconnect.PairingHandler.Companion.getVerificationKeyV7
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLink.PacketReceiver
+import org.kde.kdeconnect.device.DeviceInfo
+import org.kde.kdeconnect.device.DeviceType
+import org.kde.kdeconnect.device.SendPacketStatusCallback
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.security.SslHelper
@@ -272,21 +275,15 @@ class Device(
             }
     }
 
-    abstract class SendPacketStatusCallback {
-        abstract fun onSuccess()
-
-        abstract fun onFailure(e: Throwable)
-
-        open fun onPayloadProgressChanged(percent: Int) {}
-    }
-
-    private val defaultCallback: SendPacketStatusCallback = object : SendPacketStatusCallback() {
+    private val defaultCallback: SendPacketStatusCallback = object : SendPacketStatusCallback {
         override fun onSuccess() {
         }
 
         override fun onFailure(e: Throwable) {
             LoggerTagged.e(e) { "Send packet exception" }
         }
+
+        override fun onPayloadProgressChanged(percent: Int) {}
     }
 
     /**

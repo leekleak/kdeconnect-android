@@ -42,9 +42,9 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import org.kde.kdeconnect.DeviceInfo
+import org.kde.kdeconnect.device.DeviceInfo
 import org.kde.kdeconnect.DeviceState
-import org.kde.kdeconnect.DeviceType
+import org.kde.kdeconnect.device.DeviceType
 import org.kde.kdeconnect.PairState
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.arrow_forward_ios

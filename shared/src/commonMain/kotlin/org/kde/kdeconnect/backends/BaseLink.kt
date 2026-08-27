@@ -5,9 +5,9 @@
 */
 package org.kde.kdeconnect.backends
 
-import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.DeviceInfo
+import org.kde.kdeconnect.device.DeviceInfo
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.device.SendPacketStatusCallback
 import kotlin.concurrent.atomics.AtomicReference
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.concurrent.atomics.update
@@ -51,6 +51,6 @@ abstract class BaseLink protected constructor(
 
     abstract suspend fun sendPacket(
         np: NetworkPacket,
-        callback: Device.SendPacketStatusCallback,
+        callback: SendPacketStatusCallback,
     ): Boolean
 }

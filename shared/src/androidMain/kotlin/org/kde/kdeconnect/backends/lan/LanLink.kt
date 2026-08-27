@@ -21,12 +21,12 @@ import okio.Sink
 import okio.Source
 import okio.sink
 import okio.source
-import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.NetworkPacket.Companion.unserialize
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLinkProvider
+import org.kde.kdeconnect.device.DeviceInfo
+import org.kde.kdeconnect.device.SendPacketStatusCallback
 import org.kde.kdeconnect.helpers.LineTooLongException
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.ProgressSink
@@ -127,7 +127,7 @@ class LanLink @WorkerThread constructor(
     @WorkerThread
     override suspend fun sendPacket(
         np: NetworkPacket,
-        callback: Device.SendPacketStatusCallback,
+        callback: SendPacketStatusCallback,
     ): Boolean {
         if (socket == null) {
             LoggerTagged.e { "Not yet connected" }
@@ -193,7 +193,7 @@ class LanLink @WorkerThread constructor(
     @Throws(IOException::class)
     private suspend fun sendPayload(
         np: NetworkPacket,
-        callback: Device.SendPacketStatusCallback,
+        callback: SendPacketStatusCallback,
         server: ServerSocket
     ) = withContext(Dispatchers.IO) {
         var payloadSocket: Socket? = null

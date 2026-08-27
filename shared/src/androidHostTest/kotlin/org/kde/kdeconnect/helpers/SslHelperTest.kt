@@ -17,8 +17,8 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.kde.kdeconnect.DeviceInfo
-import org.kde.kdeconnect.DeviceType
+import org.kde.kdeconnect.device.DeviceInfo
+import org.kde.kdeconnect.device.DeviceType
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.security.SslHelper
 import java.security.cert.Certificate

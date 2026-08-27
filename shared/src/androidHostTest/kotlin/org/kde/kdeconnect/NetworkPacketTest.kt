@@ -11,6 +11,8 @@ import kotlinx.serialization.json.put
 import org.junit.Assert
 import org.junit.Test
 import org.kde.kdeconnect.NetworkPacket.Companion.unserialize
+import org.kde.kdeconnect.device.DeviceInfo
+import org.kde.kdeconnect.device.DeviceType
 import java.security.cert.Certificate
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
@@ -60,7 +62,15 @@ class NetworkPacketTest {
     fun testIdentity() {
         val cert = mockk<Certificate>()
         every { cert.encoded } returns ByteArray(0)
-        val deviceInfo = DeviceInfo("myid", ByteArray(0), "myname", DeviceType.TV, 12, setOf("ASDFG"), setOf("QWERTY"))
+        val deviceInfo = DeviceInfo(
+            "myid",
+            ByteArray(0),
+            "myname",
+            DeviceType.TV,
+            12,
+            setOf("ASDFG"),
+            setOf("QWERTY")
+        )
 
         val np = deviceInfo.toIdentityPacket()
 

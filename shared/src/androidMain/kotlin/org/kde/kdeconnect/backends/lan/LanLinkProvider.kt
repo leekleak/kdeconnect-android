@@ -18,10 +18,11 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.put
 import org.jetbrains.compose.resources.DrawableResource
 import org.kde.kdeconnect.DeviceHost
-import org.kde.kdeconnect.DeviceInfo
+import org.kde.kdeconnect.device.DeviceInfo
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.NetworkPacket.Companion.unserialize
+import org.kde.kdeconnect.backends.AndroidLinkProvider
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.backends.lan.LanLink.ConnectionStarted
@@ -67,7 +68,7 @@ class LanLinkProvider(
     private val trustedNetworkHelper: TrustedNetworkHelper,
     private val customDevicesHelper: CustomDevicesHelper,
     private val sslHelper: SslHelper
-) : BaseLinkProvider() {
+) : BaseLinkProvider(), AndroidLinkProvider {
 
     val visibleDevices: ConcurrentHashMap<String, LanLink> = ConcurrentHashMap() // Links by device id
 

@@ -5,11 +5,11 @@
 */
 package org.kde.kdeconnect.backends.loopback
 
-import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLinkProvider
+import org.kde.kdeconnect.device.DeviceInfo
+import org.kde.kdeconnect.device.SendPacketStatusCallback
 import org.kde.kdeconnect.helpers.DeviceHelper
 
 class LoopbackLink(
@@ -20,7 +20,7 @@ class LoopbackLink(
     override val name: String = "LoopbackLink"
     override val deviceInfo: DeviceInfo = deviceHelper.getDeviceInfo()
 
-    override suspend fun sendPacket(np: NetworkPacket, callback: Device.SendPacketStatusCallback): Boolean {
+    override suspend fun sendPacket(np: NetworkPacket, callback: SendPacketStatusCallback): Boolean {
         packetReceived(np)
         if (np.hasPayload()) {
             callback.onPayloadProgressChanged(0)

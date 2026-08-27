@@ -26,11 +26,13 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.kde.kdeconnect.DeviceInfo.Companion.isValidDeviceId
-import org.kde.kdeconnect.DeviceType.Companion.fromString
+import org.kde.kdeconnect.device.DeviceInfo.Companion.isValidDeviceId
+import org.kde.kdeconnect.device.DeviceType.Companion.fromString
 import org.kde.kdeconnect.backends.lan.LanLink
 import org.kde.kdeconnect.backends.lan.LanLinkProvider
 import org.kde.kdeconnect.datastore.SettingsDataStore
+import org.kde.kdeconnect.device.DeviceInfo
+import org.kde.kdeconnect.device.DeviceType
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.DevicesRoomDatabase
@@ -113,7 +115,7 @@ class DeviceTest {
                     single { deviceSettings }
                     single { sslHelper }
                     single { mockk<DeviceHelper>(relaxed = true) }
-                    factory { (deviceInfo: DeviceInfo ) ->
+                    factory { (deviceInfo: DeviceInfo) ->
                         Device(get(), get(), { device -> DevicePairingCallback(device, context) }, deviceInfo)
                     }
                 }

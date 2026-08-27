@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.put
 import org.bouncycastle.util.Arrays
 import org.jetbrains.compose.resources.StringResource
+import org.kde.kdeconnect.device.SendPacketStatusCallback
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.error_already_paired
 import org.kde.kdeconnect.generated.resources.error_canceled_by_other_peer
@@ -158,7 +159,7 @@ class PairingHandler(
             callback.pairingFailed(Res.string.error_timed_out)
         } // Time to wait for the other to accept
 
-        val statusCallback: Device.SendPacketStatusCallback = object : Device.SendPacketStatusCallback() {
+        val statusCallback = object : SendPacketStatusCallback {
             override fun onSuccess() {}
 
             override fun onFailure(e: Throwable) {
@@ -167,6 +168,8 @@ class PairingHandler(
                 updateState(PairState.NotPaired)
                 callback.pairingFailed(Res.string.runcommand_notreachable)
             }
+
+            override fun onPayloadProgressChanged(percent: Int) {}
         }
         val np = NetworkPacket(NetworkPacket.PACKET_TYPE_PAIR).update {
             put("pair", true)
@@ -177,7 +180,7 @@ class PairingHandler(
 
     suspend fun acceptPairing() {
         cancelTimer()
-        val stateCallback = object : Device.SendPacketStatusCallback() {
+        val stateCallback = object : SendPacketStatusCallback {
             override fun onSuccess() {
                 pairingDone()
             }
@@ -187,6 +190,8 @@ class PairingHandler(
                 updateState(PairState.NotPaired)
                 callback.pairingFailed(Res.string.error_not_reachable)
             }
+
+            override fun onPayloadProgressChanged(percent: Int) {}
         }
         val np = NetworkPacket(NetworkPacket.PACKET_TYPE_PAIR).update {
             put("pair", true)

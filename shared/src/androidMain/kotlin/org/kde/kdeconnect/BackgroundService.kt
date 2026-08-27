@@ -30,6 +30,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.kde.kdeconnect.backends.AndroidLinkProvider
 import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.backends.BaseLinkProvider.ConnectionReceiver
 import org.kde.kdeconnect.backends.bluetooth.BluetoothLinkProvider
@@ -80,7 +81,7 @@ class BackgroundService : Service() {
         }
         LoggerTagged.d { "onNetworkChange" }
         for (linkProvider in linkProviders) {
-            linkProvider.onNetworkChange(network)
+            (linkProvider as AndroidLinkProvider).onNetworkChange(network)
         }
     }
 

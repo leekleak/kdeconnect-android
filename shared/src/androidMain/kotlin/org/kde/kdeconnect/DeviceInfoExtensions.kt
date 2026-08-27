@@ -1,6 +1,8 @@
 package org.kde.kdeconnect
 
 import kotlinx.serialization.json.put
+import org.kde.kdeconnect.device.DeviceInfo
+import org.kde.kdeconnect.device.DeviceType
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPluginInfo
@@ -41,8 +43,16 @@ fun DeviceInfo.withPopulatedSettings(): DeviceInfo {
 fun DeviceInfo.Companion.fromIdentityPacketAndCert(identityPacket: NetworkPacket, certificate: Certificate) =
     with(identityPacket) {
         DeviceInfo(
-            id = getString("deviceId", ""), // Redundant: We could read this from the certificate instead
-            name = DeviceHelper.filterInvalidCharactersFromDeviceNameAndLimitLength(getString("deviceName", "unknown")),
+            id = getString(
+                "deviceId",
+                ""
+            ), // Redundant: We could read this from the certificate instead
+            name = DeviceHelper.filterInvalidCharactersFromDeviceNameAndLimitLength(
+                getString(
+                    "deviceName",
+                    "unknown"
+                )
+            ),
             type = DeviceType.fromString(getString("deviceType", "desktop")),
             certificate = certificate.encoded,
             protocolVersion = getInt("protocolVersion", 0),

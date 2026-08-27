@@ -9,8 +9,8 @@ import androidx.room3.RoomDatabase
 import androidx.room3.Upsert
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.Json
-import org.kde.kdeconnect.DeviceInfo
-import org.kde.kdeconnect.DeviceType
+import org.kde.kdeconnect.device.DeviceInfo
+import org.kde.kdeconnect.device.DeviceType
 import org.kde.kdeconnect.withPopulatedSettings
 
 class MapTypeConverter {

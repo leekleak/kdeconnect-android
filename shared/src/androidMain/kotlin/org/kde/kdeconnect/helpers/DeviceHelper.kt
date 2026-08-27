@@ -5,24 +5,17 @@
 */
 package org.kde.kdeconnect.helpers
 
-import android.content.Context
 import android.content.res.Configuration
 import android.content.res.Resources
-import androidx.annotation.StringRes
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.DeviceInfo
-import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.datastore.SettingsDataStore
+import org.kde.kdeconnect.device.DeviceInfo
+import org.kde.kdeconnect.device.DeviceType
 import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.plugins.PluginFactory
-import org.kde.kdeconnect.plugins.battery.BatteryPlugin
-import org.kde.kdeconnect.plugins.battery.DeviceBatteryInfo
-import org.kde.kdeconnect.R
 import java.util.UUID
 
 class DeviceHelper(

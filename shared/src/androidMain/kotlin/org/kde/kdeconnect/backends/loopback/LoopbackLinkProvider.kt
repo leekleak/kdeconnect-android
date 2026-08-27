@@ -7,6 +7,7 @@ package org.kde.kdeconnect.backends.loopback
 
 import android.net.Network
 import org.jetbrains.compose.resources.DrawableResource
+import org.kde.kdeconnect.backends.AndroidLinkProvider
 import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.replay
@@ -14,7 +15,7 @@ import org.kde.kdeconnect.helpers.DeviceHelper
 
 class LoopbackLinkProvider(
     private val deviceHelper: DeviceHelper
-) : BaseLinkProvider() {
+) : BaseLinkProvider(), AndroidLinkProvider {
 
     override val name: String = "LoopbackLinkProvider"
     override val icon: DrawableResource = Res.drawable.replay

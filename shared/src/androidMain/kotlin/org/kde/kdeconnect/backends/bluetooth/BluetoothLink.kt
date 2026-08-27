@@ -16,10 +16,10 @@ import okio.Buffer
 import okio.BufferedSink
 import okio.BufferedSource
 import okio.buffer
-import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.backends.BaseLink
+import org.kde.kdeconnect.device.DeviceInfo
+import org.kde.kdeconnect.device.SendPacketStatusCallback
 import org.kde.kdeconnect.helpers.LoggerTagged
 import java.io.IOException
 import java.util.UUID
@@ -100,7 +100,7 @@ class BluetoothLink(
 
     @WorkerThread
     @Throws(IOException::class)
-    override suspend fun sendPacket(np: NetworkPacket, callback: Device.SendPacketStatusCallback): Boolean {
+    override suspend fun sendPacket(np: NetworkPacket, callback: SendPacketStatusCallback): Boolean {
         // sendPayloadFromSameThread is ignored, we always send from the same thread!
 
         return try {

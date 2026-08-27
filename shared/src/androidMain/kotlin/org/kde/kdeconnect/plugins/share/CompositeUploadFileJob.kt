@@ -18,6 +18,7 @@ import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.R
 import org.kde.kdeconnect.async.DataTransferJob
 import org.kde.kdeconnect.async.JobCallback
+import org.kde.kdeconnect.device.SendPacketStatusCallback
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.AtomicInt
@@ -55,7 +56,33 @@ class CompositeUploadFileJob(
 
     private val networkPacketList: CopyOnWriteArrayList<NetworkPacket> = CopyOnWriteArrayList()
     private var currentNetworkPacket: NetworkPacket? = null
-    private val sendPacketStatusCallback: Device.SendPacketStatusCallback by lazy { SendPacketStatusCallback() }
+    private val sendPacketStatusCallback = object : SendPacketStatusCallback {
+        override fun onPayloadProgressChanged(percent: Int) {
+            val packet = currentNetworkPacket ?: return
+            val send = totalSend + (packet.payloadSize * (percent.toFloat() / 100))
+            val progress = ((send * 100) / totalPayloadSize.load()).toInt()
+
+            if (progress != prevProgressPercentage) {
+                setProgress(progress)
+                prevProgressPercentage = progress
+            }
+        }
+
+        override fun onSuccess() {
+            val packet = currentNetworkPacket ?: return
+            if (packet.payloadSize == 0L) {
+                if (networkPacketList.isEmpty()) {
+                    setProgress(100)
+                }
+            }
+
+            totalSend += packet.payloadSize
+        }
+
+        override fun onFailure(e: Throwable) {
+            // Handled in the run() function when sendPacketBlocking returns false
+        }
+    }
 
     private val totalNumFiles: AtomicInt = AtomicInt(0)
     private val totalPayloadSize: AtomicLong = AtomicLong(0)
@@ -202,33 +229,5 @@ class CompositeUploadFileJob(
         coroutineScope.cancel()
 
         currentNetworkPacket?.cancel()
-    }
-
-    inner class SendPacketStatusCallback : Device.SendPacketStatusCallback() {
-        override fun onPayloadProgressChanged(percent: Int) {
-            val packet = currentNetworkPacket ?: return
-            val send = totalSend + (packet.payloadSize * (percent.toFloat() / 100))
-            val progress = ((send * 100) / totalPayloadSize.load()).toInt()
-
-            if (progress != prevProgressPercentage) {
-                setProgress(progress)
-                prevProgressPercentage = progress
-            }
-        }
-
-        override fun onSuccess() {
-            val packet = currentNetworkPacket ?: return
-            if (packet.payloadSize == 0L) {
-                if (networkPacketList.isEmpty()) {
-                    setProgress(100)
-                }
-            }
-
-            totalSend += packet.payloadSize
-        }
-
-        override fun onFailure(e: Throwable) {
-            // Handled in the run() function when sendPacketBlocking returns false
-        }
     }
 }

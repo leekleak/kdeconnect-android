@@ -9,7 +9,7 @@ import android.content.Context
 import android.view.KeyEvent
 import kotlinx.serialization.json.put
 import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.DeviceType
+import org.kde.kdeconnect.device.DeviceType
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.missing_controller
