@@ -8,11 +8,11 @@ import java.security.PrivateKey
 import java.security.PublicKey
 import java.security.spec.ECGenParameterSpec
 
-object EcHelper {
+actual object EcHelper {
     private const val ALIAS = "connect_identity"
     private const val KEYSTORE = "AndroidKeyStore"
 
-    fun ensureKeyPair() {
+    actual fun ensureKeyPair() {
         val ks = KeyStore.getInstance(KEYSTORE).apply { load(null) }
         if (ks.containsAlias(ALIAS)) return
 
@@ -28,12 +28,12 @@ object EcHelper {
         generator.generateKeyPair()
     }
 
-    fun getPublicKey(): PublicKey {
+    actual fun getPublicKey(): PublicKey {
         val ks = KeyStore.getInstance(KEYSTORE).apply { load(null) }
         return ks.getCertificate(ALIAS).publicKey
     }
 
-    fun getPrivateKey(): PrivateKey {
+    actual fun getPrivateKey(): PrivateKey {
         val ks = KeyStore.getInstance(KEYSTORE).apply { load(null) }
         return (ks.getEntry(ALIAS, null) as KeyStore.PrivateKeyEntry).privateKey
     }

@@ -5,8 +5,6 @@
 */
 package org.kde.kdeconnect.helpers.security
 
-import android.annotation.SuppressLint
-import android.content.Context
 import kotlinx.coroutines.flow.first
 import org.bouncycastle.asn1.x500.X500Name
 import org.bouncycastle.asn1.x500.X500NameBuilder
@@ -15,8 +13,8 @@ import org.bouncycastle.asn1.x500.style.IETFUtils
 import org.bouncycastle.cert.X509v3CertificateBuilder
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
-import org.kde.kdeconnect.device.DeviceInfo
 import org.kde.kdeconnect.datastore.SettingsDataStore
+import org.kde.kdeconnect.device.DeviceInfo
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.RandomHelper
@@ -36,7 +34,6 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Date
 import java.util.Formatter
-import java.util.Locale
 import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLSocket
@@ -44,6 +41,7 @@ import javax.net.ssl.TrustManager
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 class SslHelper(
     private val settingsDataStore: SettingsDataStore,
@@ -52,7 +50,6 @@ class SslHelper(
     lateinit var certificate: Certificate //my device's certificate
     private val factory: CertificateFactory = CertificateFactory.getInstance("X.509")
 
-    @SuppressLint("CustomX509TrustManager", "TrustAllX509TrustManager")
     private val trustAllCerts: Array<TrustManager> = arrayOf(object : X509TrustManager {
         private val issuers = emptyArray<X509Certificate>()
         override fun getAcceptedIssuers(): Array<X509Certificate> = issuers
@@ -60,7 +57,8 @@ class SslHelper(
         override fun checkServerTrusted(certs: Array<X509Certificate?>?, authType: String?) = Unit
     })
 
-    suspend fun initialiseCertificate(context: Context) {
+    @OptIn(ExperimentalEncodingApi::class)
+    suspend fun initialiseCertificate(platformContext: Any? = null) {
         val privateKey: PrivateKey = getPrivateKey()
         val publicKey: PublicKey = getPublicKey()
 
@@ -73,7 +71,7 @@ class SslHelper(
         if (certificateBase64.isNotEmpty()) {
             val currDate = Date()
             try {
-                val certificateBytes = Base64.decode(certificateBase64, 0)
+                val certificateBytes = Base64.decode(certificateBase64)
                 val cert = parseCertificate(certificateBytes) as X509Certificate
 
                 val certDeviceId = getCommonNameFromCertificate(cert)
@@ -100,9 +98,6 @@ class SslHelper(
         if (needsToGenerateCertificate) {
             deviceSettings.removeAllTrustedDevices()
             LoggerTagged.i { "Generating a certificate" }
-            //Fix for https://issuetracker.google.com/issues/37095309
-            val initialLocale = Locale.getDefault()
-            setLocale(Locale.ENGLISH, context)
 
             val nameBuilder = X500NameBuilder(BCStyle.INSTANCE)
             nameBuilder.addRDN(BCStyle.CN, deviceId)
@@ -125,18 +120,8 @@ class SslHelper(
             val certificateBytes = certificateBuilder.build(contentSigner).encoded
             certificate = parseCertificate(certificateBytes)
 
-            settingsDataStore.setCertificate(Base64.encode(certificateBytes, 0))
-
-            setLocale(initialLocale, context)
+            settingsDataStore.setCertificate(Base64.encode(certificateBytes))
         }
-    }
-
-    private fun setLocale(locale: Locale, context: Context) {
-        Locale.setDefault(locale)
-        val resources = context.resources
-        val config = resources.configuration
-        config.locale = locale
-        resources.updateConfiguration(config, resources.displayMetrics)
     }
 
     private fun getSslContextForDevice(deviceInfo: DeviceInfo?, isDeviceTrusted: Boolean): SSLContext {

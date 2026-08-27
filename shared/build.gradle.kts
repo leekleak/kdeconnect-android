@@ -56,13 +56,15 @@ kotlin {
 
         val jvmCommon = create("jvmCommon") {
             dependsOn(commonMain.get())
+            dependencies {
+                implementation(libs.bcpkix.jdk18on)
+            }
         }
 
         androidMain {
             dependsOn(jvmCommon)
             dependencies {
                 implementation(libs.androidx.core.ktx)
-                implementation(libs.bcpkix.jdk18on)
                 implementation(libs.slf4j.api)
                 implementation(libs.slf4j.handroid)
                 implementation(libs.koin.android)
