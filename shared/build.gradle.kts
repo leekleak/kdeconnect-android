@@ -51,6 +51,10 @@ kotlin {
                 implementation(libs.components.resources)
                 implementation(libs.okio)
                 implementation(compose.runtime)
+                implementation(libs.androidx.navigation3.runtime)
+                implementation(libs.androidx.navigation3.ui)
+                implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+                implementation(libs.koin.compose.navigation3)
             }
         }
 
@@ -80,11 +84,7 @@ kotlin {
                 implementation(libs.androidx.documentfile)
                 implementation(libs.androidx.lifecycle.viewmodel.ktx)
                 implementation(libs.androidx.lifecycle.runtime.ktx)
-                implementation(libs.androidx.navigation3.runtime)
-                implementation(libs.androidx.navigation3.ui)
-                implementation(libs.androidx.lifecycle.viewmodel.navigation3)
                 implementation(libs.koin.androidx.compose)
-                implementation(libs.koin.compose.navigation3)
                 implementation(libs.google.android.material)
                 implementation(libs.apache.sshd.core)
                 implementation(libs.apache.sshd.sftp)

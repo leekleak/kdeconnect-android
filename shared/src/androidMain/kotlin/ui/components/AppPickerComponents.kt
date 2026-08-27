@@ -42,7 +42,6 @@ import coil3.compose.rememberAsyncImagePainter
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.kde.kdeconnect.helpers.AppIcon
-import org.kde.kdeconnect.ui.screen.settings.advanced.notifications.AppInfo
 import org.kde.kdeconnect.generated.resources.*
 
 @Composable
