@@ -15,10 +15,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.kde.kdeconnect.BuildConfig
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.ui.AppTheme
 import org.kde.kdeconnect.ui.ThemeUtil
-import org.kde.kdeconnect.BuildConfig
 import java.io.InputStreamReader
 import kotlin.text.Charsets.UTF_8
 
@@ -75,7 +75,7 @@ class SettingsViewModel(
 
     fun resetStorageLocation() {
         viewModelScope.launch {
-            dataStore.setFileDestination(dataStore.getDefaultDestinationUri().toString())
+            dataStore.resetFileDestination()
         }
     }
 

@@ -44,6 +44,7 @@ kotlin {
                 implementation(libs.kotlin.stdlib)
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.kotlinx.serialization.json)
+                implementation(libs.androidx.datastore.preferences)
                 implementation(libs.koin.annotations)
                 implementation(libs.androidx.room3.runtime)
                 implementation(libs.kermit)
@@ -61,7 +62,6 @@ kotlin {
             dependsOn(jvmCommon)
             dependencies {
                 implementation(libs.androidx.core.ktx)
-                implementation(libs.androidx.datastore.preferences)
                 implementation(libs.bcpkix.jdk18on)
                 implementation(libs.slf4j.api)
                 implementation(libs.slf4j.handroid)

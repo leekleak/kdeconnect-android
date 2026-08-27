@@ -55,9 +55,3 @@ class ThemeUtil(private val dataStore: SettingsDataStore) {
         applyTheme(appTheme)
     }
 }
-
-enum class AppTheme {
-    Default,
-    Light,
-    Dark,
-}

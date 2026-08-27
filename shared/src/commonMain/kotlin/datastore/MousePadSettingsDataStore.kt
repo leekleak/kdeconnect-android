@@ -1,13 +1,11 @@
 package org.kde.kdeconnect.datastore
 
-import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -18,71 +16,69 @@ import org.kde.kdeconnect.generated.resources.mousepad_default_double
 import org.kde.kdeconnect.generated.resources.mousepad_default_single
 import org.kde.kdeconnect.generated.resources.mousepad_default_triple
 
-class MousePadSettingsDataStore(private val context: Context) {
+class MousePadSettingsDataStore(private val dataStore: DataStore<Preferences>) {
 
-    private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "mousepad_settings")
-
-    val singleTap: Flow<String> = context.dataStore.data
+    val singleTap: Flow<String> = dataStore.data
         .map { it[KEY_SINGLE_TAP] ?: runBlocking { getString(Res.string.mousepad_default_single) } }
         .distinctUntilChanged()
 
-    val doubleTap: Flow<String> = context.dataStore.data
+    val doubleTap: Flow<String> = dataStore.data
         .map { it[KEY_DOUBLE_TAP] ?: runBlocking { getString(Res.string.mousepad_default_double) } }
         .distinctUntilChanged()
 
-    val tripleTap: Flow<String> = context.dataStore.data
+    val tripleTap: Flow<String> = dataStore.data
         .map { it[KEY_TRIPLE_TAP] ?: runBlocking { getString(Res.string.mousepad_default_triple) } }
         .distinctUntilChanged()
 
-    val sensitivity: Flow<Int> = context.dataStore.data
+    val sensitivity: Flow<Int> = dataStore.data
         .map { it[KEY_SENSITIVITY] ?: 4 }
         .distinctUntilChanged()
 
-    val acceleration: Flow<Int> = context.dataStore.data
+    val acceleration: Flow<Int> = dataStore.data
         .map { it[KEY_ACCELERATION] ?: 0 }
         .distinctUntilChanged()
 
-    val scrollDirection: Flow<Boolean> = context.dataStore.data
+    val scrollDirection: Flow<Boolean> = dataStore.data
         .map { it[KEY_SCROLL_DIRECTION] ?: false }
         .distinctUntilChanged()
 
-    val scrollSensitivity: Flow<Int> = context.dataStore.data
+    val scrollSensitivity: Flow<Int> = dataStore.data
         .map { it[KEY_SCROLL_SENSITIVITY] ?: 100 }
         .distinctUntilChanged()
 
-    val gyroEnabled: Flow<Boolean> = context.dataStore.data
+    val gyroEnabled: Flow<Boolean> = dataStore.data
         .map { it[KEY_GYRO_ENABLED] ?: false }
         .distinctUntilChanged()
 
-    val gyroSensitivity: Flow<Int> = context.dataStore.data
+    val gyroSensitivity: Flow<Int> = dataStore.data
         .map { it[KEY_GYRO_SENSITIVITY] ?: 100 }
         .distinctUntilChanged()
 
-    val doubleTapDragEnabled: Flow<Boolean> = context.dataStore.data
+    val doubleTapDragEnabled: Flow<Boolean> = dataStore.data
         .map { it[KEY_DOUBLE_TAP_DRAG_ENABLED] ?: true }
         .distinctUntilChanged()
 
-    val sendKeystrokesEnabled: Flow<Boolean> = context.dataStore.data
+    val sendKeystrokesEnabled: Flow<Boolean> = dataStore.data
         .map { it[KEY_SEND_KEYSTROKES_ENABLED] ?: true }
         .distinctUntilChanged()
 
-    val sendSafeTextImmediately: Flow<Boolean> = context.dataStore.data
+    val sendSafeTextImmediately: Flow<Boolean> = dataStore.data
         .map { it[KEY_SEND_SAFE_TEXT_IMMEDIATELY] ?: true }
         .distinctUntilChanged()
 
     // Setters
-    suspend fun setSingleTap(value: String) = context.dataStore.edit { it[KEY_SINGLE_TAP] = value }
-    suspend fun setDoubleTap(value: String) = context.dataStore.edit { it[KEY_DOUBLE_TAP] = value }
-    suspend fun setTripleTap(value: String) = context.dataStore.edit { it[KEY_TRIPLE_TAP] = value }
-    suspend fun setSensitivity(value: Int) = context.dataStore.edit { it[KEY_SENSITIVITY] = value }
-    suspend fun setAccelerationProfile(value: Int) = context.dataStore.edit { it[KEY_ACCELERATION] = value }
-    suspend fun setScrollDirection(value: Boolean) = context.dataStore.edit { it[KEY_SCROLL_DIRECTION] = value }
-    suspend fun setScrollSensitivity(value: Int) = context.dataStore.edit { it[KEY_SCROLL_SENSITIVITY] = value }
-    suspend fun setGyroEnabled(value: Boolean) = context.dataStore.edit { it[KEY_GYRO_ENABLED] = value }
-    suspend fun setGyroSensitivity(value: Int) = context.dataStore.edit { it[KEY_GYRO_SENSITIVITY] = value }
-    suspend fun setDoubleTapDragEnabled(value: Boolean) = context.dataStore.edit { it[KEY_DOUBLE_TAP_DRAG_ENABLED] = value }
-    suspend fun setSendKeystrokesEnabled(value: Boolean) = context.dataStore.edit { it[KEY_SEND_KEYSTROKES_ENABLED] = value }
-    suspend fun setSendSafeTextImmediately(value: Boolean) = context.dataStore.edit { it[KEY_SEND_SAFE_TEXT_IMMEDIATELY] = value }
+    suspend fun setSingleTap(value: String) = dataStore.edit { it[KEY_SINGLE_TAP] = value }
+    suspend fun setDoubleTap(value: String) = dataStore.edit { it[KEY_DOUBLE_TAP] = value }
+    suspend fun setTripleTap(value: String) = dataStore.edit { it[KEY_TRIPLE_TAP] = value }
+    suspend fun setSensitivity(value: Int) = dataStore.edit { it[KEY_SENSITIVITY] = value }
+    suspend fun setAccelerationProfile(value: Int) = dataStore.edit { it[KEY_ACCELERATION] = value }
+    suspend fun setScrollDirection(value: Boolean) = dataStore.edit { it[KEY_SCROLL_DIRECTION] = value }
+    suspend fun setScrollSensitivity(value: Int) = dataStore.edit { it[KEY_SCROLL_SENSITIVITY] = value }
+    suspend fun setGyroEnabled(value: Boolean) = dataStore.edit { it[KEY_GYRO_ENABLED] = value }
+    suspend fun setGyroSensitivity(value: Int) = dataStore.edit { it[KEY_GYRO_SENSITIVITY] = value }
+    suspend fun setDoubleTapDragEnabled(value: Boolean) = dataStore.edit { it[KEY_DOUBLE_TAP_DRAG_ENABLED] = value }
+    suspend fun setSendKeystrokesEnabled(value: Boolean) = dataStore.edit { it[KEY_SEND_KEYSTROKES_ENABLED] = value }
+    suspend fun setSendSafeTextImmediately(value: Boolean) = dataStore.edit { it[KEY_SEND_SAFE_TEXT_IMMEDIATELY] = value }
 
     companion object {
         private val KEY_SINGLE_TAP = stringPreferencesKey("mousepad_single_tap_key")

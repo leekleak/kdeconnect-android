@@ -1,23 +1,17 @@
 package org.kde.kdeconnect.datastore
 
-import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
-class ConnectionsSettingsDataStore(private val context: Context) {
+class ConnectionsSettingsDataStore(private val dataStore: DataStore<Preferences>) {
 
-    private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
-        name = "connections_settings",
-    )
-
-    val trustedNetworksRaw: Flow<String> = context.dataStore.data
+    val trustedNetworksRaw: Flow<String> = dataStore.data
         .map { it[KEY_TRUSTED_NETWORKS] ?: "" }
         .distinctUntilChanged()
 
@@ -25,24 +19,24 @@ class ConnectionsSettingsDataStore(private val context: Context) {
         .map { serialized -> serialized.split(NETWORK_SSID_DELIMITER).filter { it.isNotEmpty() } }
         .distinctUntilChanged()
 
-    val allNetworksAllowed: Flow<Boolean> = context.dataStore.data
+    val allNetworksAllowed: Flow<Boolean> = dataStore.data
         .map { it[KEY_TRUST_ALL_NETWORKS] ?: true }
         .distinctUntilChanged()
 
-    val customDeviceList: Flow<String> = context.dataStore.data
+    val customDeviceList: Flow<String> = dataStore.data
         .map { preferences -> preferences[KEY_CUSTOM_DEVICE_LIST] ?: "" }
         .distinctUntilChanged()
 
     suspend fun setTrustedNetworksRaw(serialized: String) {
-        context.dataStore.edit { it[KEY_TRUSTED_NETWORKS] = serialized }
+        dataStore.edit { it[KEY_TRUSTED_NETWORKS] = serialized }
     }
 
     suspend fun setAllNetworksAllowed(allowed: Boolean) {
-        context.dataStore.edit { it[KEY_TRUST_ALL_NETWORKS] = allowed }
+        dataStore.edit { it[KEY_TRUST_ALL_NETWORKS] = allowed }
     }
 
     suspend fun setCustomDeviceList(list: String) {
-        context.dataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_CUSTOM_DEVICE_LIST] = list
         }
     }

@@ -1,44 +1,40 @@
 package org.kde.kdeconnect.datastore
 
-import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 
-class TelephonySettingsDataStore(private val context: Context) {
+class TelephonySettingsDataStore(private val dataStore: DataStore<Preferences>) {
 
-    private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "telephony_settings")
-
-    val blockedNumbers: Flow<Set<String>> = context.dataStore.data
+    val blockedNumbers: Flow<Set<String>> = dataStore.data
         .map { preferences -> preferences[KEY_BLOCKED_NUMBERS]?.split(',')?.filter { it.isNotEmpty() }?.toSet() ?: emptySet() }
         .distinctUntilChanged()
 
-    val groupMessageAsMms: Flow<Boolean> = context.dataStore.data
+    val groupMessageAsMms: Flow<Boolean> = dataStore.data
         .map { preferences -> preferences[KEY_MMS_GROUP] ?: true }
         .distinctUntilChanged()
 
-    val longTextAsMms: Flow<Boolean> = context.dataStore.data
+    val longTextAsMms: Flow<Boolean> = dataStore.data
         .map { preferences -> preferences[KEY_MMS_LONG_TEXT] ?: false }
         .distinctUntilChanged()
 
-    val convertToMmsAfter: Flow<Int> = context.dataStore.data
+    val convertToMmsAfter: Flow<Int> = dataStore.data
         .map { preferences -> preferences[KEY_CONVERT_TO_MMS] ?: 3 }
         .distinctUntilChanged()
 
-    val ringtoneUri: Flow<String> = context.dataStore.data
+    val ringtoneUri: Flow<String> = dataStore.data
         .map { preferences -> preferences[KEY_RINGTONE] ?: "" }
         .distinctUntilChanged()
 
-    val flashlightEnabled: Flow<Boolean> = context.dataStore.data
+    val flashlightEnabled: Flow<Boolean> = dataStore.data
         .map { preferences -> preferences[KEY_FLASHLIGHT] ?: false }
         .distinctUntilChanged()
 
@@ -50,37 +46,37 @@ class TelephonySettingsDataStore(private val context: Context) {
     fun getFlashlightEnabledBlockingBlocking(): Boolean = runBlocking { flashlightEnabled.first() }
 
     suspend fun updateBlockedNumbers(numbers: Set<String>) {
-        context.dataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_BLOCKED_NUMBERS] = numbers.joinToString(",")
         }
     }
 
     suspend fun setGroupMessageAsMms(enabled: Boolean) {
-        context.dataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_MMS_GROUP] = enabled
         }
     }
 
     suspend fun setLongTextAsMms(enabled: Boolean) {
-        context.dataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_MMS_LONG_TEXT] = enabled
         }
     }
 
     suspend fun setConvertToMmsAfter(value: Int) {
-        context.dataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_CONVERT_TO_MMS] = value
         }
     }
 
     suspend fun setRingtone(uri: String) {
-        context.dataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_RINGTONE] = uri
         }
     }
 
     suspend fun setFlashlightEnabled(enabled: Boolean) {
-        context.dataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_FLASHLIGHT] = enabled
         }
     }

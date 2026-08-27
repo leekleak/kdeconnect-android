@@ -1,5 +1,7 @@
 package org.kde.kdeconnect.di
 
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room3.Room
 import org.kde.kdeconnect.BackgroundServiceData
 import org.kde.kdeconnect.Device
@@ -7,11 +9,13 @@ import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.backends.bluetooth.BluetoothLinkProvider
 import org.kde.kdeconnect.backends.lan.LanLinkProvider
 import org.kde.kdeconnect.backends.loopback.LoopbackLinkProvider
+import org.kde.kdeconnect.datastore.AndroidSettingsDefaults
 import org.kde.kdeconnect.datastore.ConnectionsSettingsDataStore
 import org.kde.kdeconnect.datastore.MousePadSettingsDataStore
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore
 import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
 import org.kde.kdeconnect.datastore.SettingsDataStore
+import org.kde.kdeconnect.datastore.SettingsDefaults
 import org.kde.kdeconnect.datastore.SftpSettingsDataStore
 import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 import org.kde.kdeconnect.helpers.CustomDevicesHelper
@@ -48,16 +52,51 @@ import org.kde.kdeconnect.plugins.sms.SMSPlugin
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin
 import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin
 import org.koin.android.ext.koin.androidContext
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import org.koin.plugin.module.dsl.factory
 import org.koin.plugin.module.dsl.single
 
 val sharedModule = module {
     single<BackgroundServiceData>()
-    single<TelephonySettingsDataStore>()
-    single<SettingsDataStore>()
-    single<RunCommandSettingsDataStore>()
-    single<MousePadSettingsDataStore>()
+
+    single<SettingsDefaults> { AndroidSettingsDefaults(androidContext()) }
+
+    single(named("telephony_settings")) {
+        PreferenceDataStoreFactory.create(produceFile = { androidContext().preferencesDataStoreFile("telephony_settings") })
+    }
+    single { TelephonySettingsDataStore(get(named("telephony_settings"))) }
+
+    single(named("settings")) {
+        PreferenceDataStoreFactory.create(produceFile = { androidContext().preferencesDataStoreFile("settings") })
+    }
+    single { SettingsDataStore(get(named("settings")), get()) }
+
+    single(named("runcommand_settings")) {
+        PreferenceDataStoreFactory.create(produceFile = { androidContext().preferencesDataStoreFile("runcommand_settings") })
+    }
+    single { RunCommandSettingsDataStore(get(named("runcommand_settings"))) }
+
+    single(named("mousepad_settings")) {
+        PreferenceDataStoreFactory.create(produceFile = { androidContext().preferencesDataStoreFile("mousepad_settings") })
+    }
+    single { MousePadSettingsDataStore(get(named("mousepad_settings"))) }
+
+    single(named("notification_settings")) {
+        PreferenceDataStoreFactory.create(produceFile = { androidContext().preferencesDataStoreFile("notification_settings") })
+    }
+    single { NotificationSettingsDataStore(get(named("notification_settings"))) }
+
+    single(named("sftp_settings")) {
+        PreferenceDataStoreFactory.create(produceFile = { androidContext().preferencesDataStoreFile("sftp_settings") })
+    }
+    single { SftpSettingsDataStore(get(named("sftp_settings"))) }
+
+    single(named("connections_settings")) {
+        PreferenceDataStoreFactory.create(produceFile = { androidContext().preferencesDataStoreFile("connections_settings") })
+    }
+    single { ConnectionsSettingsDataStore(get(named("connections_settings"))) }
+
     single<DeviceSettings>()
     single<DeviceHelper>()
     single<SslHelper>()
@@ -68,10 +107,7 @@ val sharedModule = module {
             get<Device> { org.koin.core.parameter.parametersOf(deviceInfo) }
         }
     }
-    single<NotificationSettingsDataStore>()
     single<AppDatabase>()
-    single<SftpSettingsDataStore>()
-    single<ConnectionsSettingsDataStore>()
     single<TrustedNetworkHelper>()
     single<PermissionRequestHelper>()
     single<MprisMediaSession>()

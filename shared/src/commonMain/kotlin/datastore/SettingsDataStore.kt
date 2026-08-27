@@ -1,107 +1,101 @@
 package org.kde.kdeconnect.datastore
 
-import android.content.Context
-import android.net.Uri
-import android.os.Environment
-import android.provider.DocumentsContract
-import android.provider.Settings
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import org.kde.kdeconnect.ui.AppTheme
 
-class SettingsDataStore(private val context: Context) {
+class SettingsDataStore(
+    private val dataStore: DataStore<Preferences>,
+    private val defaults: SettingsDefaults
+) {
 
-    private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
-
-    val deviceName: Flow<String> = context.dataStore.data
-        .map { it[KEY_DEVICE_NAME] ?: Settings.Global.getString(context.contentResolver, Settings.Global.DEVICE_NAME) }
+    val deviceName: Flow<String> = dataStore.data
+        .map { it[KEY_DEVICE_NAME] ?: defaults.getDefaultDeviceName() }
         .distinctUntilChanged()
 
-    val theme: Flow<AppTheme> = context.dataStore.data
+    val theme: Flow<AppTheme> = dataStore.data
         .map { preferences -> preferences[KEY_THEME]?.let { AppTheme.valueOf(it) } ?: AppTheme.Default }
         .distinctUntilChanged()
 
-    val bluetoothEnabled: Flow<Boolean> = context.dataStore.data
+    val bluetoothEnabled: Flow<Boolean> = dataStore.data
         .map { preferences -> preferences[KEY_BLUETOOTH_ENABLED] ?: false }
         .distinctUntilChanged()
 
-    val deviceId: Flow<String> = context.dataStore.data
+    val deviceId: Flow<String> = dataStore.data
         .map { preferences -> preferences[KEY_DEVICE_ID] ?: "" }
         .distinctUntilChanged()
 
-    val fileDestination: Flow<String> = context.dataStore.data
-        .map { preferences -> preferences[FILE_DESTINATION] ?: getDefaultDestinationUri().toString() }
+    val fileDestination: Flow<String> = dataStore.data
+        .map { preferences -> preferences[FILE_DESTINATION] ?: defaults.getDefaultFileDestination() }
         .distinctUntilChanged()
 
-    val isFileDestinationDefault: Flow<Boolean> = fileDestination.map { it == getDefaultDestinationUri().toString() }
+    val isFileDestinationDefault: Flow<Boolean> = fileDestination.map { it == defaults.getDefaultFileDestination() }
 
-    val presenterVolumeKeysEnabled: Flow<Boolean> = context.dataStore.data
+    val presenterVolumeKeysEnabled: Flow<Boolean> = dataStore.data
         .map { it[KEY_PRESENTER_VOLUME_KEYS] ?: true }
         .distinctUntilChanged()
 
-    val presenterSensitivity: Flow<Int> = context.dataStore.data
+    val presenterSensitivity: Flow<Int> = dataStore.data
         .map { it[KEY_PRESENTER_SENSITIVITY] ?: 50 }
         .distinctUntilChanged()
 
-    val certificate: Flow<String> = context.dataStore.data
+    val certificate: Flow<String> = dataStore.data
         .map { it[KEY_CERTIFICATE] ?: "" }
         .distinctUntilChanged()
 
     suspend fun setDeviceName(name: String) {
-        context.dataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_DEVICE_NAME] = name
         }
     }
 
     suspend fun setTheme(theme: AppTheme) {
-        context.dataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_THEME] = theme.name
         }
     }
 
     suspend fun setBluetoothEnabled(enabled: Boolean) {
-        context.dataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_BLUETOOTH_ENABLED] = enabled
         }
     }
 
     suspend fun setDeviceId(id: String) {
-        context.dataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_DEVICE_ID] = id
         }
     }
 
     suspend fun setFileDestination(uri: String) {
-        context.dataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[FILE_DESTINATION] = uri
         }
     }
 
+    suspend fun resetFileDestination() {
+        dataStore.edit { preferences ->
+            preferences.remove(FILE_DESTINATION)
+        }
+    }
+
     suspend fun setPresenterVolumeKeysEnabled(enabled: Boolean) {
-        context.dataStore.edit { it[KEY_PRESENTER_VOLUME_KEYS] = enabled }
+        dataStore.edit { it[KEY_PRESENTER_VOLUME_KEYS] = enabled }
     }
 
     suspend fun setPresenterSensitivity(sensitivity: Int) {
-        context.dataStore.edit { it[KEY_PRESENTER_SENSITIVITY] = sensitivity }
+        dataStore.edit { it[KEY_PRESENTER_SENSITIVITY] = sensitivity }
     }
 
     suspend fun setCertificate(certificate: String) {
-        context.dataStore.edit { it[KEY_CERTIFICATE] = certificate }
-    }
-
-    fun getDefaultDestinationUri(): Uri {
-        return DocumentsContract.buildTreeDocumentUri(
-            "com.android.externalstorage.documents",
-            "primary:${Environment.DIRECTORY_DOWNLOADS}"
-        )
+        dataStore.edit { it[KEY_CERTIFICATE] = certificate }
     }
 
     companion object {
