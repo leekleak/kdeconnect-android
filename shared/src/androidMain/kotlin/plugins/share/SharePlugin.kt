@@ -14,8 +14,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.os.PersistableBundle
 import android.widget.Toast
 import androidx.annotation.WorkerThread
@@ -53,8 +51,8 @@ import org.kde.kdeconnect.generated.resources.shareplugin_text_saved
 import org.kde.kdeconnect.generated.resources.unreachable_device_dynamic_shortcut
 import org.kde.kdeconnect.helpers.FilesHelper.uriToNetworkPacket
 import org.kde.kdeconnect.helpers.LoggerTagged
+import org.kde.kdeconnect.plugins.PermissionPluginInfo
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import java.net.MalformedURLException
 import java.net.URL
@@ -65,10 +63,9 @@ import java.util.concurrent.ConcurrentHashMap
  */
 class SharePlugin(
     private val context: Context,
-    device: Device,
+    private val device: Device,
     private val settingsDataStore: SettingsDataStore
-) : Plugin(device) {
-    private val handler: Handler = Handler(Looper.getMainLooper())
+) : Plugin() {
     private val pluginScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val concurrencyLimit = Semaphore(permits = 5)
     private val activeJobs = ConcurrentHashMap<Int, Job>()
@@ -77,7 +74,7 @@ class SharePlugin(
     private var uploadFileJob: CompositeUploadFileJob? = null
     private val jobCallback: JobCallback = Callback()
 
-    override val pluginInfo: PluginInfo = SharePluginInfo
+    override val pluginInfo: PermissionPluginInfo = SharePluginInfo
 
     override fun onCreate(): Boolean {
         createOrUpdateDynamicShortcut(null)

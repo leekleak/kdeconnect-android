@@ -28,13 +28,13 @@ import org.kde.kdeconnect.generated.resources.pref_plugin_receive_notifications
 import org.kde.kdeconnect.generated.resources.pref_plugin_receive_notifications_desc
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.NotificationHelper
+import org.kde.kdeconnect.plugins.PermissionPluginInfo
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.receivenotifications.ReceiveNotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION
 import org.kde.kdeconnect.plugins.receivenotifications.ReceiveNotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION_REQUEST
 
-class ReceiveNotificationsPlugin(private val context: Context, device: Device) : Plugin(device) {
-    override val pluginInfo: PluginInfo = ReceiveNotificationsPluginInfo
+class ReceiveNotificationsPlugin(private val context: Context, private val device: Device) : Plugin() {
+    override val pluginInfo: PermissionPluginInfo = ReceiveNotificationsPluginInfo
     override fun onCreate(): Boolean {
         // request all existing notifications
         coroutineScope.launch {
@@ -106,17 +106,17 @@ class ReceiveNotificationsPlugin(private val context: Context, device: Device) :
     }
 }
 
-object ReceiveNotificationsPluginInfo : PluginInfo(
+object ReceiveNotificationsPluginInfo : PermissionPluginInfo(
     pluginKey = "ReceiveNotificationsPlugin",
     instantiableClass = ReceiveNotificationsPlugin::class.java,
     displayNameRes = Res.string.pref_plugin_receive_notifications,
     descriptionRes = Res.string.pref_plugin_receive_notifications_desc,
     requiredPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        arrayOf(Manifest.permission.POST_NOTIFICATIONS)
+        setOf(Manifest.permission.POST_NOTIFICATIONS)
     } else {
-        arrayOf()
+        setOf()
     },
-    supportedPacketTypes = arrayOf(PACKET_TYPE_NOTIFICATION),
-    outgoingPacketTypes = arrayOf(PACKET_TYPE_NOTIFICATION_REQUEST),
+    supportedPacketTypes = setOf(PACKET_TYPE_NOTIFICATION),
+    outgoingPacketTypes = setOf(PACKET_TYPE_NOTIFICATION_REQUEST),
     lazy = false
 )

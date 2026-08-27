@@ -27,15 +27,15 @@ import org.kde.kdeconnect.generated.resources.pref_plugin_clipboard_desc
 import org.kde.kdeconnect.generated.resources.pref_plugin_clipboard_sent
 import org.kde.kdeconnect.generated.resources.send_clipboard
 import org.kde.kdeconnect.plugins.ButtonCategory
+import org.kde.kdeconnect.plugins.PermissionPluginInfo
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.clipboard.ClipboardListener.ClipboardObserver
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin.Companion.PACKET_TYPE_CLIPBOARD
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin.Companion.PACKET_TYPE_CLIPBOARD_CONNECT
 
-class ClipboardPlugin(private val context: Context, device: Device) : Plugin(device) {
-    override val pluginInfo: PluginInfo = ClipboardPluginInfo
+class ClipboardPlugin(private val context: Context, private val device: Device) : Plugin() {
+    override val pluginInfo: PermissionPluginInfo = ClipboardPluginInfo
 
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         val content = np.getString("content")
@@ -152,12 +152,12 @@ class ClipboardPlugin(private val context: Context, device: Device) : Plugin(dev
     }
 }
 
-object ClipboardPluginInfo: PluginInfo(
+object ClipboardPluginInfo: PermissionPluginInfo(
     pluginKey = "ClipboardPlugin",
     displayNameRes = Res.string.pref_plugin_clipboard,
     descriptionRes = Res.string.pref_plugin_clipboard_desc,
-    supportedPacketTypes = arrayOf(PACKET_TYPE_CLIPBOARD, PACKET_TYPE_CLIPBOARD_CONNECT),
-    outgoingPacketTypes = arrayOf(PACKET_TYPE_CLIPBOARD, PACKET_TYPE_CLIPBOARD_CONNECT),
+    supportedPacketTypes = setOf(PACKET_TYPE_CLIPBOARD, PACKET_TYPE_CLIPBOARD_CONNECT),
+    outgoingPacketTypes = setOf(PACKET_TYPE_CLIPBOARD, PACKET_TYPE_CLIPBOARD_CONNECT),
     instantiableClass = ClipboardPlugin::class.java,
     lazy = false
 ) {

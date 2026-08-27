@@ -52,8 +52,8 @@ import org.kde.kdeconnect.generated.resources.pref_plugin_notifications_desc
 import org.kde.kdeconnect.generated.resources.unknown_sender
 import org.kde.kdeconnect.helpers.AppsHelper.appNameLookup
 import org.kde.kdeconnect.helpers.LoggerTagged
+import org.kde.kdeconnect.plugins.PermissionPluginInfo
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION
 import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION_ACTION
 import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION_REPLY
@@ -64,18 +64,18 @@ import java.security.MessageDigest
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 
-object NotificationsPluginInfo: PluginInfo(
+object NotificationsPluginInfo: PermissionPluginInfo(
     pluginKey = "NotificationsPlugin",
     instantiableClass = NotificationsPlugin::class.java,
     displayNameRes = Res.string.pref_plugin_notifications,
     descriptionRes = Res.string.pref_plugin_notifications_desc,
     isEnabledByDefault = false,
-    supportedPacketTypes = arrayOf(
+    supportedPacketTypes = setOf(
         PACKET_TYPE_NOTIFICATION_REQUEST,
         PACKET_TYPE_NOTIFICATION_REPLY,
         PACKET_TYPE_NOTIFICATION_ACTION
     ),
-    outgoingPacketTypes = arrayOf(PACKET_TYPE_NOTIFICATION),
+    outgoingPacketTypes = setOf(PACKET_TYPE_NOTIFICATION),
     lazy = false,
 ) {
     override suspend fun checkRequiredPermissions(context: Context): Boolean {
@@ -96,11 +96,11 @@ object NotificationsPluginInfo: PluginInfo(
 
 class NotificationsPlugin(
     private val context: Context,
-    device: Device,
+    private val device: Device,
     private val dataStore: NotificationSettingsDataStore,
     private val appDatabase: AppDatabase,
-) : Plugin(device), NotificationReceiver.NotificationListener {
-    override val pluginInfo: PluginInfo = NotificationsPluginInfo
+) : Plugin(), NotificationReceiver.NotificationListener {
+    override val pluginInfo: PermissionPluginInfo = NotificationsPluginInfo
     private val currentNotifications = mutableSetOf<String>()
     // Here we will map every notification to it's icon(hash)
     private val notificationsIcons: ConcurrentHashMap<String, String> = ConcurrentHashMap()

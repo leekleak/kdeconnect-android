@@ -24,7 +24,7 @@ import org.kde.kdeconnect.plugins.notifications.NotificationReceiver
 import org.kde.kdeconnect.toJsonArray
 import java.util.concurrent.ConcurrentHashMap
 
-class MprisReceiverPlugin(private val context: Context, device: Device) : Plugin(device) {
+class MprisReceiverPlugin(private val context: Context, private val device: Device) : Plugin() {
     // TODO: Those two are always accessed together, merge them
     private val players: ConcurrentHashMap<String, MprisReceiverPlayer> = ConcurrentHashMap<String, MprisReceiverPlayer>()
     private val playerCbs: ConcurrentHashMap<String, MprisReceiverCallback> = ConcurrentHashMap<String, MprisReceiverCallback>()

@@ -19,8 +19,8 @@ import org.kde.kdeconnect.generated.resources.trackpad_input_2
 import org.kde.kdeconnect.generated.resources.tv_remote
 import org.kde.kdeconnect.helpers.SPECIAL_KEY_ENCODING_MAP
 import org.kde.kdeconnect.plugins.ButtonCategory
+import org.kde.kdeconnect.plugins.PermissionPluginInfo
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE
 import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_REQUEST
@@ -28,9 +28,9 @@ import org.kde.kdeconnect.ui.navigation.BigscreenKey
 import org.kde.kdeconnect.ui.navigation.MousePadKey
 
 class MousePadPlugin(
-    device: Device,
-) : Plugin(device) {
-    override val pluginInfo: PluginInfo = MousePadPluginSettings
+    private val device: Device,
+) : Plugin() {
+    override val pluginInfo: PermissionPluginInfo = MousePadPluginSettings
 
     var isKeyboardEnabled: Boolean = true
         private set
@@ -167,13 +167,13 @@ class MousePadPlugin(
 }
 
 
-object MousePadPluginSettings: PluginInfo(
+object MousePadPluginSettings: PermissionPluginInfo(
     pluginKey = "MousePadPlugin",
     instantiableClass = MousePadPlugin::class.java,
     displayNameRes = Res.string.pref_plugin_mousepad,
     descriptionRes = Res.string.pref_plugin_mousepad_desc_nontv,
-    supportedPacketTypes = arrayOf(PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE),
-    outgoingPacketTypes = arrayOf(PACKET_TYPE_MOUSEPAD_REQUEST),
+    supportedPacketTypes = setOf(PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE),
+    outgoingPacketTypes = setOf(PACKET_TYPE_MOUSEPAD_REQUEST),
     lazy = true
 ) {
     override fun getUiButtons(device: Device): List<PluginUiButton> {

@@ -31,7 +31,7 @@ import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePluginInfo
 import org.kde.kdeconnect.plugins.telephony.TelephonyPluginInfo
 
 object PluginFactory {
-    private val pluginInfo: Map<String, PluginInfo> = mapOf(
+    private val pluginInfo: Map<String, PermissionPluginInfo> = mapOf(
         TelephonyPluginInfo.pluginKey to TelephonyPluginInfo,
         BatteryPluginInfo.pluginKey to BatteryPluginInfo,
         ConnectivityReportPluginInfo.pluginKey to ConnectivityReportPluginInfo,
@@ -63,7 +63,7 @@ object PluginFactory {
     val outgoingCapabilities: Set<String>
         get() = pluginInfo.values.flatMap { plugin -> plugin.outgoingPacketTypes }.toSet()
 
-    fun getPluginInfo(pluginKey: String): PluginInfo = pluginInfo[pluginKey]!!
+    fun getPluginInfo(pluginKey: String): PermissionPluginInfo = pluginInfo[pluginKey]!!
 
     fun instantiatePluginForDevice(pluginKey: String, device: Device): Plugin? {
         val clazz = pluginInfo[pluginKey]?.instantiableClass ?: return null
@@ -71,7 +71,7 @@ object PluginFactory {
     }
 
     fun pluginsForCapabilities(incoming: Set<String>, outgoing: Set<String>): Set<String> {
-        fun hasCommonCapabilities(info: PluginInfo): Boolean =
+        fun hasCommonCapabilities(info: PermissionPluginInfo): Boolean =
             outgoing.any { it in info.supportedPacketTypes } ||
             incoming.any { it in info.outgoingPacketTypes }
 

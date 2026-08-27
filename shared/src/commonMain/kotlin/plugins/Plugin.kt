@@ -10,12 +10,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 
-abstract class Plugin(
-    protected val device: Device
-) {
+abstract class Plugin {
 
     abstract val pluginInfo: PluginInfo
 
@@ -27,15 +24,11 @@ abstract class Plugin(
      * Use the class name as `key`.
      */
     val pluginKey: String get() = pluginInfo.pluginKey
-    val deviceId: String get() = device.deviceId
 
     @get:CallSuper
     open val isCompatible: Boolean
         /**
          * Returns false when we should avoid loading this Plugin for [device].
-         *
-         * By default, this just checks if [minSdk] is smaller or equal than the
-         * [SDK version][Build.VERSION.SDK_INT] of this Android device.
          *
          * @return true if it's safe to call [onCreate]
          */

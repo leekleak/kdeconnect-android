@@ -43,8 +43,8 @@ import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.helpers.VideoUrlsHelper
 import org.kde.kdeconnect.plugins.ButtonCategory
+import org.kde.kdeconnect.plugins.PermissionPluginInfo
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.ui.navigation.MprisKey
 import java.net.MalformedURLException
@@ -95,12 +95,12 @@ data class MprisPlayerState(
 
 class MprisPlugin(
     private val context: Context,
-    device: Device,
+    private val device: Device,
     dataStore: NotificationSettingsDataStore,
     private val mprisMediaSession: MprisMediaSession,
     private val videoUrlsHelper: VideoUrlsHelper
-) : Plugin(device) {
-    override val pluginInfo: PluginInfo = MprisPluginInfo
+) : Plugin() {
+    override val pluginInfo: PermissionPluginInfo = MprisPluginInfo
 
     private val _players = MutableStateFlow<Map<String, MprisPlayerState>>(emptyMap())
     val players: StateFlow<Map<String, MprisPlayerState>> = _players.asStateFlow()
@@ -443,18 +443,18 @@ class MprisPlugin(
     }
 }
 
-object MprisPluginInfo: PluginInfo(
+object MprisPluginInfo: PermissionPluginInfo(
     pluginKey = "MprisPlugin",
     instantiableClass = MprisPlugin::class.java,
     displayNameRes = Res.string.pref_plugin_mpris,
     descriptionRes = Res.string.pref_plugin_mpris_desc,
     requiredPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        arrayOf(Manifest.permission.POST_NOTIFICATIONS)
+        setOf(Manifest.permission.POST_NOTIFICATIONS)
     } else {
-        arrayOf()
+        setOf()
     },
-    supportedPacketTypes = arrayOf(MprisPlugin.PACKET_TYPE_MPRIS),
-    outgoingPacketTypes = arrayOf(MprisPlugin.PACKET_TYPE_MPRIS_REQUEST),
+    supportedPacketTypes = setOf(MprisPlugin.PACKET_TYPE_MPRIS),
+    outgoingPacketTypes = setOf(MprisPlugin.PACKET_TYPE_MPRIS_REQUEST),
     lazy = false,
 ) {
     override fun getUiButtons(device: Device): List<PluginUiButton> = listOf(

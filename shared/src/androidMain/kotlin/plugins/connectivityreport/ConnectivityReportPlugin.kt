@@ -15,13 +15,13 @@ import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.pref_plugin_connectivity_report
 import org.kde.kdeconnect.generated.resources.pref_plugin_connectivity_report_desc
+import org.kde.kdeconnect.plugins.PermissionPluginInfo
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityListener.Companion.getInstance
 import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityListener.SubscriptionState
 
-class ConnectivityReportPlugin(private val context: Context, device: Device) : Plugin(device) {
-    override val pluginInfo: PluginInfo = ConnectivityReportPluginInfo
+class ConnectivityReportPlugin(private val context: Context, private val device: Device) : Plugin() {
+    override val pluginInfo: PermissionPluginInfo = ConnectivityReportPluginInfo
 
     /**
      * Packet used to report the current connectivity state
@@ -88,14 +88,13 @@ class ConnectivityReportPlugin(private val context: Context, device: Device) : P
     }
 }
 
-object ConnectivityReportPluginInfo : PluginInfo(
+object ConnectivityReportPluginInfo : PermissionPluginInfo(
     pluginKey = "ConnectivityReportPlugin",
     instantiableClass = ConnectivityReportPlugin::class.java,
     displayNameRes = Res.string.pref_plugin_connectivity_report,
     descriptionRes = Res.string.pref_plugin_connectivity_report_desc,
     isEnabledByDefault = false,
-    supportedPacketTypes = emptyArray(),
-    outgoingPacketTypes = arrayOf("kdeconnect.connectivity_report"),
-    requiredPermissions = arrayOf(Manifest.permission.READ_PHONE_STATE),
+    outgoingPacketTypes = setOf("kdeconnect.connectivity_report"),
+    requiredPermissions = setOf(Manifest.permission.READ_PHONE_STATE),
     lazy = false
 )

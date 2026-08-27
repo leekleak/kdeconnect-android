@@ -16,16 +16,16 @@ import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.pref_plugin_inputdevicesreceiver
 import org.kde.kdeconnect.generated.resources.pref_plugin_inputdevicesreceiver_desc
 import org.kde.kdeconnect.helpers.PermissionRequestHelper
+import org.kde.kdeconnect.plugins.PermissionPluginInfo
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.mousereceiver.MouseReceiverPlugin
 
 class InputDevicesReceiverPlugin(
     private val context: Context,
-    device: Device,
+    private val device: Device,
     private val permissionRequestHelper: PermissionRequestHelper
-) : Plugin(device) {
-    override val pluginInfo: PluginInfo = InputDevicesReceiverPluginInfo
+) : Plugin() {
+    override val pluginInfo: PermissionPluginInfo = InputDevicesReceiverPluginInfo
 
     object Cursor {
         var enterEdge = NONE_EDGE
@@ -144,12 +144,12 @@ class InputDevicesReceiverPlugin(
     }
 }
 
-object InputDevicesReceiverPluginInfo : PluginInfo(
+object InputDevicesReceiverPluginInfo : PermissionPluginInfo(
     pluginKey = "InputDevicesReceiverPlugin",
     instantiableClass = InputDevicesReceiverPlugin::class.java,
     displayNameRes = Res.string.pref_plugin_inputdevicesreceiver,
     descriptionRes = Res.string.pref_plugin_inputdevicesreceiver_desc,
-    supportedPacketTypes = arrayOf("kdeconnect.mousepad.request", "kdeconnect.shareinputdevices.request"),
-    outgoingPacketTypes = arrayOf("kdeconnect.shareinputdevices"),
+    supportedPacketTypes = setOf("kdeconnect.mousepad.request", "kdeconnect.shareinputdevices.request"),
+    outgoingPacketTypes = setOf("kdeconnect.shareinputdevices"),
     lazy = false
 )

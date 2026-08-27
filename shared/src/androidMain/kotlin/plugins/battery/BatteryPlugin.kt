@@ -18,16 +18,16 @@ import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.pref_plugin_battery
 import org.kde.kdeconnect.generated.resources.pref_plugin_battery_desc
+import org.kde.kdeconnect.plugins.PermissionPluginInfo
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.battery.BatteryPlugin.Companion.PACKET_TYPE_BATTERY
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 @OptIn(ExperimentalAtomicApi::class)
-class BatteryPlugin(private val context: Context, device: Device) : Plugin(device) {
-    override val pluginInfo: PluginInfo = BatteryPluginInfo
+class BatteryPlugin(private val context: Context, private val device: Device) : Plugin() {
+    override val pluginInfo: PermissionPluginInfo = BatteryPluginInfo
 
     /**
      * The latest battery information about the linked device. Will be null if the linked device
@@ -132,12 +132,12 @@ class BatteryPlugin(private val context: Context, device: Device) : Plugin(devic
     }
 }
 
-object BatteryPluginInfo : PluginInfo(
+object BatteryPluginInfo : PermissionPluginInfo(
     pluginKey = "BatteryPlugin",
     displayNameRes = Res.string.pref_plugin_battery,
     descriptionRes = Res.string.pref_plugin_battery_desc,
-    supportedPacketTypes = arrayOf(PACKET_TYPE_BATTERY),
-    outgoingPacketTypes = arrayOf(PACKET_TYPE_BATTERY),
+    supportedPacketTypes = setOf(PACKET_TYPE_BATTERY),
+    outgoingPacketTypes = setOf(PACKET_TYPE_BATTERY),
     instantiableClass = BatteryPlugin::class.java,
     lazy = false
 )

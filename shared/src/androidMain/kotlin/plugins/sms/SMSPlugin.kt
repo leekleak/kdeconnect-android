@@ -46,8 +46,8 @@ import org.kde.kdeconnect.helpers.SMSHelper.getMessagesInThread
 import org.kde.kdeconnect.helpers.SMSHelper.getNewestMessageTimestamp
 import org.kde.kdeconnect.helpers.SMSHelper.jsonArrayToAddressList
 import org.kde.kdeconnect.helpers.SMSHelper.jsonArrayToAttachmentsList
+import org.kde.kdeconnect.plugins.PermissionPluginInfo
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.sms.SMSPlugin.Companion.PACKET_TYPE_SMS_ATTACHMENT_FILE
 import org.kde.kdeconnect.plugins.sms.SMSPlugin.Companion.PACKET_TYPE_SMS_MESSAGE
 import org.kde.kdeconnect.plugins.sms.SMSPlugin.Companion.PACKET_TYPE_SMS_REQUEST
@@ -62,10 +62,10 @@ import java.util.concurrent.locks.ReentrantLock
 
 class SMSPlugin(
     private val context: Context,
-    device: Device,
+    private val device: Device,
     private val telephonySettings: TelephonySettingsDataStore,
     private val permissionRequestHelper: PermissionRequestHelper
-) : Plugin(device) {
+) : Plugin() {
     override val pluginInfo: SMSPluginInfo = SMSPluginInfo
 
     private val receiver: BroadcastReceiver = object : BroadcastReceiver() {
@@ -538,19 +538,19 @@ class SMSPlugin(
     }
 }
 
-object SMSPluginInfo : PluginInfo(
+object SMSPluginInfo : PermissionPluginInfo(
     pluginKey = "SMSPlugin",
     instantiableClass = SMSPlugin::class.java,
     displayNameRes = Res.string.pref_plugin_telepathy,
     descriptionRes = Res.string.pref_plugin_telepathy_desc,
-    requiredPermissions = arrayOf(
+    requiredPermissions = setOf(
         Manifest.permission.SEND_SMS,
         Manifest.permission.READ_SMS,  // READ_PHONE_STATE should be optional, since we can just query the user, but that
         // requires a GUI implementation for querying the user!
         Manifest.permission.READ_PHONE_STATE,
         Manifest.permission.READ_PHONE_NUMBERS,
     ),
-    supportedPacketTypes = arrayOf(PACKET_TYPE_SMS_REQUEST, PACKET_TYPE_SMS_REQUEST_CONVERSATIONS, PACKET_TYPE_SMS_REQUEST_CONVERSATION, PACKET_TYPE_SMS_REQUEST_ATTACHMENT),
-    outgoingPacketTypes = arrayOf(PACKET_TYPE_SMS_MESSAGE, PACKET_TYPE_SMS_ATTACHMENT_FILE),
+    supportedPacketTypes = setOf(PACKET_TYPE_SMS_REQUEST, PACKET_TYPE_SMS_REQUEST_CONVERSATIONS, PACKET_TYPE_SMS_REQUEST_CONVERSATION, PACKET_TYPE_SMS_REQUEST_ATTACHMENT),
+    outgoingPacketTypes = setOf(PACKET_TYPE_SMS_MESSAGE, PACKET_TYPE_SMS_ATTACHMENT_FILE),
     lazy = true
 )

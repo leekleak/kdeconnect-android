@@ -40,8 +40,8 @@ import org.kde.kdeconnect.generated.resources.sftp_no_storage_locations_configur
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.helpers.getLocalIpAddress
+import org.kde.kdeconnect.plugins.PermissionPluginInfo
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.sftp.SftpPlugin.Companion.PACKET_TYPE_SFTP
 import org.kde.kdeconnect.plugins.sftp.SftpPlugin.Companion.PACKET_TYPE_SFTP_REQUEST
 import org.kde.kdeconnect.plugins.sftp.SftpPlugin.StorageInfo
@@ -52,10 +52,10 @@ import org.koin.core.component.inject
 
 class SftpPlugin(
     private val context: Context,
-    device: Device,
+    private val device: Device,
     private val dataStore: SftpSettingsDataStore,
     private val permissionRequestHelper: PermissionRequestHelper
-) : Plugin(device) {
+) : Plugin() {
     override val pluginInfo: SftpPluginInfo = SftpPluginInfo
 
     private var job: Job? = null
@@ -237,13 +237,13 @@ class SftpPlugin(
     }
 }
 
-object SftpPluginInfo : PluginInfo(
+object SftpPluginInfo : PermissionPluginInfo(
     pluginKey = "SftpPlugin",
     instantiableClass = SftpPlugin::class.java,
     displayNameRes = Res.string.pref_plugin_sftp,
     descriptionRes = Res.string.pref_plugin_sftp_desc,
-    supportedPacketTypes = arrayOf(PACKET_TYPE_SFTP_REQUEST),
-    outgoingPacketTypes = arrayOf(PACKET_TYPE_SFTP),
+    supportedPacketTypes = setOf(PACKET_TYPE_SFTP_REQUEST),
+    outgoingPacketTypes = setOf(PACKET_TYPE_SFTP),
     lazy = false
 ), KoinComponent {
     private val dataStore: SftpSettingsDataStore by inject()

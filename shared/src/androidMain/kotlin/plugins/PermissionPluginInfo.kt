@@ -52,19 +52,17 @@ data class PluginUiButton(
     }
 }
 
-open class PluginInfo(
-    val pluginKey: String,
+open class PermissionPluginInfo(
+    override val pluginKey: String,
     val instantiableClass: Class<out Plugin>,
-    val displayNameRes: StringResource,
-    val descriptionRes: StringResource,
-    val isEnabledByDefault: Boolean = true,
-    val requiredPermissions: Array<String> = emptyArray(),
-    supportedPacketTypes: Array<String> = emptyArray(),
-    outgoingPacketTypes: Array<String> = emptyArray(),
-    val lazy: Boolean // If lazy, plugin should be instanced on use only.
-) {
-    val supportedPacketTypes: Set<String> = supportedPacketTypes.toSet()
-    val outgoingPacketTypes: Set<String> = outgoingPacketTypes.toSet()
+    override val displayNameRes: StringResource,
+    override val descriptionRes: StringResource,
+    override val isEnabledByDefault: Boolean = true,
+    val requiredPermissions: Set<String> = emptySet(),
+    override val supportedPacketTypes: Set<String> = emptySet(),
+    override val outgoingPacketTypes: Set<String> = emptySet(),
+    override val lazy: Boolean
+): PluginInfo {
 
     open suspend fun getPermissionRequests(): List<PermissionRequest> {
         return requiredPermissions.map { permission ->
@@ -77,15 +75,11 @@ open class PluginInfo(
         }
     }
 
-    /**
-     * Return entries to display as buttons in the Device main view
-     */
-    open fun getUiButtons(device: Device): List<PluginUiButton> = listOf()
-
-    protected fun arePermissionsGranted(context: Context, permissions: Array<String>): Boolean {
+    protected fun arePermissionsGranted(context: Context, permissions: Set<String>): Boolean {
         return permissions.all { permission -> isPermissionGranted(context, permission) }
     }
 
+    open fun getUiButtons(device: Device): List<PluginUiButton> = listOf()
 
     open suspend fun checkRequiredPermissions(context: Context): Boolean {
         return arePermissionsGranted(context, requiredPermissions)
@@ -108,8 +102,6 @@ open class PluginInfo(
     }
 
     companion object {
-        // Permission from Manifest.permission.*
-        @JvmStatic
         fun isPermissionGranted(context: Context, permission: String): Boolean {
             val result = ContextCompat.checkSelfPermission(context, permission)
             return result == PackageManager.PERMISSION_GRANTED

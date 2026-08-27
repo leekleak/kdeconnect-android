@@ -21,15 +21,15 @@ import org.kde.kdeconnect.helpers.ContactsHelper.ContactNotFoundException
 import org.kde.kdeconnect.helpers.ContactsHelper.UID
 import org.kde.kdeconnect.helpers.ContactsHelper.VCardBuilder
 import org.kde.kdeconnect.helpers.LoggerTagged
+import org.kde.kdeconnect.plugins.PermissionPluginInfo
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_REQUEST_ALL_UIDS_TIMESTAMPS
 import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_REQUEST_VCARDS_BY_UIDS
 import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_RESPONSE_UIDS_TIMESTAMPS
 import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_RESPONSE_VCARDS
 import org.kde.kdeconnect.toJsonArray
 
-class ContactsPlugin(private val context: Context, device: Device) : Plugin(device) {
+class ContactsPlugin(private val context: Context, private val device: Device) : Plugin() {
     override val pluginInfo = ContactsPluginInfo
 
     /**
@@ -173,14 +173,14 @@ class ContactsPlugin(private val context: Context, device: Device) : Plugin(devi
     }
 }
 
-object ContactsPluginInfo: PluginInfo(
+object ContactsPluginInfo: PermissionPluginInfo(
     pluginKey = "ContactsPlugin",
     instantiableClass = ContactsPlugin::class.java,
     displayNameRes = Res.string.pref_plugin_contacts,
     descriptionRes = Res.string.pref_plugin_contacts_desc,
     isEnabledByDefault = false,
-    supportedPacketTypes = arrayOf(PACKET_TYPE_CONTACTS_REQUEST_ALL_UIDS_TIMESTAMPS, PACKET_TYPE_CONTACTS_REQUEST_VCARDS_BY_UIDS),
-    outgoingPacketTypes = arrayOf(PACKET_TYPE_CONTACTS_RESPONSE_UIDS_TIMESTAMPS, PACKET_TYPE_CONTACTS_RESPONSE_VCARDS),
-    requiredPermissions = arrayOf(Manifest.permission.READ_CONTACTS),
+    supportedPacketTypes = setOf(PACKET_TYPE_CONTACTS_REQUEST_ALL_UIDS_TIMESTAMPS, PACKET_TYPE_CONTACTS_REQUEST_VCARDS_BY_UIDS),
+    outgoingPacketTypes = setOf(PACKET_TYPE_CONTACTS_RESPONSE_UIDS_TIMESTAMPS, PACKET_TYPE_CONTACTS_RESPONSE_VCARDS),
+    requiredPermissions = setOf(Manifest.permission.READ_CONTACTS),
     lazy = true,
 )

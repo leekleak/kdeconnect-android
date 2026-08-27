@@ -29,15 +29,17 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
-import org.kde.kdeconnect.generated.resources.*
+import org.kde.kdeconnect.BuildConfig
+import org.kde.kdeconnect.generated.resources.Res
+import org.kde.kdeconnect.generated.resources.remotekeyboard_connected
+import org.kde.kdeconnect.generated.resources.remotekeyboard_multiple_connections
+import org.kde.kdeconnect.generated.resources.remotekeyboard_not_connected
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPlugin.Companion.acquireInstances
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPlugin.Companion.isConnected
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPlugin.Companion.releaseInstances
 import org.kde.kdeconnect.ui.KdeTheme
-import org.kde.kdeconnect.BuildConfig
 import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
-import org.kde.kdeconnect.R
 
 class RemoteKeyboardService: InputMethodService(), LifecycleOwner, SavedStateRegistryOwner {
 
@@ -164,7 +166,7 @@ class RemoteKeyboardService: InputMethodService(), LifecycleOwner, SavedStateReg
                         val plugin: RemoteKeyboardPlugin = instances[0]
                                         val intent = Intent().setClassName(this, BuildConfig.MAIN_ACTIVITY_NAME)
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                        intent.putExtra(KdeConnectKeyConstants.EXTRA_DEVICE_ID, plugin.deviceId)
+                        intent.putExtra(KdeConnectKeyConstants.EXTRA_DEVICE_ID, plugin.device.deviceId)
                         intent.putExtra(
                             KdeConnectKeyConstants.EXTRA_PLUGIN_KEY,
                             plugin.pluginKey

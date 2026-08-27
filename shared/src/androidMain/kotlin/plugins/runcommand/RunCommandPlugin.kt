@@ -27,9 +27,9 @@ import java.util.stream.Collectors
 
 class RunCommandPlugin(
     private val context: Context,
-    device: Device,
+    private val device: Device,
     private val settingsDataStore: RunCommandSettingsDataStore
-) : Plugin(device) {
+) : Plugin() {
     val output: SnapshotStateList<RunCommandOutput> = SnapshotStateList()
 
     private val _commandList: MutableStateFlow<List<RunCommand>> = MutableStateFlow(emptyList())

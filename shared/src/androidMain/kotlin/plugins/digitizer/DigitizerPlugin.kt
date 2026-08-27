@@ -16,15 +16,15 @@ import org.kde.kdeconnect.generated.resources.stylus_note
 import org.kde.kdeconnect.generated.resources.use_digitizer
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.ButtonCategory
+import org.kde.kdeconnect.plugins.PermissionPluginInfo
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.digitizer.DigitizerPlugin.Companion.PACKET_TYPE_DIGITIZER
 import org.kde.kdeconnect.plugins.digitizer.DigitizerPlugin.Companion.PACKET_TYPE_DIGITIZER_SESSION
 import org.kde.kdeconnect.ui.navigation.DigitizerKey
 
-class DigitizerPlugin(device: Device) : Plugin(device) {
-    override val pluginInfo: PluginInfo = DigitizerPluginInfo
+class DigitizerPlugin(private val device: Device) : Plugin() {
+    override val pluginInfo: PermissionPluginInfo = DigitizerPluginInfo
 
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         LoggerTagged.e { "The drawing tablet plugin should not be able to receive any packets!" }
@@ -69,13 +69,12 @@ class DigitizerPlugin(device: Device) : Plugin(device) {
     }
 }
 
-object DigitizerPluginInfo: PluginInfo(
+object DigitizerPluginInfo: PermissionPluginInfo(
     pluginKey = "DigitizerPlugin",
     instantiableClass = DigitizerPlugin::class.java,
     displayNameRes = Res.string.pref_plugin_digitizer,
     descriptionRes = Res.string.pref_plugin_digitizer_desc,
-    supportedPacketTypes = emptyArray(),
-    outgoingPacketTypes = arrayOf(PACKET_TYPE_DIGITIZER_SESSION, PACKET_TYPE_DIGITIZER),
+    outgoingPacketTypes = setOf(PACKET_TYPE_DIGITIZER_SESSION, PACKET_TYPE_DIGITIZER),
     lazy = true
 ) {
     override fun getUiButtons(device: Device): List<PluginUiButton> = listOf(

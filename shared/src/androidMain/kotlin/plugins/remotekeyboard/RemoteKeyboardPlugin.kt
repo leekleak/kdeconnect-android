@@ -24,9 +24,9 @@ import java.util.concurrent.locks.ReentrantLock
 
 class RemoteKeyboardPlugin(
     private val context: Context,
-    device: Device,
+    val device: Device,
     private val permissionRequestHelper: PermissionRequestHelper
-) : Plugin(device) {
+) : Plugin() {
     override val pluginInfo: RemoteKeyboardPluginInfo = RemoteKeyboardPluginInfo
 
     override fun onCreate(): Boolean {

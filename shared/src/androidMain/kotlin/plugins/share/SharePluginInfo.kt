@@ -4,25 +4,30 @@ import android.Manifest
 import android.app.Activity
 import android.os.Build
 import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.generated.resources.Res
+import org.kde.kdeconnect.generated.resources.description
+import org.kde.kdeconnect.generated.resources.files
+import org.kde.kdeconnect.generated.resources.pref_plugin_sharereceiver
+import org.kde.kdeconnect.generated.resources.pref_plugin_sharereceiver_desc
+import org.kde.kdeconnect.generated.resources.send_files
 import org.kde.kdeconnect.plugins.ButtonCategory
-import org.kde.kdeconnect.plugins.PluginInfo
+import org.kde.kdeconnect.plugins.PermissionPluginInfo
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.ui.ShareHandler
-import org.kde.kdeconnect.generated.resources.*
 
-object SharePluginInfo : PluginInfo(
+object SharePluginInfo : PermissionPluginInfo(
     pluginKey = "SharePlugin",
     instantiableClass = SharePlugin::class.java,
     displayNameRes = Res.string.pref_plugin_sharereceiver,
     descriptionRes = Res.string.pref_plugin_sharereceiver_desc,
-    supportedPacketTypes = arrayOf("kdeconnect.share.request", "kdeconnect.share.request.update"),
-    outgoingPacketTypes = arrayOf("kdeconnect.share.request"),
+    supportedPacketTypes = setOf("kdeconnect.share.request", "kdeconnect.share.request.update"),
+    outgoingPacketTypes = setOf("kdeconnect.share.request"),
     requiredPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        arrayOf(Manifest.permission.POST_NOTIFICATIONS)
+        setOf(Manifest.permission.POST_NOTIFICATIONS)
     } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-        emptyArray()
+        emptySet()
     } else {
-        arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        setOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
     },
     lazy = false
 ) {

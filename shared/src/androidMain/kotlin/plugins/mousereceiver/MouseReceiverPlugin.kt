@@ -17,8 +17,8 @@ import org.kde.kdeconnect.generated.resources.mouse_receiver_plugin_name
 import org.kde.kdeconnect.generated.resources.open_settings
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.PermissionRequestHelper
+import org.kde.kdeconnect.plugins.PermissionPluginInfo
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_REQUEST
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPlugin
 import org.kde.kdeconnect.ui.PermissionRequest
@@ -27,10 +27,10 @@ import kotlin.math.floor
 
 class MouseReceiverPlugin(
     private val context: Context,
-    device: Device,
+    private val device: Device,
     private val permissionRequestHelper: PermissionRequestHelper
-) : Plugin(device) {
-    override val pluginInfo: PluginInfo = MouseReceiverPluginInfo
+) : Plugin() {
+    override val pluginInfo: PermissionPluginInfo = MouseReceiverPluginInfo
 
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean {
         if (np.type != PACKET_TYPE_MOUSEPAD_REQUEST) {
@@ -122,13 +122,12 @@ class MouseReceiverPlugin(
     }
 }
 
-object MouseReceiverPluginInfo : PluginInfo(
+object MouseReceiverPluginInfo : PermissionPluginInfo(
     pluginKey = "MouseReceiverPlugin",
     instantiableClass = MouseReceiverPlugin::class.java,
     displayNameRes = Res.string.mouse_receiver_plugin_name,
     descriptionRes = Res.string.mouse_receiver_plugin_description,
-    supportedPacketTypes = arrayOf(PACKET_TYPE_MOUSEPAD_REQUEST),
-    outgoingPacketTypes = emptyArray(),
+    supportedPacketTypes = setOf(PACKET_TYPE_MOUSEPAD_REQUEST),
     lazy = true,
 ) {
     override suspend fun checkRequiredPermissions(context: Context): Boolean {

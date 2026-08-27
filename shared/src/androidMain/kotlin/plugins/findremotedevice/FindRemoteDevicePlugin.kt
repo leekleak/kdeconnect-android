@@ -14,24 +14,23 @@ import org.kde.kdeconnect.generated.resources.find_device
 import org.kde.kdeconnect.generated.resources.pref_plugin_findremotedevice
 import org.kde.kdeconnect.generated.resources.pref_plugin_findremotedevice_desc
 import org.kde.kdeconnect.plugins.ButtonCategory
+import org.kde.kdeconnect.plugins.PermissionPluginInfo
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.findmyphone.FindMyPhonePlugin
 
-class FindRemoteDevicePlugin(device: Device) : Plugin(device) {
-    override val pluginInfo: PluginInfo = FindRemoteDevicePluginInfo
+class FindRemoteDevicePlugin(private val device: Device) : Plugin() {
+    override val pluginInfo: PermissionPluginInfo = FindRemoteDevicePluginInfo
 
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean = true
 }
 
-object FindRemoteDevicePluginInfo: PluginInfo(
+object FindRemoteDevicePluginInfo: PermissionPluginInfo(
     pluginKey = "FindRemoteDevicePlugin",
     instantiableClass = FindRemoteDevicePlugin::class.java,
     displayNameRes = Res.string.pref_plugin_findremotedevice,
     descriptionRes = Res.string.pref_plugin_findremotedevice_desc,
-    supportedPacketTypes = emptyArray(),
-    outgoingPacketTypes = arrayOf(FindMyPhonePlugin.PACKET_TYPE_FINDMYPHONE_REQUEST),
+    outgoingPacketTypes = setOf(FindMyPhonePlugin.PACKET_TYPE_FINDMYPHONE_REQUEST),
     lazy = true
 ) {
     override fun getUiButtons(device: Device): List<PluginUiButton> = listOf(

@@ -5,7 +5,6 @@
 */
 package org.kde.kdeconnect.plugins.presenter
 
-import android.content.Context
 import android.view.KeyEvent
 import kotlinx.serialization.json.put
 import org.kde.kdeconnect.Device
@@ -17,20 +16,20 @@ import org.kde.kdeconnect.generated.resources.pref_plugin_presenter
 import org.kde.kdeconnect.generated.resources.pref_plugin_presenter_desc
 import org.kde.kdeconnect.helpers.SPECIAL_KEY_ENCODING_MAP
 import org.kde.kdeconnect.plugins.ButtonCategory
+import org.kde.kdeconnect.plugins.PermissionPluginInfo
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_REQUEST
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin.Companion.PACKET_TYPE_PRESENTER
 import org.kde.kdeconnect.ui.navigation.PresenterKey
 
-object PresenterPluginInfo : PluginInfo(
+object PresenterPluginInfo : PermissionPluginInfo(
     pluginKey = "PresenterPlugin",
     instantiableClass = PresenterPlugin::class.java,
     displayNameRes = Res.string.pref_plugin_presenter,
     descriptionRes = Res.string.pref_plugin_presenter_desc,
-    supportedPacketTypes = emptyArray(),
-    outgoingPacketTypes = arrayOf(PACKET_TYPE_MOUSEPAD_REQUEST, PACKET_TYPE_PRESENTER),
+    supportedPacketTypes = setOf(),
+    outgoingPacketTypes = setOf(PACKET_TYPE_MOUSEPAD_REQUEST, PACKET_TYPE_PRESENTER),
     lazy = true
 ) {
     override fun getUiButtons(device: Device): List<PluginUiButton> = listOf(
@@ -44,9 +43,9 @@ object PresenterPluginInfo : PluginInfo(
         })
 }
 
-class PresenterPlugin(private val context: Context, device: Device) : Plugin(device) {
+class PresenterPlugin(private val device: Device) : Plugin() {
 
-    override val pluginInfo: PluginInfo = PresenterPluginInfo
+    override val pluginInfo: PermissionPluginInfo = PresenterPluginInfo
     override val isCompatible: Boolean
         get() = device.deviceType != DeviceType.PHONE && super.isCompatible
 

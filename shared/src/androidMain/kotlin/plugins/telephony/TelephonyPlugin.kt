@@ -27,8 +27,8 @@ import org.kde.kdeconnect.generated.resources.pref_plugin_telephony
 import org.kde.kdeconnect.generated.resources.pref_plugin_telephony_desc
 import org.kde.kdeconnect.helpers.ContactsHelper
 import org.kde.kdeconnect.helpers.LoggerTagged
+import org.kde.kdeconnect.plugins.PermissionPluginInfo
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin.Companion.PACKET_TYPE_TELEPHONY
 import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin.Companion.PACKET_TYPE_TELEPHONY_REQUEST_MUTE
 import java.util.Timer
@@ -36,10 +36,10 @@ import java.util.TimerTask
 
 class TelephonyPlugin(
     private val context: Context,
-    device: Device,
-    val telephonySettings: TelephonySettingsDataStore
-) : Plugin(device) {
-    override val pluginInfo: PluginInfo = TelephonyPluginInfo
+    private val device: Device,
+    private val telephonySettings: TelephonySettingsDataStore
+) : Plugin() {
+    override val pluginInfo: PermissionPluginInfo = TelephonyPluginInfo
     private var lastState = TelephonyManager.CALL_STATE_IDLE
     private var lastPacket: NetworkPacket? = null
     private var isMuted = false
@@ -219,13 +219,13 @@ class TelephonyPlugin(
     }
 }
 
-object TelephonyPluginInfo : PluginInfo(
+object TelephonyPluginInfo : PermissionPluginInfo(
     pluginKey = "TelephonyPlugin",
     instantiableClass = TelephonyPlugin::class.java,
     displayNameRes = Res.string.pref_plugin_telephony,
     descriptionRes = Res.string.pref_plugin_telephony_desc,
-    requiredPermissions = arrayOf(READ_PHONE_STATE, READ_CALL_LOG, READ_CONTACTS),
-    supportedPacketTypes = arrayOf(PACKET_TYPE_TELEPHONY_REQUEST_MUTE),
-    outgoingPacketTypes = arrayOf(PACKET_TYPE_TELEPHONY),
+    requiredPermissions = setOf(READ_PHONE_STATE, READ_CALL_LOG, READ_CONTACTS),
+    supportedPacketTypes = setOf(PACKET_TYPE_TELEPHONY_REQUEST_MUTE),
+    outgoingPacketTypes = setOf(PACKET_TYPE_TELEPHONY),
     lazy = false
 )

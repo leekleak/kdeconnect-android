@@ -18,24 +18,24 @@ import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.pref_plugin_systemvolume
 import org.kde.kdeconnect.generated.resources.pref_plugin_systemvolume_desc
 import org.kde.kdeconnect.helpers.LoggerTagged
+import org.kde.kdeconnect.plugins.PermissionPluginInfo
 import org.kde.kdeconnect.plugins.Plugin
-import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin.Companion.PACKET_TYPE_SYSTEMVOLUME
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin.Companion.PACKET_TYPE_SYSTEMVOLUME_REQUEST
 
-object SystemVolumePluginInfo : PluginInfo(
+object SystemVolumePluginInfo : PermissionPluginInfo(
     pluginKey = "SystemVolumePlugin",
     instantiableClass = SystemVolumePlugin::class.java,
     displayNameRes = Res.string.pref_plugin_systemvolume,
     descriptionRes = Res.string.pref_plugin_systemvolume_desc,
-    supportedPacketTypes = arrayOf(PACKET_TYPE_SYSTEMVOLUME),
-    outgoingPacketTypes = arrayOf(PACKET_TYPE_SYSTEMVOLUME_REQUEST),
+    supportedPacketTypes = setOf(PACKET_TYPE_SYSTEMVOLUME),
+    outgoingPacketTypes = setOf(PACKET_TYPE_SYSTEMVOLUME_REQUEST),
     lazy = true
 )
 
-class SystemVolumePlugin(device: Device) : Plugin(device) {
+class SystemVolumePlugin(private val device: Device) : Plugin() {
 
-    override val pluginInfo: PluginInfo = SystemVolumePluginInfo
+    override val pluginInfo: PermissionPluginInfo = SystemVolumePluginInfo
 
     private val _sinks = MutableStateFlow<List<Sink>>(emptyList())
     val sinks: StateFlow<List<Sink>> = _sinks.asStateFlow()
