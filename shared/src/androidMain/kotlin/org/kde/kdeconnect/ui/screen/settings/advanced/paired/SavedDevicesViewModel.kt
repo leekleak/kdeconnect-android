@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.device.DeviceManager
 import org.kde.kdeconnect.device.DeviceState
 import org.kde.kdeconnect.device.PairState
 

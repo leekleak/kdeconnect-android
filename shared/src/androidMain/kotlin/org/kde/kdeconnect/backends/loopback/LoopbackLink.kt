@@ -5,6 +5,7 @@
 */
 package org.kde.kdeconnect.backends.loopback
 
+import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLinkProvider
@@ -18,7 +19,7 @@ class LoopbackLink(
 ) : BaseLink(linkProvider) {
 
     override val name: String = "LoopbackLink"
-    override val deviceInfo: DeviceInfo = deviceHelper.getDeviceInfo()
+    override val deviceInfo: DeviceInfo = runBlocking { deviceHelper.getDeviceInfo() }
 
     override suspend fun sendPacket(np: NetworkPacket, callback: SendPacketStatusCallback): Boolean {
         packetReceived(np)

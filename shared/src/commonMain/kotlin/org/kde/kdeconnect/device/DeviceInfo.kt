@@ -3,6 +3,9 @@ package org.kde.kdeconnect.device
 import androidx.room3.ColumnInfo
 import androidx.room3.Entity
 import androidx.room3.PrimaryKey
+import kotlinx.serialization.json.put
+import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.toJsonArray
 
 /**
  * DeviceInfo contains all the properties needed to instantiate a Device.
@@ -20,6 +23,21 @@ data class DeviceInfo(
     val trusted: Boolean = false,
     val shortcuts: List<String> = emptyList()
 ) {
+
+    /**
+     * Serializes to a NetworkPacket, which LanLinkProvider uses to send this data over the network.
+     * The serialization doesn't include the certificate, since LanLink can query that from the socket.
+     * Can be deserialized using fromIdentityPacketAndCert(), given a certificate.
+     */
+    fun toIdentityPacket(): NetworkPacket =
+        NetworkPacket(NetworkPacket.PACKET_TYPE_IDENTITY).update {
+            put("deviceId", id)
+            put("deviceName", name)
+            put("protocolVersion", protocolVersion)
+            put("deviceType", type.toString())
+            put("incomingCapabilities", incomingCapabilities.toJsonArray())
+            put("outgoingCapabilities", outgoingCapabilities.toJsonArray())
+        }
 
     companion object {
         private val DEVICE_ID_REGEX = "^[a-zA-Z0-9_-]{32,38}$".toRegex()

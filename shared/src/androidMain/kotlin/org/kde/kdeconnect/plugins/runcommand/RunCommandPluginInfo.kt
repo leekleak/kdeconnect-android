@@ -1,6 +1,6 @@
 package org.kde.kdeconnect.plugins.runcommand
 
-import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.device.Device
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.code
 import org.kde.kdeconnect.generated.resources.pref_plugin_runcommand

@@ -13,7 +13,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.put
-import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.device.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.R
 import org.kde.kdeconnect.async.DataTransferJob

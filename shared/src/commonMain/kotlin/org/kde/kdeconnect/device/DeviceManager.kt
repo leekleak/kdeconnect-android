@@ -1,4 +1,4 @@
-package org.kde.kdeconnect
+package org.kde.kdeconnect.device
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -14,14 +14,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLinkProvider
-import org.kde.kdeconnect.device.DeviceInfo
-import org.kde.kdeconnect.device.DeviceState
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.Plugin
-import java.security.cert.CertificateException
-import java.security.cert.X509Certificate
-import java.util.Date
 
 class DeviceManager(
     private val deviceSettings: DeviceSettings,
@@ -69,18 +64,11 @@ class DeviceManager(
         runBlocking { deviceSettings.getAllTrustedDeviceInfos() }
             .onEach { LoggerTagged.d { "Loading device $it" } }
             .forEach { deviceInfo ->
-                try {
-                    val device: Device = deviceFactory(deviceInfo)
-                    val now = Date()
-                    val x509Cert = device.certificate as X509Certificate
-                    if (now < x509Cert.notBefore) {
-                        throw CertificateException("Certificate not effective yet: " + x509Cert.notBefore)
-                    } else if (now > x509Cert.notAfter) {
-                        throw CertificateException("Certificate already expired: " + x509Cert.notAfter)
-                    }
+                val device: Device = deviceFactory(deviceInfo)
+                if (device.isValid()) {
                     _devices.update { it + (deviceInfo.id to device) }
-                } catch (e: CertificateException) {
-                    LoggerTagged.w(e) {
+                } else {
+                    LoggerTagged.w {
                         "Couldn't load the certificate for a remembered device. Removing from trusted list."
                     }
                     runBlocking { deviceSettings.removeTrustedDevice(deviceInfo.id) }

@@ -18,7 +18,7 @@ import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.plugins.PluginFactory
 import java.util.UUID
 
-class DeviceHelper(
+actual class DeviceHelper(
     val dataStore: SettingsDataStore,
     private val sslHelper: SslHelper
 ) {
@@ -33,7 +33,7 @@ class DeviceHelper(
         (uiMode and Configuration.UI_MODE_TYPE_MASK) == Configuration.UI_MODE_TYPE_TELEVISION
     }
 
-    val deviceType: DeviceType by lazy {
+    actual val deviceType: DeviceType by lazy {
         if (isTv) {
             DeviceType.TV
         } else if (isTablet) {
@@ -56,8 +56,8 @@ class DeviceHelper(
 
     fun getDeviceId(): String = runBlocking(Dispatchers.IO) { dataStore.deviceId.first() }
 
-    fun getDeviceInfo(): DeviceInfo = runBlocking(Dispatchers.IO) {
-        return@runBlocking DeviceInfo(
+    actual suspend fun getDeviceInfo(): DeviceInfo {
+        return DeviceInfo(
             getDeviceId(),
             sslHelper.certificate.encoded,
             getDeviceName(),

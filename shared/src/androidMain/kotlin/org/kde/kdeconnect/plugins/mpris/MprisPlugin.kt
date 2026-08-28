@@ -28,7 +28,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.put
-import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.device.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.NetworkPacket.Payload
 import org.kde.kdeconnect.datastore.NotificationSettingsDataStore

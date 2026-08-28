@@ -13,7 +13,7 @@ import android.os.BatteryManager
 import androidx.annotation.VisibleForTesting
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.put
-import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.device.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.device.DeviceBatteryInfo
 import org.kde.kdeconnect.generated.resources.Res

@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.device.DeviceManager
 import org.koin.core.annotation.InjectedParam
 
 class DigitizerViewModel(

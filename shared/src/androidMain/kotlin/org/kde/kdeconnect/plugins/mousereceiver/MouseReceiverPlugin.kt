@@ -8,7 +8,7 @@ package org.kde.kdeconnect.plugins.mousereceiver
 import android.content.Context
 import android.provider.Settings
 import org.jetbrains.compose.resources.getString
-import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.device.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.mouse_receiver_no_permissions

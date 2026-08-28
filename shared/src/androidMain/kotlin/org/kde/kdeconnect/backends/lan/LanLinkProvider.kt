@@ -13,19 +13,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.put
 import org.jetbrains.compose.resources.DrawableResource
 import org.kde.kdeconnect.DeviceHost
-import org.kde.kdeconnect.device.DeviceInfo
-import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.NetworkPacket.Companion.unserialize
 import org.kde.kdeconnect.backends.AndroidLinkProvider
 import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.backends.lan.LanLink.ConnectionStarted
+import org.kde.kdeconnect.device.DeviceInfo
+import org.kde.kdeconnect.device.DeviceManager
 import org.kde.kdeconnect.fromIdentityPacketAndCert
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.wifi
@@ -37,7 +38,6 @@ import org.kde.kdeconnect.helpers.isPrivateAddress
 import org.kde.kdeconnect.helpers.readLineBounded
 import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.isValidIdentityPacket
-import org.kde.kdeconnect.toIdentityPacket
 import java.io.IOException
 import java.net.DatagramPacket
 import java.net.DatagramSocket
@@ -327,7 +327,7 @@ class LanLinkProvider(
             try {
                 val secureIdentityPacket: NetworkPacket?
                 if (protocolVersion >= 8) {
-                    val myDeviceInfo = deviceHelper.getDeviceInfo()
+                    val myDeviceInfo = runBlocking { deviceHelper.getDeviceInfo() }
                     val myIdentity = myDeviceInfo.toIdentityPacket()
 
                     val writer = sslSocket.getOutputStream()

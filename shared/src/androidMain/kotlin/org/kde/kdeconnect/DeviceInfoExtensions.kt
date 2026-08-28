@@ -1,6 +1,5 @@
 package org.kde.kdeconnect
 
-import kotlinx.serialization.json.put
 import org.kde.kdeconnect.device.DeviceInfo
 import org.kde.kdeconnect.device.DeviceType
 import org.kde.kdeconnect.helpers.DeviceHelper
@@ -10,23 +9,6 @@ import org.kde.kdeconnect.plugins.share.SharePluginInfo
 import java.security.cert.Certificate
 
 val DEFAULT_SHORTCUTS = listOf(ClipboardPluginInfo.pluginKey, SharePluginInfo.pluginKey)
-
-/**
- * Serializes to a NetworkPacket, which LanLinkProvider uses to send this data over the network.
- * The serialization doesn't include the certificate, since LanLink can query that from the socket.
- * Can be deserialized using fromIdentityPacketAndCert(), given a certificate.
- */
-fun DeviceInfo.toIdentityPacket(): NetworkPacket =
-    NetworkPacket(NetworkPacket.PACKET_TYPE_IDENTITY).update {
-        put("deviceId", id)
-        put("deviceName", name)
-        put("protocolVersion", protocolVersion)
-        put("deviceType", type.toString())
-        put("incomingCapabilities", incomingCapabilities.toJsonArray())
-        put("outgoingCapabilities", outgoingCapabilities.toJsonArray())
-    }
-
-
 
 actual fun DeviceInfo.withPopulatedSettings(): DeviceInfo {
     val missingSettings = PluginFactory.availablePlugins.toSet().minus(settings.keys)

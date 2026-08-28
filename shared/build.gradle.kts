@@ -67,6 +67,13 @@ kotlin {
                 implementation(libs.haze.blur.materials)
                 implementation(libs.androidx.sqlite)
                 implementation(libs.androidx.sqlite.bundled)
+
+                implementation(ktorLibs.serialization.kotlinx.json)
+                implementation(ktorLibs.server.config.yaml)
+                implementation(ktorLibs.server.contentNegotiation)
+                implementation(ktorLibs.server.core)
+                implementation(ktorLibs.server.netty)
+                implementation(ktorLibs.server.websockets)
             }
         }
 

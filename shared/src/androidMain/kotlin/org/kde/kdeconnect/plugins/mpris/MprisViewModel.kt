@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.device.DeviceManager
 import org.kde.kdeconnect.helpers.calculateNewVolume
 import org.kde.kdeconnect.plugins.systemvolume.Sink
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin

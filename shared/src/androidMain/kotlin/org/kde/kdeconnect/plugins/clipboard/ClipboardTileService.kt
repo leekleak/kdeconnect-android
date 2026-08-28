@@ -11,7 +11,7 @@ import android.content.Intent
 import android.service.quicksettings.TileService
 import androidx.core.service.quicksettings.PendingIntentActivityWrapper
 import androidx.core.service.quicksettings.TileServiceCompat
-import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.device.DeviceManager
 import org.koin.android.ext.android.inject
 
 class ClipboardTileService : TileService() {

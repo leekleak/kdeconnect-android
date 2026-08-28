@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.device.DeviceManager
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.check_circle
 import org.kde.kdeconnect.generated.resources.findmydevice_title

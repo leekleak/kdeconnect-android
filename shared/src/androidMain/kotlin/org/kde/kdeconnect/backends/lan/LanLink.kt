@@ -45,7 +45,7 @@ import kotlin.concurrent.Volatile
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.text.Charsets.UTF_8
 
-class LanLink @WorkerThread constructor(
+class LanLink(
     override var deviceInfo: DeviceInfo,
     linkProvider: BaseLinkProvider,
     socket: SSLSocket,

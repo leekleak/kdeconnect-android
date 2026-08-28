@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.put
 import okio.buffer
 import org.kde.kdeconnect.BuildConfig
-import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.device.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.pref_plugin_receive_notifications

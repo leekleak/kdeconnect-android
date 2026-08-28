@@ -23,7 +23,6 @@ import org.kde.kdeconnect.device.DeviceInfo
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.fromIdentityPacketAndCert
 import org.kde.kdeconnect.isValidIdentityPacket
-import org.kde.kdeconnect.toIdentityPacket
 import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.extensions.getParcelableArrayCompat

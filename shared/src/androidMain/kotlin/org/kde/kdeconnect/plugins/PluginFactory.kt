@@ -5,7 +5,7 @@
 */
 package org.kde.kdeconnect.plugins
 
-import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.device.Device
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.battery.BatteryPluginInfo
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPluginInfo

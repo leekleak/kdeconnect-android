@@ -36,8 +36,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.device.Device
+import org.kde.kdeconnect.device.DeviceManager
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.cancel
 import org.kde.kdeconnect.generated.resources.ic_kde_24dp

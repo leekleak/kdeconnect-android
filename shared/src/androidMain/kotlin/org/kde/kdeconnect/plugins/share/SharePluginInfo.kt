@@ -2,7 +2,7 @@ package org.kde.kdeconnect.plugins.share
 
 import android.Manifest
 import android.os.Build
-import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.device.Device
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.description
 import org.kde.kdeconnect.generated.resources.files

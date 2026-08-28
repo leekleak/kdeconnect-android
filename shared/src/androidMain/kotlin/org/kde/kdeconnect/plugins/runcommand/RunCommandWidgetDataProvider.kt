@@ -16,7 +16,7 @@ import android.widget.RemoteViewsService
 import android.widget.RemoteViewsService.RemoteViewsFactory
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.device.DeviceManager
 import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.R

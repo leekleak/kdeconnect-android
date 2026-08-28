@@ -1,6 +1,6 @@
 package org.kde.kdeconnect.plugins
 
-import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.device.Device
 
 expect class PluginFactoryInfo : PluginInfo
 

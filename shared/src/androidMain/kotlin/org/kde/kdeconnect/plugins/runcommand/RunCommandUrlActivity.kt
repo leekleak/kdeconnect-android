@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
-import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.device.DeviceManager
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.runcommand_noruncommandplugin
 import org.kde.kdeconnect.generated.resources.runcommand_nosuchdevice

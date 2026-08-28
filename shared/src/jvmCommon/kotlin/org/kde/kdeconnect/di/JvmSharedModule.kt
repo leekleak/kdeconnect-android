@@ -1,8 +1,8 @@
 package org.kde.kdeconnect.di
 
 import org.kde.kdeconnect.BackgroundServiceData
-import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.device.Device
+import org.kde.kdeconnect.device.DeviceManager
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 import org.kde.kdeconnect.helpers.security.SslHelper
 import org.koin.core.parameter.parametersOf

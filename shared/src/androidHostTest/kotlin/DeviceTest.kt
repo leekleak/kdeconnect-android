@@ -5,7 +5,7 @@
 */
 package org.kde.kdeconnect
 
-import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.device.Device
 import android.app.NotificationManager
 import android.content.Context
 import androidx.core.content.ContextCompat

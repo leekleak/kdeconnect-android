@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.BackgroundServiceData
-import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.device.DeviceManager
 import org.kde.kdeconnect.device.DeviceState
 import org.kde.kdeconnect.device.PairState
 import org.kde.kdeconnect.forceRefreshConnections

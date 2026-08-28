@@ -16,6 +16,7 @@ import kotlinx.serialization.json.put
 import org.bouncycastle.util.Arrays
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.compose.resources.StringResource
+import org.kde.kdeconnect.device.Device
 import org.kde.kdeconnect.device.PairState
 import org.kde.kdeconnect.device.SendPacketStatusCallback
 import org.kde.kdeconnect.generated.resources.Res

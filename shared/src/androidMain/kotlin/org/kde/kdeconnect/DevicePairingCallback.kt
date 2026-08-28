@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
+import org.kde.kdeconnect.device.Device
 import org.kde.kdeconnect.device.PairState
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.ui.PairingActivity

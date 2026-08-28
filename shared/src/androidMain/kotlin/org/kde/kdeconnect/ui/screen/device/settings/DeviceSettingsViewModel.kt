@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.device.Device
+import org.kde.kdeconnect.device.DeviceManager
 import org.kde.kdeconnect.plugins.PermissionPluginInfo
 import org.kde.kdeconnect.ui.navigation.HomeKey
 import org.kde.kdeconnect.ui.navigation.Navigator

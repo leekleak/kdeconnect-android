@@ -16,8 +16,8 @@ import coil3.disk.DiskCache
 import coil3.disk.directory
 import coil3.memory.MemoryCache
 import coil3.request.crossfade
-import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.device.Device
+import org.kde.kdeconnect.device.DeviceManager
 import org.kde.kdeconnect.DevicePairingCallback
 import org.kde.kdeconnect.device.DeviceInfo
 import org.kde.kdeconnect.helpers.AppIconFetcher

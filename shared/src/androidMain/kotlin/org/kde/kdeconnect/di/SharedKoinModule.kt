@@ -5,8 +5,8 @@ import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room3.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import kotlinx.coroutines.Dispatchers
-import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.backends.bluetooth.BluetoothLinkProvider
+import org.kde.kdeconnect.backends.http.HttpLinkProvider
 import org.kde.kdeconnect.backends.lan.LanLinkProvider
 import org.kde.kdeconnect.backends.loopback.LoopbackLinkProvider
 import org.kde.kdeconnect.datastore.AndroidSettingsDefaults
@@ -18,6 +18,7 @@ import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.datastore.SettingsDefaults
 import org.kde.kdeconnect.datastore.SftpSettingsDataStore
 import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
+import org.kde.kdeconnect.device.Device
 import org.kde.kdeconnect.helpers.CustomDevicesHelper
 import org.kde.kdeconnect.helpers.DeviceDao
 import org.kde.kdeconnect.helpers.DeviceHelper
@@ -118,6 +119,7 @@ val sharedModule = module {
 
     factory<BluetoothLinkProvider>()
     factory<LanLinkProvider>()
+    factory<HttpLinkProvider>()
     factory<LoopbackLinkProvider>()
 
     scope<Device> {

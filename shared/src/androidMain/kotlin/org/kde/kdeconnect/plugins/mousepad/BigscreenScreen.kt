@@ -41,7 +41,7 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.device.DeviceManager
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.arrow_back_ios_new
 import org.kde.kdeconnect.generated.resources.bigscreen_back

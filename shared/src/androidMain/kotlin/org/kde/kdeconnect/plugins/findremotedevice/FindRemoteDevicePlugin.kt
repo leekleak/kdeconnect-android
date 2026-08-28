@@ -6,7 +6,7 @@
 package org.kde.kdeconnect.plugins.findremotedevice
 
 import kotlinx.coroutines.launch
-import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.device.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.e911_emergency

@@ -1,9 +1,4 @@
-/*
- * SPDX-FileCopyrightText: 2025 Albert Vaca Cintora <albertvaka@gmail.com>
- *
- * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
-*/
-package org.kde.kdeconnect
+package org.kde.kdeconnect.device
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,16 +21,10 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.compose.resources.DrawableResource
-import org.kde.kdeconnect.DeviceStats.countSent
-import org.kde.kdeconnect.PairingHandler.Companion.getVerificationKey
-import org.kde.kdeconnect.PairingHandler.Companion.getVerificationKeyV7
+import org.kde.kdeconnect.DeviceStats
+import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.PairingHandler
 import org.kde.kdeconnect.backends.BaseLink
-import org.kde.kdeconnect.device.DeviceBatteryInfo
-import org.kde.kdeconnect.device.DeviceInfo
-import org.kde.kdeconnect.device.DeviceState
-import org.kde.kdeconnect.device.DeviceType
-import org.kde.kdeconnect.device.PairState
-import org.kde.kdeconnect.device.SendPacketStatusCallback
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.security.SslHelper
@@ -43,15 +32,19 @@ import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.getUiButtons
+import org.kde.kdeconnect.withPopulatedSettings
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.component.KoinScopeComponent
 import org.koin.core.component.createScope
 import org.koin.core.scope.Scope
 import java.io.IOException
+import java.security.cert.Certificate
+import java.security.cert.X509Certificate
+import java.util.Date
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-class Device(
+actual class Device(
     internal val deviceSettings: DeviceSettings,
     private val sslHelper: SslHelper,
     pairingCallbackFactory: (Device) -> PairingHandler.PairingCallback,
@@ -66,7 +59,7 @@ class Device(
 
     private val loadedPlugins: MutableStateFlow<Map<String, Plugin>> = MutableStateFlow(emptyMap())
 
-    val state: StateFlow<DeviceState>
+    actual val state: StateFlow<DeviceState>
         field = MutableStateFlow(
             DeviceState(
                 deviceInfo = deviceInfo,
@@ -117,10 +110,10 @@ class Device(
         }
     }
 
-    val deviceId: String get() = state.value.deviceInfo.id
-    val certificate: java.security.cert.Certificate get() = sslHelper.parseCertificate(state.value.deviceInfo.certificate)
+    actual val deviceId: String get() = state.value.deviceInfo.id
+    val certificate: Certificate get() = sslHelper.parseCertificate(state.value.deviceInfo.certificate)
     val deviceInfo: DeviceInfo get() = state.value.deviceInfo
-    val isReachable: Boolean get() = state.value.isReachable
+    actual val isReachable: Boolean get() = state.value.isReachable
     val name: String get() = deviceInfo.name
     val iconRes: DrawableResource get() = deviceInfo.type.toDrawableRes()
     val deviceType: DeviceType get() = deviceInfo.type
@@ -158,15 +151,15 @@ class Device(
             if (pairState != PairState.Requested && pairState != PairState.RequestedByPeer) {
                 null
             } else {
-                getVerificationKey(sslHelper.certificate, certificate, timestamp)
+                PairingHandler.getVerificationKey(sslHelper.certificate, certificate, timestamp)
             }
         } else {
-            getVerificationKeyV7(sslHelper.certificate, certificate)
+            PairingHandler.getVerificationKeyV7(sslHelper.certificate, certificate)
         }
         updateState { it.copy(pairState = pairState, verificationKey = key) }
     }
 
-    val isPaired: Boolean get() = state.value.pairState == PairState.Paired
+    actual val isPaired: Boolean get() = state.value.pairState == PairState.Paired
 
     suspend fun requestPairing() {
         pairingHandler.requestPairing()
@@ -188,7 +181,7 @@ class Device(
         pairingHandler.cancelPairing()
     }
 
-    fun addLink(link: BaseLink) {
+    actual fun addLink(link: BaseLink) {
         updateDeviceInfo(link.deviceInfo)
         updateState {
             it.copy(
@@ -199,7 +192,7 @@ class Device(
         link.addPacketReceiver(this)
     }
 
-    fun removeLink(link: BaseLink) {
+    actual fun removeLink(link: BaseLink) {
         link.removePacketReceiver(this)
         updateState { state ->
             val newLinks = state.links.minus(link)
@@ -209,7 +202,7 @@ class Device(
         }
     }
 
-    fun updateDeviceInfo(newDeviceInfo: DeviceInfo) {
+    actual fun updateDeviceInfo(newDeviceInfo: DeviceInfo) {
         val updatedSupportedPlugins: List<String> = PluginFactory.pluginsForCapabilities(
             newDeviceInfo.incomingCapabilities,
             newDeviceInfo.outgoingCapabilities
@@ -291,7 +284,7 @@ class Device(
      * won't return until the Payload has been received by the
      * other end, or times out after 10 seconds
      * @return true if the packet was sent ok, false otherwise
-     * @see org.kde.kdeconnect.backends.BaseLink.sendPacket
+     * @see BaseLink.sendPacket
      */
     suspend fun sendPacket(
         np: NetworkPacket,
@@ -318,7 +311,7 @@ class Device(
                 LoggerTagged.w(e) { "Failed to send packet" }
                 false
             }.also { sent ->
-                countSent(deviceId, np.type, sent)
+                DeviceStats.countSent(deviceId, np.type, sent)
             }
         }
 
@@ -334,7 +327,7 @@ class Device(
     //
     // Plugin-related functions
     //
-    suspend fun <T : Plugin> getPlugin(pluginClass: Class<T>): T? {
+    actual suspend fun <T : Plugin> getPlugin(pluginClass: Class<T>): T? {
         val plugin = getPlugin(Plugin.getPluginKey(pluginClass))
         return plugin?.let(pluginClass::cast)
     }
@@ -370,7 +363,7 @@ class Device(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun <T : Plugin> pluginFlow(pluginClass: Class<T>): Flow<T?> {
+    actual fun <T : Plugin> pluginFlow(pluginClass: Class<T>): Flow<T?> {
         val pluginKey = Plugin.getPluginKey(pluginClass)
         return state.map { s ->
             s.pairState == PairState.Paired
@@ -447,6 +440,19 @@ class Device(
         updateState { it.copy(batteryInfo = newInfo) }
     }
 
+    actual fun isValid(): Boolean {
+        val now = Date()
+        val x509Cert = certificate as X509Certificate
+        if (now < x509Cert.notBefore) {
+            LoggerTagged.e { "Certificate not effective yet: " + x509Cert.notBefore }
+            return false
+        } else if (now > x509Cert.notAfter) {
+            LoggerTagged.e { "Certificate already expired: " + x509Cert.notAfter }
+            return false
+        }
+        return true
+    }
+
     fun updateShortcuts(shortcuts: List<String>) {
         updateState {
             it.copy(
@@ -457,7 +463,7 @@ class Device(
         }
     }
 
-    fun kill() {
+    actual fun kill() {
         val plugins = loadedPlugins.value
         plugins.forEach { (key, plugin) ->
             runCatching { plugin.onDestroy() }

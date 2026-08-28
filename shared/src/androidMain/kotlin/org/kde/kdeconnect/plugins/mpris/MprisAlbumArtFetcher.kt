@@ -14,7 +14,7 @@ import coil3.request.Options
 import okio.Source
 import okio.buffer
 import okio.source
-import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.device.DeviceManager
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLDecoder

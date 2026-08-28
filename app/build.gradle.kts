@@ -55,6 +55,8 @@ android {
     packaging {
         resources {
             merges += listOf("META-INF/DEPENDENCIES", "META-INF/LICENSE.md")
+            pickFirsts += "META-INF/io.netty.versions.properties"
+            excludes += "META-INF/INDEX.LIST"
         }
     }
     signingConfigs {

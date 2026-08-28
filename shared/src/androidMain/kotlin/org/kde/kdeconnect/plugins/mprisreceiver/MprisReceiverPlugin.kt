@@ -15,7 +15,7 @@ import android.os.Looper
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.put
-import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.device.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.helpers.AppsHelper.appNameLookup
 import org.kde.kdeconnect.helpers.LoggerTagged

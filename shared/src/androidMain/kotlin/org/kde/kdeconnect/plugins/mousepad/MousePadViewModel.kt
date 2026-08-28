@@ -22,7 +22,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.put
-import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.device.DeviceManager
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.MousePadSettingsDataStore
 import org.kde.kdeconnect.helpers.SPECIAL_KEY_ENCODING_MAP

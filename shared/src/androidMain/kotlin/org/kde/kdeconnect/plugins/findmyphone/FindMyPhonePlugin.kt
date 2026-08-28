@@ -14,7 +14,7 @@ import android.media.AudioManager
 import android.media.MediaPlayer
 import android.provider.Settings
 import androidx.core.net.toUri
-import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.device.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.datastore.TelephonySettingsDataStore
 import org.kde.kdeconnect.helpers.LoggerTagged

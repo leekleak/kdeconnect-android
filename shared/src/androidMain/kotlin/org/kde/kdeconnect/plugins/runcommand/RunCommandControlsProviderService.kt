@@ -30,8 +30,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.jdk9.asPublisher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.device.Device
+import org.kde.kdeconnect.device.DeviceManager
 import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
 import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import org.kde.kdeconnect.BuildConfig

@@ -27,7 +27,7 @@ import okio.buffer
 import okio.sink
 import org.jetbrains.compose.resources.getPluralString
 import org.jetbrains.compose.resources.getString
-import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.device.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.async.DataTransferJob
 import org.kde.kdeconnect.async.JobCallback

@@ -34,7 +34,10 @@ import org.kde.kdeconnect.backends.AndroidLinkProvider
 import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.backends.BaseLinkProvider.ConnectionReceiver
 import org.kde.kdeconnect.backends.bluetooth.BluetoothLinkProvider
+import org.kde.kdeconnect.backends.http.HttpLinkProvider
 import org.kde.kdeconnect.backends.lan.LanLinkProvider
+import org.kde.kdeconnect.device.Device
+import org.kde.kdeconnect.device.DeviceManager
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.helpers.PermissionHelper
@@ -71,6 +74,7 @@ class BackgroundService : Service() {
 
     private fun registerLinkProviders() {
         linkProviders.add(get<LanLinkProvider>())
+        linkProviders.add(get<HttpLinkProvider>())
         //linkProviders.add(get<LoopbackLinkProvider>())
         linkProviders.add(get<BluetoothLinkProvider>())
     }

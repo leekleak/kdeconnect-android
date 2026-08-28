@@ -10,7 +10,7 @@ import android.net.Uri
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.device.Device
 import org.kde.kdeconnect.R
 import org.kde.kdeconnect.helpers.NotificationHelper
 import java.io.File

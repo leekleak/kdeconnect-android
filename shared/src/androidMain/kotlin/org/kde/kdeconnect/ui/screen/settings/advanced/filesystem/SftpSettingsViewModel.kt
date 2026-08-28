@@ -17,7 +17,7 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.jsonObject
 import org.jetbrains.compose.resources.getString
-import org.kde.kdeconnect.DeviceManager
+import org.kde.kdeconnect.device.DeviceManager
 import org.kde.kdeconnect.datastore.SftpSettingsDataStore
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.sftp_storage_preference_display_name_already_used

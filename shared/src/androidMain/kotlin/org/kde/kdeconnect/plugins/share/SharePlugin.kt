@@ -37,7 +37,7 @@ import kotlinx.coroutines.sync.withPermit
 import kotlinx.serialization.json.put
 import org.jetbrains.compose.resources.getString
 import org.kde.kdeconnect.BuildConfig
-import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.device.Device
 import org.kde.kdeconnect.toShortcutIconRes
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.async.DataTransferJob

@@ -14,7 +14,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
-import org.kde.kdeconnect.Device
+import org.kde.kdeconnect.device.Device
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.R
 import org.kde.kdeconnect.generated.resources.Res
