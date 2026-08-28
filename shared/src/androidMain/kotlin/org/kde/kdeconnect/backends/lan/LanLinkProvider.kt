@@ -7,6 +7,7 @@ package org.kde.kdeconnect.backends.lan
 
 import android.content.Context
 import android.net.Network
+import android.net.wifi.WifiManager
 import androidx.annotation.WorkerThread
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +34,7 @@ import org.kde.kdeconnect.generated.resources.wifi
 import org.kde.kdeconnect.helpers.CustomDevicesHelper
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.LoggerTagged
+import org.kde.kdeconnect.helpers.PROTOCOL_VERSION
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 import org.kde.kdeconnect.helpers.isPrivateAddress
 import org.kde.kdeconnect.helpers.readLineBounded
@@ -80,7 +82,30 @@ class LanLinkProvider(
     private var tcpServer: ServerSocket? = null
     private var udpServer: DatagramSocket? = null
 
-    private val mdnsDiscovery: MdnsDiscovery = MdnsDiscovery(context, this, deviceHelper)
+    private val multicastLock: WifiManager.MulticastLock by lazy {
+        val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        wifiManager.createMulticastLock("kdeConnectMdnsMulticastLock")
+    }
+
+    private val mdnsDiscovery: MdnsDiscovery = MdnsDiscovery(
+        deviceHelper = deviceHelper,
+        tcpPortProvider = { tcpPort },
+        onDiscoveryStarted = { multicastLock.acquire() },
+        onDiscoveryStopped = { if (multicastLock.isHeld) multicastLock.release() },
+        onDeviceDiscovered = { deviceId, host, _ ->
+            if (deviceId == deviceHelper.getDeviceId()) return@MdnsDiscovery
+            if (visibleDevices.containsKey(deviceId)) return@MdnsDiscovery
+
+            scope?.launch {
+                try {
+                    val address = InetAddress.getByName(host)
+                    sendUdpIdentityPacket(mutableListOf(address), null)
+                } catch (e: Exception) {
+                    LoggerTagged.e(e) { "Error sending identity packet to MDNS discovered device" }
+                }
+            }
+        }
+    )
 
     private var lastBroadcast: Long = 0
     private var listening = false
@@ -176,7 +201,7 @@ class LanLinkProvider(
             }
             return@withContext
         }
-        if (targetProtocolVersion != null && targetProtocolVersion != DeviceHelper.PROTOCOL_VERSION) {
+        if (targetProtocolVersion != null && targetProtocolVersion != PROTOCOL_VERSION) {
             LoggerTagged.e {
                 "Received a connection request for a protocol version that isn't mine: $targetProtocolVersion"
             }
@@ -609,10 +634,8 @@ class LanLinkProvider(
         }
 
         broadcastUdpIdentityPacket(network)
-        synchronized(mdnsDiscovery) {
-            mdnsDiscovery.stopDiscovering()
-            mdnsDiscovery.startDiscovering()
-        }
+        mdnsDiscovery.stopDiscovering()
+        mdnsDiscovery.startDiscovering()
     }
 
     override fun onStop() {
@@ -621,10 +644,8 @@ class LanLinkProvider(
         scope?.cancel()
         scope = null
 
-        synchronized(mdnsDiscovery) {
-            mdnsDiscovery.stopAnnouncing()
-            mdnsDiscovery.stopDiscovering()
-        }
+        mdnsDiscovery.stopAnnouncing()
+        mdnsDiscovery.stopDiscovering()
         try {
             tcpServer!!.close()
         } catch (e: Exception) {

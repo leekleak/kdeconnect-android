@@ -54,7 +54,7 @@ actual class DeviceHelper(
         dataStore.setDeviceId(deviceName)
     }
 
-    fun getDeviceId(): String = runBlocking(Dispatchers.IO) { dataStore.deviceId.first() }
+    actual fun getDeviceId(): String = runBlocking(Dispatchers.IO) { dataStore.deviceId.first() }
 
     actual suspend fun getDeviceInfo(): DeviceInfo {
         return DeviceInfo(
@@ -69,8 +69,6 @@ actual class DeviceHelper(
     }
 
     companion object {
-        const val PROTOCOL_VERSION = 8
-
         private val NAME_INVALID_CHARACTERS_REGEX = "[\"',;:.!?()\\[\\]<>]".toRegex()
         const val MAX_DEVICE_NAME_LENGTH = 32
 

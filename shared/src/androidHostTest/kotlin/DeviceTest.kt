@@ -35,11 +35,12 @@ import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.device.DeviceInfo
 import org.kde.kdeconnect.device.DeviceType
 import org.kde.kdeconnect.helpers.DeviceHelper
+import org.kde.kdeconnect.helpers.PROTOCOL_VERSION
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.DevicesRoomDatabase
 import org.kde.kdeconnect.helpers.security.EcHelper
 import org.kde.kdeconnect.helpers.security.SslHelper
-import plugins.PluginFactory
+import org.kde.kdeconnect.plugins.PluginFactory
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
@@ -92,7 +93,7 @@ class DeviceTest {
                     id = deviceId,
                     name = name,
                     type = DeviceType.PHONE,
-                    protocolVersion = DeviceHelper.PROTOCOL_VERSION,
+                    protocolVersion = PROTOCOL_VERSION,
                     certificate = certificateBytes,
                 )
             )
@@ -139,7 +140,7 @@ class DeviceTest {
         val deviceId = "testDevice"
         val deviceInfo = runBlocking {
             deviceSettings.getDeviceInfo(deviceId)!!.copy(
-                protocolVersion = DeviceHelper.PROTOCOL_VERSION,
+                protocolVersion = PROTOCOL_VERSION,
                 incomingCapabilities = hashSetOf("kdeconnect.plugin1State", "kdeconnect.plugin2State"),
                 outgoingCapabilities = hashSetOf("kdeconnect.plugin1State.request", "kdeconnect.plugin2State.request"),
             )
@@ -229,7 +230,7 @@ class DeviceTest {
         val fakeNetworkPacket = NetworkPacket(NetworkPacket.PACKET_TYPE_IDENTITY).update {
             put("deviceId", deviceId)
             put("deviceName", "Unpaired Test Device")
-            put("protocolVersion", DeviceHelper.PROTOCOL_VERSION)
+            put("protocolVersion", PROTOCOL_VERSION)
             put("deviceType", DeviceType.PHONE.toString())
         }
 

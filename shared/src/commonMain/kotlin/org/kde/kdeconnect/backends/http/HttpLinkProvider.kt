@@ -1,5 +1,7 @@
 package org.kde.kdeconnect.backends.http
 
+import io.ktor.client.HttpClient
+import io.ktor.http.HttpMethod
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -8,7 +10,6 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.netty.NettyApplicationEngine
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
@@ -21,17 +22,26 @@ import io.ktor.websocket.Frame
 import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.close
 import io.ktor.websocket.readText
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.compose.resources.DrawableResource
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.backends.BaseLinkProvider
+import org.kde.kdeconnect.backends.lan.MdnsDiscovery
 import org.kde.kdeconnect.device.DeviceInfo
 import org.kde.kdeconnect.device.DeviceType
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.link
 import org.kde.kdeconnect.helpers.DeviceHelper
+import org.kde.kdeconnect.helpers.LoggerTagged
 import kotlin.time.Duration.Companion.seconds
+import io.ktor.client.plugins.websocket.WebSockets as ClientWebSockets
+import io.ktor.client.plugins.websocket.webSocket as clientWebSocket
 
 class HttpLinkProvider(
     private val deviceHelper: DeviceHelper
@@ -40,6 +50,63 @@ class HttpLinkProvider(
     private var server: EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration>? = null
     private val activeLinks = mutableMapOf<String, HttpLink>()
     private val linksMutex = Mutex()
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+
+    private val httpClient = HttpClient {
+        install(ClientWebSockets)
+    }
+
+    private val mdnsDiscovery = MdnsDiscovery(
+        deviceHelper = deviceHelper,
+        tcpPortProvider = { 8080 }, // TODO: Make port configurable
+        serviceType = MdnsDiscovery.SERVICE_TYPE_HTTP,
+        onDeviceDiscovered = { deviceId, host, port ->
+            if (deviceId == deviceHelper.getDeviceId()) return@MdnsDiscovery
+            
+            scope.launch {
+                linksMutex.withLock {
+                    if (activeLinks.containsKey(deviceId)) return@launch
+                }
+                
+                try {
+                    httpClient.clientWebSocket(
+                        method = HttpMethod.Get,
+                        host = host,
+                        port = port,
+                        path = "/ws/${deviceHelper.getDeviceId()}"
+                    ) {
+                        val myInfo = deviceHelper.getDeviceInfo()
+                        send(Frame.Text(myInfo.toIdentityPacket().serialize()))
+                        
+                        // Wait for server's identity
+                        for (frame in incoming) {
+                            if (frame is Frame.Text) {
+                                val text = frame.readText()
+                                val packet = NetworkPacket.unserialize(text)
+                                if (packet.type == NetworkPacket.PACKET_TYPE_IDENTITY) {
+                                    val remoteDeviceId = packet.getString("deviceId")
+                                    if (remoteDeviceId == deviceId) {
+                                        val deviceInfo = DeviceInfo(
+                                            id = remoteDeviceId,
+                                            certificate = byteArrayOf(),
+                                            name = packet.getString("deviceName", "Unknown"),
+                                            type = DeviceType.fromString(packet.getString("deviceType", "desktop")),
+                                            protocolVersion = packet.getInt("protocolVersion", 0)
+                                        )
+                                        addOrUpdateLink(deviceInfo, this)
+                                        break
+                                    }
+                                }
+                            }
+                        }
+                        closeReason.await()
+                    }
+                } catch (e: Exception) {
+                    LoggerTagged.e(e) { "Error connecting to discovered HTTP device $deviceId" }
+                }
+            }
+        }
+    )
 
     override suspend fun onStart() {
         server = embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
@@ -47,11 +114,18 @@ class HttpLinkProvider(
             configureSerialization()
             configureRouting()
         }.start(wait = false)
+        
+        mdnsDiscovery.startAnnouncing()
+        mdnsDiscovery.startDiscovering()
     }
 
     override fun onStop() {
+        mdnsDiscovery.stopAnnouncing()
+        mdnsDiscovery.stopDiscovering()
         server?.stop(1000, 1000)
         server = null
+        httpClient.close()
+        scope.cancel()
     }
 
     suspend fun addOrUpdateLink(deviceInfo: DeviceInfo, session: WebSocketSession): HttpLink {
@@ -73,7 +147,11 @@ class HttpLinkProvider(
     }
 
     override fun onConnectionLost(link: org.kde.kdeconnect.backends.BaseLink) {
-        activeLinks.remove(link.deviceId)
+        scope.launch {
+            linksMutex.withLock {
+                activeLinks.remove(link.deviceId)
+            }
+        }
         super.onConnectionLost(link)
     }
 
@@ -85,6 +163,9 @@ class HttpLinkProvider(
             }
             webSocket("/ws/{deviceId}") {
                 val deviceIdFromPath = call.parameters["deviceId"] ?: return@webSocket
+
+                val myInfo = deviceHelper.getDeviceInfo()
+                send(Frame.Text(myInfo.toIdentityPacket().serialize()))
 
                 for (frame in incoming) {
                     if (frame is Frame.Text) {
@@ -111,11 +192,7 @@ class HttpLinkProvider(
                     }
                 }
 
-                // Keep the session alive until it's closed
                 closeReason.await()
-            }
-            get("/json/kotlinx-serialization") {
-                call.respond(mapOf("hello" to "world"))
             }
         }
     }
@@ -139,5 +216,3 @@ fun Application.configureSerialization() {
         json()
     }
 }
-
-

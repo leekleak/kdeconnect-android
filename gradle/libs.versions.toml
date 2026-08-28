@@ -43,6 +43,7 @@ kotlinStdlib = "2.4.10"
 runner = "1.7.0"
 core = "1.7.0"
 sqlite = "2.7.0"
+dnsSdKt = "1.1.0"
 
 [libraries]
 android-smsmms = { module = "org.kde.invent.sredman:android-smsmms", version.ref = "androidSmsmms" }
@@ -108,6 +109,7 @@ kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", versio
 androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
 androidx-core = { group = "androidx.test", name = "core", version.ref = "core" }
 ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMultiplatform" }
+dnsSdKt = { module = "com.appstractive:dns-sd-kt", version.ref = "dnsSdKt" }
 ui-tooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "composeMultiplatform" }
 ui-tooling-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
 androidx-sqlite = { module = "androidx.sqlite:sqlite", version.ref = "sqlite" }
