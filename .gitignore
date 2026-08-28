@@ -14,5 +14,5 @@ local.properties
 .directory
 GPUCache/
 release/
-desktop/
+desktop/build/
 /.kotlin/

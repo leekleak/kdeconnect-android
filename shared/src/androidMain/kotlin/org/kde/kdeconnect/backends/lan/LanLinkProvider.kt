@@ -28,7 +28,6 @@ import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.backends.lan.LanLink.ConnectionStarted
 import org.kde.kdeconnect.device.DeviceInfo
 import org.kde.kdeconnect.device.DeviceManager
-import org.kde.kdeconnect.fromIdentityPacketAndCert
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.wifi
 import org.kde.kdeconnect.helpers.CustomDevicesHelper
@@ -387,7 +386,7 @@ class LanLinkProvider(
                     secureIdentityPacket = identityPacket
                 }
                 val certificate = event!!.peerCertificates[0]
-                val deviceInfo = DeviceInfo.fromIdentityPacketAndCert(secureIdentityPacket, certificate)
+                val deviceInfo = DeviceInfo.fromIdentityPacketAndCert(secureIdentityPacket, certificate.encoded)
                 LoggerTagged.i {
                     "Handshake as " + mode + " successful with " + deviceInfo.name + " secured with " + event.cipherSuite
                 }

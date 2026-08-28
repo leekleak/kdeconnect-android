@@ -24,6 +24,7 @@ kotlin {
                 implementation(libs.androidx.datastore.preferences)
                 implementation(libs.haze)
                 implementation(libs.okio)
+                implementation(libs.kermit)
             }
         }
     }

@@ -61,7 +61,8 @@ import org.kde.kdeconnect.generated.resources.theme_dialog_title
 import org.kde.kdeconnect.generated.resources.theme_list
 import org.kde.kdeconnect.helpers.CreateFileParams
 import org.kde.kdeconnect.helpers.CreateFileResultContract
-import org.kde.kdeconnect.helpers.DeviceHelper
+import org.kde.kdeconnect.helpers.MAX_DEVICE_NAME_LENGTH
+import org.kde.kdeconnect.helpers.filterInvalidCharactersFromDeviceName
 import org.kde.kdeconnect.plugins.sftp.SimpleSftpServer
 import org.kde.kdeconnect.ui.AppTheme
 import org.kde.kdeconnect.ui.PermissionExplanationActivity
@@ -121,8 +122,7 @@ fun SettingsScreen(
             icon = painterResource(Res.drawable.id_card),
             value = uiState.deviceName,
             filterInput = {
-                DeviceHelper.filterInvalidCharactersFromDeviceName(it)
-                    .take(DeviceHelper.MAX_DEVICE_NAME_LENGTH)
+                filterInvalidCharactersFromDeviceName(it).take(MAX_DEVICE_NAME_LENGTH)
             },
             onValueChanged = {
                 setDeviceName(it)

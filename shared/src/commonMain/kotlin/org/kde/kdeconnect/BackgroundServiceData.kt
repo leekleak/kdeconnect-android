@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class BackgroundServiceData {
-    private val _isConnectedToNonCellularNetwork = MutableStateFlow(false)
+    private val _isConnectedToNonCellularNetwork = MutableStateFlow(true)
     val isConnectedToNonCellularNetwork: StateFlow<Boolean> = _isConnectedToNonCellularNetwork.asStateFlow()
 
     fun setConnected(connected: Boolean) {

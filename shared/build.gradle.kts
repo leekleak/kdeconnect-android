@@ -79,6 +79,7 @@ kotlin {
                 implementation(ktorLibs.server.core)
                 implementation(ktorLibs.server.netty)
                 implementation(ktorLibs.server.websockets)
+                implementation(ktorLibs.network.tls.certificates)
             }
         }
 

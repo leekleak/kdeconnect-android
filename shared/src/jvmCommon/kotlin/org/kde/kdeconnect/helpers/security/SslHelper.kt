@@ -6,6 +6,9 @@
 package org.kde.kdeconnect.helpers.security
 
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.bouncycastle.asn1.x500.X500Name
 import org.bouncycastle.asn1.x500.X500NameBuilder
 import org.bouncycastle.asn1.x500.style.BCStyle
@@ -48,7 +51,8 @@ class SslHelper(
     private val settingsDataStore: SettingsDataStore,
     private val deviceSettings: DeviceSettings,
 ) {
-    lateinit var certificate: Certificate //my device's certificate
+    private lateinit var certificate: Certificate //my device's certificate
+    val certificateMutex = Mutex()
     private val factory: CertificateFactory = CertificateFactory.getInstance("X.509")
 
     private val trustAllCerts: Array<TrustManager> = arrayOf(object : X509TrustManager {
@@ -58,8 +62,14 @@ class SslHelper(
         override fun checkServerTrusted(certs: Array<X509Certificate?>?, authType: String?) = Unit
     })
 
+    init {
+        runBlocking { initialiseCertificate() }
+    }
+
+    suspend fun getCertificate(): Certificate  = certificateMutex.withLock { return@withLock certificate }
+
     @OptIn(ExperimentalEncodingApi::class)
-    suspend fun initialiseCertificate(platformContext: Any? = null) {
+    private suspend fun initialiseCertificate() = certificateMutex.withLock {
         val privateKey: PrivateKey = getPrivateKey()
         val publicKey: PublicKey = getPublicKey()
 

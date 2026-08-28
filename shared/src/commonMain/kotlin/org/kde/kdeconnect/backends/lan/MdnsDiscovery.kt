@@ -17,7 +17,7 @@ class MdnsDiscovery(
     private val serviceType: String = SERVICE_TYPE_LAN,
     private val onDiscoveryStarted: () -> Unit = {},
     private val onDiscoveryStopped: () -> Unit = {},
-    private val onDeviceDiscovered: (String, String, Int) -> Unit
+    private val onDeviceDiscovered: suspend (String, String, Int) -> Unit
 ) {
     private val scope = CoroutineScope(Dispatchers.Default)
     private var discoveryJob: Job? = null

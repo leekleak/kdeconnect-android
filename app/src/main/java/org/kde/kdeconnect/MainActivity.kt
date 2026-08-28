@@ -40,7 +40,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.device.DeviceManager
-import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.mousepad.MousePadViewModel
 import org.kde.kdeconnect.plugins.mpris.MprisViewModel
@@ -70,7 +69,6 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 class MainActivity : AppCompatActivity(), AndroidScopeComponent, ShareHandler {
     override val scope: Scope by activityRetainedScope()
     private val settingsDataStore: SettingsDataStore by inject()
-    private val deviceHelper: DeviceHelper by inject()
     private val deviceManager: DeviceManager by inject()
 
     private val mNavigator: Navigator by inject()
@@ -142,7 +140,6 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent, ShareHandler {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        runBlocking { deviceHelper.initializeDeviceId() }
         lastIntent.update { intent }
 
         setContent {

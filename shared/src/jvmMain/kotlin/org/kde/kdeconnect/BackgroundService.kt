@@ -35,7 +35,7 @@ class BackgroundService(
     init {
         serviceScope.launch {
             registerLinkProviders()
-            addConnectionListener(deviceManager.connectionListener) // Link Providers need to be already registered
+            addConnectionListener(deviceManager.connectionListener)
             for (linkProvider in linkProviders) {
                 linkProvider.onStart()
             }

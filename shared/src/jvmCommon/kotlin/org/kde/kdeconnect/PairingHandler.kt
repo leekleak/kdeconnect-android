@@ -12,6 +12,7 @@ import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.put
 import org.bouncycastle.util.Arrays
 import org.jetbrains.annotations.VisibleForTesting
@@ -44,7 +45,7 @@ class PairingHandler(
     private val state: PairState get() = device.state.value.pairState
 
     fun updateState(newState: PairState) {
-        device.updatePairState(newState, pairingTimestamp.value)
+        runBlocking { device.updatePairState(newState, pairingTimestamp.value) }
     }
 
     interface PairingCallback {

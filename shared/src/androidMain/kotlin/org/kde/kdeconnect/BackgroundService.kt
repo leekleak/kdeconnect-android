@@ -33,18 +33,19 @@ import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.backends.AndroidLinkProvider
 import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.backends.BaseLinkProvider.ConnectionReceiver
-import org.kde.kdeconnect.backends.bluetooth.BluetoothLinkProvider
 import org.kde.kdeconnect.backends.http.HttpLinkProvider
-import org.kde.kdeconnect.backends.lan.LanLinkProvider
 import org.kde.kdeconnect.device.Device
 import org.kde.kdeconnect.device.DeviceManager
+import org.kde.kdeconnect.generated.resources.Res
+import org.kde.kdeconnect.generated.resources.foreground_notification_devices
+import org.kde.kdeconnect.generated.resources.foreground_notification_no_devices
+import org.kde.kdeconnect.generated.resources.foreground_notification_send_clipboard
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.helpers.PermissionHelper
 import org.kde.kdeconnect.plugins.clipboard.ClipboardFloatingActivity
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin
 import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
-import org.kde.kdeconnect.generated.resources.*
 import org.koin.android.ext.android.get
 import org.koin.android.ext.android.inject
 import org.koin.core.context.GlobalContext
@@ -73,10 +74,10 @@ class BackgroundService : Service() {
     }
 
     private fun registerLinkProviders() {
-        linkProviders.add(get<LanLinkProvider>())
+        //linkProviders.add(get<LanLinkProvider>())
         linkProviders.add(get<HttpLinkProvider>())
         //linkProviders.add(get<LoopbackLinkProvider>())
-        linkProviders.add(get<BluetoothLinkProvider>())
+        //linkProviders.add(get<BluetoothLinkProvider>())
     }
 
     suspend fun onNetworkChange(network: Network?) {
@@ -86,7 +87,7 @@ class BackgroundService : Service() {
         }
         LoggerTagged.d { "onNetworkChange" }
         for (linkProvider in linkProviders) {
-            (linkProvider as AndroidLinkProvider).onNetworkChange(network)
+            (linkProvider as? AndroidLinkProvider)?.onNetworkChange(network)
         }
     }
 

@@ -22,6 +22,9 @@ actual class DeviceHelper(
     val dataStore: SettingsDataStore,
     private val sslHelper: SslHelper
 ) {
+    init {
+        initializeDeviceId()
+    }
     val isTablet: Boolean by lazy {
         val config = Resources.getSystem().configuration
         //This assumes that the values for the screen sizes are consecutive, so XXLARGE > XLARGE > LARGE
@@ -43,41 +46,28 @@ actual class DeviceHelper(
         }
     }
 
-    suspend fun getDeviceName(): String = dataStore.deviceName.first()
+    actual suspend fun getDeviceName(): String = withContext(Dispatchers.IO) { dataStore.deviceName.first() }
 
-    suspend fun initializeDeviceId() = withContext(Dispatchers.IO) {
+    private fun initializeDeviceId() = runBlocking {
         val deviceId = dataStore.deviceId.first()
         if (DeviceInfo.isValidDeviceId(deviceId)) {
-            return@withContext // We already have an ID
+            return@runBlocking // We already have an ID
         }
         val deviceName = UUID.randomUUID().toString().replace("-", "")
         dataStore.setDeviceId(deviceName)
     }
 
-    actual fun getDeviceId(): String = runBlocking(Dispatchers.IO) { dataStore.deviceId.first() }
+    actual suspend fun getDeviceId(): String = withContext(Dispatchers.IO) { dataStore.deviceId.first() }
 
     actual suspend fun getDeviceInfo(): DeviceInfo {
         return DeviceInfo(
             getDeviceId(),
-            sslHelper.certificate.encoded,
+            sslHelper.getCertificate().encoded,
             getDeviceName(),
             deviceType,
             PROTOCOL_VERSION,
             PluginFactory.incomingCapabilities,
             PluginFactory.outgoingCapabilities
         )
-    }
-
-    companion object {
-        private val NAME_INVALID_CHARACTERS_REGEX = "[\"',;:.!?()\\[\\]<>]".toRegex()
-        const val MAX_DEVICE_NAME_LENGTH = 32
-
-        @JvmStatic
-        fun filterInvalidCharactersFromDeviceNameAndLimitLength(input: String): String =
-            filterInvalidCharactersFromDeviceName(input).trim().take(MAX_DEVICE_NAME_LENGTH)
-
-        @JvmStatic
-        fun filterInvalidCharactersFromDeviceName(input: String): String =
-            input.replace(NAME_INVALID_CHARACTERS_REGEX, "")
     }
 }

@@ -10,9 +10,7 @@ import android.os.Build
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
 import android.os.StrictMode.VmPolicy
-import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.di.appModule
-import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.helpers.security.EcHelper
@@ -31,7 +29,6 @@ import org.slf4j.impl.HandroidLoggerAdapter
  * It provides a ConnectionReceiver that the BackgroundService uses to ping this class every time a new DeviceLink is created.
  */
 class KdeConnect : Application() {
-    private val deviceHelper: DeviceHelper by inject()
     private val themeUtil: ThemeUtil by inject()
     private val sslHelper: SslHelper by inject()
 
@@ -44,9 +41,7 @@ class KdeConnect : Application() {
         }
         LoggerTagged.d { "onCreate" }
         themeUtil.setUserPreferredTheme(this)
-        runBlocking { deviceHelper.initializeDeviceId() }
         EcHelper.ensureKeyPair()
-        runBlocking { sslHelper.initialiseCertificate(this@KdeConnect) }
         NotificationHelper.initializeChannels(this)
 
         if (BuildConfig.DEBUG && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

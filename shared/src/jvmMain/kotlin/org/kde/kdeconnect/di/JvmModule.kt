@@ -23,7 +23,6 @@ import org.kde.kdeconnect.ui.screen.home.homeModule
 import org.kde.kdeconnect.ui.screen.pairing.pairingModule
 import org.koin.dsl.module
 import org.koin.plugin.module.dsl.factory
-import org.koin.plugin.module.dsl.single
 import java.io.File
 
 val jvmModule = module {
@@ -61,7 +60,7 @@ val jvmModule = module {
         Device(get(), get(), { dummyPairingCallback }, deviceInfo)
     }
     single(createdAtStart = true) { BackgroundService(get(), get()) }
-    single<DeviceHelper>()
+    single(createdAtStart = true) { DeviceHelper(get(), get()) }
 }
 
 private val dummyPairingCallback = object : PairingHandler.PairingCallback {

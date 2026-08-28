@@ -8,5 +8,15 @@ const val PROTOCOL_VERSION = 8
 expect class DeviceHelper {
     val deviceType: DeviceType
     suspend fun getDeviceInfo(): DeviceInfo
-    fun getDeviceId(): String
+    suspend fun getDeviceId(): String
+    suspend fun getDeviceName(): String
 }
+
+private val NAME_INVALID_CHARACTERS_REGEX = "[\"',;:.!?()\\[\\]<>]".toRegex()
+const val MAX_DEVICE_NAME_LENGTH = 32
+
+fun filterInvalidCharactersFromDeviceNameAndLimitLength(input: String): String =
+    filterInvalidCharactersFromDeviceName(input).trim().take(MAX_DEVICE_NAME_LENGTH)
+
+fun filterInvalidCharactersFromDeviceName(input: String): String =
+    input.replace(NAME_INVALID_CHARACTERS_REGEX, "")

@@ -5,7 +5,10 @@ import androidx.room3.Entity
 import androidx.room3.PrimaryKey
 import kotlinx.serialization.json.put
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.helpers.filterInvalidCharactersFromDeviceNameAndLimitLength
 import org.kde.kdeconnect.toJsonArray
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 /**
  * DeviceInfo contains all the properties needed to instantiate a Device.
@@ -26,9 +29,9 @@ data class DeviceInfo(
 
     /**
      * Serializes to a NetworkPacket, which LanLinkProvider uses to send this data over the network.
-     * The serialization doesn't include the certificate, since LanLink can query that from the socket.
-     * Can be deserialized using fromIdentityPacketAndCert(), given a certificate.
+     * Can be deserialized using fromIdentityPacketAndCert().
      */
+    @OptIn(ExperimentalEncodingApi::class)
     fun toIdentityPacket(): NetworkPacket =
         NetworkPacket(NetworkPacket.PACKET_TYPE_IDENTITY).update {
             put("deviceId", id)
@@ -37,12 +40,44 @@ data class DeviceInfo(
             put("deviceType", type.toString())
             put("incomingCapabilities", incomingCapabilities.toJsonArray())
             put("outgoingCapabilities", outgoingCapabilities.toJsonArray())
+
+            val base64Certificate = Base64.Mime.encode(certificate)
+            val pemEncodedCertificate = "-----BEGIN CERTIFICATE-----\n$base64Certificate\n-----END CERTIFICATE-----\n"
+            put("certificate", pemEncodedCertificate)
         }
 
     companion object {
         private val DEVICE_ID_REGEX = "^[a-zA-Z0-9_-]{32,38}$".toRegex()
 
         fun isValidDeviceId(deviceId: String): Boolean = deviceId.matches(DEVICE_ID_REGEX)
+
+        /**
+         * Recreates a DeviceInfo object that was serialized using toIdentityPacket().
+         * If the certificate is not passed, it will be read from the identity packet.
+         */
+        @OptIn(ExperimentalEncodingApi::class)
+        fun fromIdentityPacketAndCert(identityPacket: NetworkPacket, certificate: ByteArray? = null) =
+            with(identityPacket) {
+                val certificateBytes = if (certificate != null) {
+                    certificate
+                } else {
+                    val pemEncodedCertificateString = getString("certificate", "")
+                    val base64CertificateString = pemEncodedCertificateString
+                        .replace("-----BEGIN CERTIFICATE-----\n", "")
+                        .replace("-----END CERTIFICATE-----\n", "")
+                    Base64.Mime.decode(base64CertificateString)
+                }
+                DeviceInfo(
+                    id = getString("deviceId", ""),
+                    name = filterInvalidCharactersFromDeviceNameAndLimitLength(getString("deviceName", "unknown")),
+                    type = DeviceType.fromString(getString("deviceType", "desktop")),
+                    certificate = certificateBytes,
+                    protocolVersion = getInt("protocolVersion", 0),
+                    incomingCapabilities = getStringSet("incomingCapabilities") ?: emptySet(),
+                    outgoingCapabilities = getStringSet("outgoingCapabilities") ?: emptySet(),
+                    shortcuts = emptyList()
+                )
+            }
     }
 
     override fun equals(other: Any?): Boolean {

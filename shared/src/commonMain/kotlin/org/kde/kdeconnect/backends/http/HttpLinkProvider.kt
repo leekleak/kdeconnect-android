@@ -2,11 +2,15 @@ package org.kde.kdeconnect.backends.http
 
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpMethod
+import io.ktor.network.tls.certificates.buildKeyStore
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
+import io.ktor.server.engine.ApplicationEngine
 import io.ktor.server.engine.EmbeddedServer
+import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
+import io.ktor.server.engine.sslConnector
 import io.ktor.server.netty.Netty
 import io.ktor.server.netty.NettyApplicationEngine
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
@@ -34,7 +38,6 @@ import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.backends.lan.MdnsDiscovery
 import org.kde.kdeconnect.device.DeviceInfo
-import org.kde.kdeconnect.device.DeviceType
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.link
 import org.kde.kdeconnect.helpers.DeviceHelper
@@ -61,7 +64,8 @@ class HttpLinkProvider(
         tcpPortProvider = { 8080 }, // TODO: Make port configurable
         serviceType = MdnsDiscovery.SERVICE_TYPE_HTTP,
         onDeviceDiscovered = { deviceId, host, port ->
-            if (deviceId == deviceHelper.getDeviceId()) return@MdnsDiscovery
+            val myId = deviceHelper.getDeviceId()
+            if (deviceId == myId || myId.isEmpty()) return@MdnsDiscovery
             
             scope.launch {
                 linksMutex.withLock {
@@ -73,7 +77,7 @@ class HttpLinkProvider(
                         method = HttpMethod.Get,
                         host = host,
                         port = port,
-                        path = "/ws/${deviceHelper.getDeviceId()}"
+                        path = "/ws/$myId"
                     ) {
                         val myInfo = deviceHelper.getDeviceInfo()
                         send(Frame.Text(myInfo.toIdentityPacket().serialize()))
@@ -84,15 +88,10 @@ class HttpLinkProvider(
                                 val text = frame.readText()
                                 val packet = NetworkPacket.unserialize(text)
                                 if (packet.type == NetworkPacket.PACKET_TYPE_IDENTITY) {
+
                                     val remoteDeviceId = packet.getString("deviceId")
                                     if (remoteDeviceId == deviceId) {
-                                        val deviceInfo = DeviceInfo(
-                                            id = remoteDeviceId,
-                                            certificate = byteArrayOf(),
-                                            name = packet.getString("deviceName", "Unknown"),
-                                            type = DeviceType.fromString(packet.getString("deviceType", "desktop")),
-                                            protocolVersion = packet.getInt("protocolVersion", 0)
-                                        )
+                                        val deviceInfo = DeviceInfo.fromIdentityPacketAndCert(packet)
                                         addOrUpdateLink(deviceInfo, this)
                                         break
                                     }
@@ -109,7 +108,10 @@ class HttpLinkProvider(
     )
 
     override suspend fun onStart() {
-        server = embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
+        val deviceId = deviceHelper.getDeviceId()
+        server = embeddedServer(Netty, configure = {
+            envConfig(deviceId)
+        }) {
             configureWebsockets()
             configureSerialization()
             configureRouting()
@@ -178,13 +180,7 @@ class HttpLinkProvider(
                                 return@webSocket
                             }
 
-                            val deviceInfo = DeviceInfo(
-                                id = deviceId,
-                                certificate = byteArrayOf(), // TODO: support HTTPS/WSS with certs
-                                name = packet.getString("deviceName", "Unknown"),
-                                type = DeviceType.fromString(packet.getString("deviceType", "desktop")),
-                                protocolVersion = packet.getInt("protocolVersion", 0)
-                            )
+                            val deviceInfo = DeviceInfo.fromIdentityPacketAndCert(packet)
 
                             addOrUpdateLink(deviceInfo, this)
                             break
@@ -200,6 +196,28 @@ class HttpLinkProvider(
     override val name: String = "HttpLinkProvider"
     override val icon: DrawableResource = Res.drawable.link
     override val priority: Int = 10
+
+    private fun ApplicationEngine.Configuration.envConfig(deviceId: String) {
+        val privateKeyPassword = deviceId
+        val keyStorePassword = deviceId.hashCode().toString()
+        val keyStore = buildKeyStore {
+            certificate("serverCertificate") {
+                password = privateKeyPassword
+                domains = listOf("127.0.0.1", "0.0.0.0", "localhost")
+            }
+        }
+
+        connector {
+            port = 8080
+        }
+        sslConnector(
+            keyStore = keyStore,
+            keyAlias = "serverCertificate",
+            keyStorePassword = { keyStorePassword.toCharArray() },
+            privateKeyPassword = { privateKeyPassword.toCharArray() }) {
+            port = 8443
+        }
+    }
 }
 
 fun Application.configureWebsockets() {

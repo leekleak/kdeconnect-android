@@ -85,4 +85,28 @@ class NetworkPacketTest {
         Assert.assertEquals(parsed.incomingCapabilities, deviceInfo.incomingCapabilities)
         Assert.assertEquals(parsed.outgoingCapabilities, deviceInfo.outgoingCapabilities)
     }
+
+    @Test
+    fun testIdentityAutomaticCert() {
+        val certBytes = "FakeCertificateBytes".encodeToByteArray()
+        val deviceInfo = DeviceInfo(
+            "myid",
+            certBytes,
+            "myname",
+            DeviceType.TV,
+            12,
+            setOf("ASDFG"),
+            setOf("QWERTY")
+        )
+
+        val np = deviceInfo.toIdentityPacket()
+
+        // Ensure the packet contains the certificate
+        Assert.assertTrue(np.getString("certificate", "").contains("BEGIN CERTIFICATE"))
+
+        val parsed = DeviceInfo.fromIdentityPacketAndCert(np)
+
+        Assert.assertEquals(parsed.name, deviceInfo.name)
+        Assert.assertArrayEquals(deviceInfo.certificate, parsed.certificate)
+    }
 }

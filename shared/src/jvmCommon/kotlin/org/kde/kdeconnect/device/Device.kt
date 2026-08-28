@@ -146,15 +146,15 @@ actual class Device(
         }
     }
 
-    internal fun updatePairState(pairState: PairState, timestamp: Long) {
+    internal suspend fun updatePairState(pairState: PairState, timestamp: Long) {
         val key = if (protocolVersion >= 8) {
             if (pairState != PairState.Requested && pairState != PairState.RequestedByPeer) {
                 null
             } else {
-                PairingHandler.getVerificationKey(sslHelper.certificate, certificate, timestamp)
+                PairingHandler.getVerificationKey(sslHelper.getCertificate(), certificate, timestamp)
             }
         } else {
-            PairingHandler.getVerificationKeyV7(sslHelper.certificate, certificate)
+            PairingHandler.getVerificationKeyV7(sslHelper.getCertificate(), certificate)
         }
         updateState { it.copy(pairState = pairState, verificationKey = key) }
     }
