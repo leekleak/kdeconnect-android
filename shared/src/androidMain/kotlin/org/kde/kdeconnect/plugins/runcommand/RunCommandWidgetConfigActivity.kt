@@ -131,7 +131,7 @@ class RunCommandWidgetConfigActivity : AppCompatActivity() {
     private suspend fun refreshDevicesAction() {
         isRefreshing = true
 
-        BackgroundService.forceRefreshConnections(context = this)
+        BackgroundService.forceRefreshConnections()
         delay(1500.milliseconds)
         isRefreshing = false
     }

@@ -9,6 +9,8 @@ import androidx.room3.Query
 import androidx.room3.Room
 import androidx.room3.RoomDatabase
 import androidx.room3.Upsert
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import kotlinx.coroutines.Dispatchers
 
 @Entity(tableName = "applications")
 data class AppDatabaseEntry(
@@ -43,7 +45,10 @@ class AppDatabase(context: Context) {
         context.applicationContext,
         AppRoomDatabase::class.java,
         "Applications"
-    ).build()
+    )
+        .setDriver(BundledSQLiteDriver())
+        .setQueryCoroutineContext(Dispatchers.IO)
+        .build()
 
     private val dao = db.dao()
 

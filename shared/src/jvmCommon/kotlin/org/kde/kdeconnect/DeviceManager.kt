@@ -1,5 +1,5 @@
 package org.kde.kdeconnect
- 
+
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.backends.BaseLink
-import org.kde.kdeconnect.backends.BaseLinkProvider.ConnectionReceiver
+import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.device.DeviceInfo
 import org.kde.kdeconnect.device.DeviceState
 import org.kde.kdeconnect.helpers.DeviceSettings
@@ -88,7 +88,8 @@ class DeviceManager(
             }
     }
 
-    val connectionListener: ConnectionReceiver = object : ConnectionReceiver {
+    val connectionListener: BaseLinkProvider.ConnectionReceiver = object :
+        BaseLinkProvider.ConnectionReceiver {
         override fun onConnectionReceived(link: BaseLink) {
             var device: Device? = devices.value[link.deviceId]
             if (device != null) {

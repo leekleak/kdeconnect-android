@@ -28,7 +28,6 @@ import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.ui.AppTheme.*
 import org.koin.compose.koinInject
 
-val LocalHazeState = compositionLocalOf { HazeState() }
 @Composable
 fun KdeTheme(dataStore: SettingsDataStore = koinInject(), content: @Composable () -> Unit) {
     val context = LocalContext.current

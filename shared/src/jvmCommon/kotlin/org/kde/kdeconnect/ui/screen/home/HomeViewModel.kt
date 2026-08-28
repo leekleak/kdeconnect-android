@@ -1,6 +1,5 @@
 package org.kde.kdeconnect.ui.screen.home
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
@@ -11,17 +10,17 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.kde.kdeconnect.BackgroundService.Companion.forceRefreshConnections
 import org.kde.kdeconnect.BackgroundServiceData
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.device.DeviceState
 import org.kde.kdeconnect.device.PairState
+import org.kde.kdeconnect.forceRefreshConnections
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 
 class HomeViewModel(
     deviceManager: DeviceManager,
     backgroundServiceData: BackgroundServiceData,
-    private val trustedNetworkHelper: TrustedNetworkHelper,
+    trustedNetworkHelper: TrustedNetworkHelper,
 ) : ViewModel() {
     private val refreshing = MutableStateFlow(false)
     val uiState = combine(
@@ -43,10 +42,10 @@ class HomeViewModel(
         initialValue = HomeUiState()
     )
 
-    fun onRefresh(context: Context) {
+    fun onRefresh() {
         refreshing.update { true }
 
-        forceRefreshConnections(context)
+        forceRefreshConnections()
 
         viewModelScope.launch {
             delay(timeMillis = 1500)

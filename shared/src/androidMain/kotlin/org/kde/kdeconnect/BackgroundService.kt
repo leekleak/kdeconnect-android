@@ -44,6 +44,7 @@ import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
 import org.kde.kdeconnect.generated.resources.*
 import org.koin.android.ext.android.get
 import org.koin.android.ext.android.inject
+import org.koin.core.context.GlobalContext
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
@@ -230,7 +231,6 @@ class BackgroundService : Service() {
         const val UPDATE_IMMUTABLE_FLAGS = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         private const val FOREGROUND_NOTIFICATION_ID = 1
 
-        @JvmStatic
         var instance: BackgroundService? = null
             private set
 
@@ -262,9 +262,9 @@ class BackgroundService : Service() {
             ContextCompat.startForegroundService(context, intent)
         }
 
-        @JvmStatic
-        fun forceRefreshConnections(context: Context) {
+        fun forceRefreshConnections() {
             LoggerTagged.d { "ForceRefreshConnections" }
+            val context: Context = GlobalContext.get().get()
             if (!PermissionHelper.hasRequiredPermissions(context)) {
                 LoggerTagged.w { "Skipping forceRefreshConnections because required permissions are not granted" }
                 return

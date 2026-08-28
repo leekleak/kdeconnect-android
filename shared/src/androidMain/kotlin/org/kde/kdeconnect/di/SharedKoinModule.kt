@@ -3,9 +3,9 @@ package org.kde.kdeconnect.di
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room3.Room
-import org.kde.kdeconnect.BackgroundServiceData
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import kotlinx.coroutines.Dispatchers
 import org.kde.kdeconnect.Device
-import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.backends.bluetooth.BluetoothLinkProvider
 import org.kde.kdeconnect.backends.lan.LanLinkProvider
 import org.kde.kdeconnect.backends.loopback.LoopbackLinkProvider
@@ -24,9 +24,7 @@ import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.DevicesRoomDatabase
 import org.kde.kdeconnect.helpers.PermissionRequestHelper
-import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 import org.kde.kdeconnect.helpers.VideoUrlsHelper
-import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.plugins.battery.BatteryPlugin
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin
 import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityReportPlugin
@@ -59,8 +57,8 @@ import org.koin.plugin.module.dsl.scoped
 import org.koin.plugin.module.dsl.single
 
 val sharedModule = module {
-    single<BackgroundServiceData>()
-
+    includes(jvmSharedModule)
+    
     single<SettingsDefaults> { AndroidSettingsDefaults(androidContext()) }
 
     single(named("telephony_settings")) {
@@ -100,16 +98,9 @@ val sharedModule = module {
 
     single<DeviceSettings>()
     single<DeviceHelper>()
-    single<SslHelper>()
     single<CustomDevicesHelper>()
     single<VideoUrlsHelper>()
-    single<DeviceManager> {
-        DeviceManager(get()) { deviceInfo ->
-            get<Device> { org.koin.core.parameter.parametersOf(deviceInfo) }
-        }
-    }
     single<AppDatabase>()
-    single<TrustedNetworkHelper>()
     single<PermissionRequestHelper>()
     single<MprisMediaSession>()
 
@@ -118,7 +109,10 @@ val sharedModule = module {
             androidContext(),
             DevicesRoomDatabase::class.java,
             "Devices"
-        ).build()
+        )
+            .setDriver(BundledSQLiteDriver())
+            .setQueryCoroutineContext(Dispatchers.IO)
+            .build()
     }
     single<DeviceDao> { get<DevicesRoomDatabase>().deviceDao() }
 

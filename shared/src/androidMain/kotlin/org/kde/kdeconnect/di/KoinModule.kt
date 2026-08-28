@@ -80,8 +80,7 @@ import org.kde.kdeconnect.ui.screen.device.settings.DeviceSettingsScreen
 import org.kde.kdeconnect.ui.screen.device.settings.DeviceSettingsViewModel
 import org.kde.kdeconnect.ui.screen.device.settings.DeviceShortcutSettingsScreen
 import org.kde.kdeconnect.ui.screen.device.settings.DeviceShortcutSettingsViewModel
-import org.kde.kdeconnect.ui.screen.home.HomeScreen
-import org.kde.kdeconnect.ui.screen.home.HomeViewModel
+import org.kde.kdeconnect.ui.screen.home.HomeModule
 import org.kde.kdeconnect.ui.screen.licenses.LicensesScreen
 import org.kde.kdeconnect.ui.screen.pairing.PairingScreen
 import org.kde.kdeconnect.ui.screen.pairing.PairingViewModel
@@ -108,20 +107,7 @@ import org.koin.plugin.module.dsl.viewModel
 
 
 val homeModule = module {
-    viewModel<HomeViewModel>()
-    navigation<HomeKey> {
-        val viewModel: HomeViewModel = koinViewModel()
-        val state by viewModel.uiState.collectAsStateWithLifecycle()
-        val navigator: Navigator = get()
-        HomeScreen(
-            uiState = state,
-            navigator = navigator,
-            onClick = { deviceId -> navigator.goTo(DeviceKey(deviceId, true)) },
-            onRefresh = { viewModel.onRefresh(get()) },
-            onNavigateToPairingScreen = { navigator.goTo(PairingKey) },
-            onNavigateToSettingsScreen = { navigator.goTo(SettingsKey) }
-        )
-    }
+    includes(HomeModule)
     viewModel<PairingViewModel>()
     navigation<PairingKey> {
         val viewModel: PairingViewModel = koinViewModel()
@@ -129,7 +115,7 @@ val homeModule = module {
         PairingScreen(
             uiState = state,
             onClick = { viewModel.pair(it) },
-            onRefresh = { viewModel.onRefresh(get()) },
+            onRefresh = { viewModel.onRefresh() },
             navigator = get(),
         )
     }

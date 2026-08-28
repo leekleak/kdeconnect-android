@@ -71,7 +71,7 @@ class ShareActivity : AppCompatActivity() {
     private suspend fun refreshDevicesAction() {
         isRefreshing = true
 
-        BackgroundService.forceRefreshConnections(context = this)
+        BackgroundService.forceRefreshConnections()
         delay(1500.milliseconds)
         isRefreshing = false
     }
@@ -140,7 +140,7 @@ class ShareActivity : AppCompatActivity() {
             }
         } else {
             Toast.makeText(this, runBlocking { getString(Res.string.could_not_find_device) }, Toast.LENGTH_LONG).show()
-            BackgroundService.forceRefreshConnections(context = this) // force a network re-discover
+            BackgroundService.forceRefreshConnections() // force a network re-discover
         }
     }
 

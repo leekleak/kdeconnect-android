@@ -14,7 +14,6 @@ import android.content.pm.PackageManager
 import android.net.wifi.SupplicantState
 import android.net.wifi.WifiManager
 import androidx.core.content.ContextCompat
-import co.touchlab.kermit.Logger
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -23,7 +22,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import org.kde.kdeconnect.datastore.ConnectionsSettingsDataStore
 
-class TrustedNetworkHelper(
+actual class TrustedNetworkHelper(
     private val context: Context,
     private val dataStore: ConnectionsSettingsDataStore
 ) {
@@ -68,7 +67,7 @@ class TrustedNetworkHelper(
         }
     }.distinctUntilChanged()
 
-    val isTrustedNetwork: Flow<Boolean> =
+    actual val isTrustedNetwork: Flow<Boolean> =
         combine(
             dataStore.allNetworksAllowed,
             dataStore.trustedNetworks,

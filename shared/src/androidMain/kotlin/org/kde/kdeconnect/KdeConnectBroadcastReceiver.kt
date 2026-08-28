@@ -31,11 +31,11 @@ class KdeConnectBroadcastReceiver : BroadcastReceiver() {
 
             WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION, WifiManager.WIFI_STATE_CHANGED_ACTION, ConnectivityManager.CONNECTIVITY_ACTION -> {
                 LoggerTagged.i { "Connection state changed, trying to connect" }
-                BackgroundService.forceRefreshConnections(context)
+                BackgroundService.forceRefreshConnections()
             }
 
             Intent.ACTION_SCREEN_ON -> try {
-                BackgroundService.forceRefreshConnections(context)
+                BackgroundService.forceRefreshConnections()
             } catch (e: IllegalStateException) { // To catch ForegroundServiceStartNotAllowedException
                 LoggerTagged.w(e) { "Couldn't start the foreground service." }
             }

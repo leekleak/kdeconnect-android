@@ -53,16 +53,20 @@ kotlin {
                 implementation(libs.runtime)
                 implementation(libs.ui)
                 implementation(libs.foundation)
-                implementation(libs.androidx.compose.material3)
+                implementation(libs.material3)
                 implementation(libs.ui.tooling)
                 implementation(libs.ui.tooling.preview)
                 implementation(libs.androidx.navigation3.runtime)
                 implementation(libs.androidx.navigation3.ui)
                 implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+                implementation(libs.koin.core.viewmodel)
+                implementation(libs.koin.compose.viewmodel)
                 implementation(libs.koin.compose.navigation3)
                 implementation(libs.haze)
                 implementation(libs.haze.blur)
                 implementation(libs.haze.blur.materials)
+                implementation(libs.androidx.sqlite)
+                implementation(libs.androidx.sqlite.bundled)
             }
         }
 
@@ -81,6 +85,7 @@ kotlin {
                 implementation(libs.slf4j.handroid)
                 implementation(libs.koin.android)
 
+                implementation(libs.koin.androidx.compose)
                 implementation(libs.androidx.compose.ui.tooling)
                 implementation(libs.androidx.compose.ui.tooling.preview)
                 implementation(libs.androidx.activity.compose)
@@ -88,9 +93,7 @@ kotlin {
                 implementation(libs.androidx.media3.session)
                 implementation(libs.androidx.appcompat)
                 implementation(libs.androidx.documentfile)
-                implementation(libs.androidx.lifecycle.viewmodel.ktx)
                 implementation(libs.androidx.lifecycle.runtime.ktx)
-                implementation(libs.koin.androidx.compose)
                 implementation(libs.google.android.material)
                 implementation(libs.apache.sshd.core)
                 implementation(libs.apache.sshd.sftp)
@@ -112,6 +115,9 @@ kotlin {
 
         jvmMain {
             dependsOn(jvmCommon)
+            dependencies {
+                implementation(libs.kotlinx.coroutines.swing)
+            }
         }
 
         getByName("androidHostTest") {

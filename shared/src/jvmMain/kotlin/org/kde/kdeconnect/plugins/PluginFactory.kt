@@ -2,7 +2,6 @@ package org.kde.kdeconnect.plugins
 
 import org.jetbrains.compose.resources.StringResource
 import org.kde.kdeconnect.Device
-import plugins.PluginFactoryInfo
 
 actual class PluginFactoryInfo(
     override val pluginKey: String,
