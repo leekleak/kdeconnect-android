@@ -13,7 +13,7 @@ import org.koin.dsl.module
 import org.koin.dsl.navigation3.navigation
 
 @OptIn(KoinExperimentalAPI::class)
-val HomeModule = module {
+val homeModule = module {
     factory { HomeViewModel(get(), get(), get()) }
     navigation<HomeKey> {
         val viewModel: HomeViewModel = koinViewModel()

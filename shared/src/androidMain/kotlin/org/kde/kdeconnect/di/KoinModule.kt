@@ -16,10 +16,10 @@ import coil3.disk.DiskCache
 import coil3.disk.directory
 import coil3.memory.MemoryCache
 import coil3.request.crossfade
-import org.kde.kdeconnect.device.Device
-import org.kde.kdeconnect.device.DeviceManager
 import org.kde.kdeconnect.DevicePairingCallback
+import org.kde.kdeconnect.device.Device
 import org.kde.kdeconnect.device.DeviceInfo
+import org.kde.kdeconnect.device.DeviceManager
 import org.kde.kdeconnect.helpers.AppIconFetcher
 import org.kde.kdeconnect.helpers.PermissionHelper
 import org.kde.kdeconnect.plugins.digitizer.DigitizerScreen
@@ -63,7 +63,6 @@ import org.kde.kdeconnect.ui.navigation.MprisSinkKey
 import org.kde.kdeconnect.ui.navigation.MprisSourceKey
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.NotificationSettingsKey
-import org.kde.kdeconnect.ui.navigation.PairingKey
 import org.kde.kdeconnect.ui.navigation.PermissionsScreenKey
 import org.kde.kdeconnect.ui.navigation.PresenterKey
 import org.kde.kdeconnect.ui.navigation.PresenterPluginSettingsKey
@@ -80,10 +79,9 @@ import org.kde.kdeconnect.ui.screen.device.settings.DeviceSettingsScreen
 import org.kde.kdeconnect.ui.screen.device.settings.DeviceSettingsViewModel
 import org.kde.kdeconnect.ui.screen.device.settings.DeviceShortcutSettingsScreen
 import org.kde.kdeconnect.ui.screen.device.settings.DeviceShortcutSettingsViewModel
-import org.kde.kdeconnect.ui.screen.home.HomeModule
+import org.kde.kdeconnect.ui.screen.home.homeModule
 import org.kde.kdeconnect.ui.screen.licenses.LicensesScreen
-import org.kde.kdeconnect.ui.screen.pairing.PairingScreen
-import org.kde.kdeconnect.ui.screen.pairing.PairingViewModel
+import org.kde.kdeconnect.ui.screen.pairing.pairingModule
 import org.kde.kdeconnect.ui.screen.permissions.PermissionsScreen
 import org.kde.kdeconnect.ui.screen.settings.SettingsScreen
 import org.kde.kdeconnect.ui.screen.settings.SettingsViewModel
@@ -107,18 +105,11 @@ import org.koin.plugin.module.dsl.viewModel
 
 
 val homeModule = module {
-    includes(HomeModule)
-    viewModel<PairingViewModel>()
-    navigation<PairingKey> {
-        val viewModel: PairingViewModel = koinViewModel()
-        val state by viewModel.uiState.collectAsStateWithLifecycle()
-        PairingScreen(
-            uiState = state,
-            onClick = { viewModel.pair(it) },
-            onRefresh = { viewModel.onRefresh() },
-            navigator = get(),
-        )
-    }
+
+
+
+}
+val permissionsScreenModule = module {
     navigation<PermissionsScreenKey> {
         PermissionsScreen(navigator = get())
     }
@@ -319,8 +310,11 @@ fun buildImageLoader(context: Context, deviceManager: DeviceManager): ImageLoade
         .build()
 
 val appModule = module {
-    includes(homeModule, deviceModule, pluginSettingsModule, presenterModule, mprisModule,
-        mousePadModule, runCommandModule, digitizerModule, settingsModule, aboutModule, sharedModule)
+    includes(
+        deviceModule, pluginSettingsModule, presenterModule, mprisModule,
+        mousePadModule, runCommandModule, digitizerModule, settingsModule, aboutModule, sharedModule,
+        homeModule, pairingModule, permissionsScreenModule
+    )
 
     single {
         val startDestination = if (PermissionHelper.hasRequiredPermissions(get())) {

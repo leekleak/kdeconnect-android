@@ -7,11 +7,11 @@ import kotlinx.coroutines.Dispatchers
 import okio.Path.Companion.toPath
 import org.jetbrains.compose.resources.StringResource
 import org.kde.kdeconnect.BackgroundService
-import org.kde.kdeconnect.device.Device
 import org.kde.kdeconnect.PairingHandler
 import org.kde.kdeconnect.backends.http.HttpLinkProvider
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.datastore.SettingsDefaults
+import org.kde.kdeconnect.device.Device
 import org.kde.kdeconnect.device.DeviceInfo
 import org.kde.kdeconnect.helpers.DeviceDao
 import org.kde.kdeconnect.helpers.DeviceHelper
@@ -19,14 +19,15 @@ import org.kde.kdeconnect.helpers.DeviceSettings
 import org.kde.kdeconnect.helpers.DevicesRoomDatabase
 import org.kde.kdeconnect.ui.navigation.HomeKey
 import org.kde.kdeconnect.ui.navigation.Navigator
-import org.kde.kdeconnect.ui.screen.home.HomeModule
+import org.kde.kdeconnect.ui.screen.home.homeModule
+import org.kde.kdeconnect.ui.screen.pairing.pairingModule
 import org.koin.dsl.module
 import org.koin.plugin.module.dsl.factory
 import org.koin.plugin.module.dsl.single
 import java.io.File
 
 val jvmModule = module {
-    includes(jvmSharedModule, HomeModule)
+    includes(jvmSharedModule, homeModule, pairingModule)
     single { Navigator(HomeKey) }
     single<SettingsDefaults> {
         object : SettingsDefaults {
