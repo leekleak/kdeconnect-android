@@ -67,13 +67,13 @@ fun PairingScreen(
                         items = uiState.available,
                         key = { device -> device.deviceInfo.id }
                     ) { device ->
+                        val isPairingActive = device.pairState == PairState.Requested || device.pairState == PairState.RequestedByPeer
                         val actionIcon = painterResource(
-                            if (device.pairState == PairState.Requested) Res.drawable.key
+                            if (isPairingActive) Res.drawable.key
                             else Res.drawable.link
                         )
                         val actionDescription =
-                            if (device.pairState == PairState.Requested) device.verificationKey
-                                ?: ""
+                            if (isPairingActive) device.verificationKey ?: ""
                             else stringResource(Res.string.pair)
 
                         DeviceCard(

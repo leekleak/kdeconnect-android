@@ -16,6 +16,7 @@ import coil3.disk.DiskCache
 import coil3.disk.directory
 import coil3.memory.MemoryCache
 import coil3.request.crossfade
+import kotlinx.coroutines.delay
 import org.kde.kdeconnect.DevicePairingCallback
 import org.kde.kdeconnect.device.Device
 import org.kde.kdeconnect.device.DeviceInfo
@@ -102,6 +103,7 @@ import org.koin.dsl.module
 import org.koin.dsl.navigation3.navigation
 import org.koin.plugin.module.dsl.single
 import org.koin.plugin.module.dsl.viewModel
+import kotlin.time.Duration.Companion.seconds
 
 
 val homeModule = module {
@@ -215,6 +217,7 @@ val deviceModule = module {
                 }
                 activity.launchSharePicker("*/*")
             }
+            delay(1.seconds)
             navigator.goBack()
         }
     }

@@ -112,7 +112,7 @@ actual class Device(
 
     actual val deviceId: String get() = state.value.deviceInfo.id
     val certificate: Certificate get() = sslHelper.parseCertificate(state.value.deviceInfo.certificate)
-    val deviceInfo: DeviceInfo get() = state.value.deviceInfo
+    actual val deviceInfo: DeviceInfo get() = state.value.deviceInfo
     actual val isReachable: Boolean get() = state.value.isReachable
     val name: String get() = deviceInfo.name
     val iconRes: DrawableResource get() = deviceInfo.type.toDrawableRes()

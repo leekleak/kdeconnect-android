@@ -35,9 +35,11 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.compose.resources.DrawableResource
 import org.kde.kdeconnect.NetworkPacket
+import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.backends.lan.MdnsDiscovery
 import org.kde.kdeconnect.device.DeviceInfo
+import org.kde.kdeconnect.device.DeviceManager
 import org.kde.kdeconnect.generated.resources.Res
 import org.kde.kdeconnect.generated.resources.link
 import org.kde.kdeconnect.helpers.DeviceHelper
@@ -47,7 +49,8 @@ import io.ktor.client.plugins.websocket.WebSockets as ClientWebSockets
 import io.ktor.client.plugins.websocket.webSocket as clientWebSocket
 
 class HttpLinkProvider(
-    private val deviceHelper: DeviceHelper
+    private val deviceHelper: DeviceHelper,
+    private val deviceManager: DeviceManager,
 ) : BaseLinkProvider() {
 
     private var server: EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration>? = null
@@ -61,11 +64,11 @@ class HttpLinkProvider(
 
     private val mdnsDiscovery = MdnsDiscovery(
         deviceHelper = deviceHelper,
-        tcpPortProvider = { 8080 }, // TODO: Make port configurable
+        tcpPortProvider = { 8080 },
         serviceType = MdnsDiscovery.SERVICE_TYPE_HTTP,
         onDeviceDiscovered = { deviceId, host, port ->
-            val myId = deviceHelper.getDeviceId()
-            if (deviceId == myId || myId.isEmpty()) return@MdnsDiscovery
+            val myInfo = deviceHelper.getDeviceInfo()
+            if (deviceId == myInfo.id || myInfo.id.isEmpty()) return@MdnsDiscovery
             
             scope.launch {
                 linksMutex.withLock {
@@ -77,22 +80,19 @@ class HttpLinkProvider(
                         method = HttpMethod.Get,
                         host = host,
                         port = port,
-                        path = "/ws/$myId"
+                        path = "/ws/${myInfo.id}",
                     ) {
-                        val myInfo = deviceHelper.getDeviceInfo()
                         send(Frame.Text(myInfo.toIdentityPacket().serialize()))
-                        
-                        // Wait for server's identity
+
                         for (frame in incoming) {
                             if (frame is Frame.Text) {
                                 val text = frame.readText()
                                 val packet = NetworkPacket.unserialize(text)
                                 if (packet.type == NetworkPacket.PACKET_TYPE_IDENTITY) {
-
                                     val remoteDeviceId = packet.getString("deviceId")
                                     if (remoteDeviceId == deviceId) {
                                         val deviceInfo = DeviceInfo.fromIdentityPacketAndCert(packet)
-                                        addOrUpdateLink(deviceInfo, this)
+                                        onIdentityPacketReceived(deviceInfo, this)
                                         break
                                     }
                                 }
@@ -148,7 +148,7 @@ class HttpLinkProvider(
         }
     }
 
-    override fun onConnectionLost(link: org.kde.kdeconnect.backends.BaseLink) {
+    override fun onConnectionLost(link: BaseLink) {
         scope.launch {
             linksMutex.withLock {
                 activeLinks.remove(link.deviceId)
@@ -182,7 +182,8 @@ class HttpLinkProvider(
 
                             val deviceInfo = DeviceInfo.fromIdentityPacketAndCert(packet)
 
-                            addOrUpdateLink(deviceInfo, this)
+                            onIdentityPacketReceived(deviceInfo, this)
+
                             break
                         }
                     }
@@ -190,6 +191,16 @@ class HttpLinkProvider(
 
                 closeReason.await()
             }
+        }
+    }
+
+    private suspend fun onIdentityPacketReceived(deviceInfo: DeviceInfo, session: WebSocketSession) {
+        if (deviceInfo.protocolVersion != 8) return
+
+        val savedDevice = deviceManager.getDevice(deviceInfo.id)
+
+        if (savedDevice == null || deviceInfo.certificate.contentEquals(savedDevice.deviceInfo.certificate)) {
+            addOrUpdateLink(deviceInfo, session)
         }
     }
 

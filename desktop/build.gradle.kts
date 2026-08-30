@@ -19,6 +19,7 @@ kotlin {
                 implementation(libs.material3)
                 implementation(compose.desktop.currentOs)
                 implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.kotlinx.coroutines.swing)
                 implementation(libs.koin.compose.navigation3)
                 implementation(libs.androidx.navigation3.ui)
                 implementation(libs.androidx.datastore.preferences)

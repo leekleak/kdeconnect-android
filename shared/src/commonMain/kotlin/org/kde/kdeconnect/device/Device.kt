@@ -6,6 +6,7 @@ import org.kde.kdeconnect.backends.BaseLink
 import org.kde.kdeconnect.plugins.Plugin
 
 expect class Device {
+    val deviceInfo: DeviceInfo
     val deviceId: String
     val isReachable: Boolean
     val isPaired: Boolean
