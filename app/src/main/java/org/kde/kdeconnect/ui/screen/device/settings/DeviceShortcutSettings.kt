@@ -79,12 +79,15 @@ fun DeviceShortcutSettingsScreen(
         flatItems += Placeholder(KEY_PLACEHOLDER_DISABLED)
     }
 
+    val placeholderKeys = setOf(KEY_PLACEHOLDER_ENABLED, KEY_PLACEHOLDER_DISABLED)
+    val ignoredKeys = setOf(KEY_HEADER_ENABLED, KEY_HEADER_DISABLED, KEY_DIVIDER).union(placeholderKeys)
+
     val lazyGridState = rememberLazyGridState()
     val reorderableLazyGridState = rememberReorderableLazyGridState(lazyGridState) { from, to ->
         val fromKey = from.key as? String ?: return@rememberReorderableLazyGridState
         val toKey = to.key as? String ?: return@rememberReorderableLazyGridState
-        
-        if (fromKey == KEY_HEADER_ENABLED || fromKey == KEY_HEADER_DISABLED || fromKey == KEY_DIVIDER || fromKey == KEY_PLACEHOLDER_ENABLED || fromKey == KEY_PLACEHOLDER_DISABLED) return@rememberReorderableLazyGridState
+
+        if (ignoredKeys.contains(fromKey)) return@rememberReorderableLazyGridState
 
         val fromIndex = flatItems.indexOfFirst { it.key == fromKey }
         val toIndex = flatItems.indexOfFirst { it.key == toKey }
@@ -96,6 +99,10 @@ fun DeviceShortcutSettingsScreen(
     fun persist() {
         val dividerIndex = flatItems.indexOfFirst { it.key == KEY_DIVIDER }
         if (dividerIndex == -1) return
+
+        flatItems.removeAll { placeholderKeys.contains(it.key) }
+        flatItems.add(dividerIndex-1, Placeholder(KEY_PLACEHOLDER_ENABLED))
+        flatItems.add(flatItems.size, Placeholder(KEY_PLACEHOLDER_DISABLED))
 
         val enabledKeys = flatItems.subList(1, dividerIndex)
             .mapNotNull { (it as? ButtonEntry)?.button?.pluginKey }
