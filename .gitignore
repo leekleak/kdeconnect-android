@@ -13,5 +13,5 @@ local.properties
 !debug.keystore
 .directory
 GPUCache/
-/release/
+app/release/
 /.kotlin/

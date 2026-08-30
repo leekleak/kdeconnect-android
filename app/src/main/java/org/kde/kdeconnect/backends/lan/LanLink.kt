@@ -279,7 +279,6 @@ class LanLink @WorkerThread constructor(
             }
         }
 
-        LoggerTagged.e { np.serialize() }
         packetReceived(np)
     }
 
