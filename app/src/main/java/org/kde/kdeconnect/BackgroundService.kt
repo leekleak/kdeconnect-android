@@ -61,10 +61,10 @@ class BackgroundService : Service() {
 
     private val linkProviders = mutableListOf<BaseLinkProvider>()
 
-    fun updateForegroundNotification(devices: Map<String, Device>) {
+    fun updateForegroundNotification(states: Map<String, DeviceState>) {
         // Update the foreground notification with the currently connected device list
         val notificationManager = getSystemService<NotificationManager>()
-        notificationManager?.notify(FOREGROUND_NOTIFICATION_ID, createForegroundNotification(devices))
+        notificationManager?.notify(FOREGROUND_NOTIFICATION_ID, createForegroundNotification(states))
     }
 
     private fun registerLinkProviders() {
@@ -98,8 +98,8 @@ class BackgroundService : Service() {
         instance = this
 
         serviceScope.launch {
-            deviceManager.devices.collect { devices ->
-                updateForegroundNotification(devices)
+            deviceManager.allDeviceStatesMap.collect { states ->
+                updateForegroundNotification(states)
             }
         }
 
@@ -139,22 +139,15 @@ class BackgroundService : Service() {
         }
     }
 
-    private fun createForegroundNotification(devices: Map<String, Device>): Notification {
+    private fun createForegroundNotification(states: Map<String, DeviceState>): Notification {
         // Why is this needed: https://developer.android.com/guide/components/services#Foreground
 
-        val connectedDevices = mutableListOf<String>()
-        val connectedDeviceIds = mutableListOf<String>()
-        for (device in devices.values) {
-            if (device.isReachable && device.isPaired) {
-                connectedDeviceIds.add(device.deviceId)
-                connectedDevices.add(device.name)
-            }
-        }
+        val connectedDevices = states.values.filter { it.isReachable && it.isPaired }
 
         val intent = Intent(this, MainActivity::class.java)
-        if (connectedDeviceIds.size == 1) {
+        if (connectedDevices.size == 1) {
             // Force open screen of the only connected device
-            intent.putExtra(MainActivity.EXTRA_DEVICE_ID, connectedDeviceIds[0])
+            intent.putExtra(MainActivity.EXTRA_DEVICE_ID, connectedDevices[0].deviceInfo.id)
         }
 
         val pi = PendingIntent.getActivity(this, 0, intent, UPDATE_IMMUTABLE_FLAGS)
@@ -167,22 +160,27 @@ class BackgroundService : Service() {
             setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             setAutoCancel(false)
             setGroup("BackgroundService")
-        }
-
-        if (connectedDevices.isEmpty()) {
-            notification.setContentText(getString(R.string.foreground_notification_no_devices))
-        }
-        else {
-            notification.setContentText(getString(R.string.foreground_notification_devices, connectedDevices.joinToString(", ")))
-
-            // Adding an action button to send clipboard manually in Android 10 and later.
-            if (!ClipboardPlugin.canSyncAutomatically(this)) {
-                val sendClipboard = ClipboardFloatingActivity.getIntent(this, true)
-                val sendPendingClipboard = PendingIntent.getActivity(this, 3, sendClipboard, UPDATE_IMMUTABLE_FLAGS)
-                notification.addAction(0, getString(R.string.foreground_notification_send_clipboard), sendPendingClipboard)
+            if (connectedDevices.isEmpty()) {
+                setContentText(getString(R.string.foreground_notification_no_devices))
             }
-        }
-        return notification.build()
+            else {
+                setContentText(
+                    getString(
+                        R.string.foreground_notification_devices,
+                        connectedDevices.joinToString(", ") { it.deviceInfo.name }
+                    )
+                )
+
+                // Adding an action button to send clipboard manually in Android 10 and later.
+                if (!ClipboardPlugin.canSyncAutomatically(this@BackgroundService)) {
+                    val sendClipboard = ClipboardFloatingActivity.getIntent(this@BackgroundService, true)
+                    val sendPendingClipboard = PendingIntent.getActivity(this@BackgroundService, 3, sendClipboard, UPDATE_IMMUTABLE_FLAGS)
+                    addAction(0, getString(R.string.foreground_notification_send_clipboard), sendPendingClipboard)
+                }
+            }
+        }.build()
+        
+        return notification
     }
 
     override fun onDestroy() {

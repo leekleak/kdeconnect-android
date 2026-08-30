@@ -501,4 +501,5 @@ data class DeviceState(
     val uiButtons: List<PluginUiButton> = emptyList(),
 ) {
     val isReachable: Boolean get() = links.isNotEmpty()
+    val isPaired: Boolean get() = pairState == PairState.Paired
 }
