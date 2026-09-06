@@ -207,9 +207,10 @@ class Device(
         link.removePacketReceiver(this)
         updateState { state ->
             val newLinks = state.links.minus(link)
+            val newBatteryInfo = if (newLinks.isEmpty()) null else state.batteryInfo
 
             LoggerTagged.i { "removeLink: ${link.linkProvider.name} -> $name active links: ${newLinks.size}" }
-            state.copy(links = newLinks)
+            state.copy(links = newLinks, batteryInfo = newBatteryInfo)
         }
     }
 
