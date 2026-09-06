@@ -414,27 +414,27 @@ val appModule = module {
     factory<LoopbackLinkProvider>()
 
     scope<Device> {
-        scoped { SftpPlugin(get(), get(), get(), get()) }
-        scoped { BatteryPlugin(get(), get()) }
-        scoped { ClipboardPlugin(get(), get()) }
-        scoped { ConnectivityReportPlugin(get(), get()) }
-        scoped { ContactsPlugin(get(), get()) }
-        scoped { FindMyPhonePlugin(get(), get(), get(), get()) }
-        scoped { FindRemoteDevicePlugin(get(), get()) }
-        scoped { InputDevicesReceiverPlugin(get(), get(), get()) }
-        scoped { MousePadPlugin(get(), get()) }
-        scoped { MouseReceiverPlugin(get(), get(), get()) }
-        scoped { MprisPlugin(get(), get(), get(), get(), get()) }
-        scoped { MprisReceiverPlugin(get(), get()) }
-        scoped { NotificationsPlugin(get(), get(), get(), get()) }
-        scoped { PresenterPlugin(get(), get()) }
-        scoped { ReceiveNotificationsPlugin(get(), get()) }
-        scoped { RemoteKeyboardPlugin(get(), get(), get()) }
-        scoped { RunCommandPlugin(get(), get(), get()) }
-        scoped { SharePlugin(get(), get(), get()) }
-        scoped { SMSPlugin(get(), get(), get(), get()) }
-        scoped { SystemVolumePlugin(get(), get()) }
-        scoped { TelephonyPlugin(get(), get(), get()) }
-        scoped { DigitizerPlugin(get(), get()) }
+        factory { SftpPlugin(get(), get(), get(), get()) }
+        factory { BatteryPlugin(get(), get()) }
+        factory { ClipboardPlugin(get(), get()) }
+        factory { ConnectivityReportPlugin(get(), get()) }
+        factory { ContactsPlugin(get(), get()) }
+        factory { FindMyPhonePlugin(get(), get(), get(), get()) }
+        factory { FindRemoteDevicePlugin(get(), get()) }
+        factory { InputDevicesReceiverPlugin(get(), get(), get()) }
+        factory { MousePadPlugin(get(), get()) }
+        factory { MouseReceiverPlugin(get(), get(), get()) }
+        factory { MprisPlugin(get(), get(), get(), get(), get()) }
+        factory { MprisReceiverPlugin(get(), get()) }
+        factory { NotificationsPlugin(get(), get(), get(), get()) }
+        factory { PresenterPlugin(get(), get()) }
+        factory { ReceiveNotificationsPlugin(get(), get()) }
+        factory { RemoteKeyboardPlugin(get(), get(), get()) }
+        factory { RunCommandPlugin(get(), get(), get()) }
+        factory { SharePlugin(get(), get(), get()) }
+        factory { SMSPlugin(get(), get(), get(), get()) }
+        factory { SystemVolumePlugin(get(), get()) }
+        factory { TelephonyPlugin(get(), get(), get()) }
+        factory { DigitizerPlugin(get(), get()) }
     }
 }

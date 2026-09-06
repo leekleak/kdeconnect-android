@@ -42,8 +42,6 @@ class ConnectivityReportPlugin(context: Context, device: Device) : Plugin(contex
      *     }
      * }
      */
-    private val connectivityInfo = NetworkPacket(PACKET_TYPE_CONNECTIVITY_REPORT)
-
     var listener = object : ConnectivityListener.StateCallback {
         override fun statesChanged(states : Map<Int, SubscriptionState>) {
             if (states.isEmpty()) {
@@ -60,9 +58,11 @@ class ConnectivityReportPlugin(context: Context, device: Device) : Plugin(contex
                     e.printStackTrace()
                 }
             }
-            connectivityInfo["signalStrengths"] = signalStrengths
+            val packet = NetworkPacket(PACKET_TYPE_CONNECTIVITY_REPORT).apply {
+                set("signalStrengths", signalStrengths)
+            }
             coroutineScope.launch {
-                device.sendPacket(connectivityInfo)
+                device.sendPacket(packet)
             }
         }
     }
@@ -73,8 +73,8 @@ class ConnectivityReportPlugin(context: Context, device: Device) : Plugin(contex
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         getInstance(context).cancelActiveListener(listener)
+        super.onDestroy()
     }
 
     override suspend fun onPacketReceived(np: NetworkPacket): Boolean {

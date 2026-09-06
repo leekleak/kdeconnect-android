@@ -40,8 +40,6 @@ import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.Plugin.Companion.getPluginKey
 import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect.plugins.PluginUiButton
-import org.kde.kdeconnect.plugins.battery.BatteryPlugin.Companion.PACKET_TYPE_BATTERY
-import org.kde.kdeconnect.plugins.battery.BatteryPluginInfo
 import org.kde.kdeconnect.plugins.battery.DeviceBatteryInfo
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.component.KoinScopeComponent
@@ -354,7 +352,7 @@ class Device(
     suspend fun getPlugin(pluginKey: String): Plugin? {
         loadedPlugins.value[pluginKey]?.let { return it }
 
-        val pluginInfo = runCatching { PluginFactory.getPluginInfo(pluginKey) }.getOrNull() ?: return null
+        runCatching { PluginFactory.getPluginInfo(pluginKey) }.getOrNull() ?: return null
 
         val currentState = state.value
         if (pluginKey !in currentState.supportedPlugins) return null
@@ -364,14 +362,10 @@ class Device(
             && (currentState.deviceInfo.settings[pluginKey] == true)
         if (!pluginEnabled) return null
 
-        if (!pluginInfo.lazy) pluginReloadMutex.withLock {
-            return loadedPlugins.value[pluginKey]!!
-        }
-
         return pluginReloadMutex.withLock {
-            LoggerTagged.i { "lazy loading $pluginKey" }
             loadedPlugins.value[pluginKey]?.let { return@withLock it }
 
+            LoggerTagged.i { "loading plugin $pluginKey" }
             val plugin = PluginFactory.instantiatePluginForDevice(pluginKey, this@Device) ?: return@withLock null
             if (!plugin.isCompatible) return@withLock null
 
@@ -418,22 +412,23 @@ class Device(
 
         if (state.pairState == PairState.Paired && isReachable) {
             state.supportedPlugins.forEach { pluginKey ->
-                val pluginInfo = PluginFactory.getPluginInfo(pluginKey)
-
                 val pluginEnabled = info.settings[pluginKey] == true
+                if (!pluginEnabled) return@forEach
 
-                if (pluginEnabled) {
-                    if (!pluginInfo.lazy) {
-                        val plugin = oldLoadedPlugins[pluginKey] ?: PluginFactory.instantiatePluginForDevice(pluginKey, this)
+                val alreadyLoaded = oldLoadedPlugins[pluginKey]
+                if (alreadyLoaded != null) {
+                    if (alreadyLoaded.isCompatible) {
+                        newLoadedPlugins[pluginKey] = alreadyLoaded
+                    }
+                    return@forEach
+                }
 
-                        if (plugin != null && plugin.isCompatible) {
-                            newLoadedPlugins[pluginKey] = plugin
-                        }
-                    } else if (oldLoadedPlugins.containsKey(pluginKey)) {
-                        val plugin = oldLoadedPlugins[pluginKey]!!
-                        if (plugin.isCompatible) {
-                            newLoadedPlugins[pluginKey] = plugin
-                        }
+                val pluginInfo = PluginFactory.getPluginInfo(pluginKey)
+                if (!pluginInfo.lazy) {
+                    val plugin = PluginFactory.instantiatePluginForDevice(pluginKey, this)
+
+                    if (plugin != null && plugin.isCompatible) {
+                        newLoadedPlugins[pluginKey] = plugin
                     }
                 }
             }

@@ -16,8 +16,8 @@ import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 
 abstract class Plugin(
-    @JvmField protected val context: Context,
-    @JvmField protected val device: Device
+    protected val context: Context,
+    protected val device: Device
 ) {
 
     abstract val pluginInfo: PluginInfo
