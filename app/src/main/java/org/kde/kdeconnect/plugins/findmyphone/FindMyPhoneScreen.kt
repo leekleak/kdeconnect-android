@@ -14,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,7 +21,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.ui.components.BackAction
 import org.kde.kdeconnect.ui.components.HazeScaffold
@@ -36,7 +35,6 @@ fun FindMyPhoneScreen(
     onFinish: () -> Unit
 ) {
     val deviceManager = koinInject<DeviceManager>()
-    val scope = rememberCoroutineScope()
 
     LaunchedEffect(deviceId) {
         deviceManager.getDevicePlugin(deviceId, FindMyPhonePlugin::class.java)?.let {
@@ -48,7 +46,7 @@ fun FindMyPhoneScreen(
 
     DisposableEffect(deviceId) {
         onDispose {
-            scope.launch {
+            runBlocking {
                 deviceManager.getDevicePlugin(deviceId, FindMyPhonePlugin::class.java)?.let {
                     it.stopPlaying()
                     it.stopFlashing()
