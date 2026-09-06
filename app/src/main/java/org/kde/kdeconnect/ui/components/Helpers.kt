@@ -4,7 +4,6 @@ package org.kde.kdeconnect.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -98,7 +97,7 @@ fun PairingExplanations(wifiAvailable: Boolean, trustedNetwork: Boolean) {
             BigPlaceholder(
                 modifier = Modifier.align(Alignment.Center),
                 painter = painterResource(R.drawable.wifi_off),
-                text = stringResource(R.string.on_non_trusted_message),
+                text = stringResource(R.string.no_wifi),
             )
         } else if (!trustedNetwork) {
             BigPlaceholder(
