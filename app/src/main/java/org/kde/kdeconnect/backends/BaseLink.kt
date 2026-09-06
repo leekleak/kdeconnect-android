@@ -5,7 +5,6 @@
 */
 package org.kde.kdeconnect.backends
 
-import android.content.Context
 import androidx.annotation.WorkerThread
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceInfo
@@ -14,7 +13,6 @@ import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
 
 abstract class BaseLink protected constructor(
-    protected val context: Context,
     open val linkProvider: BaseLinkProvider
 ) {
     interface PacketReceiver {

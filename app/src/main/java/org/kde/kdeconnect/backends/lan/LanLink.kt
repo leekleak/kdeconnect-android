@@ -5,7 +5,6 @@
 */
 package org.kde.kdeconnect.backends.lan
 
-import android.content.Context
 import androidx.annotation.WorkerThread
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -38,13 +37,12 @@ import javax.net.ssl.SSLSocket
 import kotlin.concurrent.Volatile
 import kotlin.text.Charsets.UTF_8
 
-class LanLink @WorkerThread constructor(
-    context: Context,
+class LanLink(
     override var deviceInfo: DeviceInfo,
     linkProvider: BaseLinkProvider,
     socket: SSLSocket,
     private val sslHelper: SslHelper,
-) : BaseLink(context, linkProvider) {
+) : BaseLink(linkProvider) {
     enum class ConnectionStarted {
         Locally, Remotely
     }

@@ -7,7 +7,6 @@
 package org.kde.kdeconnect.backends.bluetooth
 
 import android.bluetooth.BluetoothDevice
-import android.content.Context
 import androidx.annotation.WorkerThread
 import kotlinx.coroutines.runBlocking
 import org.json.JSONException
@@ -26,14 +25,13 @@ import java.util.UUID
 import kotlin.text.Charsets.UTF_8
 
 class BluetoothLink(
-    context: Context,
     private val connection: ConnectionMultiplexer,
     val input: InputStream,
     val output: OutputStream,
     val remoteAddress: BluetoothDevice,
     override val deviceInfo: DeviceInfo,
     override val linkProvider: BluetoothLinkProvider
-) : BaseLink(context, linkProvider) {
+) : BaseLink(linkProvider) {
     private var continueAccepting = true
     private val receivingThread = Thread(object : Runnable {
         override fun run() {

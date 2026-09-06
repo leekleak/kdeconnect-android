@@ -58,7 +58,7 @@ import kotlin.text.Charsets.UTF_8
  * @see .identityPacketReceived
  */
 class LanLinkProvider(
-    private val context: Context,
+    context: Context,
     private val deviceHelper: DeviceHelper,
     private val deviceManager: DeviceManager,
     private val trustedNetworkHelper: TrustedNetworkHelper,
@@ -433,7 +433,7 @@ class LanLinkProvider(
         } else {
             // Create a new link
             LoggerTagged.d { "Creating a new link for device " + deviceInfo.id }
-            link = LanLink(context, deviceInfo, this, socket, sslHelper)
+            link = LanLink(deviceInfo, this, socket, sslHelper)
             visibleDevices[deviceInfo.id] = link
             onConnectionReceived(link)
         }

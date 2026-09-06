@@ -1,11 +1,6 @@
-/*
- * SPDX-FileCopyrightText: 2026 Saul Cintero Chocarro <scintero@gmail.com>
- *
- * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
- */
-
 package org.kde.kdeconnect.ui.components
 
+import android.net.Network
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -14,15 +9,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -39,53 +32,22 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.DeviceState
 import org.kde.kdeconnect.DeviceType
+import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.PairState
+import org.kde.kdeconnect.backends.BaseLink
+import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.plugins.ButtonCategory
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.battery.DeviceBatteryInfo
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect_tp.R
-
-@Composable
-fun KdeCard(
-    modifier: Modifier = Modifier,
-    content: @Composable (ColumnScope.() -> Unit),
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(4.dp)
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(),
-        elevation = CardDefaults.cardElevation(),
-        content = content
-    )
-}
-
-@PreviewLightDark
-@Composable
-private fun KdeCardPreview() {
-    KdeCard(
-        modifier = Modifier.fillMaxWidth(),
-        content = {
-            Text(
-                text = "A very long device name that might wrap into multiple lines",
-                modifier = Modifier.padding(all = 16.dp),
-                style = MaterialTheme.typography.bodyLarge, // textAppearanceMedium
-                color = colorScheme.onSurfaceVariant
-            )
-        },
-        onClick = { /* Do nothing */ }
-    )
-}
 
 @Composable
 fun Modifier.card(backgroundColor: Color = colorScheme.surfaceContainer): Modifier {
@@ -129,45 +91,65 @@ fun DeviceCard(
             .background(colorScheme.surfaceContainerLowest)
             .border(BorderStroke(1.dp, colorScheme.outline), MaterialTheme.shapes.large)
     ) {
-        Box {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onClick(device.deviceInfo.id) }
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             Row(
-                modifier = Modifier.align(Alignment.TopEnd).padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                device.links.forEach { link ->
-                    Icon(painterResource(link.linkProvider.icon), link.linkProvider.name)
-                }
-            }
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onClick(device.deviceInfo.id) }
-                    .padding(16.dp)
-            ) {
+                horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                verticalAlignment = Alignment.CenterVertically
+            ){
                 Icon(
                     modifier = Modifier.size(40.dp),
                     painter = painterResource(device.deviceInfo.type.toDrawableRes()),
                     contentDescription = null
                 )
                 Text(
-                    modifier = Modifier.fillMaxWidth(0.7f),
-                    fontSize = 42.sp,
-                    lineHeight = 42.sp,
+                    fontSize = 28.sp,
+                    lineHeight = 28.sp,
                     text = device.deviceInfo.name,
                     fontFamily = font
                 )
+            }
 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    device.batteryInfo?.let { battery ->
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (device.links.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier.background(
+                            colorScheme.surfaceContainerHigh,
+                            MaterialTheme.shapes.extraLarge
+                        )
+                            .widthIn(min = 40.dp)
+                            .padding(horizontal = 8.dp, vertical = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        device.links.forEach { link ->
+                            Icon(
+                                painter = painterResource(link.linkProvider.icon),
+                                contentDescription = link.linkProvider.name,
+                            )
+                        }
+                    }
+                }
+                device.batteryInfo?.let { battery ->
+                    Box(
+                        modifier = Modifier.background(
+                            colorScheme.surfaceContainerHigh,
+                            MaterialTheme.shapes.extraLarge
+                        ).padding(horizontal = 8.dp),
+                    ) {
                         BatteryComponent(battery)
                     }
-                    Spacer(Modifier.weight(1f))
-                    action()
                 }
+                Spacer(Modifier.weight(1f))
+                action()
             }
         }
 
@@ -188,7 +170,7 @@ fun DeviceCard(
 fun BatteryComponent(battery: DeviceBatteryInfo) {
     val font = remember { googleSans(weight = 600f) }
     Row(
-        modifier = Modifier.height(32.dp),
+        modifier = Modifier.height(36.dp).padding(end = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
@@ -227,17 +209,21 @@ fun BatteryComponent(battery: DeviceBatteryInfo) {
 @Composable
 @Preview
 fun DeviceCardPreview() {
+    val deviceInfo = DeviceInfo(
+        id = "",
+        certificate = ByteArray(0),
+        name = "Name",
+        type = DeviceType.DESKTOP
+    )
     DeviceCard(
         device = DeviceState(
-            deviceInfo = DeviceInfo(
-                    id = "",
-                    certificate = ByteArray(0
-                ),
-                name = "Name",
-                type = DeviceType.DESKTOP
-            ),
+            deviceInfo = deviceInfo,
             pairState = PairState.Paired,
             batteryInfo = DeviceBatteryInfo(70, true, 15),
+            links = listOf(
+                fakeProvider(deviceInfo, R.drawable.wifi),
+                fakeProvider(deviceInfo, R.drawable.bluetooth)
+            )
         ),
         navigator = Navigator(),
         shortcuts = listOf(
@@ -246,6 +232,24 @@ fun DeviceCardPreview() {
         ),
         onClick = { }
     )
+}
+
+private fun fakeProvider(deviceInfo: DeviceInfo, icon: Int): BaseLink = object : BaseLink(
+    object : BaseLinkProvider() {
+        override suspend fun onStart() {}
+        override fun onStop() {}
+        override suspend fun onNetworkChange(network: Network?) {}
+        override val name: String get() = "FakeProvider"
+        override val icon: Int get() = icon
+        override val priority: Int = 0
+    }
+) {
+    override val name: String get() = "LanLink"
+    override val deviceInfo: DeviceInfo get() = deviceInfo
+    override suspend fun sendPacket(
+        np: NetworkPacket,
+        callback: Device.SendPacketStatusCallback
+    ): Boolean = true
 }
 
 @Composable
