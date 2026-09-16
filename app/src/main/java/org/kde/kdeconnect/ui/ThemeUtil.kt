@@ -8,15 +8,13 @@ package org.kde.kdeconnect.ui
 import android.app.Application
 import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.runtime.compositionLocalOf
 import com.google.android.material.color.DynamicColors
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.helpers.LoggerTagged
 
-/**
- * Utilities for working with android [Themes][android.content.res.Resources.Theme].
- */
 class ThemeUtil(private val dataStore: SettingsDataStore) {
 
     //Todo: Fix this as now the app thinks that the default theme is whatever theme was set when MainActivity was launched.

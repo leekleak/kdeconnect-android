@@ -20,6 +20,7 @@ import org.kde.kdeconnect.ui.AppTheme
 class SettingsDataStore(private val context: Context) {
 
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+    private val data get() = context.dataStore.data
 
     val deviceName: Flow<String> = context.dataStore.data
         .map { it[KEY_DEVICE_NAME] ?: Settings.Global.getString(context.contentResolver, Settings.Global.DEVICE_NAME) }
@@ -54,6 +55,9 @@ class SettingsDataStore(private val context: Context) {
     val certificate: Flow<String> = context.dataStore.data
         .map { it[KEY_CERTIFICATE] ?: "" }
         .distinctUntilChanged()
+
+    val blur: Flow<Boolean> = data.map { prefs -> prefs[BLUR] ?: true }.distinctUntilChanged()
+
 
     suspend fun setDeviceName(name: String) {
         context.dataStore.edit { preferences ->
@@ -97,6 +101,8 @@ class SettingsDataStore(private val context: Context) {
         context.dataStore.edit { it[KEY_CERTIFICATE] = certificate }
     }
 
+    suspend fun setBlur(value: Boolean) = context.dataStore.edit { it[BLUR] = value }
+
     fun getDefaultDestinationUri(): Uri {
         return DocumentsContract.buildTreeDocumentUri(
             "com.android.externalstorage.documents",
@@ -113,5 +119,6 @@ class SettingsDataStore(private val context: Context) {
         private val KEY_PRESENTER_VOLUME_KEYS = booleanPreferencesKey("pref_presenter_enable_volume_keys")
         private val KEY_PRESENTER_SENSITIVITY = intPreferencesKey("pref_presenter_sensitivity")
         private val KEY_CERTIFICATE = stringPreferencesKey("certificate")
+        private val BLUR = booleanPreferencesKey("blur")
     }
 }

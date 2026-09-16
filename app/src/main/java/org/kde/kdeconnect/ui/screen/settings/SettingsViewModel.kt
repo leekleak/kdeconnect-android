@@ -9,6 +9,7 @@ import android.provider.DocumentsContract
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.leekleak.knot.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +19,6 @@ import kotlinx.coroutines.launch
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.ui.AppTheme
 import org.kde.kdeconnect.ui.ThemeUtil
-import com.leekleak.knot.BuildConfig
 import java.io.InputStreamReader
 import kotlin.text.Charsets.UTF_8
 
@@ -29,14 +29,15 @@ class SettingsViewModel(
 
     val uiState: StateFlow<SettingsUiState> = combine(
         dataStore.deviceName,
-        dataStore.theme,
+        combine(dataStore.theme, dataStore.blur) {t, b -> t to b},
         dataStore.bluetoothEnabled,
         dataStore.fileDestination,
         dataStore.isFileDestinationDefault,
-    ) { deviceName, theme, bluetoothEnabled, destination, destinationDefault ->
+    ) { deviceName, (theme, blur), bluetoothEnabled, destination, destinationDefault ->
         SettingsUiState(
             deviceName = deviceName,
             theme = theme,
+            blur = blur,
             bluetoothEnabled = bluetoothEnabled,
             fileDestination = destination.toUri(),
             fileDestinationIsDefault = destinationDefault
@@ -59,6 +60,12 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStore.setTheme(theme)
             themeUtil.applyTheme(theme)
+        }
+    }
+
+    fun setBlur(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStore.setBlur(enabled)
         }
     }
 
@@ -122,6 +129,7 @@ class SettingsViewModel(
 data class SettingsUiState(
     val deviceName: String = "",
     val theme: AppTheme = AppTheme.Default,
+    val blur: Boolean = true,
     val bluetoothEnabled: Boolean = false,
     val fileDestination: Uri? = null,
     val fileDestinationIsDefault: Boolean = true

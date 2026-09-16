@@ -25,15 +25,19 @@ import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.datastore.SettingsDataStore
-import org.kde.kdeconnect.ui.AppTheme.*
+import org.kde.kdeconnect.ui.AppTheme.Dark
+import org.kde.kdeconnect.ui.AppTheme.Default
+import org.kde.kdeconnect.ui.AppTheme.Light
 import org.koin.compose.koinInject
 
 val LocalHazeState = compositionLocalOf { HazeState() }
+val LocalBlurEnabled = compositionLocalOf { true }
 @Composable
 fun KdeTheme(dataStore: SettingsDataStore = koinInject(), content: @Composable () -> Unit) {
     val context = LocalContext.current
 
     val theme by dataStore.theme.collectAsState(runBlocking { dataStore.theme.first() })
+    val blur by dataStore.blur.collectAsState(true)
 
     val colorScheme = when (theme) {
         Light -> getColorScheme(context, false)
@@ -41,10 +45,14 @@ fun KdeTheme(dataStore: SettingsDataStore = koinInject(), content: @Composable (
         Default -> getColorScheme(context, isSystemInDarkTheme())
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        content = content,
-    )
+    CompositionLocalProvider(
+        LocalBlurEnabled provides blur
+    ) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            content = content,
+        )
+    }
 }
 
 fun getColorScheme(context: Context, dark: Boolean): ColorScheme {

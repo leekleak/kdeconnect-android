@@ -22,6 +22,7 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.leekleak.knot.R
 import kotlinx.serialization.json.Json
 import org.kde.kdeconnect.helpers.CreateFileParams
 import org.kde.kdeconnect.helpers.CreateFileResultContract
@@ -46,7 +47,6 @@ import org.kde.kdeconnect.ui.navigation.NotificationSettingsKey
 import org.kde.kdeconnect.ui.navigation.SavedDevicesKey
 import org.kde.kdeconnect.ui.navigation.SftpPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.TelephonyPluginSettingsKey
-import com.leekleak.knot.R
 
 @Composable
 fun SettingsScreen(
@@ -55,6 +55,7 @@ fun SettingsScreen(
     setBluetoothEnabled: (Boolean) -> Unit,
     setDeviceName: (String) -> Unit,
     setTheme: (AppTheme) -> Unit,
+    setBlur: (Boolean) -> Unit,
     saveStorageLocation: (Context, Uri) -> Unit,
     resetStorageLocation: () -> Unit,
     getDisplayPath: (Context, Uri) -> String,
@@ -101,6 +102,13 @@ fun SettingsScreen(
             value = uiState.theme,
             values = themeOptions.toList(),
             onValueChanged = { setTheme(it) }
+        )
+
+        SwitchPreference(
+            title = stringResource(R.string.blur_effects),
+            icon = painterResource(R.drawable.blur_on),
+            value = uiState.blur,
+            onValueChanged = { setBlur(it) },
         )
 
         NavigatePreference(
@@ -229,6 +237,7 @@ fun SettingsPreview() {
         setBluetoothEnabled = {},
         setDeviceName = {},
         setTheme = {},
+        setBlur = {},
         saveStorageLocation = { _, _ -> },
         resetStorageLocation = {},
         getDisplayPath = { _, _ -> ""},

@@ -23,12 +23,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.leekleak.knot.R
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.HazeProgressive
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.blur.materials.HazeMaterials
-import com.leekleak.knot.R
+import org.kde.kdeconnect.ui.LocalBlurEnabled
 
 @Composable
 fun PageTitle(
@@ -37,6 +38,7 @@ fun PageTitle(
     text: String?,
     customElement: @Composable (RowScope.() -> Unit)? = null,
 ){
+    val blurEnabled = LocalBlurEnabled.current
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -46,6 +48,7 @@ fun PageTitle(
                         input = HazeInput.Sources(it),
                         style = HazeMaterials.ultraThin().then {
                             progressive(HazeProgressive.verticalGradient(startIntensity = 1f, endIntensity = 0f))
+                            blurEnabled(blurEnabled)
                         }
                     )
                 } ?: Modifier

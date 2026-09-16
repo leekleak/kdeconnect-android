@@ -251,6 +251,7 @@ val settingsModule = module {
             setBluetoothEnabled = viewModel::setBluetoothEnabled,
             setDeviceName = viewModel::setDeviceName,
             setTheme = viewModel::setTheme,
+            setBlur = viewModel::setBlur,
             saveStorageLocation = viewModel::saveStorageLocation,
             resetStorageLocation = viewModel::resetStorageLocation,
             getDisplayPath = viewModel::getDisplayPath,
