@@ -216,11 +216,7 @@ class MousePadViewModel(
         }
     }
 
-    fun sendChars(chars: CharSequence) {
-        viewModelScope.launch { pluginFlow.value?.sendText(chars.toString()) }
-    }
-
-    fun sendComposed(text: String) {
+    fun sendText(text: String) {
         viewModelScope.launch { pluginFlow.value?.sendText(text) }
     }
 

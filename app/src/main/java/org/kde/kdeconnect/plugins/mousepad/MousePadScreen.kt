@@ -63,6 +63,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.leekleak.knot.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.ui.components.BackAction
@@ -73,7 +74,6 @@ import org.kde.kdeconnect.ui.components.px
 import org.kde.kdeconnect.ui.components.smartDashBorder
 import org.kde.kdeconnect.ui.navigation.MousePadPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.Navigator
-import com.leekleak.knot.R
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import kotlin.time.Duration.Companion.milliseconds
@@ -140,7 +140,7 @@ fun MousePadScreen(
             ) {
                 FilledIconButton(
                     onClick = {
-                        viewModel.sendComposed(textFieldState.text.toString())
+                        viewModel.sendText(textFieldState.text.toString())
                         textFieldState.clearText()
                     },
                 ) {
@@ -190,10 +190,10 @@ fun MousePadScreen(
             BasicTextField(
                 value = textFieldValue,
                 onValueChange = {
-                    if (it.text.length > textFieldValue.text.length) {
-                        viewModel.sendChars(it.text.substring(textFieldValue.text.length))
+                    if (it.text.isNotEmpty()) {
+                        viewModel.sendText(it.text)
                     }
-                    textFieldValue = it
+                    textFieldValue = it.copy(text = "")
                 },
                 modifier = Modifier
                     .size(0.dp)

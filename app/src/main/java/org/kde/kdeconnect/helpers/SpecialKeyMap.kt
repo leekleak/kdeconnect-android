@@ -15,7 +15,7 @@ val SPECIAL_KEY_MAP = mapOf(
     9 to KeyEvent.KEYCODE_PAGE_DOWN,
     10 to KeyEvent.KEYCODE_MOVE_HOME,
     11 to KeyEvent.KEYCODE_MOVE_END,
-    12 to KeyEvent.KEYCODE_NUMPAD_ENTER,
+    12 to KeyEvent.KEYCODE_ENTER,
     13 to KeyEvent.KEYCODE_FORWARD_DEL,
     14 to KeyEvent.KEYCODE_ESCAPE,
     15 to KeyEvent.KEYCODE_SYSRQ,
