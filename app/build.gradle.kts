@@ -36,8 +36,8 @@ android {
         applicationId = "com.leekleak.knot"
         minSdk = 26
         targetSdk = 37
-        versionCode = 13509
-        versionName = "1.35.9"
+        versionCode = 1
+        versionName = "1.0.1"
         proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
     }
     buildFeatures {
