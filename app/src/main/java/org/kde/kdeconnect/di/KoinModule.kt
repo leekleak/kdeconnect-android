@@ -414,27 +414,27 @@ val appModule = module {
     factory<LoopbackLinkProvider>()
 
     scope<Device> {
-        factory { SftpPlugin(get(), get(), get(), get()) }
-        factory { BatteryPlugin(get(), get()) }
-        factory { ClipboardPlugin(get(), get()) }
-        factory { ConnectivityReportPlugin(get(), get()) }
-        factory { ContactsPlugin(get(), get()) }
-        factory { FindMyPhonePlugin(get(), get(), get(), get()) }
-        factory { FindRemoteDevicePlugin(get(), get()) }
-        factory { InputDevicesReceiverPlugin(get(), get(), get()) }
-        factory { MousePadPlugin(get(), get()) }
-        factory { MouseReceiverPlugin(get(), get(), get()) }
-        factory { MprisPlugin(get(), get(), get(), get(), get()) }
-        factory { MprisReceiverPlugin(get(), get()) }
-        factory { NotificationsPlugin(get(), get(), get(), get()) }
-        factory { PresenterPlugin(get(), get()) }
-        factory { ReceiveNotificationsPlugin(get(), get()) }
-        factory { RemoteKeyboardPlugin(get(), get(), get()) }
-        factory { RunCommandPlugin(get(), get(), get()) }
-        factory { SharePlugin(get(), get(), get()) }
-        factory { SMSPlugin(get(), get(), get(), get()) }
-        factory { SystemVolumePlugin(get(), get()) }
-        factory { TelephonyPlugin(get(), get(), get()) }
-        factory { DigitizerPlugin(get(), get()) }
+        factory<SftpPlugin>()
+        factory<BatteryPlugin>()
+        factory<ClipboardPlugin>()
+        factory<ConnectivityReportPlugin>()
+        factory<ContactsPlugin>()
+        factory<FindMyPhonePlugin>()
+        factory<FindRemoteDevicePlugin>()
+        factory<InputDevicesReceiverPlugin>()
+        factory<MousePadPlugin>()
+        factory<MouseReceiverPlugin>()
+        factory<MprisPlugin>()
+        factory<MprisReceiverPlugin>()
+        factory<NotificationsPlugin>()
+        factory<PresenterPlugin>()
+        factory<ReceiveNotificationsPlugin>()
+        factory<RemoteKeyboardPlugin>()
+        factory<RunCommandPlugin>()
+        factory<SharePlugin>()
+        factory<SMSPlugin>()
+        factory<SystemVolumePlugin>()
+        factory<TelephonyPlugin>()
+        factory<DigitizerPlugin>()
     }
 }

@@ -67,7 +67,7 @@ object PluginFactory {
 
     fun instantiatePluginForDevice(pluginKey: String, device: Device): Plugin? {
         val clazz = pluginInfo[pluginKey]?.instantiableClass ?: return null
-        return device.scope.get(clazz.kotlin)
+        return device.scope.getOrNull(clazz.kotlin)
     }
 
     fun pluginsForCapabilities(incoming: Set<String>, outgoing: Set<String>): Set<String> {

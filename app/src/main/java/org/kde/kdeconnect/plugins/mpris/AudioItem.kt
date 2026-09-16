@@ -18,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.SliderState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -74,11 +75,17 @@ fun SinkItem(
             )
             AnimatedVisibility(visible = isSelected) {
                 val interactionSource = remember { MutableInteractionSource() }
+                val sliderState = remember(sink.volume, sink.maxVolume) {
+                    SliderState(
+                        value = sink.volume.toFloat(),
+                        trackRange = 0f..sink.maxVolume.toFloat(),
+                        steps = 100
+                    )
+                }
                 Slider(
+                    state = sliderState,
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(24.dp),
-                    value = sink.volume.toFloat(),
                     onValueChange = { setSinkVolume(sink.name, it.toInt()) },
-                    valueRange = 0f..sink.maxVolume.toFloat(),
                     colors = SliderDefaults.colors(inactiveTrackColor = colorScheme.surfaceContainerLowest),
                     interactionSource = interactionSource,
                     thumb = {

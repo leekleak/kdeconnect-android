@@ -42,6 +42,7 @@ import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.SliderState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -480,11 +481,18 @@ fun SliderComponent(
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             val interactionSource = remember { MutableInteractionSource() }
+            val sliderState = remember(currentIndex, values.size) {
+                SliderState(
+                    value = currentIndex.toFloat(),
+                    trackRange = 0f..((values.size - 1).coerceAtLeast(0).toFloat()),
+                    steps = (values.size - 2).coerceAtLeast(0)
+                )
+            }
             Slider(
+                state = sliderState,
                 modifier = Modifier
                     .weight(1f)
                     .padding(start = 8.dp),
-                value = currentIndex.toFloat(),
                 onValueChange = {
                     val newIndex = it.roundToInt()
                     if (newIndex != currentIndex && newIndex in values.indices) {
@@ -500,8 +508,6 @@ fun SliderComponent(
                 },
                 interactionSource = interactionSource,
                 enabled = enabled,
-                valueRange = 0f..((values.size - 1).coerceAtLeast(0).toFloat()),
-                steps = (values.size - 2).coerceAtLeast(0)
             )
             val valueLabel = remember(currentIndex, values) {
                 val pair = values.getOrNull(currentIndex)
