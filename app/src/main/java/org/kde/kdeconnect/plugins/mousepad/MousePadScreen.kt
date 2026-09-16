@@ -73,7 +73,7 @@ import org.kde.kdeconnect.ui.components.px
 import org.kde.kdeconnect.ui.components.smartDashBorder
 import org.kde.kdeconnect.ui.navigation.MousePadPluginSettingsKey
 import org.kde.kdeconnect.ui.navigation.Navigator
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import kotlin.time.Duration.Companion.milliseconds

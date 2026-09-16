@@ -8,7 +8,7 @@ package org.kde.kdeconnect.backends.loopback
 import android.net.Network
 import org.kde.kdeconnect.backends.BaseLinkProvider
 import org.kde.kdeconnect.helpers.DeviceHelper
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 class LoopbackLinkProvider(
     private val deviceHelper: DeviceHelper

@@ -20,7 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 @Composable
 fun FancyDialog(

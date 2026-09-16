@@ -43,7 +43,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.rememberAsyncImagePainter
 import org.kde.kdeconnect.helpers.AppIcon
 import org.kde.kdeconnect.ui.screen.settings.advanced.notifications.AppInfo
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 @Composable
 fun SearchField(textFieldState: TextFieldState) {

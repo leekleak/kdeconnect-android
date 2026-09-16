@@ -17,7 +17,7 @@ import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.battery.BatteryPlugin.Companion.PACKET_TYPE_BATTERY
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 class BatteryPlugin(context: Context, device: Device) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = BatteryPluginInfo

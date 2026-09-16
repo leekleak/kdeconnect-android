@@ -38,7 +38,7 @@ import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.ui.navigation.MprisKey
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import java.net.MalformedURLException
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration.Companion.milliseconds

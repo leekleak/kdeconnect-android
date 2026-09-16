@@ -24,7 +24,7 @@ import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.inputdevicesreceiver.InputDevicesReceiverPlugin
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import java.lang.ref.WeakReference
 import kotlin.math.abs
 import kotlin.math.sign

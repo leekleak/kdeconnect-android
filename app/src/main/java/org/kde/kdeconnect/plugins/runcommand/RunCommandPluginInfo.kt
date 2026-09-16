@@ -8,7 +8,7 @@ import org.kde.kdeconnect.plugins.runcommand.RunCommandPlugin.Companion.PACKET_T
 import org.kde.kdeconnect.plugins.runcommand.RunCommandPlugin.Companion.PACKET_TYPE_RUNCOMMAND_OUTPUT
 import org.kde.kdeconnect.plugins.runcommand.RunCommandPlugin.Companion.PACKET_TYPE_RUNCOMMAND_REQUEST
 import org.kde.kdeconnect.ui.navigation.RunCommandKey
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 object RunCommandPluginInfo : PluginInfo(
     pluginKey = "RunCommandPlugin",

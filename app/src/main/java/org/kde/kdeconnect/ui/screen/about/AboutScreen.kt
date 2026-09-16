@@ -42,7 +42,7 @@ import org.kde.kdeconnect.ui.components.HazeScaffold
 import org.kde.kdeconnect.ui.components.KdeThemePreviews
 import org.kde.kdeconnect.ui.components.card
 import org.kde.kdeconnect.ui.navigation.Navigator
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 @Composable
 fun AboutScreen(

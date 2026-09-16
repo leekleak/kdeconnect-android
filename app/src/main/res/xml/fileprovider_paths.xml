@@ -10,5 +10,5 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     <external-path
         name="external_files"
         path="." />
-    <external-path name="images" path="Android/data/org.kde.kdeconnect_tp/files/Pictures" />
+    <external-path name="images" path="Android/data/com.leekleak.knot/files/Pictures" />
 </paths>

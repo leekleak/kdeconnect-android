@@ -30,7 +30,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import org.kde.kdeconnect.ui.components.BackAction
 import org.kde.kdeconnect.ui.components.HazeScaffold
 import org.kde.kdeconnect.ui.navigation.Navigator
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 

@@ -8,7 +8,7 @@ package org.kde.kdeconnect.helpers
 import android.content.Context
 import android.content.pm.PackageManager
 import co.touchlab.kermit.Logger
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 object AppsHelper {
     @JvmStatic

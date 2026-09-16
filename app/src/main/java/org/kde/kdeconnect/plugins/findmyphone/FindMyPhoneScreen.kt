@@ -26,7 +26,7 @@ import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.ui.components.BackAction
 import org.kde.kdeconnect.ui.components.HazeScaffold
 import org.kde.kdeconnect.ui.components.googleSans
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import org.koin.compose.koinInject
 
 @Composable

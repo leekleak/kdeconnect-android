@@ -14,7 +14,7 @@ import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPluginInfo
 import org.kde.kdeconnect.plugins.share.SharePluginInfo
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import java.security.cert.Certificate
 
 /**

@@ -23,7 +23,7 @@ import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_
 import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_REQUEST_VCARDS_BY_UIDS
 import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_RESPONSE_UIDS_TIMESTAMPS
 import org.kde.kdeconnect.plugins.contacts.ContactsPlugin.Companion.PACKET_TYPE_CONTACTS_RESPONSE_VCARDS
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 class ContactsPlugin(context: Context, device: Device) : Plugin(context, device) {
     override val pluginInfo = ContactsPluginInfo

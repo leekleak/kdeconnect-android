@@ -52,8 +52,8 @@ import org.kde.kdeconnect.plugins.sms.SMSPlugin.Companion.PACKET_TYPE_SMS_REQUES
 import org.kde.kdeconnect.plugins.sms.SmsMmsUtils.partIdToMessageAttachmentPacket
 import org.kde.kdeconnect.plugins.sms.SmsMmsUtils.sendMessage
 import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin
-import org.kde.kdeconnect_tp.BuildConfig
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.BuildConfig
+import com.leekleak.knot.R
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 

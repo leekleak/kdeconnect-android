@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 import org.kde.kdeconnect.datastore.SettingsDataStore
 import org.kde.kdeconnect.ui.AppTheme
 import org.kde.kdeconnect.ui.ThemeUtil
-import org.kde.kdeconnect_tp.BuildConfig
+import com.leekleak.knot.BuildConfig
 import java.io.InputStreamReader
 import kotlin.text.Charsets.UTF_8
 

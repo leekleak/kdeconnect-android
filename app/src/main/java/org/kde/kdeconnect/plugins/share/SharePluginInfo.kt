@@ -8,7 +8,7 @@ import org.kde.kdeconnect.plugins.ButtonCategory
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.ui.MainActivity
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 object SharePluginInfo : PluginInfo(
     pluginKey = "SharePlugin",

@@ -47,7 +47,7 @@ import org.kde.kdeconnect.plugins.ButtonCategory
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.battery.DeviceBatteryInfo
 import org.kde.kdeconnect.ui.navigation.Navigator
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 @Composable
 fun Modifier.card(backgroundColor: Color = colorScheme.surfaceContainer): Modifier {

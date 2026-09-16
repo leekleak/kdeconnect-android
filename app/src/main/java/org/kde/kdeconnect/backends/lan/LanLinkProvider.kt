@@ -33,7 +33,7 @@ import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 import org.kde.kdeconnect.helpers.isPrivateAddress
 import org.kde.kdeconnect.helpers.readLineBounded
 import org.kde.kdeconnect.helpers.security.SslHelper
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import java.io.IOException
 import java.net.DatagramPacket
 import java.net.DatagramSocket

@@ -18,7 +18,7 @@ import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin.Companion.PACKET_TYPE_SYSTEMVOLUME
 import org.kde.kdeconnect.plugins.systemvolume.SystemVolumePlugin.Companion.PACKET_TYPE_SYSTEMVOLUME_REQUEST
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 object SystemVolumePluginInfo : PluginInfo(
     pluginKey = "SystemVolumePlugin",

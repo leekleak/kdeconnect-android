@@ -49,7 +49,7 @@ import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin.Companion.PA
 import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION_REPLY
 import org.kde.kdeconnect.plugins.notifications.NotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION_REQUEST
 import org.kde.kdeconnect.ui.PermissionRequest
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import java.io.ByteArrayOutputStream
 import java.security.MessageDigest
 import java.util.Locale
@@ -222,7 +222,7 @@ class NotificationsPlugin(
             }
         }
 
-        if ("org.kde.kdeconnect_tp" == packageName || "org.kde.kdeconnect_tp.debug" == packageName) {
+        if ("com.leekleak.knot" == packageName || "com.leekleak.knot.debug" == packageName) {
             // Don't send our own notifications
             return
         }

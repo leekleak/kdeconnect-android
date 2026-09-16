@@ -44,7 +44,7 @@ import org.kde.kdeconnect.ui.components.BackAction
 import org.kde.kdeconnect.ui.components.HazeScaffold
 import org.kde.kdeconnect.ui.components.KdeThemePreviews
 import org.kde.kdeconnect.ui.navigation.Navigator
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf

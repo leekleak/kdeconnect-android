@@ -28,7 +28,7 @@ import dev.chrisbanes.haze.HazeProgressive
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.blur.materials.HazeMaterials
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 @Composable
 fun PageTitle(

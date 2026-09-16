@@ -1,7 +1,7 @@
 package org.kde.kdeconnect.plugins.mprisreceiver
 
 import org.kde.kdeconnect.plugins.PluginInfo
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 object MprisReceiverPluginInfo : PluginInfo(
     pluginKey = "MprisReceiverPlugin",

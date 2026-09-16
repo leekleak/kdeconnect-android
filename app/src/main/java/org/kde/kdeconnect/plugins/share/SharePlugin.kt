@@ -47,7 +47,7 @@ import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.ui.MainActivity
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import java.net.MalformedURLException
 import java.net.URL
 import java.util.concurrent.ConcurrentHashMap

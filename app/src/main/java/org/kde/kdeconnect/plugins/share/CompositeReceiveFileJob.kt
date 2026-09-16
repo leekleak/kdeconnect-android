@@ -29,7 +29,7 @@ import org.kde.kdeconnect.helpers.FilesHelper.findValidNonExistingFileName
 import org.kde.kdeconnect.helpers.FilesHelper.getMimeTypeFromFile
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.MediaStoreHelper.indexFile
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.IOException
@@ -405,7 +405,7 @@ class CompositeReceiveFileJob(
         val file = File(fileDocument.uri.path ?: return)
         val contentUri = FileProvider.getUriForFile(
             context,
-            "org.kde.kdeconnect_tp.fileprovider",
+            "com.leekleak.knot.fileprovider",
             file
         )
         intent.setDataAndType(contentUri, mimeType)

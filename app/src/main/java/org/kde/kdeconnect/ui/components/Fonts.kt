@@ -5,7 +5,7 @@ import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontVariation
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 @OptIn(ExperimentalTextApi::class)
 fun googleSans(

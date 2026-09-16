@@ -25,7 +25,7 @@ import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.clipboard.ClipboardListener.ClipboardObserver
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin.Companion.PACKET_TYPE_CLIPBOARD
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin.Companion.PACKET_TYPE_CLIPBOARD_CONNECT
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 class ClipboardPlugin(context: Context, device: Device) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = ClipboardPluginInfo

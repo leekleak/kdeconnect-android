@@ -12,7 +12,7 @@ import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.ui.PermissionExplanationActivity
 import org.kde.kdeconnect.ui.PermissionRequest
 import org.kde.kdeconnect.ui.navigation.Navigator
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 enum class ButtonCategory {
     SEND,

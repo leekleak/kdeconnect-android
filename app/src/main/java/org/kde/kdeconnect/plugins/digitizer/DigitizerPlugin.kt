@@ -17,7 +17,7 @@ import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.digitizer.DigitizerPlugin.Companion.PACKET_TYPE_DIGITIZER
 import org.kde.kdeconnect.plugins.digitizer.DigitizerPlugin.Companion.PACKET_TYPE_DIGITIZER_SESSION
 import org.kde.kdeconnect.ui.navigation.DigitizerKey
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 class DigitizerPlugin(context: Context, device: Device) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = DigitizerPluginInfo

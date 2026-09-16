@@ -8,7 +8,7 @@ package org.kde.kdeconnect.helpers
 import android.content.Context
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationManagerCompat
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 object NotificationHelper {
     fun initializeChannels(context: Context) {

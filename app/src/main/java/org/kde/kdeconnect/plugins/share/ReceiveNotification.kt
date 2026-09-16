@@ -12,8 +12,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.helpers.NotificationHelper
-import org.kde.kdeconnect_tp.BuildConfig
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.BuildConfig
+import com.leekleak.knot.R
 import java.io.File
 import java.io.IOException
 

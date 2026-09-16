@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.bouncycastle.util.Arrays
 import org.kde.kdeconnect.helpers.LoggerTagged
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import java.security.MessageDigest
 import java.security.cert.Certificate
 import java.util.Formatter

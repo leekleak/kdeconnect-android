@@ -11,7 +11,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 class MousePadSettingsDataStore(private val context: Context) {
 

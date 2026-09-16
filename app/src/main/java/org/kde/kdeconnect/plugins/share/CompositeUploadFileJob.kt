@@ -16,7 +16,7 @@ import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.async.DataTransferJob
 import org.kde.kdeconnect.async.JobCallback
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.AtomicInt

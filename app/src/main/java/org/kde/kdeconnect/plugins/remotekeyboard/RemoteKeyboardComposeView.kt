@@ -17,7 +17,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardService.KeyboardAction
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 @Composable
 fun RemoteKeyboardContent(

@@ -22,7 +22,7 @@ import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.plugins.PluginFactory
 import org.kde.kdeconnect.plugins.battery.BatteryPlugin
 import org.kde.kdeconnect.plugins.battery.DeviceBatteryInfo
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import java.util.UUID
 
 class DeviceHelper(

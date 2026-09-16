@@ -33,7 +33,7 @@ import org.kde.kdeconnect.plugins.sftp.SftpPlugin.Companion.PACKET_TYPE_SFTP
 import org.kde.kdeconnect.plugins.sftp.SftpPlugin.Companion.PACKET_TYPE_SFTP_REQUEST
 import org.kde.kdeconnect.plugins.sftp.SftpPlugin.StorageInfo
 import org.kde.kdeconnect.ui.PermissionRequest
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 

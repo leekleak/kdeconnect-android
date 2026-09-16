@@ -37,7 +37,7 @@ import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
 import org.kde.kdeconnect.helpers.TrustedNetworkHelper
 import org.kde.kdeconnect.ui.KdeTheme
 import org.kde.kdeconnect.ui.components.DeviceSelectScreen
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import org.koin.android.ext.android.inject
 import kotlin.time.Duration.Companion.milliseconds
 

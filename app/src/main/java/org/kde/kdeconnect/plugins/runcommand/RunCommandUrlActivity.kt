@@ -16,7 +16,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.helpers.LoggerTagged
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import org.koin.android.ext.android.inject
 
 class RunCommandUrlActivity : AppCompatActivity() {

@@ -18,7 +18,7 @@ import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_REQUEST
 import org.kde.kdeconnect.plugins.presenter.PresenterPlugin.Companion.PACKET_TYPE_PRESENTER
 import org.kde.kdeconnect.ui.navigation.PresenterKey
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 object PresenterPluginInfo : PluginInfo(
     pluginKey = "PresenterPlugin",

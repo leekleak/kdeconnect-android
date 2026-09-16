@@ -42,7 +42,7 @@ import org.kde.kdeconnect.ui.KdeTheme
 import org.kde.kdeconnect.ui.components.IconHero
 import org.kde.kdeconnect.ui.components.card
 import org.kde.kdeconnect.ui.components.googleSans
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import org.koin.android.ext.android.inject
 
 class PairingActivity : AppCompatActivity() {

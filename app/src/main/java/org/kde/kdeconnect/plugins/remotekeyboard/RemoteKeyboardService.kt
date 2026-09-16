@@ -34,7 +34,7 @@ import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPlugin.Companion.
 import org.kde.kdeconnect.ui.KdeTheme
 import org.kde.kdeconnect.ui.MainActivity
 import org.kde.kdeconnect.ui.navigation.KdeConnectKeyConstants
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 class RemoteKeyboardService: InputMethodService(), LifecycleOwner, SavedStateRegistryOwner {
 

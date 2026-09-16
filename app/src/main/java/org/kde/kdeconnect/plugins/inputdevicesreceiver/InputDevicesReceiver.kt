@@ -15,7 +15,7 @@ import org.kde.kdeconnect.helpers.PermissionRequestHelper
 import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.mousereceiver.MouseReceiverPlugin
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 class InputDevicesReceiverPlugin(
     context: Context,

@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import org.koin.core.annotation.InjectedParam
 
 class RunCommandViewModel(

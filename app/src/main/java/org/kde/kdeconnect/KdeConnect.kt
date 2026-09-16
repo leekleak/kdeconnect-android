@@ -18,7 +18,7 @@ import org.kde.kdeconnect.helpers.NotificationHelper
 import org.kde.kdeconnect.helpers.security.EcHelper
 import org.kde.kdeconnect.helpers.security.SslHelper
 import org.kde.kdeconnect.ui.ThemeUtil
-import org.kde.kdeconnect_tp.BuildConfig
+import com.leekleak.knot.BuildConfig
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin

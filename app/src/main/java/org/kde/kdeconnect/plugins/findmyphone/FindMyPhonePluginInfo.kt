@@ -1,7 +1,7 @@
 package org.kde.kdeconnect.plugins.findmyphone
 
 import org.kde.kdeconnect.plugins.PluginInfo
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 object FindMyPhonePluginInfo : PluginInfo(
     pluginKey = "FindMyPhonePlugin",

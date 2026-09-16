@@ -16,7 +16,7 @@ import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.SftpSettingsDataStore
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.plugins.sftp.SftpPlugin
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 data class SftpSettingsUiState(
     val storageInfoList: List<SftpPlugin.StorageInfo> = emptyList(),

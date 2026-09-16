@@ -41,7 +41,7 @@ import org.kde.kdeconnect.ui.components.Preference
 import org.kde.kdeconnect.ui.components.googleSans
 import org.kde.kdeconnect.ui.navigation.Navigator
 import org.kde.kdeconnect.ui.navigation.HomeKey
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 @Composable
 fun PermissionsScreen(

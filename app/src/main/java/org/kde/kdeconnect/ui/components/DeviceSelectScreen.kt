@@ -27,7 +27,7 @@ import org.kde.kdeconnect.DeviceInfo
 import org.kde.kdeconnect.DeviceState
 import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.PairState
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

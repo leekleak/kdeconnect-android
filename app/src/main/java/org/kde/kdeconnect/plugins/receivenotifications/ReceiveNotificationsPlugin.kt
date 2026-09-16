@@ -27,7 +27,7 @@ import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.receivenotifications.ReceiveNotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION
 import org.kde.kdeconnect.plugins.receivenotifications.ReceiveNotificationsPlugin.Companion.PACKET_TYPE_NOTIFICATION_REQUEST
 import org.kde.kdeconnect.ui.MainActivity
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 class ReceiveNotificationsPlugin(context: Context, device: Device) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = ReceiveNotificationsPluginInfo

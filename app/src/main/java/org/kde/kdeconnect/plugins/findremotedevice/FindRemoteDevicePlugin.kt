@@ -14,7 +14,7 @@ import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.findmyphone.FindMyPhonePlugin
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 class FindRemoteDevicePlugin(context: Context, device: Device) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = FindRemoteDevicePluginInfo

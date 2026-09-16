@@ -22,7 +22,7 @@ import org.kde.kdeconnect.ui.components.KdeThemePreviews
 import org.kde.kdeconnect.ui.components.SliderPreference
 import org.kde.kdeconnect.ui.components.SwitchPreference
 import org.kde.kdeconnect.ui.navigation.Navigator
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable

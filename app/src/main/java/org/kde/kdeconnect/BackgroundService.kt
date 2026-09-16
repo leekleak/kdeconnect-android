@@ -40,7 +40,7 @@ import org.kde.kdeconnect.helpers.PermissionHelper
 import org.kde.kdeconnect.plugins.clipboard.ClipboardFloatingActivity
 import org.kde.kdeconnect.plugins.clipboard.ClipboardPlugin
 import org.kde.kdeconnect.ui.MainActivity
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import org.koin.android.ext.android.get
 import org.koin.android.ext.android.inject
 import kotlin.concurrent.atomics.AtomicBoolean

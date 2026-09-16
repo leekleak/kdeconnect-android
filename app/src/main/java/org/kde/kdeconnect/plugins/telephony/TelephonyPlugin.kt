@@ -27,7 +27,7 @@ import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin.Companion.PACKET_TYPE_TELEPHONY
 import org.kde.kdeconnect.plugins.telephony.TelephonyPlugin.Companion.PACKET_TYPE_TELEPHONY_REQUEST_MUTE
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import java.util.Timer
 import java.util.TimerTask
 

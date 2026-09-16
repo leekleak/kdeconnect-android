@@ -14,7 +14,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.helpers.NotificationHelper
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 internal class UploadNotification(private val device: Device, private val context: Context, private val jobId: Int) {
     private val notificationManager: NotificationManager? = ContextCompat.getSystemService(context, NotificationManager::class.java)

@@ -8,7 +8,7 @@ import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_
 import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_REQUEST
 import org.kde.kdeconnect.plugins.remotekeyboard.RemoteKeyboardPlugin.Companion.PACKET_TYPE_MOUSEPAD_ECHO
 import org.kde.kdeconnect.ui.PermissionRequest
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 
 object RemoteKeyboardPluginInfo : PluginInfo(

@@ -19,7 +19,7 @@ import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_
 import org.kde.kdeconnect.plugins.mousepad.MousePadPlugin.Companion.PACKET_TYPE_MOUSEPAD_REQUEST
 import org.kde.kdeconnect.ui.navigation.BigscreenKey
 import org.kde.kdeconnect.ui.navigation.MousePadKey
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 class MousePadPlugin(
     context: Context,

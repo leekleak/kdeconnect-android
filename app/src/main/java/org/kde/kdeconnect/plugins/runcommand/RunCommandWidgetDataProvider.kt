@@ -19,7 +19,7 @@ import kotlinx.coroutines.runBlocking
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
 import org.kde.kdeconnect.helpers.LoggerTagged
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 

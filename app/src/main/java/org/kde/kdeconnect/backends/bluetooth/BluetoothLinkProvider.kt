@@ -30,7 +30,7 @@ import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.helpers.LoggerTagged
 import org.kde.kdeconnect.helpers.ThreadHelper.execute
 import org.kde.kdeconnect.helpers.security.SslHelper
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import java.io.IOException
 import java.io.InputStreamReader
 import java.io.Reader

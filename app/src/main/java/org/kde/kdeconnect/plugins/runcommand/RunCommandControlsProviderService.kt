@@ -34,7 +34,7 @@ import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.DeviceManager
 import org.kde.kdeconnect.datastore.RunCommandSettingsDataStore
 import org.kde.kdeconnect.ui.MainActivity
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 import org.koin.android.ext.android.inject
 import java.util.concurrent.Flow
 import java.util.function.Consumer

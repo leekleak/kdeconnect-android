@@ -16,7 +16,7 @@ import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.kde.kdeconnect_tp.BuildConfig
+import com.leekleak.knot.BuildConfig
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.lang.ref.WeakReference

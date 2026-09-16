@@ -60,7 +60,7 @@ fun SinkItem(
                 .padding(6.dp)
         ) {
             Icon(
-                painter = painterResource(org.kde.kdeconnect_tp.R.drawable.volume_up),
+                painter = painterResource(com.leekleak.knot.R.drawable.volume_up),
                 contentDescription = null,
                 tint = iconColor
             )
@@ -125,7 +125,7 @@ fun SourceItem(
                 .padding(6.dp)
         ) {
             Icon(
-                painter = painterResource(org.kde.kdeconnect_tp.R.drawable.volume_up),
+                painter = painterResource(com.leekleak.knot.R.drawable.volume_up),
                 contentDescription = null,
                 tint = iconColor
             )

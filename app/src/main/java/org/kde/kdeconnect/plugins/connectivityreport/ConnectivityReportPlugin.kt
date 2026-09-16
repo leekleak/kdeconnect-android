@@ -16,7 +16,7 @@ import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityListener.Companion.getInstance
 import org.kde.kdeconnect.plugins.connectivityreport.ConnectivityListener.SubscriptionState
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.R
 
 class ConnectivityReportPlugin(context: Context, device: Device) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = ConnectivityReportPluginInfo

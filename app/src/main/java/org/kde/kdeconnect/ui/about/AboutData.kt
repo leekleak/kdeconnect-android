@@ -2,8 +2,8 @@ package org.kde.kdeconnect.ui.about
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import org.kde.kdeconnect_tp.BuildConfig
-import org.kde.kdeconnect_tp.R
+import com.leekleak.knot.BuildConfig
+import com.leekleak.knot.R
 
 data class AboutData(
     @StringRes val name: Int = R.string.kde_connect,

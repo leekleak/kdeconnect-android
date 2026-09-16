@@ -28,12 +28,12 @@ kotlin {
 }
 
 android {
-    namespace = "org.kde.kdeconnect_tp"
+    namespace = "com.leekleak.knot"
     compileSdk = 37
     compileSdkMinor = 2
 
     defaultConfig {
-        applicationId = "org.kde.kdeconnect_tp"
+        applicationId = "com.leekleak.knot"
         minSdk = 26
         targetSdk = 37
         versionCode = 13509
