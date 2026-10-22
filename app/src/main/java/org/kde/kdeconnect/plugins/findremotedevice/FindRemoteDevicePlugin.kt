@@ -6,6 +6,7 @@
 package org.kde.kdeconnect.plugins.findremotedevice
 
 import android.content.Context
+import com.leekleak.knot.R
 import kotlinx.coroutines.launch
 import org.kde.kdeconnect.Device
 import org.kde.kdeconnect.NetworkPacket
@@ -14,7 +15,6 @@ import org.kde.kdeconnect.plugins.Plugin
 import org.kde.kdeconnect.plugins.PluginInfo
 import org.kde.kdeconnect.plugins.PluginUiButton
 import org.kde.kdeconnect.plugins.findmyphone.FindMyPhonePlugin
-import com.leekleak.knot.R
 
 class FindRemoteDevicePlugin(context: Context, device: Device) : Plugin(context, device) {
     override val pluginInfo: PluginInfo = FindRemoteDevicePluginInfo
