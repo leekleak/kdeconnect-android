@@ -27,7 +27,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
             android:paddingEnd="6dip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_kde_24dp"
+            android:src="@drawable/ic_knot_24dp"
             android:tint="?attr/colorOnSecondary"
             android:importantForAccessibility="no"
             tools:ignore="UseAppTint"/> <!-- can't use app:tint in RemoteView -->

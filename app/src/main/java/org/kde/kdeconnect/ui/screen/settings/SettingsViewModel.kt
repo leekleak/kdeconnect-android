@@ -98,7 +98,7 @@ class SettingsViewModel(
             val process = Runtime.getRuntime().exec(arrayOf("logcat", "-d"))
             val reader = InputStreamReader(process.inputStream)
             output.use {
-                it.write("KDE Connect ${BuildConfig.VERSION_NAME}\n".toByteArray(UTF_8))
+                it.write("Knot Connect ${BuildConfig.VERSION_NAME}\n".toByteArray(UTF_8))
                 it.write("Android ${Build.VERSION.RELEASE} (${Build.MANUFACTURER} ${Build.MODEL})\n".toByteArray(UTF_8))
                 reader.copyTo(it.writer(UTF_8))
             }

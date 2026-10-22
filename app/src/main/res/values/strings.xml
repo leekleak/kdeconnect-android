@@ -13,7 +13,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
         All translations for all KDE apps are handled by the [localization team](https://l10n.kde.org).
         We really appreciate your translations, but make sure to submit them by working with the proper team!
   -->
-    <string name="kde_connect">KDE Connect</string>
+    <string name="kde_connect">Knot Connect</string>
     <string name="manifest_label_share">Send to Device</string>
     <string name="foreground_notification_no_devices">Not connected to any device</string>
     <string name="foreground_notification_devices">Connected to: %s</string>
@@ -56,9 +56,9 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
   <string name="cancel">Cancel</string>
     <string name="open_settings">Open settings</string>
     <string name="no_permissions">You need to grant permission to access notifications</string>
-  <string name="no_permissions_remotekeyboard">To receive keypresses you need to activate the KDE Connect Remote Keyboard</string>
+  <string name="no_permissions_remotekeyboard">To receive keypresses you need to activate the Knot Connect Remote Keyboard</string>
   <string name="open_mpris_controls">Multimedia</string>
-  <string name="remotekeyboard_not_connected" translatable="true">There is no active remote keyboard connection, establish one in kdeconnect</string>
+  <string name="remotekeyboard_not_connected" translatable="true">There is no active remote keyboard connection, establish one in KDE Connect</string>
     <string name="remotekeyboard_connected" translatable="true">Remote keyboard connection is active</string>
     <string name="remotekeyboard_multiple_connections" translatable="true">There is more than one remote keyboard connection, select the device to configure</string>
     <string name="open_mousepad">Remote input</string>
@@ -217,7 +217,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     <string name="sftp_storage_preference_display_name_cannot_be_empty">Display name cannot be empty</string>
     <string name="sftp_action_mode_menu_delete">Delete</string>
     <string name="sftp_no_storage_locations_configured">No storage locations configured</string>
-  <string name="sftp_manage_storage_permission_explanation">To allow remote access to files on this device you need to allow KDE Connect to manage the storage.</string>
+  <string name="sftp_manage_storage_permission_explanation">To allow remote access to files on this device you need to allow Knot Connect to manage the storage.</string>
     <string name="sftp_missing_permission_error">Permissions missing: filesystem access</string>
   <string name="use_digitizer">Drawing tablet</string>
 
@@ -275,7 +275,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     <string name="pref_plugin_systemvolume_desc">Control the system volume of the remote device</string>
 
   <string name="settings_rename">Device name</string>
-  <string name="settings_export_logs">Export KDE Connect logs</string>
+  <string name="settings_export_logs">Export Knot Connect logs</string>
     <string name="settings_export_logs_text">Generate a file with data that may help resolve issues</string>
 
   <string name="privacy_options">Privacy options</string>
@@ -284,7 +284,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     <string name="findmyphone_preference_title_flashlight">Flash flashlight</string>
 
     <string name="no_app_for_opening">No suitable app found to open this file</string>
-    <string name="remote_keyboard_service">KDE Connect Remote Keyboard</string>
+    <string name="remote_keyboard_service">Knot Connect Remote Keyboard</string>
     <string name="presenter_pointer">Pointer</string>
 
   <string name="add_trusted_network">Add %1s</string>
@@ -333,10 +333,10 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     <string name="report_bug">Report Bug</string>
     <string name="donate">Donate</string>
     <string name="source_code">Source Code</string>
-    <string name="source_code_url" translatable="false">https://invent.kde.org/network/kdeconnect-android/</string>
+    <string name="source_code_url" translatable="false">https://github.com/leekleak/kdeconnect-android</string>
     <string name="licenses">Licenses</string>
     <string name="website">Website</string>
-    <string name="website_url" translatable="false">https://kdeconnect.kde.org/</string>
+    <string name="website_url" translatable="false">https://github.com/leekleak/kdeconnect-android#readme</string>
 
     <string name="about">About</string>
     <string name="authors">Authors</string>
@@ -385,7 +385,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
     <string name="presenter_volume_keys_foreground_tip">You can leave the screen on to use the volume keys to go to the previous/next slide</string>
     <string name="presenter_volume_keys_tip">You can leave the screen on or lock your device to use the volume keys to go to the previous/next slide</string>
     <string name="grant">Grant</string>
-  <string name="kde_connect_short">KDE Connect</string>
+  <string name="kde_connect_short">Knot Connect</string>
   <string name="scroll_to_top">Scroll to top</string>
   <string name="scroll_to_bottom">Scroll to bottom</string>
     <string name="save">Save</string>

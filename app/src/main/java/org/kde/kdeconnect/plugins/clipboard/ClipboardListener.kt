@@ -90,7 +90,7 @@ class ClipboardListener(private val context: Context) {
         if (this::cm.isInitialized) {
             updateTimestamp = System.currentTimeMillis()
             currentContent = text
-            cm.setPrimaryClip(ClipData(ClipDescription("KDE Connect Clipboard Sync", arrayOf(MIMETYPE_TEXT_PLAIN)), ClipData.Item(text) ))
+            cm.setPrimaryClip(ClipData(ClipDescription("Knot Connect Clipboard Sync", arrayOf(MIMETYPE_TEXT_PLAIN)), ClipData.Item(text) ))
         }
     }
 

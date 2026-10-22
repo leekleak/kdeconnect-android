@@ -1,4 +1,11 @@
-# KDE Connect - Android app
+> [!WARNING]
+> This project carries no obligation of continued support and is intended as a playground for improving the UX of KDE Connect. For stability and new features please use official KDE Connect. For more information read the "What is this?" section.
+
+# Knot Connect - KDE Connect
+
+<p align="center">
+  <img src="branding/icon.svg" width="160" alt="Knot Connect icon"/>
+</p>
 
 ## Screenshots
 <table>
@@ -19,38 +26,20 @@
   </tr>
 </table>
 
-KDE Connect is a multi-platform app that allows your devices to communicate (eg: your phone and your computer).
+## What is this?
+A new design for KDE Connect has been in the works, mostly by me (leekleak):
+https://invent.kde.org/network/kdeconnect-meta/-/work_items/29
 
-## (Some) Features
-- **Shared clipboard**: copy and paste between your phone and your computer (or any other device).
-- **Notification sync**: Read and reply to your Android notifications from the desktop.
-- **Share files and URLs** instantly from one device to another.
-- **Multimedia remote control**: Use your phone as a remote for Linux media players.
-- **Virtual touchpad**: Use your phone screen as your computer's touchpad and keyboard.
+The problem is that the scope of it is very big. It includes rewriting pretty much every part of the app's UI and a good part of the back-end too. The end goal is a UX experience that just makes sense.
 
-All this without wires, over the already existing Wi-Fi network, and using TLS encryption.
+Getting the redesign in would likely take over a year of pull requests and a lot of extra work work making sure the intermediate states work well and do not introduce huge bugs or cause data loss.
 
-## About this app
+That is not a commitment I am willing to make. Instead, however, I took whatever time I had this summer to work on a complete implementation of the UI and all the required backend changes. The resulting project is largely a functioning and while I have been using it daily for a long time now, your mileage may vary.
 
-This is a native Android port of the KDE Connect Qt app. You will find a more complete readme about KDE Connect [here](https://invent.kde.org/network/kdeconnect-kde/).
+### Is this official?
+This is a question received many times. While the answer should be already clear based on the previous paragraphs, the gist is that this is NOT an official KDE project.
 
-## How to install this app
-
-You can install this app from the [Play Store](https://play.google.com/store/apps/details?id=com.leekleak.knot) as well as [F-Droid](https://f-droid.org/repository/browse/?fdid=com.leekleak.knot). Note you will also need to install the [desktop app](https://invent.kde.org/network/kdeconnect-kde) for it to work.
-
-## Contributing
-
-A lot of useful information, including how to get started working on KDE Connect and how to connect with the current developers, is on our [KDE Community Wiki page](https://community.kde.org/KDEConnect)
-
-For bug reporting, please use [KDE's Bugzilla](https://bugs.kde.org). Please do not use the issue tracker in GitLab since we want to keep everything in one place.
-
-To contribute patches, use [KDE Connect's Gitlab](https://invent.kde.org/network/kdeconnect-android/).
-On Gitlab (as well as on our [old Phabricator](https://phabricator.kde.org/tag/kde_connect/)) you can find a task list with stuff to do and links to other relevant resources.
-It is a good idea to also subscribe to the [KDE Connect mailing list](https://mail.kde.org/mailman/listinfo/kdeconnect).
-
-Please know that all translations for all KDE apps are handled by the [localization team](https://l10n.kde.org/). If you would like to submit a translation, that should be done by working with the proper team for that language.
+The design IS officialy noted as a goal to aim for, but this implemention is unaffiliated with anyone from KDE.
 
 ## License
 [GNU GPL v2](https://www.gnu.org/licenses/gpl-2.0.html) and [GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html)
-
-If you are reading this from GitHub, you should know that this is just a mirror of the [KDE Project repo](https://invent.kde.org/network/kdeconnect-android/).

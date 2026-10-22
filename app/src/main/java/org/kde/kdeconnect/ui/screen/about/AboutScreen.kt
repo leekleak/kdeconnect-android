@@ -8,7 +8,6 @@ package org.kde.kdeconnect.ui.screen.about
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -34,6 +33,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.leekleak.knot.R
 import org.kde.kdeconnect.ui.about.AboutData
 import org.kde.kdeconnect.ui.about.AboutPerson
 import org.kde.kdeconnect.ui.components.BackAction
@@ -42,13 +42,11 @@ import org.kde.kdeconnect.ui.components.HazeScaffold
 import org.kde.kdeconnect.ui.components.KdeThemePreviews
 import org.kde.kdeconnect.ui.components.card
 import org.kde.kdeconnect.ui.navigation.Navigator
-import com.leekleak.knot.R
 
 @Composable
 fun AboutScreen(
     aboutData: AboutData,
     onReportBugClicked: () -> Unit,
-    onDonateClicked: () -> Unit,
     onSourceCodeClicked: () -> Unit,
     onLicensesClicked: () -> Unit,
     onWebsiteClicked: () -> Unit,
@@ -73,7 +71,6 @@ fun AboutScreen(
             item {
                 ActionButtons(
                     onReportBugClicked = onReportBugClicked,
-                    onDonateClicked = onDonateClicked,
                     onSourceCodeClicked = onSourceCodeClicked,
                     onLicensesClicked = onLicensesClicked,
                     onWebsiteClicked = onWebsiteClicked
@@ -96,12 +93,14 @@ private fun AppInfoCard(
             .fillMaxWidth()
             .card()
             .padding(16.dp),
-        verticalAlignment = Alignment.Top
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Image(
+        Icon(
             painter = painterResource(id = aboutData.icon),
             contentDescription = null,
-            modifier = Modifier.size(52.dp)
+            modifier = Modifier.padding(8.dp).size(36.dp),
+            tint = MaterialTheme.colorScheme.onSurface
         )
 
         Column(
@@ -124,7 +123,6 @@ private fun AppInfoCard(
 @Composable
 private fun ActionButtons(
     onReportBugClicked: () -> Unit,
-    onDonateClicked: () -> Unit,
     onSourceCodeClicked: () -> Unit,
     onLicensesClicked: () -> Unit,
     onWebsiteClicked: () -> Unit
@@ -141,11 +139,6 @@ private fun ActionButtons(
             textRes = R.string.report_bug,
             iconRes = R.drawable.bug_report,
             onClick = onReportBugClicked
-        )
-        ActionIconTextButton(
-            textRes = R.string.donate,
-            iconRes = R.drawable.attach_money,
-            onClick = onDonateClicked
         )
         ActionIconTextButton(
             textRes = R.string.source_code,
@@ -263,7 +256,6 @@ private fun AboutScreenPreview() {
         AboutScreen(
             aboutData = AboutData(),
             onReportBugClicked = {},
-            onDonateClicked = {},
             onSourceCodeClicked = {},
             onLicensesClicked = {},
             onWebsiteClicked = {},

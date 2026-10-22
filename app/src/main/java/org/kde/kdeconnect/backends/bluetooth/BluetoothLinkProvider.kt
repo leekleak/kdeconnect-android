@@ -136,7 +136,7 @@ class BluetoothLinkProvider(
 
         override fun run() {
             serverSocket = try {
-                bluetoothAdapter!!.listenUsingRfcommWithServiceRecord("KDE Connect", SERVICE_UUID)
+                bluetoothAdapter!!.listenUsingRfcommWithServiceRecord("Knot Connect", SERVICE_UUID)
             } catch (e: IOException) {
                 LoggerTagged.e(e) { "Exception" }
                 return
@@ -353,7 +353,7 @@ class BluetoothLinkProvider(
                 socket.connect()
                 sockets[device] = socket
             } catch (e: IOException) {
-                LoggerTagged.e(e) { "Could not connect to KDE Connect service on " + device!!.address }
+                LoggerTagged.e(e) { "Could not connect to Knot Connect service on " + device!!.address }
                 return
             } catch (e: SecurityException) {
                 LoggerTagged.e(e) { "Security Exception connecting to " + device!!.address }

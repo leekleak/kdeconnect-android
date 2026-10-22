@@ -152,10 +152,10 @@ private fun BottomSheetContent(
         backgroundSize = 164.dp,
         iconSize = 88.dp,
         /**
-         * Want to make it really clear that it's KDE Connect requesting this permission
+         * Want to make it really clear that it's Knot Connect requesting this permission
          * as this sheet may be overlaid on top of other apps.
          **/
-        icon = R.drawable.ic_kde_24dp
+        icon = R.drawable.ic_knot_24dp
     )
     Spacer(Modifier.height(16.dp))
     Row(

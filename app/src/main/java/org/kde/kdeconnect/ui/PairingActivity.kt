@@ -112,7 +112,7 @@ private fun BottomSheetContent(
     IconHero(
         backgroundSize = 164.dp,
         iconSize = 88.dp,
-        icon = R.drawable.ic_kde_24dp
+        icon = R.drawable.ic_knot_24dp
     )
     Spacer(Modifier.height(16.dp))
     Row(

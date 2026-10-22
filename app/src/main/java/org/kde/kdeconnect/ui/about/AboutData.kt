@@ -7,12 +7,11 @@ import com.leekleak.knot.R
 
 data class AboutData(
     @StringRes val name: Int = R.string.kde_connect,
-    @DrawableRes val icon: Int = R.drawable.icon,
+    @DrawableRes val icon: Int = R.drawable.ic_knot_24dp,
     val versionName: String = BuildConfig.VERSION_NAME,
-    val bugURL: String = "https://bugs.kde.org/enter_bug.cgi?product=kdeconnect&amp;component=android-application",
-    val websiteURL: String = "https://kdeconnect.kde.org/",
-    val sourceCodeURL: String = "https://invent.kde.org/network/kdeconnect-android/",
-    val donateURL: String = "https://kde.org/community/donations/?app=kdeconnect-android",
+    val bugURL: String = "https://github.com/leekleak/kdeconnect-android/issues",
+    val websiteURL: String = "https://github.com/leekleak/kdeconnect-android#readme",
+    val sourceCodeURL: String = "https://github.com/leekleak/kdeconnect-android",
     @StringRes val authorsFooterText: Int = R.string.everyone_else,
     val authors: List<AboutPerson> = listOf(
         AboutPerson("Albert Vaca Cintora", R.string.maintainer_and_developer, "albertvaka+kde@gmail.com"),

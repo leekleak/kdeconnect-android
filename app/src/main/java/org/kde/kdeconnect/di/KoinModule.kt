@@ -194,11 +194,6 @@ val aboutModule = module {
                     context?.startActivity(Intent(Intent.ACTION_VIEW, it.toUri()))
                 }
             },
-            onDonateClicked = {
-                aboutData.donateURL.let {
-                    context?.startActivity(Intent(Intent.ACTION_VIEW, it.toUri()))
-                }
-            },
             onSourceCodeClicked = {
                 aboutData.sourceCodeURL.let {
                     context?.startActivity(Intent(Intent.ACTION_VIEW, it.toUri()))

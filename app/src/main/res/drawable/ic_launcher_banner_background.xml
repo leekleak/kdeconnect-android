@@ -2,9 +2,19 @@
     xmlns:aapt="http://schemas.android.com/aapt"
     android:width="320dp"
     android:height="180dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
+    android:viewportWidth="320"
+    android:viewportHeight="180">
   <path
-      android:pathData="m0,0h320v108h-320z"
-      android:fillColor="@color/launcher_background"/>
+      android:pathData="M0,0h320v180h-320z">
+    <aapt:attr name="android:fillColor">
+      <gradient
+          android:centerX="320"
+          android:centerY="180"
+          android:gradientRadius="700"
+          android:type="radial">
+        <item android:offset="0" android:color="@color/launcher_background"/>
+        <item android:offset="1" android:color="#FFEFFAED"/>
+      </gradient>
+    </aapt:attr>
+  </path>
 </vector>

@@ -148,7 +148,7 @@ class MprisReceiverPlugin(context: Context, device: Device) : Plugin(context, de
     }
 
     private fun createPlayer(controller: MediaController) {
-        // Skip the media session we created ourselves as KDE Connect
+        // Skip the media session we created ourselves as Knot Connect
         if (controller.packageName == context.packageName) return
 
         val player = MprisReceiverPlayer(controller, appNameLookup(context, controller.packageName))

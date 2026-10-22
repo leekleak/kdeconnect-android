@@ -116,7 +116,7 @@ fun PermissionsScreen(
                 .padding(top = 56.dp)
                 .size(112.dp)
                 .align(Alignment.CenterHorizontally),
-            painter = painterResource(R.drawable.ic_kde_24dp),
+            painter = painterResource(R.drawable.ic_knot_24dp),
             contentDescription = null,
             tint = colorScheme.onSurface,
         )
