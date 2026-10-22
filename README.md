@@ -1,11 +1,12 @@
+<div align="center">
+  <img src="branding/icon.svg" width="160" alt="Knot Connect icon"/>
+  <br>
+  <h1>Knot Connect</h1> 
+  <h3>KDE Connect redesigned</h3>
+</div>
+
 > [!WARNING]
 > This project carries no obligation of continued support and is intended as a playground for improving the UX of KDE Connect. For stability and new features please use official KDE Connect. For more information read the "What is this?" section.
-
-# Knot Connect - KDE Connect
-
-<p align="center">
-  <img src="branding/icon.svg" width="160" alt="Knot Connect icon"/>
-</p>
 
 ## Screenshots
 <table>
